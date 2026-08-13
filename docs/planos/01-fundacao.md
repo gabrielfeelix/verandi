@@ -349,7 +349,25 @@ create policy vocabulario_le on vocabulario
 create policy vocabulario_escreve on vocabulario
   for all using (public.tem_papel(conta_id, array['dono','suporte']::papel[]))
       with check (public.tem_papel(conta_id, array['dono','suporte']::papel[]));
+
+-- Tabela criada por migration não ganha privilégio sozinha: sem isto, até a
+-- chave de serviço leva `42501 permission denied`. RLS decide QUAIS linhas;
+-- o GRANT decide se a role pode falar com a tabela. São camadas diferentes e
+-- as duas precisam existir.
+--
+-- `anon` fica de fora de propósito: sem `auth.uid()` ela não passaria por
+-- política nenhuma, e não conceder é mais barato que confiar que não passa.
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant all on all tables in schema public to service_role;
+grant execute on all functions in schema public to authenticated, service_role;
 ```
+
+> **Erro que aparece se esquecer o bloco de `grant`:** `42501 permission denied
+> for table conta`, **inclusive usando a chave de serviço**. É fácil confundir
+> com política de RLS mal escrita e perder uma hora ali. Se o erro for `42501`,
+> olhe o `grant` antes de olhar a política. As migrations seguintes repetem o
+> bloco, porque `all tables in schema public` só alcança o que já existe.
 
 - [ ] **Passo 2: Aplicar e conferir que sobe**
 
