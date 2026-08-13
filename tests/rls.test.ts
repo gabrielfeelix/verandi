@@ -56,4 +56,21 @@ describe('isolamento entre contas', () => {
     const { data } = await cliente.from('conta').select('id')
     expect(data).toEqual([])
   })
+
+  it('pessoa não vaza entre contas', async () => {
+    const a = admin()
+    await a.from('pessoa').insert([
+      { conta_id: contaA, nome: 'Helena da conta A' },
+      { conta_id: contaB, nome: 'Otávio da conta B' },
+    ])
+    const { data } = await clienteA.from('pessoa').select('nome')
+    expect(data?.map((p) => p.nome)).toEqual(['Helena da conta A'])
+  })
+
+  it('pessoa sem telefone é aceita — 30% do dado real não tem', async () => {
+    const { data, error } = await clienteA.from('pessoa')
+      .insert({ conta_id: contaA, nome: 'Só o nome' }).select().single()
+    expect(error).toBeNull()
+    expect(data?.telefone).toBeNull()
+  })
 })

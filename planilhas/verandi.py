@@ -217,29 +217,36 @@ def monta(saida):
         subtitulo(wm, 'A2', 'Marque a presença usando os códigos da aba Config. As datas de cada dia estão na tabela ao lado.')
         wm.merge_cells('A2:F2'); wm.row_dimensions[2].height = 26
 
-        # datas de cada dia da semana no mês, por fórmula
-        rot = wm.cell(4, 12, 'Datas do mês')
-        rot.font = fonte(9, True, 'FFFFFF'); rot.fill = fundo(MARCA); rot.alignment = CENTRO
-        for c in range(13, 18):
-            h = wm.cell(4, c, f'{c-12}ª'); h.font = fonte(9, True, 'FFFFFF')
+        # O cabeçalho do mês ocupa a largura da tabela, e não um bloco solto
+        # no canto: as datas ficam **em cima das colunas que elas explicam**
+        # (1ª a 5ª), e a legenda dos códigos fica ao lado, que é onde a pessoa
+        # olha enquanto marca. Antes isso morava lá na direita e deixava meia
+        # folha vazia no meio do caminho.
+        for c, txt in [(1, 'Dia'), (2, 'Como marcar')]:
+            h = wm.cell(4, c, txt); h.font = fonte(9, True, 'FFFFFF')
             h.fill = fundo(MARCA); h.alignment = CENTRO
+        wm.merge_cells('B4:D4')
+        for k in range(5):
+            h = wm.cell(4, 5 + k, f'{k+1}ª'); h.font = fonte(9, True, 'FFFFFF')
+            h.fill = fundo(MARCA); h.alignment = CENTRO
+
+        legenda = [('P', 'presente'), ('F', 'faltou'), ('FJ', 'faltou e avisou'),
+                   ('REP', 'veio repor outra aula'), ('TR', 'trocou de horário'),
+                   ('LIC', 'afastado por um período'), ('—', 'não houve aula')]
         for j, dia in enumerate(DIAS):
             r = 5 + j
-            wm.cell(r, 12, dia).font = fonte(9, False, GRAFITE)
+            d = wm.cell(r, 1, dia); d.font = fonte(9, False, GRAFITE); d.alignment = ESQ
+            cod, sig = legenda[j]
+            a = wm.cell(r, 2, cod); a.font = fonte(9, True, MARCA); a.alignment = CENTRO
+            b = wm.cell(r, 3, sig); b.font = fonte(9, False, GRAFITE); b.alignment = ESQ
+            wm.merge_cells(start_row=r, start_column=3, end_row=r, end_column=4)
             for k in range(5):
                 base = (f'DATE(Config!$C$5,{i},1)+MOD({j+1}-WEEKDAY(DATE(Config!$C$5,{i},1),2)+7,7)+7*{k}')
-                f = f'=IF(MONTH({base})={i},{base},"")'
-                c = wm.cell(r, 13 + k, f)
+                c = wm.cell(r, 5 + k, f'=IF(MONTH({base})={i},{base},"")')
                 c.number_format = 'dd/mm'; c.font = fonte(9); c.alignment = CENTRO
-                c.border = borda()
-        for col, w in zip('LMNOPQ', [14, 9, 9, 9, 9, 9]): wm.column_dimensions[col].width = w
-        wm.column_dimensions['K'].width = 3
-        # Listra só nas colunas do bloco. Antes ela varria a largura inteira e
-        # o bloco de datas parecia sujeira solta no meio da folha.
-        for r2 in range(5, 12):
-            if (r2 - 5) % 2 == 1:
-                for c in range(12, 18): wm.cell(r2, c).fill = fundo(FUNDO)
-        for c in range(12, 18): wm.cell(11, c).border = borda()
+            for c in range(1, 10): wm.cell(r, c).border = borda()
+            if j % 2 == 1:
+                for c in range(1, 10): wm.cell(r, c).fill = fundo(FUNDO)
 
         cols = ['Dia', 'Hora', 'Quem atende', 'Aluno', '1ª', '2ª', '3ª', '4ª', '5ª', 'Faltas']
         cabecalho(wm, 13, cols, [13, 9, 18, 30, 7, 7, 7, 7, 7, 9])
@@ -252,7 +259,7 @@ def monta(saida):
         zebra(wm, prim, ult, 10)
         wm.freeze_panes = f'A{prim}'
         wm.auto_filter.ref = f'A13:J{ult}'
-        wm.print_area = f'A1:Q{prim + 55}'
+        wm.print_area = f'A1:J{prim + 55}'
         dvd = DataValidation(type='list', formula1=f'="{",".join(DIAS)}"', allow_blank=True)
         wm.add_data_validation(dvd); dvd.add(f'A{prim}:A{ult}')
         dvm = DataValidation(type='list', formula1='=marcas', allow_blank=True)
