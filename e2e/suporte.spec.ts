@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test'
-import { admin, contaDeTeste, entrar, usuarioDe } from './apoio'
+import { admin, contaDeTeste, contaInterna, entrar, usuarioDe } from './apoio'
 
-/** Uma conta onde alguém tem papel de suporte — é assim que a 4YU existe. */
+/** Alguém com papel de suporte na conta interna — é assim que a 4YU existe. */
 async function comoSuporte() {
-  const base = await contaDeTeste('4YU interna')
-  const { email, usuarioId } = await usuarioDe(base.contaId, 'suporte', `${base.marca}-sup`)
-  return { ...base, email, usuarioId }
+  const marca = `${Date.now()}-sup`
+  const contaId = await contaInterna()
+  const { email, usuarioId } = await usuarioDe(contaId, 'suporte', marca)
+  return { contaId, marca, email, usuarioId }
 }
 
 test('a 4YU cria conta e recebe o convite do dono', async ({ page }) => {
@@ -98,6 +99,39 @@ test('sair do suporte encerra o registro e devolve a conta', async ({ page }) =>
     .select('*', { count: 'exact', head: true })
     .eq('conta_id', cliente.contaId).eq('usuario_id', s.usuarioId)
   expect(count).toBe(0)
+})
+
+test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
+  const s = await comoSuporte()
+  const nome = `Academia Aurora ${Date.now()}`
+  await contaDeTeste(nome)
+
+  await entrar(page, s.email)
+  await page.goto('/contas-4yu')
+  await page.getByRole('listitem')
+    .filter({ hasText: nome })
+    .getByRole('button', { name: 'Entrar como suporte' })
+    .click()
+  await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
+
+  await page.getByRole('button', { name: 'Sair do suporte' }).click()
+  await expect(page.getByText(/como suporte da 4YU/)).toBeHidden()
+
+  // o vínculo da conta interna é o que faz ser da 4YU: continua de pé
+  await page.goto('/contas-4yu')
+  await expect(page).toHaveURL(/\/contas-4yu/)
+  const { count } = await admin.from('usuario_conta')
+    .select('*', { count: 'exact', head: true })
+    .eq('usuario_id', s.usuarioId).eq('conta_id', s.contaId)
+  expect(count).toBe(1)
+})
+
+test('a conta da própria 4YU não aparece como cliente', async ({ page }) => {
+  const s = await comoSuporte()
+
+  await entrar(page, s.email)
+  await page.goto('/contas-4yu')
+  await expect(page.getByRole('listitem').filter({ hasText: '4yu' })).toHaveCount(0)
 })
 
 test('quem não é da 4YU não alcança a tela de contas', async ({ page }) => {

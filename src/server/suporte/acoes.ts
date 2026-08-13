@@ -91,6 +91,12 @@ export async function entrarComoSuporte(contaId: string): Promise<void> {
   const { usuarioId } = await exigirSuporte()
   const admin = clienteAdmin()
 
+  // a conta interna não é cliente, e entrar nela criaria o laço que este
+  // desenho existe para cortar: sair apagaria o vínculo que dá acesso à tela
+  const { data: alvo } = await admin.from('conta')
+    .select('interna').eq('id', contaId).single<{ interna: boolean }>()
+  if (alvo?.interna) throw new Error('a conta da 4YU não é conta de cliente')
+
   const { error: erroVinculo } = await admin.from('usuario_conta').upsert({
     usuario_id: usuarioId, conta_id: contaId, papel: 'suporte', ativo: true,
   }, { onConflict: 'usuario_id,conta_id' })
@@ -129,9 +135,15 @@ export async function sairDoSuporte(): Promise<void> {
       .update({ encerrado_em: new Date().toISOString() }).eq('id', aberto[0].id)
   }
 
-  // o vínculo era temporário: sai junto, para a conta não continuar na lista
-  await admin.from('usuario_conta')
-    .delete().eq('usuario_id', user.id).eq('conta_id', contaId).eq('papel', 'suporte')
+  // o vínculo era temporário: sai junto, para a conta não continuar na lista.
+  // Nunca na conta interna — lá o vínculo é o que faz o usuário ser da 4YU, e
+  // apagá-lo tirava o acesso a tudo.
+  const { data: onde } = await admin.from('conta')
+    .select('interna').eq('id', contaId).single<{ interna: boolean }>()
+  if (!onde?.interna) {
+    await admin.from('usuario_conta')
+      .delete().eq('usuario_id', user.id).eq('conta_id', contaId).eq('papel', 'suporte')
+  }
 
   jar.delete('conta')
   revalidatePath('/', 'layout')

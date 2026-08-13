@@ -3,33 +3,52 @@
 Arquivo de leitura obrigatória ao voltar ao projeto. É o único que pode estar
 desatualizado sem causar dano — desde que se saiba disso.
 
-**Última atualização:** 13/ago/2026 · **Planos 01, 02 e 03 concluídos, incluindo
-a Tarefa 11 (vestir). Falta a Tarefa 10 — a prova manual de ponta a ponta.**
+**Última atualização:** 13/ago/2026 · **Plano 03 fechado: a Tarefa 10 foi feita
+de ponta a ponta em banco virgem, e os dois defeitos que ela achou estão
+corrigidos.**
 
 ---
 
 ## Em uma frase
 
-Uma conta nasce vazia, se configura inteira pela tela e opera a semana — e
-agora com a cara do protótipo, tela por tela, conferida em captura lado a lado.
-O que falta é a prova de ponta a ponta feita à mão.
+Uma conta nasce vazia, se configura inteira pela tela e opera a semana — com a
+cara do protótipo, e agora com a jornada inteira provada à mão num banco sem
+uma linha.
 
 ## O próximo passo, em ordem
 
-1. **Tarefa 10 — a prova manual de ponta a ponta.** É a única coisa que falta do
-   Plano 03, e é a que prova a promessa do produto: a conta se configura
-   sozinha. O caminho, sem `psql` e sem seed: entrar como `suporte@dev.local` →
-   criar conta em `/contas-4yu` → copiar o link do convite → aceitar e definir
-   senha → cadastrar serviço, profissional e local em `/config` → montar uma
-   grade de três dias em `/grade` → convidar uma recepção → cadastrar uma pessoa
-   → criar a vaga na ficha dela → registrar a chamada em `/sessao/[id]`. O que
-   travar no caminho é defeito real: essa jornada nunca foi feita inteira pela
-   tela.
-2. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+1. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
    e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
    dói no banco de desenvolvimento.
-3. **Marco 2** — API v1 para o AutoFluxos, eventos de saída, e-mail, confirmação
+2. **Marco 2** — API v1 para o AutoFluxos, eventos de saída, e-mail, confirmação
    por bot. Nada disso exige tabela nova.
+
+## A Tarefa 10, e o que ela achou
+
+A jornada inteira, sem `psql` e sem seed, num banco recém-resetado: suporte
+entra → cria a conta em `/contas-4yu` → copia o convite → o dono define a senha
+→ cadastra serviço, profissional e local em `/config` → monta uma grade de três
+dias em `/grade` → convida uma recepção → cadastra uma pessoa → cria a vaga na
+ficha → registra a chamada em `/sessao/[id]`, que termina em **"Chamada feita"**.
+Treze passos, todos pela tela.
+
+Dois defeitos apareceram, e nenhum teste os pegava — os dois viviam no espaço
+entre "cada peça funciona" e "a primeira instalação existe":
+
+- **O primeiro suporte não nascia.** `usuario_conta.conta_id` é `not null`,
+  `ehSuporte` exige a linha e criar conta exige ser suporte: banco novo travava
+  antes do primeiro clique, e só o seed furava. Agora existe a **conta interna**
+  (migration `0010`), e o primeiro usuário entra por
+  `node scripts/bootstrap-suporte.mjs <e-mail>`.
+- **Sair do suporte apagava o suporte.** O vínculo temporário e o vínculo que
+  diz "é da 4YU" eram a mesma linha: entrar e sair da conta que hospedava o
+  vínculo deixava o usuário sem acesso a nada. Agora `ehSuporte` só olha a conta
+  interna, ela não é listada como cliente, e `sairDoSuporte` nunca apaga o
+  vínculo de lá.
+
+Um terceiro achado é atrito, não defeito, e ficou como está: o botão **"Entrar
+na conta"** do convite não entra — leva a `/entrar?novo=1`, com o texto trocado
+mas sem o e-mail preenchido.
 
 ## Verificado agora
 
@@ -37,7 +56,8 @@ O que falta é a prova de ponta a ponta feita à mão.
 |---|---|
 | `npm run build` | limpo |
 | `npm test` | **209 passaram** |
-| `npm run test:e2e` | **87 passaram** |
+| `npm run test:e2e` | **89 passaram** |
+| Tarefa 10, jornada inteira em banco virgem | 13 passos, terminou em "Chamada feita" |
 | `core/` sem import de banco, Next ou rede | limpo |
 | nenhuma tela com "Aluno"/"Turma"/"Paciente"/"Professor" fixo | limpo |
 | nenhum "hoje" calculado em UTC no servidor | limpo |
@@ -46,11 +66,12 @@ O que falta é a prova de ponta a ponta feita à mão.
 
 ## O que existe
 
-**Banco** — nove migrations, RLS com política em todas as tabelas, provada por
+**Banco** — dez migrations, RLS com política em todas as tabelas, provada por
 teste.
 
 ```
-conta (com os padrões da operação) · usuario_conta · vocabulario · convite
+conta (com os padrões da operação; `interna` marca a conta da própria 4YU)
+usuario_conta · vocabulario · convite
 pessoa · pessoa_tag · profissional · profissional_servico · servico · local
 serie · vaga · sessao · participacao · excecao_calendario
 funcionamento · pendencia_dispensada · acesso_suporte · log_configuracao
@@ -98,11 +119,10 @@ inventá-la seria pior do que deixá-la faltando.
 
 ## O que falta
 
-### Plano 03 — o que sobrou
+### Plano 03 — fechado
 
-- **Tarefa 10, fechamento:** a prova manual de ponta a ponta (criar conta →
-  aceitar convite → cadastrar → montar grade → convidar recepção → registrar
-  chamada), sem `psql` e sem seed.
+- **Tarefa 10: feita.** A jornada inteira pela tela, num banco virgem. O que ela
+  achou está na seção lá em cima.
 - **Tarefa 11, vestir: feita.** O trilho lateral escuro substituiu a barra de
   links, e as doze telas foram refeitas contra a captura do protótipo. Entraram
   junto as três coisas que o modelo aguentava e a tela não expunha: o **menu por
@@ -187,6 +207,10 @@ node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
 npm run dev
 ```
 
+Instalação nova, sem seed: a migration `0010` cria a conta interna, e
+`node scripts/bootstrap-suporte.mjs <e-mail>` faz o primeiro usuário da 4YU. É
+por aí que a tela de contas passa a existir.
+
 Entrar com `dono@dev.local`, `prof@dev.local`, `recepcao@dev.local` ou
 `suporte@dev.local` (este último é o único jeito de ver `/contas-4yu`), senha
 `senha-de-teste-123`. **`supabase db reset` apaga o seed** — rode o semeador de
@@ -238,6 +262,12 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   navegador buscam por papel e por texto: mudar "Todos vieram" para "Marcar
   todos presentes" quebra dez deles. Atualizar o teste é certo — desde que o
   commit diga qual texto mudou e por quê.
+- **O papel `suporte` mora na conta interna, nunca na de cliente.** O vínculo em
+  conta de cliente é temporário e é apagado ao sair; se ele também respondesse
+  por "é da 4YU", sair de uma conta tiraria o acesso a tudo. Foi assim que era.
+- **Plano escrito não quer dizer plano certo.** A Tarefa 10 estava escrita como
+  "entrar como `suporte@dev.local`" num banco sem seed — passo impossível, e
+  ninguém tinha percebido porque a jornada nunca fora feita inteira.
 - **Ler o código do protótipo não substitui abrir a tela dele.** Foi o erro que
   originou o `VESTIR.md`: tokens certos, telas genéricas. Rode os dois
   capturadores e compare 1440×1000 lado a lado.

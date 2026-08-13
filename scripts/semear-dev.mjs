@@ -144,7 +144,12 @@ async function main() {
   })
 
   // o `suporte` entra no seed porque a tela da 4YU não tem outro jeito de ser
-  // vista em desenvolvimento — sem ele, `/contas-4yu` redireciona para `/hoje`
+  // vista em desenvolvimento — sem ele, `/contas-4yu` redireciona para `/hoje`.
+  // Ele mora na conta interna, não nesta: na conta de cliente, sair do suporte
+  // apagaria o vínculo e levaria o acesso junto.
+  const { data: interna } = await db.from('conta')
+    .select('id').eq('interna', true).maybeSingle()
+
   for (const [n, papel] of [['prof', 'profissional'], ['dono', 'dono'],
                             ['recepcao', 'recepcao'], ['suporte', 'suporte']]) {
     const email = `${n}@dev.local`
@@ -153,7 +158,11 @@ async function main() {
     const id = achado?.id ??
       (await db.auth.admin.createUser({ email, password: SENHA, email_confirm: true }))
         .data.user.id
-    await db.from('usuario_conta').insert({ usuario_id: id, conta_id: contaId, papel })
+    const onde = papel === 'suporte' ? interna.id : contaId
+    await db.from('usuario_conta').upsert(
+      { usuario_id: id, conta_id: onde, papel },
+      { onConflict: 'usuario_id,conta_id' },
+    )
   }
 
   // liga a professora Marina ao usuário `prof@dev.local`, para a tela Hoje

@@ -240,6 +240,14 @@ mesma professora atender dois estúdios.
 | `profissional` | a agenda dele, as pessoas dele, registrar atendimento |
 | `suporte` | acesso da 4YU, para configurar e diagnosticar; toda ação fica registrada |
 
+O papel `suporte` mora numa **conta interna** — a conta da própria 4YU
+(`conta.interna`, uma só, criada pela migration `0010`). Ela não aparece em
+`/contas-4yu` e ninguém entra nela como suporte. Duas coisas dependem disso: o
+primeiro suporte só nasce assim (`usuario_conta.conta_id` é `not null`, e criar
+conta exige já ser suporte — banco novo travava antes do primeiro clique), e
+sair do suporte apaga o vínculo temporário da conta de cliente sem tocar no que
+diz quem é da 4YU. Instalação nova: `node scripts/bootstrap-suporte.mjs <e-mail>`.
+
 O papel `recepcao` existe porque em salão e clínica quem marca não é quem atende.
 No pilates é a mesma pessoa — e é exatamente o tipo de diferença que tem que ser
 papel, não sistema diferente.

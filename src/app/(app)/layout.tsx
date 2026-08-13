@@ -59,8 +59,10 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-dvh">
-      {/* A faixa fica acima de tudo e não some enquanto o suporte estiver dentro. */}
-      {conta.papel === 'suporte' ? <FaixaSuporte conta={conta.nome} /> : null}
+      {/* A faixa fica acima de tudo e não some enquanto o suporte estiver dentro
+          de conta de cliente. Na conta da própria 4YU não há o que avisar. */}
+      {conta.papel === 'suporte' && !conta.interna
+        ? <FaixaSuporte conta={conta.nome} /> : null}
 
       <div className="flex min-h-dvh">
         <Rail

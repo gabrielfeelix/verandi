@@ -58,6 +58,16 @@ export async function contaDeTeste(nome = 'Estúdio E2E') {
   }
 }
 
+/**
+ * A conta da própria 4YU, criada pela migration `0010`. É onde o papel
+ * `suporte` mora: em conta de cliente, sair do suporte apaga o vínculo.
+ */
+export async function contaInterna(): Promise<string> {
+  const c = ou<Id>(await admin.from('conta')
+    .select('id').eq('interna', true).single<Id>(), 'achar a conta interna')
+  return c.id as string
+}
+
 export async function usuarioDe(contaId: string, papel: string, marca: string) {
   const email = `${papel}-${marca}@teste.local`
   const { data, error } = await admin.auth.admin.createUser({

@@ -24,11 +24,15 @@ export async function ehSuporte(db: Db): Promise<boolean> {
   const { data: { user } } = await db.auth.getUser()
   if (!user) return false
 
+  // o vínculo que vale é o da conta interna. Entrar como suporte cria vínculo
+  // temporário em conta de cliente, e sair apaga esse vínculo — se ele também
+  // respondesse por "é da 4YU", sair de uma conta tiraria o acesso à tela.
   const { data } = await db.from('usuario_conta')
-    .select('conta_id')
+    .select('conta_id, conta:conta_id!inner(interna)')
     .eq('usuario_id', user.id)
     .eq('papel', 'suporte')
     .eq('ativo', true)
+    .eq('conta.interna', true)
     .limit(1)
   return (data ?? []).length > 0
 }
@@ -48,6 +52,9 @@ export async function listarContas(): Promise<ContaSinais[]> {
   const { data: contas, error } = await db
     .from('conta')
     .select('id, nome, slug, criado_em, ativo')
+    // a conta da própria 4YU não é cliente: listá-la seria oferecer "entrar
+    // como suporte" na conta onde o suporte mora
+    .eq('interna', false)
     .order('criado_em', { ascending: false })
     .returns<{
       id: string; nome: string; slug: string; criado_em: string; ativo: boolean
