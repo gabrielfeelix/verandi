@@ -864,10 +864,14 @@ describe('as constraints que o modelo depende', () => {
     expect(dois.error?.code).toBe('23505')
   })
 
-  it('passar da capacidade é permitido — capacidade avisa, não bloqueia', async () => {
+  it('o BANCO não conta participação — a regra de lotação mora no core', async () => {
+    // Lotada é lotada, mas quem impede é `core/encaixe` + a ação de servidor,
+    // nunca um gatilho. Gatilho quebraria a importação: no histórico do MGM há
+    // sessões que de fato tiveram mais gente do que a capacidade nominal, e
+    // reescrever isso para caber num limite seria mentir sobre o passado.
     for (let i = 0; i < 5; i++) {
       const { data: p } = await a.from('pessoa')
-        .insert({ conta_id: contaId, nome: `Encaixe ${i}` }).select().single()
+        .insert({ conta_id: contaId, nome: `Histórico ${i}` }).select().single()
       const { error } = await a.from('participacao').insert({
         conta_id: contaId, sessao_id: sessaoId, pessoa_id: p!.id,
         origem: 'encaixe',
@@ -876,7 +880,18 @@ describe('as constraints que o modelo depende', () => {
     }
     const { count } = await a.from('participacao')
       .select('*', { count: 'exact', head: true }).eq('sessao_id', sessaoId)
-    expect(count).toBe(6) // capacidade é 4, e as 6 entraram
+    expect(count).toBe(6)
+  })
+
+  it('a capacidade da sessão é editável sem tocar na série', async () => {
+    // é assim que o profissional abre vaga: sobe a capacidade daquele dia
+    const { error } = await a.from('sessao')
+      .update({ capacidade: 6 }).eq('id', sessaoId)
+    expect(error).toBeNull()
+
+    const { data: serie } = await a.from('serie')
+      .select('capacidade').eq('id', serieId).single()
+    expect(serie?.capacidade).toBe(4) // a grade fixa continua 4
   })
 })
 ```
@@ -884,11 +899,13 @@ describe('as constraints que o modelo depende', () => {
 - [ ] **Passo 4: Rodar e ver passar**
 
 Rodar: `npm test -- tests/constraints.test.ts`
-Esperado: PASSA, 4 testes.
+Esperado: PASSA, 5 testes.
 
-O quarto teste é o mais importante do plano inteiro: ele fixa como decisão de
-produto que **capacidade não bloqueia**. Se alguém um dia "consertar" isso com
-uma constraint, este teste quebra e explica por quê.
+Os dois últimos testes andam juntos e fixam uma decisão de produto: **lotada é
+lotada, e a forma de abrir vaga é aumentar a capacidade daquela sessão** — não
+furar o limite. O banco fica permissivo de propósito, porque a regra precisa
+valer para o que se agenda hoje sem impedir o importador de registrar o que já
+aconteceu.
 
 - [ ] **Passo 5: Commitar**
 
@@ -1112,8 +1129,9 @@ git commit -m "feat(core): expandir série em ocorrências, com exceções"
   - `type StatusParticipacao = 'esperada'|'confirmada'|'presente'|'falta'|'falta_avisada'|'licenca'|'cancelada'`
   - `type Ocupacao = { capacidade: number; ocupadas: number; livres: number; lotada: boolean; excedida: boolean }`
   - `calcularOcupacao(capacidade: number, status: StatusParticipacao[]): Ocupacao`
-  - `type Veredito = { cabe: boolean; excede: boolean; motivo?: 'ja_participa' | 'excede_capacidade' }`
+  - `type Veredito = { cabe: boolean; motivo?: 'ja_participa' | 'lotada'; podeAbrirVaga?: boolean }`
   - `avaliarEncaixe(ocupacao: Ocupacao, jaParticipa: boolean): Veredito`
+  - `temVagaParaOferecer(ocupacao: Ocupacao): boolean`
 
 - [ ] **Passo 1: Escrever o teste (vai falhar)**
 
@@ -1122,7 +1140,7 @@ Criar `tests/unit/ocupacao.test.ts`:
 ```ts
 import { describe, it, expect } from 'vitest'
 import { calcularOcupacao } from '@/core/agenda/ocupacao'
-import { avaliarEncaixe } from '@/core/agenda/encaixe'
+import { avaliarEncaixe, temVagaParaOferecer } from '@/core/agenda/encaixe'
 
 describe('calcularOcupacao', () => {
   it('conta quem ocupa a vaga', () => {
@@ -1157,7 +1175,8 @@ describe('calcularOcupacao', () => {
   })
 
   it('excedida quando passa, e livres nunca fica negativo', () => {
-    const o = calcularOcupacao(2, ['presente', 'presente', 'encaixe' as never, 'presente'])
+    // acontece em dado histórico importado: a sessão de fato teve mais gente
+    const o = calcularOcupacao(2, ['presente', 'presente', 'presente', 'presente'])
     expect(o.ocupadas).toBe(4)
     expect(o.livres).toBe(0)
     expect(o.excedida).toBe(true)
@@ -1171,23 +1190,41 @@ describe('calcularOcupacao', () => {
 describe('avaliarEncaixe', () => {
   it('cabe quando há vaga', () => {
     const o = calcularOcupacao(4, ['presente'])
-    expect(avaliarEncaixe(o, false)).toEqual({ cabe: true, excede: false })
+    expect(avaliarEncaixe(o, false)).toEqual({ cabe: true })
   })
 
-  it('CABE mesmo lotada, avisando que excede', () => {
-    // decisão de produto: no dado real, 47 pessoas estão fora da grade.
-    // um sistema que recusa perde para o Excel, que aceita.
-    const o = calcularOcupacao(2, ['presente', 'presente'])
+  it('NÃO cabe quando lotada — a saída é aumentar a capacidade', () => {
+    // 5 vagas com 5 pessoas é indisponível. A sexta pessoa não vê o horário,
+    // e o bot não oferece. Quem abre vaga é o profissional, subindo a
+    // capacidade daquele dia — aí a vaga passa a existir de verdade.
+    const o = calcularOcupacao(5, ['presente', 'presente', 'presente', 'esperada', 'esperada'])
     expect(avaliarEncaixe(o, false)).toEqual({
-      cabe: true, excede: true, motivo: 'excede_capacidade',
+      cabe: false, motivo: 'lotada', podeAbrirVaga: true,
     })
   })
 
-  it('a MESMA pessoa duas vezes é a única recusa', () => {
+  it('a mesma pessoa duas vezes é recusa sem saída', () => {
     const o = calcularOcupacao(4, ['presente'])
     expect(avaliarEncaixe(o, true)).toEqual({
-      cabe: false, excede: false, motivo: 'ja_participa',
+      cabe: false, motivo: 'ja_participa', podeAbrirVaga: false,
     })
+  })
+
+  it('quem avisou que não vem abre vaga para a reposição', () => {
+    const o = calcularOcupacao(2, ['presente', 'falta_avisada'])
+    expect(avaliarEncaixe(o, false)).toEqual({ cabe: true })
+  })
+})
+
+describe('temVagaParaOferecer', () => {
+  it('cheio NÃO é resultado de busca — nem na tela, nem para o bot', () => {
+    expect(temVagaParaOferecer(calcularOcupacao(2, ['presente', 'presente']))).toBe(false)
+    expect(temVagaParaOferecer(calcularOcupacao(2, ['presente']))).toBe(true)
+  })
+
+  it('sessão histórica acima da capacidade também não oferece', () => {
+    const o = calcularOcupacao(2, ['presente', 'presente', 'presente'])
+    expect(temVagaParaOferecer(o)).toBe(false)
   })
 })
 ```
@@ -1247,35 +1284,48 @@ import type { Ocupacao } from './ocupacao'
 
 export type Veredito = {
   cabe: boolean
-  excede: boolean
-  motivo?: 'ja_participa' | 'excede_capacidade'
+  motivo?: 'ja_participa' | 'lotada'
+  /** lotada tem saída: subir a capacidade da sessão. duplicata não tem. */
+  podeAbrirVaga?: boolean
 }
 
 /**
- * Capacidade avisa, nunca bloqueia.
+ * Lotada é lotada.
  *
- * A única coisa que o sistema recusa é a mesma pessoa duas vezes na mesma
- * sessão, porque isso é sempre erro de dedo. Turma lotada aceita mais um: no
- * dado real do MGM, 47 pessoas estão escritas fora da grade, e isso é a
- * operação funcionando, não bagunça.
+ * Cinco vagas com cinco pessoas é indisponível: a sexta pessoa não vê aquele
+ * horário e o bot não oferece ele. Não existe "encaixar mesmo assim" — o número
+ * na tela precisa ser sempre o que de fato cabe, senão a busca, a tela e o bot
+ * passam a discordar.
+ *
+ * O que existe é o profissional **aumentar a capacidade daquela sessão**. Aí a
+ * vaga passa a existir de verdade, para todo mundo ao mesmo tempo, e a decisão
+ * fica com quem dá a aula.
  */
 export function avaliarEncaixe(ocupacao: Ocupacao, jaParticipa: boolean): Veredito {
-  if (jaParticipa) return { cabe: false, excede: false, motivo: 'ja_participa' }
-  if (ocupacao.livres > 0) return { cabe: true, excede: false }
-  return { cabe: true, excede: true, motivo: 'excede_capacidade' }
+  if (jaParticipa) return { cabe: false, motivo: 'ja_participa', podeAbrirVaga: false }
+  if (ocupacao.livres > 0) return { cabe: true }
+  return { cabe: false, motivo: 'lotada', podeAbrirVaga: true }
+}
+
+/**
+ * A pergunta da busca de vaga e do endpoint `/disponibilidade`, que precisam
+ * dar exatamente a mesma resposta. Cheio não entra na lista.
+ */
+export function temVagaParaOferecer(ocupacao: Ocupacao): boolean {
+  return ocupacao.livres > 0
 }
 ```
 
 - [ ] **Passo 5: Rodar e ver passar**
 
 Rodar: `npm test -- tests/unit/ocupacao.test.ts`
-Esperado: PASSA, 11 testes.
+Esperado: PASSA, 14 testes.
 
 - [ ] **Passo 6: Commitar**
 
 ```bash
 git add src/core/agenda/ocupacao.ts src/core/agenda/encaixe.ts tests/unit/ocupacao.test.ts
-git commit -m "feat(core): ocupação e encaixe — capacidade avisa, não bloqueia"
+git commit -m "feat(core): ocupação e encaixe — lotada é lotada"
 ```
 
 ---
@@ -2049,7 +2099,8 @@ git commit -m "docs: estado do projeto ao fim do plano 01"
 **Cobertura da spec.** Do `ARQUITETURA.md`, este plano implementa: vocabulário
 neutro (T2, T7), série → sessão → participação (T4), materialização sob demanda
 com `UNIQUE` (T4, T8), o passado que não se reescreve (T4 — `sessao` copia
-serviço, profissional, local e capacidade), capacidade que avisa sem bloquear
+serviço, profissional, local e capacidade), lotada é lotada com capacidade
+editável por sessão
 (T4, T6), multi-inquilino com RLS e política (T2, T3, T4), papéis (T2, T9), fuso
 (T8), feriado que nasce cancelado em vez de sumir (T5, T8).
 

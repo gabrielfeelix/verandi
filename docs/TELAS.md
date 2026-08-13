@@ -25,9 +25,15 @@ numa sala, com a mão ocupada. Grade da semana é a única que assume tela larga
 celular ela vira um dia por vez. Todas as outras funcionam iguais nos três
 tamanhos.
 
-**Nada bloqueia.** Turma lotada aceita mais um, com aviso. Data passada aceita
-registro. Pessoa sem telefone é normal — 30% não têm. A única recusa do sistema é
-a mesma pessoa duas vezes na mesma sessão.
+**Lotada é lotada — e abrir vaga é uma ação, não um contorno.** Horário cheio não
+aparece como disponível, nem na tela nem para o bot. Para caber mais um, o
+profissional **aumenta a capacidade daquela sessão**, e aí a vaga existe de
+verdade. Nenhuma tela deve oferecer "encaixar mesmo assim": ou a capacidade sobe,
+ou não cabe.
+
+**Fora capacidade, nada bloqueia.** Data passada aceita registro. Sessão
+cancelada aceita correção. Pessoa sem telefone é normal — 30% não têm. A única
+recusa do banco é a mesma pessoa duas vezes na mesma sessão.
 
 **Desfazer, não confirmar.** Nenhuma ação de registro pede confirmação: ela
 acontece e oferece desfazer. Pedem confirmação só as três destrutivas — cancelar
@@ -145,7 +151,10 @@ substitui a planilha.**
   real 140 de 235 registros são presença
 - mudar o status de uma pessoa: presente, falta, falta avisada, licença
 - **encaixar alguém** — busca uma pessoa existente ou cadastra na hora, escolhendo
-  a origem (avulso, reposição, encaixe, reserva)
+  a origem (avulso, reposição, encaixe, reserva). Se estiver lotada, esta ação só
+  fica disponível depois de aumentar a capacidade
+- **aumentar ou diminuir a capacidade só desta sessão** — não mexe na grade fixa
+  nem nas outras semanas
 - quando é reposição, apontar **qual falta** está sendo reposta, a partir das
   faltas em aberto daquela pessoa
 - remover uma participação
@@ -223,19 +232,25 @@ profissional e local escolhidos. Cada resultado traz dia, horário, profissional
 local e quantas vagas restam.
 
 **Dá para:** escolher serviço, profissional, local e faixa de dias/horários;
-incluir ou não horários lotados (para encaixe); marcar direto a partir de um
-resultado.
+marcar direto a partir de um resultado; ver, numa lista à parte, os horários
+**cheios** — que não são resultado de busca, e sim candidatos a ter a capacidade
+aumentada por quem pode.
 
 **O que importa:**
 
-Livre e lotado são respostas diferentes e as duas são úteis: quando não há vaga, a
-recepção quer ver o quase-cheio para encaixar. Esconder o lotado obriga a pessoa a
-sair da tela para resolver o caso mais comum.
+**Cheio não é resultado.** Esta é a regra mais importante desta tela, e ela é a
+mesma para o bot: se a turma tem cinco vagas e cinco pessoas, aquele horário
+simplesmente não aparece como opção. Mostrar o cheio junto com o livre é o que
+faz a recepção prometer vaga que não existe.
 
-Esta tela e o endpoint do bot **têm que dar a mesma resposta**, porque a
-divergência entre o que a recepção vê e o que o bot diz é o defeito que destrói
-confiança no sistema inteiro. A lógica mora no `core/`, e as duas pontas chamam
-ela.
+Os cheios aparecem separados, rotulados como tal, e a única coisa que dá para
+fazer a partir dali é ir até a sessão e aumentar a capacidade — decisão que é do
+profissional, não de quem está atendendo o telefone.
+
+Esta tela e o endpoint `/api/v1/disponibilidade` **têm que dar a mesma
+resposta**. Divergência entre o que a recepção vê e o que o bot diz é o defeito
+que destrói a confiança no sistema inteiro. A lógica mora no `core/`, e as duas
+pontas chamam ela.
 
 ---
 
@@ -256,8 +271,13 @@ serviço, profissional, local e ocupação, e a origem do agendamento.
 
 **Dá para:** buscar pessoa por nome, telefone ou identificador; cadastrar pessoa
 nova sem sair do fluxo; escolher a origem; quando é reposição, escolher **qual
-falta** está sendo reposta; confirmar mesmo com o horário lotado, com aviso
-explícito; decidir se é só desta vez ou se vira **vaga recorrente**.
+falta** está sendo reposta; decidir se é só desta vez ou se vira **vaga
+recorrente**.
+
+**Não dá para** confirmar num horário lotado. Se lotou entre escolher e
+confirmar, o fluxo avisa e oferece dois caminhos: outro horário, ou pedir aumento
+de capacidade a quem pode. Conferir a vaga **na hora de gravar** é obrigatório —
+entre mostrar e clicar, alguém pode ter ocupado.
 
 **O que importa:**
 

@@ -100,8 +100,8 @@ Com isso, tudo que hoje é rabisco vira dado consultável:
 | `F` (13) | `status: falta` |
 | `FAR` (31) | `status: falta_avisada` |
 | `LIC` (17) | `status: licenca` |
-| `XX` / `X` (17) | **a confirmar com a operação** antes de importar |
-| `F EXP` (2) | **a confirmar** |
+| `XX` / `X` (17) | **em aberto.** A operação respondeu *"não criei palavra fixa na minha, coloquei um x"* — o que sugere marca improvisada, sem sentido único. Perguntar caso a caso na importação. |
+| `F EXP` (2) | **em aberto.** Ninguém soube dizer. |
 | `REP 05/6` (6) | `origem: reposicao` + `reposicao_de_id` apontando para a falta |
 | `P ANT 19H` (5) | idem — presente em outro horário É reposição |
 | `CLAUDIO - RESERVA` | `origem: reserva` |
@@ -155,23 +155,45 @@ Sem isso, trocar a Carol pela Thalya em setembro reescreveria quem deu aula em
 março — e a planilha de março passaria a mentir. É o mesmo motivo pelo qual o
 AutoFluxos congela `sessions.flow_version_id`.
 
-## Capacidade avisa, nunca bloqueia
+## Capacidade é verdade: lotada é lotada, e quem abre vaga é o profissional
 
-No dado real do MGM, **47 pessoas estão fora da grade** — escritas à mão embaixo
-das vagas numeradas. Reserva, reposição, personal, encaixe, domicílio. Não é
-bagunça: é a operação funcionando.
+Cinco vagas com cinco pessoas significa **indisponível**. A sexta pessoa não vê
+aquele horário, e o bot não oferece ele. Não existe "encaixar mesmo assim".
 
-Um sistema que recusa a quinta pessoa numa turma de quatro perde para o Excel no
-primeiro dia, porque o Excel aceita. Então:
+O que existe é **aumentar a capacidade daquela sessão**. O professor decide que
+naquela quarta cabem seis, muda a capacidade do dia, e aí a vaga passa a existir
+de verdade — para a tela, para a busca e para o bot, todos ao mesmo tempo.
 
-- capacidade é **exibida** (`5/4` em vermelho), nunca imposta
-- `encaixe` é uma origem de primeira classe, não um contorno
-- a única coisa que o sistema recusa é a **mesma pessoa duas vezes na mesma
-  sessão** (`UNIQUE (sessao_id, pessoa_id)`), porque isso é sempre erro de dedo
+A diferença entre as duas coisas é o que faz o número não mentir:
 
-A regra geral, que vale como decisão de produto: **o sistema descreve a
-realidade, não governa ela.** Data no passado aceita registro. Sessão cancelada
-aceita correção. Pessoa sem telefone é normal — 30% não têm.
+| Se o sistema permitisse `6/5` | Com capacidade editável por sessão |
+|---|---|
+| o número na tela é falso | o número é sempre o que cabe |
+| o bot não sabe se oferece ou não | lotado é lotado, sem ambiguidade |
+| abrir vaga vira acidente de quem digitou | abrir vaga é decisão explícita de quem dá a aula |
+
+Como `sessao` já guarda **cópia** da capacidade (e não referência viva à série),
+mudar o limite de um dia específico não mexe na grade fixa nem no passado. A peça
+já estava no modelo pelo outro motivo; ela serve os dois.
+
+**As 47 pessoas fora da grade não desaparecem por causa disso.** No dado real do
+MGM elas estão escritas à mão embaixo das vagas numeradas — reserva, reposição,
+personal, domicílio. Elas continuam existindo como participação com a origem
+certa; o que muda é que a sessão que as recebeu tinha capacidade maior, e isso
+fica registrado em vez de implícito. **O importador ajusta a capacidade da sessão
+histórica para o que de fato aconteceu**, porque reescrever a história para caber
+num limite nominal seria mentir sobre o passado.
+
+Por isso o banco **não** tem gatilho contando participação. A regra mora no
+`core/` e nas ações do servidor: gatilho quebraria a importação e transformaria
+correção de dado histórico em briga com o banco.
+
+A única coisa que o banco recusa é a **mesma pessoa duas vezes na mesma sessão**
+(`UNIQUE (sessao_id, pessoa_id)`), porque isso é sempre erro de dedo.
+
+Fora capacidade, a régua continua sendo **descrever a realidade, não governar
+ela**: data no passado aceita registro, sessão cancelada aceita correção, e
+pessoa sem telefone é normal — 30% não têm.
 
 ## Multi-inquilino desde a primeira migration
 
