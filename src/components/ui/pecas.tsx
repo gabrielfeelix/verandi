@@ -365,10 +365,13 @@ export function Avatar({
 
 /** Bloco de carregamento. Some quando o dado chega; nunca fica de enfeite. */
 export function Esqueleto({
-  largura = '100%', altura = 14,
+  largura = '100%', altura = 14, raio, opacidade,
 }: {
   largura?: string | number
-  altura?: number
+  altura?: string | number
+  raio?: number | string
+  /** sobre o painel escuro o mesmo cinza precisa ser rebaixado para não brilhar */
+  opacidade?: number
 }) {
   return (
     <span
@@ -377,6 +380,8 @@ export function Esqueleto({
       style={{
         width: largura,
         height: altura,
+        borderRadius: raio,
+        opacity: opacidade,
         backgroundImage:
           'linear-gradient(90deg,#E4EAE7 25%,#F1F5F3 37%,#E4EAE7 63%)',
         backgroundSize: '400% 100%',
