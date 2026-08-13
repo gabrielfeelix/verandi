@@ -100,8 +100,7 @@ Com isso, tudo que hoje é rabisco vira dado consultável:
 | `F` (13) | `status: falta` |
 | `FAR` (31) | `status: falta_avisada` |
 | `LIC` (17) | `status: licenca` |
-| `XX` / `X` (17) | **em aberto.** A operação respondeu *"não criei palavra fixa na minha, coloquei um x"* — o que sugere marca improvisada, sem sentido único. Perguntar caso a caso na importação. |
-| `F EXP` (2) | **em aberto.** Ninguém soube dizer. |
+| `XX` / `X` (17) e `F EXP` (2) | **ninguém soube dizer o que são.** Ver abaixo. |
 | `REP 05/6` (6) | `origem: reposicao` + `reposicao_de_id` apontando para a falta |
 | `P ANT 19H` (5) | idem — presente em outro horário É reposição |
 | `FULANO - RESERVA` | `origem: reserva` |
@@ -116,6 +115,12 @@ existir de graça. Hoje esse controle mora na memória de quem escreveu.
 **A lição que generaliza, e que vale para toda feature futura:** se o estado não
 tiver campo, a pessoa escreve prosa, e o dado morre. Quando aparecer um estado
 novo, ele entra como opção — não como observação.
+
+E o `XX` prova a lição melhor que qualquer coluna que deu certo: **quem escreveu
+não soube dizer o que significa.** Dezessete ocorrências de uma marca sem sentido
+recuperável. Não é falha de quem operava — é o que acontece com todo mundo quando
+o sistema não oferece o estado e a pessoa improvisa. O produto não precisa
+decifrar isso; precisa impedir que aconteça de novo.
 
 ### A sessão nasce sob demanda, não por cron
 

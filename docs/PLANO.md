@@ -11,10 +11,11 @@ Cada marco termina numa coisa que **funciona sozinha e pode ser mostrada ao
 cliente**. Não são fases de um projeto — são degraus, e parar em qualquer um
 deles deixa algo de pé.
 
-O critério de pronto do marco 1 é uma frase, e ela não menciona tecnologia:
+O critério de pronto do marco 1 é uma frase, e ela não menciona tecnologia nem
+cliente nenhum:
 
-> **A Marina registra a chamada da semana inteira no sistema, e ninguém abre a
-> planilha.**
+> **Um negócio qualquer cadastra a grade dele, e passa a semana inteira
+> registrando presença no sistema.**
 
 Se isso acontecer, o produto existe. Tudo que não serve a essa frase espera.
 
@@ -36,29 +37,38 @@ política, `UNIQUE (serie_id, inicio)`, e o `core/` puro.
 enxerga o dado do outro, e a expansão de uma série em datas está coberta por
 teste unitário rodando sem banco.
 
-### Plano 02 — Operação
+### Plano 02 — Operação · **concluído**
 
-As telas que a Marina usa: **Sessão** (com chamada em lote), **Hoje**, **Grade da
-semana**, **Pessoas**, **Ficha**, **Novo agendamento**, **Buscar vaga**.
+As telas do dia a dia: **Sessão** (com chamada em lote), **Hoje**, **Grade da
+semana**, **Pessoas**, **Ficha**, **Buscar vaga**.
 
-A tela de Sessão é a prova do produto e é onde o esforço vai. As outras existem
+A tela de Sessão é a prova do produto e é onde o esforço foi. As outras existem
 para chegar até ela.
 
 **Pronto quando:** com a grade cadastrada na mão, dá para registrar a chamada de
 um dia inteiro pelo celular, encaixar uma reposição, e ver a semana no desktop.
 
-### Plano 03 — Implantação
+### Plano 03 — Configuração
 
-O que faz um cliente real entrar: **Grade fixa**, **Configuração** (com
-vocabulário), **Pendências** e **Importador**.
+O que faz um negócio qualquer se cadastrar e começar a operar sem ninguém da 4YU
+mexer no banco: **Grade fixa**, **Configuração** (serviços, profissionais,
+locais, vocabulário, feriados), **Usuários e convite**, **Pendências** e a tela
+de **Contas** da 4YU.
 
-O importador vem por último de propósito. Ele é o mais chato e o mais fácil de
-errar, e escrever ele antes de as telas existirem significa importar às cegas,
-sem ter onde conferir o resultado. O `planilhas/extrai.py` já resolve metade da
-leitura do formato do MGM.
+**Pronto quando:** dá para criar uma conta vazia pela tela, montar a grade,
+convidar quem vai usar, e operar — sem `psql`, sem script de seed.
 
-**Pronto quando:** a planilha de agosto entra no sistema, o relatório mostra o
-que não casou, e a grade resultante bate com a folha na parede.
+### Importador — fora do marco 1, e por quê
+
+Importar planilha é feature de produto e vai existir um dia. Escrever ela agora,
+contra o formato de **um** cliente, é a consultoria com passo extra que o
+princípio deste projeto proíbe: o formato do primeiro cliente entraria no
+`src/`, e todo cliente seguinte ganharia um `if`.
+
+Ela volta quando houver um segundo negócio querendo migrar de verdade — aí dá
+para ver o que os dois formatos têm em comum, que é a única forma de escrever
+um importador genérico em vez de dois específicos. Até lá, cadastrar a grade na
+tela é o caminho, e é justamente o que o Plano 03 entrega.
 
 ---
 

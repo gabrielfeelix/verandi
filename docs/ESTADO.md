@@ -33,9 +33,14 @@ disponibilidade.
 | `/pessoas/[id]` | ficha: dados, vagas, histórico, reposições em aberto |
 | `/vaga` | busca de horário livre, com os cheios em lista separada |
 
-**Ainda não existem** (Plano 03): `/pendencias`, `/grade` (editor de séries),
-`/config`, `/importar`, `/convite`, e a tela de contas da 4YU. A grade fixa é
-cadastrada por `scripts/semear-dev.mjs` ou direto no banco.
+**Ainda não existem** (Plano 03): `/grade` (editor de séries), `/config`,
+`/convite`, `/pendencias`, e a tela de contas da 4YU. Até elas existirem, a
+grade fixa é cadastrada por `scripts/semear-dev.mjs` ou direto no banco.
+
+**Importador está fora do marco 1.** Escrever contra o formato de um cliente é a
+consultoria com passo extra que o princípio do projeto proíbe. Volta quando
+houver um segundo negócio migrando, que é a única forma de ver o que os formatos
+têm em comum. Ver [PLANO.md](PLANO.md).
 
 ## Testes
 
@@ -79,7 +84,7 @@ Coisas que a execução ensinou e que não estavam nos planos:
   colunas, e preenche o que falta com `NULL` — o default da coluna não é
   aplicado.** Omitir `status` ou `ativo` em uma linha só quebra o lote inteiro
   com `23502`. **Mordeu duas vezes.** Regra: em insert em lote, todas as linhas
-  carregam as mesmas chaves. Vale especialmente para o importador do Plano 03.
+  carregam as mesmas chaves.
 - **`ON CONFLICT` não usa índice único parcial** sem repetir o predicado, e o
   PostgREST não manda predicado. Por isso `sessao (serie_id, inicio)` é
   constraint simples — nulo é distinto de nulo, então sessão avulsa segue livre.
@@ -101,17 +106,13 @@ Coisas que a execução ensinou e que não estavam nos planos:
 
 ## O que fazer em seguida
 
-**Plano 03 — Implantação.** Ainda não está escrito. Ordem prevista:
-**Grade fixa** (editor de séries) → **Configuração** (com vocabulário) →
-**Pendências** → **Importador**.
+**Plano 03 — Configuração.** Ordem prevista: **Grade fixa** (editor de séries) →
+**Configuração** (serviços, profissionais, locais, vocabulário, feriados) →
+**Usuários e convite** → **Pendências** → **Contas da 4YU**.
 
-Duas coisas dependem de gente, não de código:
+Uma coisa depende de gente, não de código:
 
-1. **Perguntar à operação o que significam `XX` e `F EXP`** na planilha (17 e 2
-   ocorrências). O print da conversa sugere que o `X` é marca improvisada —
-   *"não criei palavra fixa na minha, coloquei um x"* — o que não é resposta
-   suficiente para importar. **Sem isso o Plano 03 não fecha.**
-2. **Decidir onde o Supabase de produção vai morar.** A organização
+1. **Decidir onde o Supabase de produção vai morar.** A organização
    `4YU Systems` tem dois projetos ativos (`radar-ofertas`, `autofluxos`) e o
    `Otimiza Gestor` pausado, que é o teto do plano gratuito. As saídas são
    pausar um, abrir segunda organização, ou pagar Pro. Não bloqueia até o deploy.
