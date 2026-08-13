@@ -18,7 +18,9 @@ export function FaixaSuporte({ conta }: { conta: string }) {
   return (
     <div
       role="status"
-      className="flex flex-wrap items-center justify-between gap-3 bg-alerta px-4 py-2 text-white"
+      // âmbar, como no protótipo: é aviso permanente, não erro. Vermelho aqui
+      // gritaria a mesma coisa em toda tela até perder o efeito.
+      className="flex flex-wrap items-center justify-between gap-3 bg-atencao px-4 py-2 text-[#FFF8E8]"
     >
       <span className="text-[12.5px] font-medium">
         Você está dentro de {conta} como suporte da 4YU. Tudo que fizer fica

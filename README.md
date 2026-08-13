@@ -50,6 +50,7 @@ ocupação, decidir se o encaixe cabe — é onde os bugs difíceis moram.
 | [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | vocabulário, entidades e as decisões que não dá para tomar duas vezes |
 | [docs/TELAS.md](docs/TELAS.md) | o que cada tela faz — **o visual quem decide é o protótipo** |
 | [docs/DESIGN.md](docs/DESIGN.md) | tokens, primitivos e as regras que o protótipo aplica sem dizer |
+| [docs/VESTIR.md](docs/VESTIR.md) | **como deixar a tela idêntica ao protótipo** — leia antes de mexer em interface |
 | [`Design system Verandi/`](Design%20system%20Verandi/) | **a especificação de interface**: onde a tela divergir dele, é a tela que muda |
 | [docs/PLANO.md](docs/PLANO.md) | os marcos e a ordem de construção |
 | [handoff](handoff) | o briefing original |

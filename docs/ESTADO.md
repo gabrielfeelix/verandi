@@ -76,7 +76,11 @@ especificação de interface: onde a tela divergir dele, é a tela que muda.
 - **Tarefa 10, fechamento:** a prova manual de ponta a ponta (criar conta →
   aceitar convite → cadastrar → montar grade → convidar recepção → registrar
   chamada), sem `psql` e sem seed.
-- **Tarefa 11, vestir:** as oito telas do Plano 02 com os primitivos, o modo
+- **Tarefa 11, vestir — leia [`VESTIR.md`](VESTIR.md) antes de começar.** As
+  telas usam os tokens e **não parecem o protótipo**: o shell ainda é o
+  `<header>` de links do Plano 02, e nenhuma tela vai parecer o produto enquanto
+  ele não virar o trilho lateral. `node scripts/tira-prototipo.mjs` gera as
+  capturas para comparar. Depois do shell vêm as oito telas do Plano 02, o modo
   **Dia por recurso** na grade (colunas = sala ou profissional, para quem tem
   sete salas), o filtro por local, e o menu por pessoa na Sessão (observação,
   apontar reposição, trocar origem) — o modelo já aguenta os três, a tela é que
