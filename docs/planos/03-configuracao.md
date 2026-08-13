@@ -77,6 +77,61 @@ autorizar quem cria a própria linha em `conta`. A server action confere
 em `acesso_suporte` grava início e fim. Ver dado de cliente sem ninguém saber é
 o tipo de acesso que precisa ser constrangedor de propósito.
 
+## Riscos que este plano não tinha visto
+
+Levantados durante a execução, depois das Tarefas 1 e 2. Os dois primeiros já
+são defeito no código, não hipótese.
+
+**1. Editar a grade deixa sessão futura órfã.** A materialização é idempotente
+por `UNIQUE (serie_id, inicio)` e **nunca apaga**. Encerrar uma série, ou mudar
+o dia da semana dela, não toca nas sessões já materializadas: elas continuam em
+`/hoje` e `/semana` como aula que não existe mais, e o encaixe continua
+oferecendo vaga nelas. Não adianta só atualizar campo — o que sai da grade tem
+que ser **cancelado com motivo**, para aparecer riscado em vez de sumir. Vale
+igual para feriado marcado depois que a semana já foi aberta. Entra na Tarefa 3
+e na Tarefa 4.
+
+**2. "Hoje" está sendo calculado em UTC.** `listarSeries` (Tarefa 2) e a
+semeadura de participação em `materializar.ts` (Plano 01) usam
+`toISOString().slice(0, 10)`. Depois das 21h no horário de Brasília isso já é o
+dia seguinte: a ocupação da grade muda de número à noite, e a turma das 21h
+semeia participação contra a data errada. O `core/` está certo — quem erra é a
+borda, que tinha que passar por `conta.fuso`. Entra na Tarefa 3.
+
+**3. Capacidade pode ficar menor que a ocupação.** Baixar a capacidade de 6 para
+4 numa série com seis vagas ocupadas é aceito hoje sem uma palavra. A tela
+precisa dizer quantas pessoas ocupam antes de salvar — é a mesma cortesia que
+encerrar já vai ter.
+
+**4. Configuração não registra quem fez.** O `TELAS.md` diz "toda ação registra
+quem fez", e só `participacao` registra. Quem mudou a capacidade da série, quem
+desativou o serviço, quem mexeu no vocabulário: nada disso fica. É o tipo de
+coisa que ninguém sente falta até a primeira conversa "eu não mudei isso" — e aí
+custa migration em cinco tabelas e revisão de toda action. Resolvido agora com
+uma tabela só, `log_configuracao`, escrita pelas actions de configuração.
+
+**5. Convite pode escalar privilégio.** Nada impede o `dono` de convidar alguém
+como `suporte`, que é o papel da 4YU e enxerga conta de cliente. Os papéis
+convidáveis pelo dono são `dono`, `recepcao` e `profissional`; `suporte` só sai
+da tela de Contas da 4YU. Entra na Tarefa 5, e o teste é de recusa.
+
+**6. Sobrou um "hoje" em UTC no Plano 02.** `listarPessoas`, filtro
+`plano_vencendo` (`server/pessoas/consultas.ts`), calcula o limite com
+`toISOString()`. É a mesma família do risco 2, com dano menor — um filtro de
+"vence nos próximos dias" erra por um dia à noite. Corrigir junto da Tarefa 7,
+que é quem volta a mexer em plano vencendo.
+
+### Anotado, fora do marco 1
+
+**Direito do titular do dado (LGPD).** A Verandi guarda nome, telefone,
+nascimento e observação de gente que **não é usuária do sistema** e nunca
+consentiu com ela diretamente — quem coleta é o estúdio. Uma hora vem o pedido
+de exportar ou apagar os dados de uma pessoa, e apagar `pessoa` hoje leva junto
+`participacao` por cascade, ou seja, apaga o histórico de presença do negócio.
+Não é trabalho do marco 1, mas é decisão de modelo: provavelmente anonimizar a
+pessoa (nome, telefone, e-mail) preservando a linha, em vez de deletar. Escrito
+aqui para não ser descoberto no dia do pedido.
+
 ## Estrutura de arquivos
 
 ```
@@ -252,21 +307,36 @@ pode ser real.
 
 ### Tarefa 3: Grade fixa — editar, duplicar, encerrar
 
-**Arquivos:** modificar `src/server/grade/acoes.ts` e a tela; testes em
-`tests/grade.test.ts` e `e2e/grade.spec.ts`.
+**Arquivos:** criar `supabase/migrations/0006_log_configuracao.sql`; modificar
+`src/core/agenda/serie.ts`, `src/server/agenda/fuso.ts`,
+`src/server/agenda/materializar.ts`, `src/server/grade/*` e a tela; testes em
+`tests/unit/serie.test.ts`, `tests/grade.test.ts` e `e2e/grade.spec.ts`.
 
 **Interfaces produzidas:**
 
 ```ts
-export function previewEdicao(serieId: string, mudanca: Partial<NovaSerie>):
-  Promise<{ sessoesAfetadas: number; sessoesPreservadas: number }>
-export function editarSerie(serieId: string, mudanca: Partial<NovaSerie>): Promise<void>
+// core/agenda/serie.ts
+/** O que sai da grade tem que ser cancelado, não esquecido. */
+export function sessoesOrfas(
+  sessoes: SessaoParaReconciliar[], continuaValendo: (s) => boolean, agora: Date,
+): string[]
+
+// server/agenda/fuso.ts
+export function hojeEm(fuso: string): string
+
+// server/grade/acoes.ts
+export function previewEdicao(serieId: string, mudanca: MudancaSerie): Promise<Preview>
+export function editarSerie(serieId: string, mudanca: MudancaSerie): Promise<void>
 export function duplicarSerie(serieId: string, diasSemana: number[]): Promise<string[]>
 export function encerrarSerie(serieId: string, fim: string):
-  Promise<{ ok: true } | { ok: false; vagasAtivas: number }>
+  Promise<{ ok: true; sessoesCanceladas: number } | { ok: false; vagasAtivas: number }>
 ```
 
-**Aceite:**
+`Preview` responde de uma vez as três perguntas que a tela precisa fazer antes
+de salvar: quantas sessões futuras mudam, quantas ficam como estão, e **quantas
+saem da grade** (mudança de dia ou de horário) e vão ser canceladas.
+
+**Aceite (o que já estava):**
 - editar mostra **antes de salvar** quantas sessões futuras mudam e quantas ficam
   como estão, e a tela diz em texto que o passado não muda
 - editar capacidade não toca em sessão que já teve capacidade ajustada à mão
@@ -277,6 +347,20 @@ export function encerrarSerie(serieId: string, fim: string):
 - encerrar com gente na vaga **pede confirmação dizendo quantas pessoas**, e a
   série some das escolhas novas sem sumir do histórico
 - encerrar não apaga sessão nenhuma, e a semana passada continua igual
+
+**Aceite (o que os riscos acrescentaram):**
+- mudar o dia da semana **cancela as sessões futuras do dia antigo**, com motivo,
+  e elas aparecem riscadas em vez de sumir; as do dia novo nascem na próxima
+  materialização
+- encerrar cancela as sessões futuras depois da data de fim, pelo mesmo caminho
+- sessão futura cancelada por reconciliação não volta a nascer: a série já não a
+  cobre mais
+- a ocupação da grade **não muda de número às 21h** — `hojeEm(conta.fuso)`, e um
+  teste com fuso de conta diferente de UTC prova
+- baixar a capacidade abaixo da ocupação **avisa quantas pessoas ocupam** antes
+  de salvar, e deixa seguir (é a mesma regra do encaixe: quem decide é quem opera)
+- criar, editar, duplicar e encerrar gravam linha em `log_configuracao` com quem
+  fez; o log não tem política de update nem de delete
 
 ---
 

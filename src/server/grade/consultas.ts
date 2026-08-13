@@ -1,4 +1,5 @@
 import type { Db } from '../supabase'
+import { hojeEm } from '../agenda/fuso'
 
 /**
  * A grade fixa é configuração, não agenda: ler esta tela **não materializa
@@ -60,8 +61,10 @@ function semSegundos(hora: string): string {
  * Série encerrada não some — vem marcada, para a tela mostrar em lista separada.
  * Série `ativo = false` some: é o desfazer de quem criou errado.
  */
-export async function listarSeries(db: Db, contaId: string): Promise<SerieLinha[]> {
-  const hoje = new Date().toISOString().slice(0, 10)
+export async function listarSeries(
+  db: Db, contaId: string, fuso: string,
+): Promise<SerieLinha[]> {
+  const hoje = hojeEm(fuso)
 
   const { data, error } = await db
     .from('serie')

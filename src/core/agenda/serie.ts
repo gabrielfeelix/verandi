@@ -200,3 +200,29 @@ export function alcanceDaEdicao(
   }
   return { atualiza, preserva }
 }
+
+/**
+ * As sessões futuras que a série **deixou de cobrir** — mudou de dia, mudou de
+ * hora, ou a série foi encerrada.
+ *
+ * Sem isto elas ficam órfãs: a materialização é idempotente e nunca apaga, então
+ * a aula de quinta continuaria aparecendo em `/hoje` depois de a turma virar
+ * sexta, e o encaixe continuaria oferecendo vaga nela. Quem chama cancela com
+ * motivo — riscada na grade é honesto, sumir sem explicação não.
+ *
+ * Diferente de `alcanceDaEdicao` num ponto de propósito: capacidade mexida à mão
+ * **não** salva a sessão. Lá se preserva uma decisão sobre um horário que
+ * continua existindo; aqui o horário deixou de existir.
+ */
+export function sessoesOrfas(
+  sessoes: SessaoParaReconciliar[],
+  continuaValendo: (s: SessaoParaReconciliar) => boolean,
+  agora: Date,
+): string[] {
+  const limite = agora.getTime()
+  return sessoes
+    .filter((s) => new Date(s.inicio).getTime() > limite)
+    .filter((s) => s.status === 'prevista')
+    .filter((s) => !continuaValendo(s))
+    .map((s) => s.id)
+}

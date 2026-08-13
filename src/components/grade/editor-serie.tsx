@@ -33,7 +33,8 @@ export function EditorSerie({
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
 
-  const hoje = new Date().toISOString().slice(0, 10)
+  // data local do navegador: `toISOString` é UTC e já daria amanhã às 21h
+  const hoje = new Date().toLocaleDateString('en-CA')
 
   function salvar(entrada: NovaSerie, confirmarColisao: boolean) {
     iniciar(async () => {

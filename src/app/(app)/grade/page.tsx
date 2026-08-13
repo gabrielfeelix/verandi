@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
-import { listarSeries, catalogoDaGrade, type SerieLinha } from '@/server/grade/consultas'
+import { listarSeries, catalogoDaGrade } from '@/server/grade/consultas'
 import { EditorSerie } from '@/components/grade/editor-serie'
+import { LinhaDaGrade } from '@/components/grade/linha-da-grade'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -19,7 +20,7 @@ export default async function Grade() {
   const db = await clienteServidor()
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
   const [series, catalogo] = await Promise.all([
-    listarSeries(db, conta.contaId),
+    listarSeries(db, conta.contaId, conta.fuso),
     catalogoDaGrade(db, conta.contaId),
   ])
 
@@ -59,7 +60,13 @@ export default async function Grade() {
           <section key={g.dia} className="flex flex-col gap-2">
             <h2 className="font-medium">{g.nome}</h2>
             <ul className="flex flex-col gap-2" aria-label={g.nome}>
-              {g.linhas.map((s) => <Linha key={s.id} serie={s} rotuloVaga={rotulos.vaga.plural} />)}
+              {g.linhas.map((s) => (
+                <LinhaDaGrade
+                  key={s.id} serie={s} catalogo={catalogo}
+                  rotuloVaga={rotulos.vaga.plural} rotuloPessoa={rotulos.pessoa.singular}
+                  podeEscrever={podeEscrever}
+                />
+              ))}
             </ul>
           </section>
         ))
@@ -70,34 +77,15 @@ export default async function Grade() {
           <h2 className="font-medium">Encerradas</h2>
           <ul className="flex flex-col gap-2" aria-label="Encerradas">
             {encerradas.map((s) => (
-              <Linha key={s.id} serie={s} rotuloVaga={rotulos.vaga.plural} />
+              <LinhaDaGrade
+                key={s.id} serie={s} catalogo={catalogo}
+                rotuloVaga={rotulos.vaga.plural} rotuloPessoa={rotulos.pessoa.singular}
+                podeEscrever={podeEscrever}
+              />
             ))}
           </ul>
         </section>
       ) : null}
     </div>
-  )
-}
-
-function Linha({ serie, rotuloVaga }: { serie: SerieLinha; rotuloVaga: string }) {
-  return (
-    <li className="flex flex-wrap items-baseline gap-x-3 rounded border p-3">
-      <span className="font-medium">{serie.horaInicio}</span>
-      <span>{serie.servico}</span>
-      <span className="text-sm opacity-70">{serie.duracaoMin} min</span>
-      {serie.profissional ? <span className="text-sm">{serie.profissional}</span> : null}
-      {serie.local ? <span className="text-sm opacity-70">{serie.local}</span> : null}
-
-      {/* Ocupação sempre no formato ocupadas/capacidade, sem esconder nem truncar */}
-      <span className="text-sm">
-        {serie.ocupadas}/{serie.capacidade} {rotuloVaga.toLowerCase()}
-      </span>
-
-      <span className="text-sm opacity-70">
-        {serie.encerrada
-          ? `encerrada em ${serie.vigenciaFim}`
-          : `desde ${serie.vigenciaInicio}`}
-      </span>
-    </li>
   )
 }

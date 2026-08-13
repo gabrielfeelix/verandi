@@ -24,7 +24,7 @@ export async function clienteServidor() {
   )
 }
 
-export type ContaAtiva = { contaId: string; papel: Papel; nome: string }
+export type ContaAtiva = { contaId: string; papel: Papel; nome: string; fuso: string }
 
 /**
  * A conta em que o usuário está trabalhando.
@@ -41,7 +41,7 @@ export async function contaAtiva(): Promise<ContaAtiva | null> {
 
   const { data } = await db
     .from('usuario_conta')
-    .select('conta_id, papel, conta:conta_id(nome)')
+    .select('conta_id, papel, conta:conta_id(nome, fuso)')
     .eq('usuario_id', user.id)
     .eq('ativo', true)
 
@@ -50,11 +50,14 @@ export async function contaAtiva(): Promise<ContaAtiva | null> {
   const jar = await cookies()
   const escolhida = jar.get('conta')?.value
   const linha = data.find((l) => l.conta_id === escolhida) ?? data[0]
+  const conta = linha.conta as unknown as { nome: string; fuso: string }
 
   return {
     contaId: linha.conta_id,
     papel: linha.papel as Papel,
-    nome: (linha.conta as unknown as { nome: string }).nome,
+    nome: conta.nome,
+    // o fuso desce junto porque "hoje" é pergunta da conta, não da máquina
+    fuso: conta.fuso,
   }
 }
 

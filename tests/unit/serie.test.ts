@@ -4,6 +4,7 @@ import {
   colide,
   colisoesDe,
   alcanceDaEdicao,
+  sessoesOrfas,
   type NovaSerie,
   type SerieBase,
   type SerieExistente,
@@ -252,5 +253,67 @@ describe('alcanceDaEdicao', () => {
 
   it('lista vazia devolve dois vazios', () => {
     expect(alcanceDaEdicao([], 4, AGORA)).toEqual({ atualiza: [], preserva: [] })
+  })
+})
+
+describe('sessoesOrfas', () => {
+  // 20/ago/2026 é quinta; 21/ago é sexta
+  const quinta = '2026-08-20T10:00:00Z'
+  const sexta = '2026-08-21T10:00:00Z'
+
+  it('a sessão que a série não cobre mais fica órfã', () => {
+    const r = sessoesOrfas(
+      [sessao({ id: 'velha', inicio: quinta }), sessao({ id: 'nova', inicio: sexta })],
+      (s) => s.inicio === sexta,
+      AGORA,
+    )
+    expect(r).toEqual(['velha'])
+  })
+
+  it('sessão passada nunca fica órfã — o passado não se reescreve', () => {
+    const r = sessoesOrfas(
+      [sessao({ id: 'ontem', inicio: '2026-08-06T10:00:00Z' })],
+      () => false,
+      AGORA,
+    )
+    expect(r).toEqual([])
+  })
+
+  it('sessão já cancelada não é cancelada de novo', () => {
+    const r = sessoesOrfas(
+      [sessao({ id: 'ja', inicio: quinta, status: 'cancelada' })],
+      () => false,
+      AGORA,
+    )
+    expect(r).toEqual([])
+  })
+
+  it('sessão realizada no futuro é deixada em paz', () => {
+    const r = sessoesOrfas(
+      [sessao({ id: 'feita', inicio: quinta, status: 'realizada' })],
+      () => false,
+      AGORA,
+    )
+    expect(r).toEqual([])
+  })
+
+  it('capacidade mexida à mão não salva a sessão de ficar órfã', () => {
+    // aqui é diferente de `alcanceDaEdicao`: o horário deixou de existir na
+    // grade, e manter uma sessão de aula que ninguém mais dá é pior
+    const r = sessoesOrfas(
+      [sessao({ id: 'mexida', inicio: quinta, capacidade: 9 })],
+      () => false,
+      AGORA,
+    )
+    expect(r).toEqual(['mexida'])
+  })
+
+  it('série que continua igual não órfã ninguém', () => {
+    const r = sessoesOrfas(
+      [sessao({ id: 'a', inicio: quinta }), sessao({ id: 'b', inicio: sexta })],
+      () => true,
+      AGORA,
+    )
+    expect(r).toEqual([])
   })
 })
