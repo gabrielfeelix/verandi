@@ -1,7 +1,7 @@
 /**
  * Renderiza o protótipo e salva uma captura de cada tela.
  *
- * O protótipo em `Design system Verandi/` é a especificação de interface. Ler o
+ * O protótipo em `Design system Verandi-att/` é a especificação de interface. Ler o
  * código-fonte dele não substitui olhar a tela renderizada — foi exatamente esse
  * atalho que produziu telas "com os tokens certos" e nenhuma semelhança com o
  * produto desenhado.
@@ -15,7 +15,7 @@ import { resolve } from 'node:path'
 
 const raiz = resolve(import.meta.dirname, '..')
 const arquivo = pathToFileURL(
-  resolve(raiz, 'Design system Verandi/Verandi.dc.html'),
+  resolve(raiz, 'Design system Verandi-att/Verandi.dc.html'),
 ).href
 const saida = resolve(process.argv[2] ?? resolve(raiz, '.prototipo'))
 mkdirSync(saida, { recursive: true })

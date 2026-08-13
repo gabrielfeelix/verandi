@@ -85,7 +85,7 @@ manutenção de série (linhas em lote, colisão, alcance da edição, sessões 
 estado de convite, papéis concedíveis.
 
 **Design system** — `docs/DESIGN.md` é o contrato; `/amostra` mostra as nove
-peças em todas as variações. O protótipo em `Design system Verandi/` é a
+peças em todas as variações. `Design system Verandi-att/DESIGN-SYSTEM.md` é a
 especificação de interface: onde a tela divergir dele, é a tela que muda. O
 método de comparação está em [`VESTIR.md`](VESTIR.md), e as duas capturas saem
 de `scripts/tira-prototipo.mjs` e `scripts/tira-produto.mjs`.

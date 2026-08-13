@@ -35,8 +35,14 @@ diferença é o requisito do trabalho.
 
 ## 2. A régua: **idêntico**, não "inspirado"
 
-O protótipo em `Design system Verandi/` **é a especificação**. Não é referência,
-não é inspiração, não é "a direção geral".
+`Design system Verandi-att/DESIGN-SYSTEM.md` **é a especificação**. Não é
+referência, não é inspiração, não é "a direção geral". Leia-o inteiro antes de
+mexer em tela: ele traz os valores literais de cada componente, e é curto.
+
+O protótipo em `Design system Verandi-att/Verandi.dc.html` mostra as mesmas
+regras montadas, e serve para conferir composição — o que fica ao lado do quê,
+com que espaço. `Design system Verandi/` é a versão anterior dele, e só se
+consulta quando o novo não previu o caso.
 
 - Onde a tela divergir dele, **é a tela que muda**.
 - Se algo do protótipo não couber na nossa realidade de dados, **adapte o
@@ -61,7 +67,7 @@ terminou.
 
 ### 3.2 Onde estão os valores
 
-O arquivo é `Design system Verandi/Verandi.dc.html`, com três partes:
+O arquivo é `Design system Verandi-att/Verandi.dc.html`, com três partes:
 
 | Parte | O quê |
 |---|---|
@@ -70,7 +76,7 @@ O arquivo é `Design system Verandi/Verandi.dc.html`, com três partes:
 | O `<script>` grande no fim | `renderVals()` e os ajudantes que montam os dados de cada tela |
 
 Para achar um trecho: procure pelo texto que aparece na tela. `grep -n "Novo
-serviço" "Design system Verandi/Verandi.dc.html"` leva direto ao botão, com o
+serviço" "Design system Verandi-att/Verandi.dc.html"` leva direto ao botão, com o
 estilo dele ao lado.
 
 O dicionário de dados de cada tela está em `renderVals()`. Os ajudantes úteis:

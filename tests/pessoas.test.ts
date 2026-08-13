@@ -46,37 +46,37 @@ describe('busca e filtros de pessoa', () => {
 
   it('a busca é tolerante a acento', async () => {
     expect(semAcento('Emília Gonçalves')).toBe('emilia goncalves')
-    const r = await listarPessoas(db, contaId, { busca: 'emilia' })
+    const r = (await listarPessoas(db, contaId, { busca: 'emilia' })).linhas
     expect(r.map((p) => p.nome)).toEqual(['Emília Gonçalves'])
   })
 
   it('a busca aceita nome parcial e ignora caixa', async () => {
-    const r = await listarPessoas(db, contaId, { busca: 'NOGUE' })
+    const r = (await listarPessoas(db, contaId, { busca: 'NOGUE' })).linhas
     expect(r.map((p) => p.nome)).toEqual(['Beatriz Nogueira'])
   })
 
   it('inativa some do padrão e aparece no filtro dela', async () => {
-    const padrao = await listarPessoas(db, contaId, {})
+    const padrao = (await listarPessoas(db, contaId, {})).linhas
     expect(padrao.map((p) => p.id)).not.toContain(inativa)
 
-    const so = await listarPessoas(db, contaId, { filtros: ['inativa'] })
+    const so = (await listarPessoas(db, contaId, { filtros: ['inativa'] })).linhas
     expect(so.map((p) => p.id)).toEqual([inativa])
   })
 
   it('filtra quem não tem telefone', async () => {
-    const r = await listarPessoas(db, contaId, { filtros: ['sem_telefone'] })
+    const r = (await listarPessoas(db, contaId, { filtros: ['sem_telefone'] })).linhas
     expect(r.map((p) => p.id)).toEqual([semFone])
   })
 
   it('filtra quem não tem horário fixo', async () => {
-    const r = await listarPessoas(db, contaId, { filtros: ['sem_horario_fixo'] })
+    const r = (await listarPessoas(db, contaId, { filtros: ['sem_horario_fixo'] })).linhas
     expect(r.map((p) => p.id)).toEqual([semVaga])
   })
 
   it('os filtros combinam', async () => {
-    const r = await listarPessoas(db, contaId, {
+    const r = (await listarPessoas(db, contaId, {
       filtros: ['sem_telefone', 'sem_horario_fixo'],
-    })
+    })).linhas
     expect(r).toEqual([])
   })
 
@@ -133,7 +133,7 @@ describe('busca e filtros de pessoa', () => {
       .insert({ nome: 'Outra', slug: `outra-${Date.now()}` }).select().single()
     await db.from('pessoa').insert({ conta_id: outra!.id, nome: 'Intrusa' })
 
-    const r = await listarPessoas(db, contaId, { busca: 'intrusa' })
+    const r = (await listarPessoas(db, contaId, { busca: 'intrusa' })).linhas
     expect(r).toEqual([])
   })
 })

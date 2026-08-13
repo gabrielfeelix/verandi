@@ -34,6 +34,17 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="pt-BR"
+      /*
+       * Extensão de navegador escreve atributo no `<html>` antes do React
+       * carregar — `data-garimpo-ext`, tema, tradutor, gerenciador de senha. O
+       * servidor não mandou aquilo, o cliente encontra, e a hidratação acusa um
+       * erro que não é do produto e que ninguém consegue corrigir daqui.
+       *
+       * Vale **só para os atributos desta tag**: `suppressHydrationWarning` não
+       * desce na árvore, então diferença de verdade dentro do app continua sendo
+       * reportada.
+       */
+      suppressHydrationWarning
       className={`${titulo.variable} ${texto.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">{children}</body>

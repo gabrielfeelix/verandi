@@ -37,10 +37,10 @@ export function GradeSemana({
 
   if (horas.length === 0) {
     return (
-      <section className="flex flex-col items-center gap-2.5 rounded-[20px] border border-dashed border-[#C6D2CD] bg-superficie px-6 py-8.5 text-center">
+      <section className="flex flex-col items-center gap-2.5 rounded-cartao border border-dashed border-linha-tracejada bg-superficie px-6 py-8.5 text-center">
         <span
           aria-hidden
-          className="flex size-11 items-center justify-center rounded-[14px] bg-superficie-mais-suave font-mono text-[17px] text-tinta-media"
+          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave font-mono text-[17px] text-tinta-media"
         >
           ▦
         </span>
@@ -53,7 +53,7 @@ export function GradeSemana({
         </span>
         <Link
           href="/grade"
-          className="mt-1.5 rounded-[11px] bg-escuro px-4 py-2.5 text-[13px] font-medium text-tinta-clara"
+          className="mt-1.5 rounded-padrao bg-escuro px-4 py-2.5 text-[13px] font-medium text-tinta-clara"
         >
           Montar a grade fixa
         </Link>
@@ -64,7 +64,7 @@ export function GradeSemana({
   return (
     <section
       aria-label="Grade da semana"
-      className="max-h-[calc(100vh-210px)] overflow-auto rounded-[20px] border border-linha bg-superficie p-3.5"
+      className="max-h-[calc(100vh-210px)] overflow-auto rounded-cartao border border-linha bg-superficie p-3.5"
     >
       <div className="grid min-w-[920px] grid-cols-[58px_repeat(7,minmax(0,1fr))] gap-1.5">
         <div className="sticky top-0 z-3 bg-superficie" />
@@ -75,7 +75,7 @@ export function GradeSemana({
           return (
             <div
               key={d}
-              className={`sticky top-0 z-3 flex flex-col items-center gap-0.5 rounded-[10px] px-1 pt-1.5 pb-2.5 shadow-[0_6px_0_#fff] ${
+              className={`sticky top-0 z-3 flex flex-col items-center gap-0.5 rounded-peca px-1 pt-1.5 pb-2.5 shadow-[0_6px_0_#fff] ${
                 feriado ? 'bg-atencao-fundo' : ehHoje ? 'bg-[#EAF4F0]' : 'bg-superficie'
               }`}
             >
@@ -115,7 +115,7 @@ export function GradeSemana({
                 return (
                   <div
                     key={d}
-                    className="flex min-h-14 items-center justify-center rounded-[12px] border border-[#F1F5F3] bg-[#FBFCFB] font-mono text-[13px] text-[#C6D2CD]"
+                    className="flex min-h-14 items-center justify-center rounded-padrao border border-linha-fina bg-superficie-tenue font-mono text-[13px] text-linha-tracejada"
                   >
                     <span aria-hidden>+</span>
                   </div>
@@ -125,7 +125,7 @@ export function GradeSemana({
               return (
                 <div
                   key={d}
-                  className="flex min-h-14 flex-col gap-1.5 rounded-[12px] border border-linha-suave bg-superficie p-1"
+                  className="flex min-h-14 flex-col gap-1.5 rounded-padrao border border-linha-suave bg-superficie p-1"
                 >
                   {visiveis.map((s) => (
                     <CelulaTurma key={s.id} sessao={s} />
@@ -133,7 +133,7 @@ export function GradeSemana({
                   {sobra > 0 ? (
                     <Link
                       href={`/semana?de=${dias[0]}&dia=${d}`}
-                      className="self-start rounded-[5px] bg-neutro-fundo px-1.5 py-0.5 text-[9.5px] font-semibold tracking-[.06em] text-tinta-media uppercase"
+                      className="self-start rounded-minima bg-neutro-fundo px-1.5 py-0.5 text-[9.5px] font-semibold tracking-[.06em] text-tinta-media uppercase"
                     >
                       +{sobra} no mesmo horário
                     </Link>
@@ -156,12 +156,12 @@ export function CelulaTurma({ sessao }: { sessao: SessaoResumo }) {
       href={`/sessao/${sessao.id}`}
       data-cheio={sessao.ocupacao.lotada ? 'sim' : undefined}
       data-cancelada={cancelada ? 'sim' : undefined}
-      className={`flex flex-col gap-0.5 rounded-[9px] border px-1.5 py-1 transition-[background-color,border-color,transform] duration-100 hover:-translate-y-px ${
+      className={`flex flex-col gap-0.5 rounded-peca border px-1.5 py-1 transition-[background-color,border-color,transform] duration-100 hover:-translate-y-px ${
         cancelada
           ? 'border-linha-suave bg-superficie-mais-suave'
           : sessao.ocupacao.excedida
-            ? 'border-[#F7DACB] bg-[#FFF6F1]'
-            : 'border-linha-suave bg-superficie-suave hover:border-[#C6D2CD] hover:bg-superficie'
+            ? 'border-alerta-linha bg-alerta-superficie'
+            : 'border-linha-suave bg-superficie-suave hover:border-linha-tracejada hover:bg-superficie'
       }`}
     >
       <span className="flex items-center gap-1.5">
@@ -185,7 +185,7 @@ export function CelulaTurma({ sessao }: { sessao: SessaoResumo }) {
           {sessao.profissional ?? sessao.local ?? ''}
         </span>
         <span
-          className={`rounded-[5px] px-1.5 py-0.5 font-mono text-[10.5px] ${
+          className={`rounded-minima px-1.5 py-0.5 font-mono text-[10.5px] ${
             sessao.ocupacao.excedida
               ? 'bg-alerta-fundo text-alerta'
               : 'bg-superficie-mais-suave text-tinta-media'

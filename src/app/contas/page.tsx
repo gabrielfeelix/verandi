@@ -34,10 +34,7 @@ export default async function Contas() {
   if (contas.length === 1) redirect(destinoDoPapel(contas[0].papel))
 
   return (
-    <PainelAcesso
-      titulo="Você trabalha em mais de um lugar."
-      texto="Escolha onde vai operar agora. A conta ativa fica visível em todas as telas."
-    >
+    <PainelAcesso tela="contas">
       <h1 className="font-titulo text-[25px] leading-tight font-semibold tracking-[-.02em]">
         Em qual conta você vai trabalhar?
       </h1>
@@ -55,11 +52,11 @@ export default async function Contas() {
                 <input type="hidden" name="contaId" value={c.contaId} />
                 <button
                   type="submit"
-                  className="flex w-full items-center gap-3.5 rounded-[16px] border border-linha-suave bg-superficie p-3.5 text-left transition-[border-color,background-color,transform] duration-200 hover:translate-x-0.5 hover:border-marca hover:bg-[#F9FCFB]"
+                  className="flex w-full items-center gap-3.5 rounded-grande border border-linha-suave bg-superficie p-3.5 text-left transition-[border-color,background-color,transform] duration-200 hover:translate-x-0.5 hover:border-marca hover:bg-[#F9FCFB]"
                 >
                   <span
                     aria-hidden
-                    className="flex size-9.5 shrink-0 items-center justify-center rounded-[12px] font-titulo text-[15px] font-bold"
+                    className="flex size-9.5 shrink-0 items-center justify-center rounded-padrao font-titulo text-[15px] font-bold"
                     style={{ background: fundo, color: frente }}
                   >
                     {sigla}

@@ -98,7 +98,7 @@ export function ListaParticipacao({
   }
 
   return (
-    <section className="rounded-[20px] border border-linha bg-superficie px-2.5 pt-2 pb-3">
+    <section className="rounded-cartao border border-linha bg-superficie px-2.5 pt-2 pb-3">
       <div className="flex items-center justify-between p-3">
         <h2 className="font-titulo text-[17px] font-semibold">
           {rotuloPessoas} nesta {rotuloSessao.toLowerCase()}
@@ -118,7 +118,7 @@ export function ListaParticipacao({
               const { marcadas } = await marcarTodosPresentes(sessaoId)
               avisar({ texto: `${marcadas} marcada(s) como presente` })
             })}
-            className="min-h-12 w-full rounded-[12px] bg-escuro px-4 text-[14px] font-semibold text-tinta-clara hover:bg-[#1D332B] active:translate-y-px"
+            className="min-h-12 w-full rounded-padrao bg-escuro px-4 text-[14px] font-semibold text-tinta-clara hover:bg-escuro-hover active:translate-y-px"
           >
             Marcar todos presentes ({pendentes})
           </button>
@@ -157,10 +157,10 @@ export function ListaParticipacao({
           return (
             <li
               key={p.id}
-              className={`grid grid-cols-[auto_1fr_auto] items-center gap-3.5 rounded-[15px] border p-3 ${
+              className={`grid grid-cols-[auto_1fr_auto] items-center gap-3.5 rounded-grande border p-3 ${
                 p.origem === 'recorrente'
                   ? 'border-linha-suave bg-superficie'
-                  : 'border-[#EFF3F1] bg-superficie-suave'
+                  : 'border-linha-fina bg-superficie-suave'
               }`}
             >
               <span className="relative">
@@ -234,7 +234,7 @@ export function ListaParticipacao({
                         disabled={pendente}
                         aria-pressed={p.status === s.valor}
                         onClick={() => registrar(p, s.valor)}
-                        className={`flex h-11 w-11 items-center justify-center rounded-[11px] border text-[15px] ${
+                        className={`flex h-11 w-11 items-center justify-center rounded-padrao border text-[15px] ${
                           p.status === s.valor
                             ? TINTA_BOTAO[s.valor]
                             : 'border-linha bg-superficie text-tinta-media hover:border-[#B7C4BF]'
@@ -270,11 +270,11 @@ export function ListaParticipacao({
       {podeRegistrar ? (
         <a
           href="#encaixar"
-          className="mt-1.5 flex items-center gap-3 rounded-[15px] border border-dashed border-[#C6D2CD] p-3.5 hover:bg-superficie-suave"
+          className="mt-1.5 flex items-center gap-3 rounded-grande border border-dashed border-linha-tracejada p-3.5 hover:bg-superficie-suave"
         >
           <span
             aria-hidden
-            className="flex size-10 items-center justify-center rounded-full border border-dashed border-[#C6D2CD] font-mono text-[15px] text-tinta-media"
+            className="flex size-10 items-center justify-center rounded-full border border-dashed border-linha-tracejada font-mono text-[15px] text-tinta-media"
           >
             +
           </span>
@@ -311,7 +311,7 @@ function Marca({
   return (
     <span
       title={titulo}
-      className={`rounded-[6px] px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] uppercase ${cor}`}
+      className={`rounded-minima px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] uppercase ${cor}`}
     >
       {children}
     </span>

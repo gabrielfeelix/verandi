@@ -75,7 +75,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
         <span className="text-tinta">{p.nome}</span>
       </nav>
 
-      <article className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 rounded-[20px] border border-linha bg-superficie px-5.5 py-5">
+      <article className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 rounded-cartao border border-linha bg-superficie px-5.5 py-5">
         <div className="flex min-w-0 flex-[1_1_360px] items-start gap-4.5">
           <span
             aria-hidden
@@ -93,13 +93,13 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
               {ficha.tags.map((t) => (
                 <span
                   key={t}
-                  className="rounded-[6px] bg-atencao-fundo px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] text-atencao uppercase"
+                  className="rounded-minima bg-atencao-fundo px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] text-atencao uppercase"
                 >
                   {t}
                 </span>
               ))}
               {!p.ativo ? (
-                <span className="rounded-[9px] bg-neutro-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-tinta-media">
+                <span className="rounded-peca bg-neutro-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-tinta-media">
                   Inativa — continua no histórico
                 </span>
               ) : null}
@@ -121,7 +121,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
             </div>
 
             {p.observacao ? (
-              <p className="rounded-[11px] bg-superficie-suave px-3 py-2 text-[12.5px] text-tinta-media">
+              <p className="rounded-padrao bg-superficie-suave px-3 py-2 text-[12.5px] text-tinta-media">
                 {p.observacao}
               </p>
             ) : null}
@@ -130,11 +130,11 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
 
         <div className="flex flex-col items-end gap-2">
           <span className="flex gap-2 text-[12px] text-tinta-media">
-            <span className="rounded-[9px] bg-positivo-fundo px-2.5 py-1 font-medium text-positivo">
+            <span className="rounded-peca bg-positivo-fundo px-2.5 py-1 font-medium text-positivo">
               {presencas} presença{presencas === 1 ? '' : 's'}
             </span>
             {faltas > 0 ? (
-              <span className="rounded-[9px] bg-alerta-fundo px-2.5 py-1 font-medium text-alerta">
+              <span className="rounded-peca bg-alerta-fundo px-2.5 py-1 font-medium text-alerta">
                 {faltas} falta{faltas === 1 ? '' : 's'}
               </span>
             ) : null}
@@ -157,7 +157,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-3.5">
-          <section className="rounded-[20px] border border-linha bg-superficie p-4">
+          <section className="rounded-cartao border border-linha bg-superficie p-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3">
               <h2 className="font-titulo text-[17px] font-semibold">
                 {rotulos.vaga.plural}
@@ -181,7 +181,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
             />
           </section>
 
-          <section className="rounded-[20px] border border-linha bg-superficie p-4">
+          <section className="rounded-cartao border border-linha bg-superficie p-4">
             <h2 className="pb-1 font-titulo text-[17px] font-semibold">Histórico</h2>
             <p className="pb-3 text-[12px] text-tinta-media">
               É o que responde &quot;ela vem mesmo?&quot; — a pergunta que hoje se
@@ -199,7 +199,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
                   <li key={x.id}>
                     <Link
                       href={`/sessao/${x.sessaoId}`}
-                      className="flex items-center gap-3 border-b border-[#F4F7F5] py-2.5 last:border-b-0 hover:bg-[#FBFCFB]"
+                      className="flex items-center gap-3 border-b border-linha-fina py-2.5 last:border-b-0 hover:bg-superficie-tenue"
                     >
                       <span className="w-14 shrink-0 font-mono text-[12px] text-tinta-media">
                         {curta(x.data)}
@@ -212,7 +212,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
                       </span>
                       {x.origem !== 'recorrente' ? (
                         <span
-                          className={`rounded-[6px] px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] uppercase ${
+                          className={`rounded-minima px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] uppercase ${
                             {
                               positivo: 'bg-positivo-fundo text-positivo',
                               atencao: 'bg-atencao-fundo text-atencao',
@@ -227,7 +227,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
                         </span>
                       ) : null}
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-[9px] px-2.5 py-[5px] text-[11.5px] font-medium ${
+                        className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
                           {
                             positivo: 'bg-positivo-fundo text-positivo',
                             atencao: 'bg-atencao-fundo text-atencao',
@@ -252,7 +252,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
         </div>
 
         <div className="flex flex-col gap-3.5">
-          <section className="rounded-[20px] border border-linha bg-superficie p-4">
+          <section className="rounded-cartao border border-linha bg-superficie p-4">
             <h2 className="pb-3 font-titulo text-[17px] font-semibold">
               Próximos horários
             </h2>
@@ -264,7 +264,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
                   <li key={x.id}>
                     <Link
                       href={`/sessao/${x.sessaoId}`}
-                      className="flex items-center gap-2.5 rounded-[11px] bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
+                      className="flex items-center gap-2.5 rounded-padrao bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
                     >
                       <span className="font-mono text-[12px] text-tinta-media">
                         {curta(x.data)} {x.hora}
@@ -279,7 +279,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
             )}
           </section>
 
-          <section className="rounded-[20px] border border-linha bg-superficie p-4">
+          <section className="rounded-cartao border border-linha bg-superficie p-4">
             <h2 className="pb-1 font-titulo text-[17px] font-semibold">
               Reposições em aberto
             </h2>
@@ -295,7 +295,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
                 {ficha.reposicoesAbertas.map((r) => (
                   <li
                     key={r.id}
-                    className="flex items-center gap-2.5 rounded-[11px] bg-atencao-fundo px-3 py-2.5 text-atencao"
+                    className="flex items-center gap-2.5 rounded-padrao bg-atencao-fundo px-3 py-2.5 text-atencao"
                   >
                     <span className="font-mono text-[12px]">
                       {curta(r.data)} {r.hora}

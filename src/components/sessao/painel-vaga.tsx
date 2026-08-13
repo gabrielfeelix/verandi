@@ -65,7 +65,7 @@ export function PainelVaga({
   return (
     <section
       id="encaixar"
-      className="flex flex-col gap-4 rounded-[20px] border border-linha bg-superficie p-4"
+      className="flex flex-col gap-4 rounded-cartao border border-linha bg-superficie p-4"
     >
       <div>
         <h2 className="font-titulo text-[17px] font-semibold">Vagas</h2>
@@ -85,7 +85,7 @@ export function PainelVaga({
             aria-label="Tipo"
             value={origem}
             onChange={(e) => setOrigem(e.target.value as typeof origem)}
-            className="min-h-10 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px]"
+            className="min-h-10 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px]"
           >
             <option value="avulso">Avulso</option>
             <option value="reposicao">Reposição</option>
@@ -98,7 +98,7 @@ export function PainelVaga({
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome"
-            className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px] placeholder:text-tinta-fraca"
+            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] placeholder:text-tinta-fraca"
           />
 
           {achados.length > 0 ? (
@@ -109,7 +109,7 @@ export function PainelVaga({
                     type="button"
                     disabled={pendente}
                     onClick={() => adicionar(c.id)}
-                    className="w-full rounded-[11px] border border-linha-suave px-3 py-2.5 text-left text-[13px] hover:border-marca hover:bg-[#F9FCFB]"
+                    className="w-full rounded-padrao border border-linha-suave px-3 py-2.5 text-left text-[13px] hover:border-marca hover:bg-[#F9FCFB]"
                   >
                     {c.nome}
                     <span className="ml-2 text-[11.5px] text-tinta-media">{c.detalhe}</span>
@@ -123,8 +123,8 @@ export function PainelVaga({
               segundo toque. 5/4 é decisão de quem está no balcão, com nome e
               registro — nunca o sistema deixando passar. */}
           {excedente ? (
-            <div className="flex flex-col gap-2 rounded-[13px] border border-[#F7DACB] bg-[#FFF6F1] p-3">
-              <p className="text-[12.5px] leading-relaxed text-[#8A4526]">
+            <div className="flex flex-col gap-2 rounded-media border border-alerta-linha bg-alerta-superficie p-3">
+              <p className="text-[12.5px] leading-relaxed text-alerta-texto">
                 Este horário já está com {ocupacao.ocupadas}/{ocupacao.capacidade}.
                 Encaixar deixa {ocupacao.ocupadas + 1}/{ocupacao.capacidade}, e fica
                 registrado como decisão sua.
@@ -134,7 +134,7 @@ export function PainelVaga({
                   type="button"
                   disabled={pendente}
                   onClick={() => adicionar(excedente, true)}
-                  className="min-h-10 rounded-[11px] bg-alerta px-3 text-[12.5px] font-medium text-white"
+                  className="min-h-10 rounded-padrao bg-alerta px-3 text-[12.5px] font-medium text-white"
                 >
                   Encaixar mesmo assim
                 </button>
@@ -150,7 +150,7 @@ export function PainelVaga({
           ) : null}
 
           {aviso ? (
-            <p role="alert" className="rounded-[11px] bg-atencao-fundo px-3 py-2 text-[12.5px] text-atencao">
+            <p role="alert" className="rounded-padrao bg-atencao-fundo px-3 py-2 text-[12.5px] text-atencao">
               {aviso}
             </p>
           ) : null}
@@ -165,7 +165,7 @@ export function PainelVaga({
             setAviso(null)
           })
         }}
-        className="flex items-end gap-2 border-t border-[#EFF3F1] pt-3"
+        className="flex items-end gap-2 border-t border-linha-fina pt-3"
       >
         <div className="flex flex-col gap-1.5">
           <label htmlFor="capacidade" className="text-[12.5px] font-medium">
@@ -174,12 +174,12 @@ export function PainelVaga({
           <input
             id="capacidade" name="capacidade" type="number" min={1}
             defaultValue={ocupacao.capacidade}
-            className="min-h-10 w-24 rounded-[11px] border border-linha bg-superficie px-2.5 text-center font-mono text-[14px]"
+            className="min-h-10 w-24 rounded-padrao border border-linha bg-superficie px-2.5 text-center font-mono text-[14px]"
           />
         </div>
         <button
           type="submit" disabled={pendente}
-          className="min-h-10 rounded-[11px] border border-linha bg-superficie px-3 text-[12.5px] hover:bg-superficie-suave"
+          className="min-h-10 rounded-padrao border border-linha bg-superficie px-3 text-[12.5px] hover:bg-superficie-suave"
         >
           Salvar
         </button>
@@ -197,7 +197,7 @@ export function PainelVaga({
             if (!confirm(`Cancelar este horário? ${quantos} pessoa(s) serão avisadas.`)) return
             iniciar(() => cancelarSessao(sessaoId, motivo))
           }}
-          className="flex items-end gap-2 border-t border-[#EFF3F1] pt-3"
+          className="flex items-end gap-2 border-t border-linha-fina pt-3"
         >
           <div className="flex flex-1 flex-col gap-1.5">
             <label htmlFor="motivo" className="text-[12.5px] font-medium">
@@ -205,12 +205,12 @@ export function PainelVaga({
             </label>
             <input
               id="motivo" name="motivo" required placeholder="Motivo"
-              className="min-h-10 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px] placeholder:text-tinta-fraca"
+              className="min-h-10 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px] placeholder:text-tinta-fraca"
             />
           </div>
           <button
             type="submit" disabled={pendente}
-            className="min-h-10 rounded-[11px] border border-[#F0D6C8] bg-[#FFF6F1] px-3 text-[12.5px] font-medium text-alerta hover:bg-[#FDE9E0]"
+            className="min-h-10 rounded-padrao border border-alerta-linha-forte bg-alerta-superficie px-3 text-[12.5px] font-medium text-alerta hover:bg-alerta-fundo"
           >
             Cancelar horário
           </button>

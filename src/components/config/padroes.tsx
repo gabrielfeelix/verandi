@@ -3,7 +3,8 @@
 import { useState, useTransition, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Nota, entrada } from '@/components/ui/pecas'
+import { Chip, Nota, entrada } from '@/components/ui/pecas'
+import { Icone } from '@/components/ui/icones'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarPadroes } from '@/server/config/acoes'
 import type { Padroes } from '@/server/config/consultas'
@@ -55,7 +56,7 @@ export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
   }
 
   return (
-    <section className="rounded-[20px] border border-linha bg-superficie px-5 py-4.5">
+    <section className="rounded-cartao border border-linha bg-superficie px-5 py-4.5">
       <h2 className="font-titulo text-[19px] font-semibold">Padrões</h2>
       <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
         O que já vem preenchido quando você cria algo novo. Sempre dá para mudar
@@ -167,7 +168,7 @@ export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
                     horariosSugeridos: v.horariosSugeridos.filter((x) => x !== h),
                   })
                 }
-                className="inline-flex min-h-9 items-center gap-2 rounded-[11px] border border-linha bg-superficie px-3 font-mono text-[12.5px] hover:border-[#F0D6C8] hover:bg-[#FFF6F1] hover:text-alerta"
+                className="inline-flex min-h-9 items-center gap-2 rounded-padrao border border-linha bg-superficie px-3 font-mono text-[12.5px] hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
               >
                 {h}
                 <span aria-hidden>×</span>
@@ -185,7 +186,7 @@ export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
         </LinhaPadrao>
       </div>
 
-      <p className="mt-4 rounded-[14px] border border-[#CFEBE1] bg-[#F3FAF7] px-3.5 py-3 text-[12.5px] leading-relaxed text-[#3E7A6C]">
+      <p className="mt-4 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[12.5px] leading-relaxed text-[#3E7A6C]">
         Mudar um padrão não mexe em nada que já existe. Vale só para o que for
         criado daqui em diante — cada serviço ainda pode ter a sua própria
         capacidade.
@@ -193,21 +194,21 @@ export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
 
       {erro ? <div className="pt-3"><Nota tom="alerta">{erro}</Nota></div> : null}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#EFF3F1] pt-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-linha-fina pt-4">
         <span className="text-[12.5px] text-tinta-media">
           {sujo ? 'Há mudanças não salvas.' : 'Tudo salvo.'}
         </span>
         <div className="flex gap-2">
           <Botao
             tom="secundario" disabled={pendente || !sujo}
-            className="min-h-10 rounded-[11px]"
+            className="min-h-10 rounded-padrao"
             onClick={() => { setV(padroes); setErro(null) }}
           >
             Descartar
           </Botao>
           <Botao
             disabled={pendente || !sujo}
-            className="min-h-10 rounded-[11px] font-semibold"
+            className="min-h-10 rounded-padrao font-semibold"
             onClick={salvar}
           >
             Salvar padrões
@@ -226,7 +227,7 @@ function LinhaPadrao({
   children: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[15px] border border-[#EFF3F1] bg-superficie-suave px-4 py-3.5">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-grande border border-linha-fina bg-superficie-suave px-4 py-3.5">
       <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-[3px]">
         <span className="text-[14px] font-medium">{rotulo}</span>
         <span className="text-[12px] leading-[1.45] text-tinta-media">{detalhe}</span>
@@ -260,18 +261,18 @@ function Contador({
     // teste nem leitor de tela consegue apontar o campo. O que dá contexto é a
     // ordem — o rótulo da linha vem imediatamente antes
     <div className="flex flex-wrap items-center gap-2.5">
-      <div className="flex items-center overflow-hidden rounded-[12px] border border-linha bg-superficie">
+      <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
         <button
           type="button"
           aria-label="menos"
           title={`Diminuir ${rotulo.toLowerCase()}`}
           disabled={valor <= min}
           onClick={() => aoMudar(limitar(valor - passo))}
-          className="h-11 w-11 font-mono text-[15px] text-tinta-media hover:bg-superficie-mais-suave disabled:opacity-40"
+          className="flex h-11 w-11 items-center justify-center text-tinta-media hover:bg-superficie-mais-suave disabled:opacity-40"
         >
-          −
+          <Icone nome="menos" />
         </button>
-        <span aria-hidden className="h-full w-px self-stretch bg-[#EFF3F1]" />
+        <span aria-hidden className="h-full w-px self-stretch bg-linha-fina" />
         <input
           aria-label={rotulo}
           value={valor}
@@ -282,16 +283,16 @@ function Contador({
           }}
           className="h-11 w-14 bg-transparent text-center font-mono text-[16px] font-medium outline-none"
         />
-        <span aria-hidden className="h-full w-px self-stretch bg-[#EFF3F1]" />
+        <span aria-hidden className="h-full w-px self-stretch bg-linha-fina" />
         <button
           type="button"
           aria-label="mais"
           title={`Aumentar ${rotulo.toLowerCase()}`}
           disabled={valor >= max}
           onClick={() => aoMudar(limitar(valor + passo))}
-          className="h-11 w-11 font-mono text-[15px] text-tinta-media hover:bg-superficie-mais-suave disabled:opacity-40"
+          className="flex h-11 w-11 items-center justify-center text-tinta-media hover:bg-superficie-mais-suave disabled:opacity-40"
         >
-          +
+          <Icone nome="mais" />
         </button>
       </div>
       <span className="text-[12px] text-tinta-media">{unidade}</span>
@@ -309,23 +310,13 @@ function Opcoes({
   aoMudar: (b: boolean) => void
 }) {
   return (
-    // botões com `aria-pressed`, não `radiogroup`: são duas escolhas que se
-    // alternam, e o papel de botão é o que a tela realmente oferece
+    // `Chip` já é botão com `aria-pressed`, não `radiogroup`: são duas escolhas
+    // que se alternam, e o papel de botão é o que a tela realmente oferece
     <div aria-label={rotulo} className="flex flex-wrap gap-1.5">
       {opcoes.map(([b, texto]) => (
-        <button
-          key={texto}
-          type="button"
-          aria-pressed={valor === b}
-          onClick={() => aoMudar(b)}
-          className={`min-h-10 rounded-[11px] border px-3.5 text-[12.5px] whitespace-nowrap ${
-            valor === b
-              ? 'border-escuro bg-escuro font-medium text-tinta-clara'
-              : 'border-linha bg-superficie text-tinta-media hover:border-[#C6D2CD]'
-          }`}
-        >
+        <Chip key={texto} ativo={valor === b} onClick={() => aoMudar(b)}>
           {texto}
-        </button>
+        </Chip>
       ))}
     </div>
   )

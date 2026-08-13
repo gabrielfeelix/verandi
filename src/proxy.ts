@@ -31,6 +31,16 @@ export async function proxy(req: NextRequest) {
   return res
 }
 
+/*
+ * Arquivo estático não passa por aqui.
+ *
+ * A lista de extensões precisa cobrir o que o produto realmente serve: enquanto
+ * `webp` faltava, a arte das telas de acesso batia no proxy, pagava uma ida ao
+ * Supabase e voltava 307 para `/entrar` — quem não está logado, que é justamente
+ * quem vê a tela de entrar, nunca via a ilustração.
+ */
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg)$).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|avif|ico)$).*)',
+  ],
 }

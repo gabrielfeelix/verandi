@@ -102,7 +102,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
           <span className="text-tinta">{sessao.servico} {sessao.hora}</span>
         </nav>
 
-        <article className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4.5 rounded-[20px] border border-linha bg-superficie px-5.5 py-5">
+        <article className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4.5 rounded-cartao border border-linha bg-superficie px-5.5 py-5">
           <div className="flex min-w-0 flex-[1_1_340px] items-start gap-5.5">
             <div className="flex flex-col gap-1 border-r border-linha-suave pr-5.5">
               <span className="font-titulo text-[34px] leading-none font-semibold tracking-[-.03em]">
@@ -119,7 +119,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                   {sessao.servico}
                 </h1>
                 <span
-                  className={`rounded-[8px] px-2.5 py-1 font-mono text-[12px] ${
+                  className={`rounded-peca px-2.5 py-1 font-mono text-[12px] ${
                     sessao.ocupacao.excedida
                       ? 'bg-alerta-fundo text-alerta'
                       : 'bg-superficie-mais-suave text-tinta-media'
@@ -128,7 +128,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                   {sessao.ocupacao.ocupadas}/{sessao.ocupacao.capacidade}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-[9px] px-2.5 py-[5px] text-[11.5px] font-medium ${estado.cor}`}
+                  className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${estado.cor}`}
                 >
                   <span aria-hidden className="size-1.5 rounded-full bg-current" />
                   {estado.rotulo}
@@ -169,7 +169,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
               </div>
 
               {cancelada ? (
-                <p className="rounded-[11px] bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">
+                <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">
                   {rotulos.sessao.singular} cancelada — {sessao.motivoCancelamento}.
                   O que já foi registrado continua no histórico.
                 </p>
@@ -189,7 +189,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
           />
 
           <div className="flex flex-col gap-3.5">
-            <section className="rounded-[20px] border border-linha bg-superficie p-4">
+            <section className="rounded-cartao border border-linha bg-superficie p-4">
               <h2 className="font-titulo text-[17px] font-semibold">
                 Resumo da chamada
               </h2>
@@ -200,7 +200,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                   ['Faltas', conta_.falta, 'bg-alerta'],
                   ['Avisaram', conta_.avisada, 'bg-atencao'],
                   ['Licença', conta_.licenca, 'bg-licenca'],
-                  ['Ainda sem registro', conta_.aguardando, 'bg-[#C6D2CD]'],
+                  ['Ainda sem registro', conta_.aguardando, 'bg-linha-tracejada'],
                 ].map(([rotulo, n, cor]) => (
                   <li key={rotulo as string} className="flex items-center gap-2.5">
                     <span aria-hidden className={`size-2 rounded-full ${cor}`} />
@@ -220,7 +220,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
               rotuloPessoa={rotulos.pessoa.singular}
             />
 
-            <section className="rounded-[20px] border border-dashed border-[#C6D2CD] bg-superficie-suave p-4">
+            <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
               <p className="text-[12.5px] leading-relaxed text-tinta-media">
                 O registro aplica na hora e sincroniza depois. Sem sinal nada se
                 perde — o aviso aparece e a chamada continua.
@@ -232,10 +232,10 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
         {/* A barra que não sai da tela: numa turma longa, rolar até o fim para
             saber se a chamada está feita é o tipo de atrito que faz voltar para
             a planilha. */}
-        <div className="sticky bottom-3.5 z-20 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 rounded-[16px] border border-linha bg-superficie px-4 py-3 shadow-[0_16px_34px_-22px_rgba(20,26,24,.5)]">
+        <div className="sticky bottom-3.5 z-20 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 shadow-[0_16px_34px_-22px_rgba(20,26,24,.5)]">
           <div className="flex min-w-0 items-center gap-3">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-[9px] px-2.5 py-1.5 text-[12.5px] font-medium ${estado.cor}`}
+              className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-1.5 text-[12.5px] font-medium ${estado.cor}`}
             >
               <span aria-hidden className="size-1.5 rounded-full bg-current" />
               {estado.rotulo}
@@ -246,7 +246,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
           {podeRegistrar ? (
             <a
               href="#encaixar"
-              className="min-h-11 rounded-[11px] border border-linha px-4 py-2.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
+              className="min-h-11 rounded-padrao border border-linha px-4 py-2.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
             >
               Encaixar
             </a>

@@ -44,7 +44,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
   )
 
   return (
-    <section className="rounded-[20px] border border-linha bg-superficie px-5 py-4.5">
+    <section className="rounded-cartao border border-linha bg-superficie px-5 py-4.5">
       <h2 className="font-titulo text-[19px] font-semibold">Vocabulário</h2>
       <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
         Como este negócio chama cada coisa. Muda o texto de todas as telas — e só
@@ -59,7 +59,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
             </span>
             {/* singular e plural na mesma caixa: são a mesma decisão, e separar
                 em dois campos faz parecer que dá para escolher só um */}
-            <div className="flex items-center gap-2 rounded-[12px] border border-linha-suave bg-superficie-suave px-3 py-1 focus-within:border-marca focus-within:bg-superficie">
+            <div className="flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie-suave px-3 py-1 focus-within:border-marca focus-within:bg-superficie">
               <input
                 aria-label={`${i.explica}, no singular`}
                 className="min-h-10 min-w-0 flex-1 bg-transparent text-[14px] font-medium outline-none"
@@ -78,7 +78,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
       </div>
 
       {/* A prévia é o que faz a seção fazer sentido antes de salvar */}
-      <div className="mt-4 rounded-[16px] border border-[#CFEBE1] bg-[#F3FAF7] p-4">
+      <div className="mt-4 rounded-grande border border-positivo-linha bg-positivo-superficie p-4">
         <p className="pb-2.5 text-[10.5px] font-semibold tracking-[.1em] text-[#3E7A6C] uppercase">
           Onde isso aparece — antes de salvar
         </p>
@@ -94,7 +94,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
           ].map(([onde, texto]) => (
             <li
               key={onde}
-              className="flex items-center gap-2.5 rounded-[11px] border border-positivo-fundo bg-superficie px-3 py-2.5"
+              className="flex items-center gap-2.5 rounded-padrao border border-positivo-fundo bg-superficie px-3 py-2.5"
             >
               <span className="w-26 shrink-0 text-[11px] text-tinta-media">{onde}</span>
               <span className="flex-1 text-[13.5px]">{texto}</span>
@@ -108,7 +108,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
       <div className="flex gap-2.5 pt-4">
         <Botao
           disabled={pendente}
-          className="min-h-11 rounded-[12px] px-4.5 text-[13.5px] font-semibold"
+          className="min-h-11 rounded-padrao px-4.5 text-[13.5px] font-semibold"
           onClick={() => iniciar(async () => {
             setErro(null)
             try {
@@ -127,7 +127,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
         <Botao
           tom="secundario"
           disabled={pendente || !sujo}
-          className="min-h-11 rounded-[12px] px-4.5 text-[13.5px]"
+          className="min-h-11 rounded-padrao px-4.5 text-[13.5px]"
           onClick={() => { setValores(itens); setErro(null) }}
         >
           Descartar

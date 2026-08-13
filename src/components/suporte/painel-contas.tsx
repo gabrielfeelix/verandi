@@ -45,10 +45,10 @@ export function PainelContas({
     <div className="flex flex-col gap-4">
       {/* Entrar na conta de um cliente é o acesso mais forte do sistema, e a
           tela diz isso antes de oferecer o botão. */}
-      <p className="flex items-start gap-2.5 rounded-[14px] border border-[#F6E7C9] bg-[#FDF8EE] px-3.5 py-3 text-[13px] leading-relaxed text-[#7A5E1E]">
+      <p className="flex items-start gap-2.5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[13px] leading-relaxed text-[#7A5E1E]">
         <span
           aria-hidden
-          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#F6E7C9] font-mono text-[11px]"
+          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-atencao-fundo font-mono text-[11px]"
         >
           !
         </span>
@@ -59,15 +59,15 @@ export function PainelContas({
         </span>
       </p>
 
-      <section className="overflow-hidden rounded-[20px] border border-linha bg-superficie">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EFF3F1] px-4.5 py-3.5">
+      <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-4.5 py-3.5">
           <h2 className="font-titulo text-[19px] font-semibold">Contas</h2>
           <Botao miudo onClick={() => setCriando(true)}>Nova conta</Botao>
         </div>
         <div className="flex flex-col">
           {criando ? (
             <form
-              className="flex flex-col gap-3 border-b border-[#F4F7F5] bg-superficie-suave px-4.5 py-4"
+              className="flex flex-col gap-3 border-b border-linha-fina bg-superficie-suave px-4.5 py-4"
               action={(f) => comErro(async () => {
                 const r = await criarConta({
                   nome: String(f.get('nome') ?? ''),
@@ -104,7 +104,7 @@ export function PainelContas({
               </Nota>
               <div className="flex gap-2">
                 <Botao type="submit" miudo disabled={pendente}>Criar conta</Botao>
-                <Botao type="button" tom="texto" miudo onClick={() => setCriando(false)}>
+                <Botao type="button" tom="fantasma" miudo onClick={() => setCriando(false)}>
                   Cancelar
                 </Botao>
               </div>
@@ -112,7 +112,7 @@ export function PainelContas({
           ) : null}
 
           {convite ? (
-            <div className="m-4 flex flex-col gap-2 rounded-[13px] border border-linha p-3">
+            <div className="m-4 flex flex-col gap-2 rounded-media border border-linha p-3">
               <span className="text-[12.5px] font-medium">
                 Convite do dono ({convite.para}) — copie agora
               </span>
@@ -127,7 +127,7 @@ export function PainelContas({
                   }}>
                   Copiar link
                 </Botao>
-                <Botao tom="texto" miudo onClick={() => setConvite(null)}>Fechar</Botao>
+                <Botao tom="fantasma" miudo onClick={() => setConvite(null)}>Fechar</Botao>
               </div>
             </div>
           ) : null}
@@ -140,11 +140,11 @@ export function PainelContas({
               return (
               <li
                 key={c.id}
-                className="flex flex-wrap items-center gap-3.5 border-b border-[#F4F7F5] px-4.5 py-3.5 last:border-b-0 hover:bg-[#FBFCFB]"
+                className="flex flex-wrap items-center gap-3.5 border-b border-linha-fina px-4.5 py-3.5 last:border-b-0 hover:bg-superficie-tenue"
               >
                 <span
                   aria-hidden
-                  className="flex size-9 shrink-0 items-center justify-center rounded-[12px] font-titulo text-[14px] font-bold"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-padrao font-titulo text-[14px] font-bold"
                   style={{ background: fundo, color: frente }}
                 >
                   {c.nome.trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase()}
@@ -185,7 +185,7 @@ export function PainelContas({
                     Entrar como suporte
                   </Botao>
                   <Botao
-                    tom="texto" miudo disabled={pendente}
+                    tom="fantasma" miudo disabled={pendente}
                     onClick={() => comErro(
                       () => suspenderConta(c.id, !c.ativa),
                       c.ativa ? 'Conta suspensa' : 'Conta reativada',
@@ -201,7 +201,7 @@ export function PainelContas({
         </div>
       </section>
 
-      <section className="rounded-[20px] border border-linha bg-superficie p-4">
+      <section className="rounded-cartao border border-linha bg-superficie p-4">
         <h2 className="font-titulo text-[19px] font-semibold">Log de acesso da 4YU</h2>
         <p className="pt-1 pb-3 text-[12.5px] text-tinta-media">
           Toda entrada em conta de cliente fica registrada, com início e fim.

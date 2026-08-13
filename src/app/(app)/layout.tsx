@@ -29,26 +29,26 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   const operacional = conta.papel === 'dono' || conta.papel === 'recepcao'
 
   const itens: ItemRail[] = [
-    { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', glifo: '◍' },
+    { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', icone: 'hoje' },
     ...(operacional
       ? ([
-          { href: '/semana', rotulo: 'Grade da semana', curto: 'Semana', glifo: '▦' },
-          { href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', glifo: '◎' },
+          { href: '/semana', rotulo: 'Grade da semana', curto: 'Semana', icone: 'semana' },
+          { href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', icone: 'pendencias' },
           {
             href: '/pessoas',
             rotulo: rotulos.pessoa.plural,
             curto: rotulos.pessoa.plural,
-            glifo: '◇',
+            icone: 'pessoas',
           },
-          { href: '/vaga', rotulo: 'Buscar vaga', curto: 'Vaga', glifo: '⌕' },
-          { href: '/grade', rotulo: 'Grade fixa', curto: 'Fixa', glifo: '⊞' },
+          { href: '/vaga', rotulo: 'Buscar vaga', curto: 'Vaga', icone: 'vaga' },
+          { href: '/grade', rotulo: 'Grade fixa', curto: 'Fixa', icone: 'grade' },
         ] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'dono' || conta.papel === 'suporte'
-      ? ([{ href: '/config', rotulo: 'Configuração', curto: 'Config', glifo: '⚙' }] satisfies ItemRail[])
+      ? ([{ href: '/config', rotulo: 'Configuração', curto: 'Config', icone: 'config' }] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'suporte'
-      ? ([{ href: '/contas-4yu', rotulo: 'Contas (4YU)', curto: '4YU', glifo: '◆' }] satisfies ItemRail[])
+      ? ([{ href: '/contas-4yu', rotulo: 'Contas (4YU)', curto: '4YU', icone: 'conta' }] satisfies ItemRail[])
       : []),
   ]
 

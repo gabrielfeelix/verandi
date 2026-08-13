@@ -4,54 +4,115 @@
  * Os tokens do design system, com nome de função.
  *
  * Cor com nome de cor é cor que ninguém troca depois: `--color-marca`, não
- * `--color-verde-escuro`. Os valores vêm do protótipo em `Design system
- * Verandi/`, e o contrato está em `docs/DESIGN.md`.
+ * `--color-verde-escuro`. Os valores vêm de `Design system Verandi-att/
+ * DESIGN-SYSTEM.md`, que é a fonte de verdade — onde a tela divergir dele, é a
+ * tela que muda.
  */
 @theme {
-  /* base */
+  /* ---- estrutura ---- */
   --color-fundo: #eef1ef;
   --color-superficie: #ffffff;
   --color-superficie-suave: #f6f8f7;
   --color-superficie-mais-suave: #f1f5f3;
-  --color-tinta: #141a18;
-  --color-tinta-media: #5d6b66;
-  --color-tinta-fraca: #8b9691;
-  --color-tinta-clara: #eaf3f0;
+  /* hover de linha de tabela: quase branco, só o suficiente para seguir o olho */
+  --color-superficie-tenue: #fbfcfb;
+
   --color-linha: #dfe5e2;
   --color-linha-suave: #e7ecea;
+  --color-linha-fina: #eff3f1;
+  --color-linha-tracejada: #c6d2cd;
 
-  /* marca */
+  /* ---- texto ---- */
+  --color-tinta: #141a18;
+  --color-tinta-media: #5d6b66;
+  --color-tinta-apagada: #7b8681;
+  --color-tinta-fraca: #8b9691;
+  --color-tinta-inativa: #9aa5a0;
+  --color-tinta-clara: #eaf3f0;
+  /* texto sobre o painel escuro: o de apoio, e o do item que não está ativo */
+  --color-tinta-escura-media: #9fb5ae;
+  --color-tinta-escura-fraca: #8fa8a0;
+  /* o único texto que fica legível em cima da menta */
+  --color-sobre-menta: #08201a;
+
+  /* ---- marca ---- */
   --color-marca: #0e7c6b;
   --color-marca-forte: #0a5e51;
   --color-escuro: #12211c;
+  --color-escuro-hover: #1d332b;
+  --color-escuro-2: #1b3a31;
+  --color-escuro-3: #245045;
   --color-menta: #2ac3a3;
+  --color-menta-hover: #38d6b4;
 
-  /* tintas com significado — sempre acompanhadas de texto ou glifo */
-  --color-positivo-fundo: #dcede7;
+  /*
+   * Laranja de contagem. Só badge e legenda "acima da capacidade" — nunca
+   * texto, o contraste não fecha. Texto laranja usa `--color-alerta`.
+   */
+  --color-destaque: #f0693c;
+
+  /* ---- tintas com significado — sempre acompanhadas de texto ou glifo ---- */
+  --color-positivo-fundo: #e3f2ed;
   --color-positivo: #0e7c6b;
+  --color-positivo-linha: #cfebe1;
+  --color-positivo-superficie: #f3faf7;
+  /* fundo do estado marcado (presente, vaga fixa): mais saturado que o chip */
+  --color-positivo-marcado: #dcede7;
+
+  --color-alerta-fundo: #fde9e0;
+  --color-alerta: #c5502a;
+  --color-alerta-forte: #a8411f;
+  --color-alerta-mais-forte: #9c3d1f;
+  --color-alerta-linha: #f7dacb;
+  /* a borda do botão de ícone destrutivo, um passo acima da borda de aviso */
+  --color-alerta-linha-forte: #f0d6c8;
+  --color-alerta-superficie: #fff6f1;
+  --color-alerta-marcado: #fbe4d9;
+  --color-alerta-texto: #8a4526;
+
   --color-atencao-fundo: #f6e7c9;
   --color-atencao: #8a6a22;
-  --color-alerta-fundo: #fbe4d9;
-  --color-alerta: #c5502a;
+  --color-atencao-linha: #f2e3d4;
+  --color-atencao-superficie: #fffbf7;
+
   --color-info-fundo: #e4e9f5;
   --color-info: #42507a;
+
   --color-licenca-fundo: #e9e6f3;
   --color-licenca: #5b4c7c;
-  --color-neutro-fundo: #edf1ef;
-  --color-neutro: #5d6b66;
 
-  /* tipografia */
+  --color-neutro-fundo: #edf1ef;
+  --color-neutro: #8b9691;
+  --color-neutro-linha: #e7ecea;
+
+  /* ---- tipografia ---- */
   --font-titulo: var(--fonte-titulo), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--fonte-texto), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--fonte-mono), ui-monospace, monospace;
 
-  /* forma */
+  /* ---- forma ---- */
+  --radius-minima: 6px;
   --radius-peca: 9px;
   --radius-padrao: 11px;
+  --radius-media: 13px;
+  --radius-grande: 15px;
   --radius-cartao: 20px;
+  --radius-modal: 22px;
 
+  /*
+   * Elevação vem de borda e fundo, quase nunca de sombra. Cada valor aqui tem
+   * um dono: quem inventar um sexto valor está desenhando fora do sistema.
+   */
+  --shadow-hero: 0 14px 30px -20px rgba(18, 33, 28, 0.6);
   --shadow-elevado: 0 18px 34px -20px rgba(20, 26, 24, 0.45);
   --shadow-modal: 0 30px 60px -30px rgba(18, 33, 28, 0.6);
+  --shadow-acesso: 0 40px 70px -44px rgba(20, 26, 24, 0.45);
+  --shadow-aviso: 0 18px 40px -22px rgba(0, 0, 0, 0.6);
+
+  /* ---- motion ---- */
+  --ease-espacial: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-pop: cubic-bezier(0.32, 1.2, 0.42, 1);
+  --ease-sobe: cubic-bezier(0.22, 1.2, 0.36, 1);
 }
 
 /*
@@ -71,10 +132,145 @@ body {
   background: #c9ede4;
 }
 
+/*
+ * O cursor de mão em tudo que se clica.
+ *
+ * O Tailwind v4 mudou o padrão de `<button>` para `cursor: default` — o botão
+ * passa a parecer texto, e a tela inteira perde a sensação de que responde.
+ * Resolver isso classe por classe é garantir que o próximo botão nasça errado;
+ * a regra mora aqui, uma vez.
+ */
+button:not(:disabled),
+[role='button'],
+summary {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 /* Foco de teclado visível em tudo. O protótipo não desenha, o produto precisa. */
 :focus-visible {
   outline: 2px solid var(--color-menta);
   outline-offset: 2px;
+}
+
+/*
+ * Campo de formulário é a exceção: ele já desenha o próprio foco, com a borda
+ * verde do design system.
+ *
+ * O contorno por cima seria uma caixa dentro da caixa — e num campo composto
+ * como "senha · mostrar" ele cerca só o `<input>`, deixando o botão de fora,
+ * como se metade do campo estivesse focada. Some o contorno; quem marca o foco
+ * é a moldura inteira, e o halo abaixo garante que continue visível.
+ */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+.campo:focus,
+.campo-caixa:focus-within {
+  box-shadow: 0 0 0 3px rgba(14, 124, 107, 0.12);
+}
+
+/*
+ * O campo de formulário, com os três estados no mesmo lugar.
+ *
+ * Vazio é **branco com borda visível**; preenchido é que afunda para o cinza.
+ * Escrito ao contrário — que é como estava a tela de entrar — o campo vazio vira
+ * um retângulo cinza de borda invisível, com cara de desabilitado, e o
+ * formulário inteiro parece inacabado.
+ *
+ * O `[placeholder]` na regra do preenchido não é decoração: `:placeholder-shown`
+ * só casa em campo que tem `placeholder`, então sem a guarda um campo sem
+ * placeholder casaria com `:not(:placeholder-shown)` **sempre** — e nasceria
+ * cinza, que é exatamente o defeito que esta regra existe para não repetir.
+ */
+@utility campo {
+  min-height: 48px;
+  width: 100%;
+  border-radius: var(--radius-media);
+  border: 1px solid var(--color-linha);
+  background: var(--color-superficie);
+  padding: 0 15px;
+  font-size: 14px;
+  color: var(--color-tinta);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &::placeholder {
+    color: var(--color-tinta-inativa);
+  }
+
+  &[placeholder]:not(:placeholder-shown) {
+    background: var(--color-superficie-suave);
+    border-color: var(--color-linha-suave);
+  }
+
+  &:focus {
+    background: var(--color-superficie);
+    border-color: var(--color-marca);
+    outline: none;
+  }
+
+  &:disabled {
+    background: var(--color-superficie-mais-suave);
+    color: var(--color-tinta-inativa);
+  }
+}
+
+/* A moldura de campo composto — o que tem botão dentro, como "senha · mostrar". */
+@utility campo-caixa {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-media);
+  border: 1px solid var(--color-linha);
+  background: var(--color-superficie);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--color-marca);
+  }
+}
+
+/*
+ * Ruído de fundo — a assinatura visual do sistema. Fica atrás de tudo e não
+ * intercepta clique; sem isso as áreas grandes de cor chapada parecem uma
+ * maquete, não um produto.
+ */
+@utility ruido {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  }
+}
+
+/* No escuro o mesmo ruído a meia força: em cima de #12211C, .5 vira sujeira. */
+@utility ruido-escuro {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.22;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  }
 }
 
 @keyframes vd-sobe {
@@ -85,6 +281,55 @@ body {
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Entrada de toast: passa do lugar e volta. É o que faz reparar sem piscar. */
+@keyframes vd-surge {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vd-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vd-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Anel que pulsa uma vez por ciclo: marca "a próxima turma é esta". */
+@keyframes vd-halo {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 124, 107, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(14, 124, 107, 0);
   }
 }
 

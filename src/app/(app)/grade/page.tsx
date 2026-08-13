@@ -4,6 +4,7 @@ import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { listarSeries, catalogoDaGrade } from '@/server/grade/consultas'
 import { EditorSerie } from '@/components/grade/editor-serie'
 import { LinhaDaGrade } from '@/components/grade/linha-da-grade'
+import { Vazio } from '@/components/ui/pecas'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -54,10 +55,10 @@ export default async function Grade() {
 
       {/* A confusão mais provável do sistema inteiro mora aqui, e por isso ela
           é dita antes de qualquer edição, não depois. */}
-      <p className="flex items-start gap-2.5 rounded-[14px] border border-[#CFEBE1] bg-[#F3FAF7] px-3.5 py-3 text-[13px] leading-relaxed text-[#2F6659]">
+      <p className="flex items-start gap-2.5 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[13px] leading-relaxed text-[#2F6659]">
         <span
           aria-hidden
-          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#CFEBE1] font-mono text-[11px]"
+          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-positivo-linha font-mono text-[11px]"
         >
           i
         </span>
@@ -71,30 +72,20 @@ export default async function Grade() {
       {/* Vazio é estado de projeto, não acidente: conta nova não tem série
           nenhuma, e a tela precisa dizer qual é o próximo passo. */}
       {vigentes.length === 0 ? (
-        <section className="flex flex-col items-center gap-2.5 rounded-[20px] border border-dashed border-[#C6D2CD] bg-superficie px-6 py-8.5 text-center">
-          <span
-            aria-hidden
-            className="flex size-11 items-center justify-center rounded-[14px] bg-superficie-mais-suave font-mono text-[17px] text-tinta-media"
-          >
-            ⊞
-          </span>
-          <span className="font-titulo text-[18px] font-semibold">
-            A grade está vazia
-          </span>
-          <span className="max-w-[400px] text-[13px] leading-relaxed text-tinta-media">
-            Conta nova começa assim — não é falha de carregamento. Criar{' '}
-            {rotulos.serie.singular.toLowerCase()} é dizer que horários existem,
-            e é o que faz {rotulos.sessao.plural.toLowerCase()} aparecerem em
-            Hoje e na Semana.
-          </span>
+        <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie">
+          <Vazio
+            icone="grade"
+            titulo="A grade está vazia"
+            texto={`Conta nova começa assim — não é falha de carregamento. Criar ${rotulos.serie.singular.toLowerCase()} é dizer que horários existem, e é o que faz ${rotulos.sessao.plural.toLowerCase()} aparecerem em Hoje e na Semana.`}
+          />
         </section>
       ) : (
         porDia.map((g) => (
           <section
             key={g.dia}
-            className="overflow-hidden rounded-[20px] border border-linha bg-superficie"
+            className="overflow-hidden rounded-cartao border border-linha bg-superficie"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EFF3F1] bg-[#FBFCFB] px-4.5 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
               <h2 className="text-[13px] font-medium">{g.nome}</h2>
               <span className="text-[12px] text-tinta-media">
                 {g.linhas.length} {(g.linhas.length === 1
@@ -119,8 +110,8 @@ export default async function Grade() {
       )}
 
       {encerradas.length > 0 ? (
-        <section className="overflow-hidden rounded-[20px] border border-linha bg-superficie">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EFF3F1] bg-[#FBFCFB] px-4.5 py-3">
+        <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
             <h2 className="text-[13px] font-medium">Encerradas</h2>
             <span className="text-[12px] text-tinta-media">
               continuam existindo no histórico

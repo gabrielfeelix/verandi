@@ -58,7 +58,7 @@ export function SecaoFuncionamento({
   const hoje = new Date().toLocaleDateString('en-CA')
 
   return (
-    <section className="rounded-[20px] border border-linha bg-superficie px-5 py-4.5">
+    <section className="rounded-cartao border border-linha bg-superficie px-5 py-4.5">
       <h2 className="font-titulo text-[19px] font-semibold">
         Funcionamento e feriados
       </h2>
@@ -70,7 +70,7 @@ export function SecaoFuncionamento({
         {estado.map((d) => (
           <div
             key={d.diaSemana}
-            className={`flex flex-wrap items-center gap-3.5 rounded-[12px] border border-[#EFF3F1] px-3.5 py-2.5 ${
+            className={`flex flex-wrap items-center gap-3.5 rounded-padrao border border-linha-fina px-3.5 py-2.5 ${
               d.abre ? 'bg-superficie' : 'bg-superficie-suave'
             }`}
           >
@@ -81,13 +81,13 @@ export function SecaoFuncionamento({
                 <input
                   type="time" value={d.abre} aria-label={`${DIAS[d.diaSemana]} abre`}
                   onChange={(e) => muda(d.diaSemana, 'abre', e.target.value)}
-                  className="min-h-10 rounded-[10px] border border-linha bg-superficie px-2.5 font-mono text-[13px]"
+                  className="min-h-10 rounded-peca border border-linha bg-superficie px-2.5 font-mono text-[13px]"
                 />
                 <span className="text-[12px] text-tinta-media">até</span>
                 <input
                   type="time" value={d.fecha ?? ''} aria-label={`${DIAS[d.diaSemana]} fecha`}
                   onChange={(e) => muda(d.diaSemana, 'fecha', e.target.value)}
-                  className="min-h-10 rounded-[10px] border border-linha bg-superficie px-2.5 font-mono text-[13px]"
+                  className="min-h-10 rounded-peca border border-linha bg-superficie px-2.5 font-mono text-[13px]"
                 />
               </span>
             ) : (
@@ -99,7 +99,7 @@ export function SecaoFuncionamento({
             <button
               type="button"
               onClick={() => alterna(d.diaSemana)}
-              className={`rounded-[8px] px-2.5 py-1 text-[11.5px] font-medium ${
+              className={`rounded-peca px-2.5 py-1 text-[11.5px] font-medium ${
                 d.abre
                   ? 'bg-positivo-fundo text-positivo'
                   : 'bg-neutro-fundo text-tinta-media'
@@ -111,7 +111,7 @@ export function SecaoFuncionamento({
         ))}
       </div>
 
-      <p className="mt-3.5 rounded-[14px] border border-[#F6E7C9] bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
+      <p className="mt-3.5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
         Fechar um dia não apaga os horários fixos que já existem nele — eles
         continuam na grade, e a agenda daquele dia passa a dizer que o negócio
         não abre.
@@ -122,7 +122,7 @@ export function SecaoFuncionamento({
       <div className="pt-3.5">
         <Botao
           disabled={pendente}
-          className="min-h-10 rounded-[11px]"
+          className="min-h-10 rounded-padrao"
           onClick={() => comErro(
             () => salvarFuncionamento(estado),
             'Funcionamento salvo',
@@ -139,7 +139,7 @@ export function SecaoFuncionamento({
 
         {novaData ? (
           <form
-            className="mb-3 flex flex-col gap-3 rounded-[15px] border border-[#EFF3F1] bg-superficie-suave p-4"
+            className="mb-3 flex flex-col gap-3 rounded-grande border border-linha-fina bg-superficie-suave p-4"
             action={(f) => comErro(
               async () => {
                 const r = await salvarDataFechada({
@@ -192,7 +192,7 @@ export function SecaoFuncionamento({
 
             <div className="flex gap-2">
               <Botao type="submit" miudo disabled={pendente}>Marcar data</Botao>
-              <Botao type="button" tom="texto" miudo onClick={() => setNovaData(false)}>
+              <Botao type="button" tom="fantasma" miudo onClick={() => setNovaData(false)}>
                 Cancelar
               </Botao>
             </div>
@@ -203,14 +203,14 @@ export function SecaoFuncionamento({
           {datas.map((d) => (
             <span
               key={d.id}
-              className="inline-flex items-center gap-2 rounded-[11px] border border-linha-suave bg-superficie-suave py-1.5 pr-2 pl-3 text-[13px]"
+              className="inline-flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie-suave py-1.5 pr-2 pl-3 text-[13px]"
             >
               <span className="font-mono text-[12px] text-tinta-media">
                 {d.data.slice(8)}/{d.data.slice(5, 7)}
               </span>
               {d.descricao ?? d.tipo}
               {d.acao === 'cancelar_avisar' ? (
-                <span className="rounded-[6px] bg-alerta-fundo px-1.5 py-0.5 text-[10px] font-medium text-alerta">
+                <span className="rounded-minima bg-alerta-fundo px-1.5 py-0.5 text-[10px] font-medium text-alerta">
                   cancela
                 </span>
               ) : null}
@@ -219,7 +219,7 @@ export function SecaoFuncionamento({
                 aria-label={`Remover ${d.descricao ?? d.data}`}
                 disabled={pendente}
                 onClick={() => comErro(() => removerDataFechada(d.id), 'Data removida')}
-                className="flex size-7 items-center justify-center rounded-[7px] text-tinta-fraca hover:bg-alerta-fundo hover:text-alerta"
+                className="flex size-7 items-center justify-center rounded-minima text-tinta-fraca hover:bg-alerta-fundo hover:text-alerta"
               >
                 <span aria-hidden>×</span>
               </button>
@@ -229,7 +229,7 @@ export function SecaoFuncionamento({
           <button
             type="button"
             onClick={() => setNovaData(true)}
-            className="min-h-10 rounded-[11px] border border-dashed border-[#C6D2CD] px-3.5 text-[13px] whitespace-nowrap text-marca hover:bg-superficie-suave"
+            className="min-h-10 rounded-padrao border border-dashed border-linha-tracejada px-3.5 text-[13px] whitespace-nowrap text-marca hover:bg-superficie-suave"
           >
             + Nova data fechada
           </button>

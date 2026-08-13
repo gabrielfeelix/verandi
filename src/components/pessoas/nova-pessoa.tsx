@@ -23,7 +23,7 @@ export function NovaPessoa({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="min-h-11 rounded-[12px] bg-escuro px-3.5 text-[13px] font-medium text-tinta-clara hover:bg-[#1D332B]"
+        className="min-h-11 rounded-padrao bg-escuro px-3.5 text-[13px] font-medium text-tinta-clara hover:bg-escuro-hover"
       >
         Cadastrar {rotuloPessoa.toLowerCase()}
       </button>
@@ -32,7 +32,7 @@ export function NovaPessoa({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-2 rounded-[15px] border border-linha-suave bg-superficie-suave p-3"
+      className="flex flex-wrap items-end gap-2 rounded-grande border border-linha-suave bg-superficie-suave p-3"
       action={(f) => {
         const nome = String(f.get('nome') ?? '')
         const telefone = String(f.get('telefone') ?? '')
@@ -48,7 +48,7 @@ export function NovaPessoa({
         <label htmlFor="nome" className="text-[12.5px] font-medium">Nome</label>
         <input
           id="nome" name="nome" required autoFocus
-          className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+          className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
         />
       </div>
 
@@ -58,13 +58,13 @@ export function NovaPessoa({
         </label>
         <input
           id="telefone" name="telefone"
-          className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+          className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
         />
       </div>
 
       <button
         type="submit" disabled={pendente}
-        className="min-h-11 rounded-[11px] bg-escuro px-4 text-[13px] font-medium text-tinta-clara disabled:opacity-60"
+        className="min-h-11 rounded-padrao bg-escuro px-4 text-[13px] font-medium text-tinta-clara disabled:opacity-60"
       >
         Salvar
       </button>

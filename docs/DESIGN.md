@@ -1,12 +1,17 @@
 # Verandi — design system
 
-O protótipo em `Design system Verandi/` **é a especificação de interface**, não
-referência. Onde a tela do produto divergir dele, é a tela que está errada — a
-não ser que a divergência esteja escrita aqui, com o motivo.
+A fonte de verdade é **`Design system Verandi-att/DESIGN-SYSTEM.md`**. Ele
+descreve o sistema inteiro — cor, tipografia, espaço, os treze componentes,
+layout, motion, ícones e voz — em detalhe suficiente para construir uma tela
+nova sem abrir o protótipo. Onde a tela do produto divergir dele, é a tela que
+muda.
 
-Este arquivo é o contrato: os valores, os primitivos e as três regras que o
-protótipo aplica sem dizer. Quem for construir tela lê isto e o protótipo, nessa
-ordem.
+`Design system Verandi/` (o protótipo antigo) fica como **consulta**, para o caso
+que o novo não previu: um estado de erro específico, uma tela que ninguém
+desenhou de novo. Não é para onde se olha primeiro.
+
+Este arquivo é a ponte entre os dois e o código: como os valores de lá viraram
+token daqui, e o que **de propósito** não veio do protótipo.
 
 ## O que não vem do protótipo
 

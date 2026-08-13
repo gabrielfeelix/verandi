@@ -19,8 +19,8 @@ export function PainelConfig({
   children: ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-[20px] border border-linha bg-superficie">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EFF3F1] px-5 py-4">
+    <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-5 py-4">
         <div>
           <h2 className="font-titulo text-[19px] font-semibold">{titulo}</h2>
           {sub ? (
@@ -53,7 +53,7 @@ export function LinhaConfig({
 }) {
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-3.5 gap-y-2.5 border-b border-[#F4F7F5] px-5 py-3.5 last:border-b-0 hover:bg-[#FBFCFB] ${
+      className={`flex flex-wrap items-center gap-x-3.5 gap-y-2.5 border-b border-linha-fina px-5 py-3.5 last:border-b-0 hover:bg-superficie-tenue ${
         apagado ? 'bg-[#FDFDFC]' : ''
       }`}
     >
@@ -76,7 +76,7 @@ export function LinhaConfig({
 /** O número entre parênteses da linha — capacidade, duração, contagem. */
 export function Dado({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-[8px] bg-superficie-mais-suave px-2.5 py-1 font-mono text-[12px] text-tinta-media">
+    <span className="rounded-peca bg-superficie-mais-suave px-2.5 py-1 font-mono text-[12px] text-tinta-media">
       {children}
     </span>
   )
@@ -86,7 +86,7 @@ export function Dado({ children }: { children: ReactNode }) {
 export function Estado({ ativo }: { ativo: boolean }) {
   return (
     <span
-      className={`rounded-[9px] px-2.5 py-[5px] text-[11.5px] font-medium ${
+      className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
         ativo ? 'bg-positivo-fundo text-positivo' : 'bg-neutro-fundo text-tinta-media'
       }`}
     >
@@ -106,9 +106,9 @@ export function BotaoLinha({
     <button
       type="button"
       {...resto}
-      className={`min-h-9 rounded-[10px] border border-linha-suave bg-superficie px-3 text-[12.5px] whitespace-nowrap disabled:opacity-50 ${
+      className={`min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] whitespace-nowrap disabled:opacity-50 ${
         tom === 'marca'
-          ? 'text-marca hover:bg-[#F3FAF7]'
+          ? 'text-marca hover:bg-positivo-superficie'
           : 'text-tinta-media hover:bg-superficie-suave hover:text-tinta'
       } ${className}`}
     >
@@ -136,10 +136,10 @@ export function Recolhivel({
         type="button"
         onClick={() => setAberto((a) => !a)}
         aria-expanded={aberto}
-        className="flex w-full items-center justify-between gap-3 border-t border-[#F4F7F5] bg-[#FBFCFB] px-5 py-3.5 text-left hover:bg-superficie-mais-suave"
+        className="flex w-full items-center justify-between gap-3 border-t border-linha-fina bg-superficie-tenue px-5 py-3.5 text-left hover:bg-superficie-mais-suave"
       >
         <span className="text-[12.5px] text-tinta-media">{rotulo}</span>
-        <span aria-hidden className="font-mono text-[13px] text-[#9AA5A0]">
+        <span aria-hidden className="font-mono text-[13px] text-tinta-inativa">
           {aberto ? '▴' : '▾'}
         </span>
       </button>
@@ -151,7 +151,7 @@ export function Recolhivel({
 /** A faixa de formulário dentro do painel, com o fundo suave do protótipo. */
 export function FaixaFormulario({ children }: { children: ReactNode }) {
   return (
-    <div className="border-b border-[#F4F7F5] bg-superficie-suave px-5 py-4">
+    <div className="border-b border-linha-fina bg-superficie-suave px-5 py-4">
       {children}
     </div>
   )

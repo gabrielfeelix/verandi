@@ -79,3 +79,51 @@ test('o avatar de uma pessoa é sempre a mesma cor', async ({ page }) => {
   await page.reload()
   expect(await cor('Ruth Salgado')).toBe(primeira)
 })
+
+/*
+ * As três coisas que passaram por tsc, eslint e 209 testes verdes e mesmo assim
+ * chegaram tortas na tela. Nenhuma delas quebra em teste de comportamento — só
+ * aparece no olho, e por isso são medidas aqui.
+ */
+test('o token de raio vira raio de verdade', async ({ page }) => {
+  // `rounded-[--radius-cartao]` não é sintaxe do Tailwind v4: vira
+  // `border-radius: --radius-cartao`, que o navegador descarta calado. O app
+  // inteiro rodou sem canto arredondado nenhum sem nada acusar.
+  const raio = (sel: string) =>
+    page.locator(sel).first().evaluate((e) => parseFloat(getComputedStyle(e).borderTopLeftRadius))
+
+  expect(await raio('section')).toBeGreaterThan(0)
+  expect(await raio('button')).toBeGreaterThan(0)
+})
+
+test('o que se clica mostra a mão', async ({ page }) => {
+  // o Tailwind v4 mudou `<button>` para `cursor: default`, e a tela inteira
+  // passa a parecer que não responde
+  const cursor = await page
+    .getByRole('button', { name: 'Salvar' })
+    .evaluate((e) => getComputedStyle(e).cursor)
+  expect(cursor).toBe('pointer')
+})
+
+test('o campo vazio é branco com borda, não cinza sem borda', async ({ page }) => {
+  const campo = page.getByLabel('Nome')
+  const estilo = await campo.evaluate((e) => {
+    const c = getComputedStyle(e)
+    return { fundo: c.backgroundColor, borda: c.borderTopColor }
+  })
+  expect(estilo.fundo).toBe('rgb(255, 255, 255)')
+  expect(estilo.borda).toBe('rgb(223, 229, 226)')
+})
+
+test('o foco do campo marca a moldura inteira, não meio campo', async ({ page }) => {
+  // num campo composto ("senha · mostrar") o contorno do `<input>` cerca só ele
+  // e deixa o botão de fora, como se metade do campo estivesse focada
+  const campo = page.getByLabel('Nome')
+  await campo.click()
+  expect(await campo.evaluate((e) => getComputedStyle(e).outlineStyle)).toBe('none')
+
+  // `poll` porque a borda tem transição de .15s: medir na hora pega o meio dela
+  await expect
+    .poll(() => campo.evaluate((e) => getComputedStyle(e).borderTopColor))
+    .toBe('rgb(14, 124, 107)')
+})

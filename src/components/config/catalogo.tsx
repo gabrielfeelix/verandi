@@ -352,13 +352,13 @@ function Formulario({
   return (
     <form
       action={aoSalvar}
-      className="flex flex-col gap-3 rounded-[--radius-padrao] bg-superficie-suave p-3"
+      className="flex flex-col gap-3 rounded-padrao bg-superficie-suave p-3"
     >
       <div className="flex flex-wrap items-start gap-3">{children}</div>
       {erro ? <Nota tom="alerta">{erro}</Nota> : null}
       <div className="flex gap-2">
         <Botao type="submit" miudo disabled={pendente}>Salvar</Botao>
-        <Botao type="button" tom="texto" miudo onClick={aoCancelar}>Cancelar</Botao>
+        <Botao type="button" tom="fantasma" miudo onClick={aoCancelar}>Cancelar</Botao>
       </div>
     </form>
   )

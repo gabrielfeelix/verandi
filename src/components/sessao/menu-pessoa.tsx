@@ -6,6 +6,7 @@ import type { ParticipacaoDetalhe, FaltaEmAberto } from '@/server/agenda/consult
 import type { OrigemParticipacao } from '@/server/agenda/consultas'
 import { Botao } from '@/components/ui/botao'
 import { entrada } from '@/components/ui/pecas'
+import { Icone } from '@/components/ui/icones'
 import {
   apontarReposicao, salvarObservacao, trocarOrigem, removerParticipacao,
 } from '@/server/agenda/acoes'
@@ -63,16 +64,16 @@ export function MenuPessoa({
         aria-expanded={aberto !== null}
         disabled={pendente}
         onClick={() => setAberto(aberto === 'menu' ? null : 'menu')}
-        className="flex h-11 w-9 items-center justify-center rounded-[10px] text-[#A9B3AE] hover:bg-superficie-mais-suave hover:text-tinta"
+        className="flex size-11 cursor-pointer items-center justify-center rounded-peca text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta md:size-[34px]"
       >
-        <span aria-hidden>⋯</span>
+        <Icone nome="kebab" />
       </button>
 
       {aberto === 'menu' ? (
-        <div className="absolute top-11 right-0 z-25 flex w-54 flex-col gap-0.5 rounded-[15px] border border-linha-suave bg-superficie p-1.5 shadow-[--shadow-elevado]">
+        <div className="absolute top-[38px] right-0 z-[25] flex w-[216px] flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado">
           <Link
             href={`/pessoas/${participacao.pessoaId}`}
-            className="rounded-[10px] px-3 py-2.5 text-[13px] hover:bg-superficie-suave"
+            className="rounded-peca px-3 py-2.5 text-[13px] hover:bg-superficie-suave"
           >
             Ver ficha completa
           </Link>
@@ -125,7 +126,7 @@ export function MenuPessoa({
             >
               Salvar
             </Botao>
-            <Botao tom="texto" miudo onClick={fechar}>Cancelar</Botao>
+            <Botao tom="fantasma" miudo onClick={fechar}>Cancelar</Botao>
           </div>
         </Gaveta>
       ) : null}
@@ -151,9 +152,9 @@ export function MenuPessoa({
                         'Reposição apontada',
                       )
                     }}
-                    className={`flex w-full items-center gap-2.5 rounded-[11px] border px-3 py-2.5 text-left text-[13px] hover:bg-superficie-suave ${
+                    className={`flex w-full items-center gap-2.5 rounded-padrao border px-3 py-2.5 text-left text-[13px] hover:bg-superficie-suave ${
                       participacao.reposicaoDeId === f.participacaoId
-                        ? 'border-marca bg-[#F3FAF7]'
+                        ? 'border-marca bg-positivo-superficie'
                         : 'border-linha-suave'
                     }`}
                   >
@@ -172,7 +173,7 @@ export function MenuPessoa({
 
           {participacao.reposicaoDeId ? (
             <Botao
-              tom="texto"
+              tom="fantasma"
               miudo
               disabled={pendente}
               onClick={() => {
@@ -204,9 +205,9 @@ export function MenuPessoa({
                       `Agora consta como ${o.rotulo.toLowerCase()}`,
                     )
                   }}
-                  className={`flex w-full flex-col rounded-[11px] border px-3 py-2 text-left hover:bg-superficie-suave ${
+                  className={`flex w-full flex-col rounded-padrao border px-3 py-2 text-left hover:bg-superficie-suave ${
                     participacao.origem === o.valor
-                      ? 'border-marca bg-[#F3FAF7]'
+                      ? 'border-marca bg-positivo-superficie'
                       : 'border-linha-suave'
                   }`}
                 >
@@ -233,7 +234,7 @@ function ItemMenu({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-[10px] px-3 py-2.5 text-left text-[13px] hover:bg-superficie-suave ${
+      className={`rounded-peca px-3 py-2.5 text-left text-[13px] hover:bg-superficie-suave ${
         perigo ? 'text-alerta' : ''
       }`}
     >
@@ -254,7 +255,7 @@ function Gaveta({
     <div
       role="dialog"
       aria-label={titulo}
-      className="absolute top-11 right-0 z-30 flex w-80 flex-col gap-2.5 rounded-[15px] border border-linha-suave bg-superficie p-3.5 shadow-[--shadow-elevado]"
+      className="absolute top-11 right-0 z-30 flex w-80 flex-col gap-2.5 rounded-grande border border-linha-suave bg-superficie p-3.5 shadow-elevado"
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-[13px] font-medium">{titulo}</span>
@@ -262,7 +263,7 @@ function Gaveta({
           type="button"
           aria-label="Fechar"
           onClick={aoFechar}
-          className="-mt-1 -mr-1 flex size-8 items-center justify-center rounded-[9px] text-tinta-media hover:bg-superficie-suave"
+          className="-mt-1 -mr-1 flex size-8 items-center justify-center rounded-peca text-tinta-media hover:bg-superficie-suave"
         >
           <span aria-hidden>×</span>
         </button>

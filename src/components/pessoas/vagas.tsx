@@ -29,7 +29,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
           {ativas.map((v) => (
             <li
               key={v.id}
-              className="flex flex-wrap items-center gap-2.5 rounded-[12px] border border-linha-suave bg-superficie-suave px-3 py-2.5"
+              className="flex flex-wrap items-center gap-2.5 rounded-padrao border border-linha-suave bg-superficie-suave px-3 py-2.5"
             >
               <span className="text-[13.5px] font-medium">{v.rotulo}</span>
               <span className="font-mono text-[11.5px] text-tinta-media">
@@ -38,7 +38,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
               <button
                 type="button"
                 disabled={pendente}
-                className="ml-auto min-h-9 rounded-[10px] border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:border-[#F0D6C8] hover:bg-[#FFF6F1] hover:text-alerta"
+                className="ml-auto min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
                 onClick={() => {
                   if (confirm('Encerrar a partir de hoje? O histórico anterior fica.')) {
                     iniciar(() => encerrarVaga(v.id, hoje))
@@ -77,7 +77,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
           <label htmlFor="serie" className="text-[12.5px] font-medium">
             Nova {rotuloVaga.toLowerCase()}
           </label>
-          <select id="serie" name="serie" required className="min-h-11 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px]">
+          <select id="serie" name="serie" required className="min-h-11 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px]">
             <option value="">escolha o horário</option>
             {series.map((s) => (
               <option key={s.id} value={s.id}>{s.rotulo}</option>
@@ -88,10 +88,10 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
         <div className="flex flex-col gap-1">
           <label htmlFor="desde" className="text-[12.5px] font-medium">A partir de</label>
           <input id="desde" name="desde" type="date" defaultValue={hoje}
-                 className="min-h-11 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px]" />
+                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px]" />
         </div>
 
-        <button type="submit" disabled={pendente} className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]">
+        <button type="submit" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
           Adicionar
         </button>
       </form>

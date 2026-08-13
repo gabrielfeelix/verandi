@@ -74,7 +74,7 @@ export function EditorSerie({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="min-h-11 rounded-[12px] bg-escuro px-3.5 text-[13px] font-medium text-tinta-clara hover:bg-[#1D332B]"
+        className="min-h-11 rounded-padrao bg-escuro px-3.5 text-[13px] font-medium text-tinta-clara hover:bg-escuro-hover"
       >
         Criar {rotuloSerie.toLowerCase()}
       </button>
@@ -83,7 +83,7 @@ export function EditorSerie({
 
   if (catalogo.servicos.length === 0) {
     return (
-      <p className="rounded-[13px] border border-linha-suave bg-superficie p-3 text-[12.5px] leading-relaxed">
+      <p className="rounded-media border border-linha-suave bg-superficie p-3 text-[12.5px] leading-relaxed">
         Antes de montar a grade, cadastre um serviço em Configuração.
       </p>
     )
@@ -91,7 +91,7 @@ export function EditorSerie({
 
   return (
     <form
-      className="flex flex-col gap-3 rounded-[15px] border border-linha-suave bg-superficie-suave p-4"
+      className="flex flex-col gap-3 rounded-grande border border-linha-suave bg-superficie-suave p-4"
       action={(f) => salvar(doFormulario(f), false)}
     >
       <fieldset className="flex flex-wrap gap-3">
@@ -109,7 +109,7 @@ export function EditorSerie({
           <label htmlFor="horaInicio">Começa às</label>
           <input
             id="horaInicio" name="horaInicio" type="time" required
-            className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
           />
         </div>
 
@@ -117,7 +117,7 @@ export function EditorSerie({
           <label htmlFor="duracaoMin">Duração (min)</label>
           <input
             id="duracaoMin" name="duracaoMin" type="number" min={1} defaultValue={60}
-            className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px] w-24"
+            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] w-24"
           />
         </div>
 
@@ -125,13 +125,13 @@ export function EditorSerie({
           <label htmlFor="capacidade">Capacidade</label>
           <input
             id="capacidade" name="capacidade" type="number" min={1} defaultValue={1}
-            className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px] w-24"
+            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] w-24"
           />
         </div>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="servicoId">Serviço</label>
-          <select id="servicoId" name="servicoId" required className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]">
+          <select id="servicoId" name="servicoId" required className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
             {catalogo.servicos.map((s) => (
               <option key={s.id} value={s.id}>{s.nome}</option>
             ))}
@@ -140,7 +140,7 @@ export function EditorSerie({
 
         <div className="flex flex-col gap-1">
           <label htmlFor="profissionalId">Profissional</label>
-          <select id="profissionalId" name="profissionalId" className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]">
+          <select id="profissionalId" name="profissionalId" className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
             <option value="">— sem definir —</option>
             {catalogo.profissionais.map((p) => (
               <option key={p.id} value={p.id}>{p.nome}</option>
@@ -150,7 +150,7 @@ export function EditorSerie({
 
         <div className="flex flex-col gap-1">
           <label htmlFor="localId">Local</label>
-          <select id="localId" name="localId" className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]">
+          <select id="localId" name="localId" className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
             <option value="">— sem definir —</option>
             {catalogo.locais.map((l) => (
               <option key={l.id} value={l.id}>{l.nome}</option>
@@ -162,7 +162,7 @@ export function EditorSerie({
           <label htmlFor="vigenciaInicio">Vale a partir de</label>
           <input
             id="vigenciaInicio" name="vigenciaInicio" type="date" defaultValue={hoje}
-            className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
           />
         </div>
       </div>
@@ -179,7 +179,7 @@ export function EditorSerie({
       {/* Colisão não bloqueia: dois profissionais na mesma sala pode ser real.
           Quem opera é que sabe, então a tela conta o que achou e deixa seguir. */}
       {colisoes.length > 0 ? (
-        <div className="rounded-[13px] border border-linha-suave bg-superficie p-3 text-[12.5px] leading-relaxed">
+        <div className="rounded-media border border-linha-suave bg-superficie p-3 text-[12.5px] leading-relaxed">
           <p className="font-medium">Esse horário já tem coisa marcada:</p>
           <ul className="list-inside list-disc">
             {colisoes.map((c, i) => (
@@ -194,7 +194,7 @@ export function EditorSerie({
               type="button"
               disabled={pendente}
               onClick={() => salvar(pedido, true)}
-              className="mt-2 min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+              className="mt-2 min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
             >
               Criar mesmo assim
             </button>
@@ -202,10 +202,10 @@ export function EditorSerie({
         </div>
       ) : null}
 
-      {erro ? <p className="rounded-[11px] bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">{erro}</p> : null}
+      {erro ? <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">{erro}</p> : null}
 
       <div className="flex gap-2">
-        <button type="submit" disabled={pendente} className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]">
+        <button type="submit" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
           Salvar
         </button>
         <button

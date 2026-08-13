@@ -153,7 +153,7 @@ export function SecaoEquipe({
               }
             >
               <span
-                className={`rounded-[9px] px-2.5 py-[5px] text-[11.5px] font-medium ${
+                className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
                   p.temLogin
                     ? 'bg-positivo-fundo text-positivo'
                     : 'bg-neutro-fundo text-tinta-media'
@@ -174,7 +174,7 @@ export function SecaoEquipe({
                     <span aria-hidden className="block w-8 text-center">×</span>
                   </BotaoLinha>
                 ) : (
-                  <span className="rounded-[9px] bg-neutro-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-tinta-media">
+                  <span className="rounded-peca bg-neutro-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-tinta-media">
                     Desativado
                   </span>
                 )}
@@ -204,7 +204,7 @@ function Formulario({
   return (
     <form
       action={aoSalvar}
-      className="flex flex-col gap-4 rounded-[--radius-padrao] bg-superficie-suave p-3"
+      className="flex flex-col gap-4 rounded-padrao bg-superficie-suave p-3"
     >
       {profissional ? <input type="hidden" name="id" value={profissional.id} /> : null}
       <input type="hidden" name="cor" value={cor} />
@@ -269,7 +269,7 @@ function Formulario({
         {profissional?.fotoUrl && aoRemoverFoto ? (
           <>
             <Avatar nome={profissional.nome} foto={profissional.fotoUrl} tamanho={40} decorativo />
-            <Botao type="button" tom="texto" miudo onClick={aoRemoverFoto}>
+            <Botao type="button" tom="fantasma" miudo onClick={aoRemoverFoto}>
               Remover foto
             </Botao>
           </>
@@ -289,7 +289,7 @@ function Formulario({
 
       <div className="flex gap-2">
         <Botao type="submit" miudo disabled={pendente}>Salvar</Botao>
-        <Botao type="button" tom="texto" miudo onClick={aoCancelar}>Cancelar</Botao>
+        <Botao type="button" tom="fantasma" miudo onClick={aoCancelar}>Cancelar</Botao>
       </div>
     </form>
   )

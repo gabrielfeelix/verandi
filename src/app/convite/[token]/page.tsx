@@ -31,10 +31,7 @@ export default async function Convite({
   const r = await lerConvite(token)
 
   return (
-    <PainelAcesso
-      titulo="Seu lugar no estúdio já está pronto."
-      texto="Quem convidou já definiu o que você pode fazer. É só criar a senha e começar."
-    >
+    <PainelAcesso tela="convite">
       <h1 className="font-titulo text-[25px] leading-tight font-semibold tracking-[-.02em]">
         {r.ok ? 'Você foi convidada' : 'Este link não vale mais'}
       </h1>
@@ -49,14 +46,14 @@ export default async function Convite({
           {/* qual conta e qual papel, antes de aceitar: sem isso a pessoa não
               sabe no que está entrando */}
           {r.tipo === 'acesso' ? (
-            <p className="mb-5 rounded-[13px] border border-linha-suave bg-superficie-suave px-3.5 py-3 text-[12.5px] leading-relaxed text-tinta-media">
+            <p className="mb-5 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-3 text-[12.5px] leading-relaxed text-tinta-media">
               <span className="font-medium text-tinta">
                 Como {PAPEL[r.papel]?.split(' — ')[0] ?? r.papel}
               </span>
               {PAPEL[r.papel] ? ` — ${PAPEL[r.papel].split(' — ')[1]}` : ''}
             </p>
           ) : (
-            <p className="mb-5 rounded-[13px] border border-[#F6E7C9] bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
+            <p className="mb-5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
               Este link é para redefinir a sua senha. O acesso que você já tinha
               continua o mesmo.
             </p>
@@ -71,7 +68,7 @@ export default async function Convite({
           </p>
           <a
             href="/entrar"
-            className="inline-flex min-h-12 items-center justify-center rounded-[14px] bg-escuro px-4 text-[14px] font-semibold text-tinta-clara"
+            className="inline-flex min-h-12 items-center justify-center rounded-media bg-escuro px-4 text-[14px] font-semibold text-tinta-clara"
           >
             Ir para a entrada
           </a>

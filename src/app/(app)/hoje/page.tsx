@@ -6,6 +6,8 @@ import { listarPendencias } from '@/server/pendencias/consultas'
 import { somarDias } from '@/core/agenda/datas'
 import { agoraMs, hojeEm, horaEm, quantoFalta } from '@/server/agenda/fuso'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
+import { Abas } from '@/components/ui/abas'
+import { Icone } from '@/components/ui/icones'
 import { ProximaTurma } from '@/components/hoje/proxima-turma'
 import {
   Bloco, CartaoNumero, FaixaPeriodo, LinhaAgenda, AvatarProf,
@@ -140,19 +142,19 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 funcionalidade aqui seria pior do que deixá-la faltando. */}
             <span
               title="A busca geral entra no próximo marco"
-              className="hidden min-w-[210px] items-center gap-2 rounded-[12px] border border-linha bg-superficie px-3.5 py-2.5 text-[13px] text-tinta-fraca lg:flex"
+              className="hidden min-w-[210px] items-center gap-2 rounded-padrao border border-linha bg-superficie px-3.5 py-2.5 text-[13px] text-tinta-fraca lg:flex"
             >
               <span aria-hidden className="font-mono">/</span>
               Buscar {rotulos.pessoa.singular.toLowerCase()} ou horário
             </span>
 
-            <div className="flex items-center overflow-hidden rounded-[12px] border border-linha bg-superficie">
+            <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
               <Link
                 href={link(somarDias(dia, -1))}
                 aria-label="Dia anterior"
-                className="px-3 py-2.5 font-mono text-[13px] text-tinta-media hover:bg-superficie-mais-suave"
+                className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
               >
-                ‹
+                <Icone nome="antes" />
               </Link>
               <Link
                 href={link(hoje)}
@@ -163,31 +165,21 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               <Link
                 href={link(somarDias(dia, 1))}
                 aria-label="Próximo dia"
-                className="px-3 py-2.5 font-mono text-[13px] text-tinta-media hover:bg-superficie-mais-suave"
+                className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
               >
-                ›
+                <Icone nome="depois" />
               </Link>
             </div>
 
             {podeVerTodos ? (
-              <div className="flex gap-[3px] rounded-[12px] border border-linha bg-superficie p-[3px]">
-                <Link
-                  href={link(dia, false)}
-                  className={`rounded-[9px] px-3 py-2 text-[13px] font-medium ${
-                    verTodos ? 'text-tinta-media' : 'bg-escuro text-tinta-clara'
-                  }`}
-                >
-                  Minha agenda
-                </Link>
-                <Link
-                  href={link(dia, true)}
-                  className={`rounded-[9px] px-3 py-2 text-[13px] font-medium ${
-                    verTodos ? 'bg-escuro text-tinta-clara' : 'text-tinta-media'
-                  }`}
-                >
-                  Todos
-                </Link>
-              </div>
+              <Abas
+                rotuloDoGrupo="De quem é a agenda"
+                ativo={verTodos ? 'todos' : 'minha'}
+                itens={[
+                  { id: 'minha', rotulo: 'Minha agenda', href: link(dia, false) },
+                  { id: 'todos', rotulo: 'Todos', href: link(dia, true) },
+                ]}
+              />
             ) : null}
           </div>
         </header>
@@ -234,7 +226,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             ) : null}
 
             {!proxima && sessoes.length > 0 ? (
-              <section className="flex flex-wrap items-center gap-x-5.5 gap-y-3.5 rounded-[20px] border border-linha bg-superficie px-5 py-4.5">
+              <section className="flex flex-wrap items-center gap-x-5.5 gap-y-3.5 rounded-cartao border border-linha bg-superficie px-5 py-4.5">
                 <div className="flex flex-col gap-[3px]">
                   <span className="text-[10.5px] font-semibold tracking-[.12em] text-tinta-media uppercase">
                     {ehHoje ? 'Dia encerrado' : 'Dia fechado'}
@@ -243,7 +235,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                     {dataLonga(dia, fuso)}
                   </span>
                 </div>
-                <span aria-hidden className="w-px self-stretch bg-[#EFF3F1]" />
+                <span aria-hidden className="w-px self-stretch bg-linha-fina" />
                 {[
                   { n: vivas.length, rotulo: rotulos.sessao.plural.toLowerCase(), cor: 'text-tinta' },
                   { n: presencas, rotulo: 'presenças', cor: 'text-positivo' },
@@ -259,7 +251,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 {!ehHoje ? (
                   <Link
                     href={link(hoje)}
-                    className="ml-auto rounded-[11px] border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
+                    className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
                   >
                     Voltar para hoje
                   </Link>
@@ -268,10 +260,10 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             ) : null}
 
             {sessoes.length === 0 ? (
-              <section className="flex flex-col items-center gap-2.5 rounded-[20px] border border-dashed border-[#C6D2CD] bg-superficie px-6 py-8.5 text-center">
+              <section className="flex flex-col items-center gap-2.5 rounded-cartao border border-dashed border-linha-tracejada bg-superficie px-6 py-8.5 text-center">
                 <span
                   aria-hidden
-                  className="flex size-11 items-center justify-center rounded-[14px] bg-superficie-mais-suave font-mono text-[17px] text-tinta-media"
+                  className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave font-mono text-[17px] text-tinta-media"
                 >
                   ◷
                 </span>
@@ -285,14 +277,14 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 <div className="flex gap-2 pt-1.5">
                   <Link
                     href="/semana"
-                    className="rounded-[11px] border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
+                    className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
                   >
                     Ver a semana
                   </Link>
                   {!ehHoje ? (
                     <Link
                       href={link(hoje)}
-                      className="rounded-[11px] bg-escuro px-4 py-2.5 text-[13px] font-medium text-tinta-clara hover:bg-[#1D332B]"
+                      className="rounded-padrao bg-escuro px-4 py-2.5 text-[13px] font-medium text-tinta-clara hover:bg-escuro-hover"
                     >
                       Voltar para hoje
                     </Link>
@@ -300,7 +292,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 </div>
               </section>
             ) : (
-              <section className="flex flex-col rounded-[20px] border border-linha bg-superficie px-2 pt-1.5 pb-2.5">
+              <section className="flex flex-col rounded-cartao border border-linha bg-superficie px-2 pt-1.5 pb-2.5">
                 <div className="flex items-center justify-between px-3 pt-3 pb-2">
                   <h2 className="font-titulo text-[17px] font-semibold">Agenda do dia</h2>
                   <span className="text-[12px] text-tinta-media">
@@ -347,10 +339,10 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                     <Link
                       key={g.tipo}
                       href="/pendencias"
-                      className="flex items-center gap-3 rounded-[13px] bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
+                      className="flex items-center gap-3 rounded-media bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
                     >
                       <span
-                        className={`flex size-7.5 items-center justify-center rounded-[10px] text-[13px] font-semibold ${TINTA_PENDENCIA[g.tipo] ?? 'bg-neutro-fundo text-neutro'}`}
+                        className={`flex size-7.5 items-center justify-center rounded-peca text-[13px] font-semibold ${TINTA_PENDENCIA[g.tipo] ?? 'bg-neutro-fundo text-neutro'}`}
                       >
                         {g.itens.length}
                       </span>
@@ -406,7 +398,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               </div>
             </Bloco>
 
-            <section className="rounded-[20px] border border-dashed border-[#C6D2CD] bg-superficie-suave p-4">
+            <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
               <p className="text-[12.5px] leading-relaxed text-tinta-media">
                 {rotulos.sessao.singular} lotada não é bloqueio:{' '}
                 <strong className="font-semibold text-tinta">5/4</strong> aparece em

@@ -97,7 +97,7 @@ export function SecaoUsuarios({
               </Nota>
               <div className="flex gap-2">
                 <Botao type="submit" miudo disabled={pendente}>Criar convite</Botao>
-                <Botao type="button" tom="texto" miudo onClick={() => setConvidando(false)}>
+                <Botao type="button" tom="fantasma" miudo onClick={() => setConvidando(false)}>
                   Cancelar
                 </Botao>
               </div>
@@ -107,7 +107,7 @@ export function SecaoUsuarios({
 
           {/* Aparece uma vez: depois só dá para revogar e criar outro */}
           {link ? (
-            <div className="m-4 flex flex-col gap-2 rounded-[--radius-padrao] border border-linha p-3">
+            <div className="m-4 flex flex-col gap-2 rounded-padrao border border-linha p-3">
               <span className="text-[12.5px] font-medium">
                 Link para {link.para} — copie agora
               </span>
@@ -123,7 +123,7 @@ export function SecaoUsuarios({
                 >
                   Copiar link
                 </Botao>
-                <Botao tom="texto" miudo onClick={() => setLink(null)}>Fechar</Botao>
+                <Botao tom="fantasma" miudo onClick={() => setLink(null)}>Fechar</Botao>
               </div>
               <Nota tom="atencao">
                 Este link não aparece de novo. Se perder, revogue o convite e

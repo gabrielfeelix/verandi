@@ -46,15 +46,15 @@ export function TrocarProfissional({
       </button>
 
       {aberto ? (
-        <span className="absolute top-7 left-0 z-30 flex w-64 flex-col gap-0.5 rounded-[15px] border border-linha-suave bg-superficie p-1.5 shadow-[--shadow-elevado]">
+        <span className="absolute top-7 left-0 z-30 flex w-64 flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado">
           {equipe.map((p) => (
             <button
               key={p.id}
               type="button"
               disabled={pendente}
               onClick={() => trocar(p.id, p.nome)}
-              className={`flex items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-left text-[13px] hover:bg-superficie-suave ${
-                p.id === atual ? 'bg-[#F3FAF7] font-medium' : ''
+              className={`flex items-center gap-2.5 rounded-peca px-2.5 py-2 text-left text-[13px] hover:bg-superficie-suave ${
+                p.id === atual ? 'bg-positivo-superficie font-medium' : ''
               }`}
             >
               <AvatarProf nome={p.nome} cor={p.cor} tamanho={26} />
@@ -67,7 +67,7 @@ export function TrocarProfissional({
               type="button"
               disabled={pendente}
               onClick={() => trocar(null, `Ninguém`)}
-              className="rounded-[10px] px-2.5 py-2 text-left text-[13px] text-tinta-media hover:bg-superficie-suave"
+              className="rounded-peca px-2.5 py-2 text-left text-[13px] text-tinta-media hover:bg-superficie-suave"
             >
               Deixar sem {rotulo.toLowerCase()}
             </button>

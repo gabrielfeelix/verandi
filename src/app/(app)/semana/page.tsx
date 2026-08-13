@@ -5,8 +5,11 @@ import { sessoesDoIntervalo } from '@/server/agenda/consultas'
 import { diaDaSemanaDe, somarDias } from '@/core/agenda/datas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { GradeSemana } from '@/components/grade/grade-semana'
-import { AlternarModo, DiaPorRecurso } from '@/components/grade/dia-por-recurso'
+import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
+import { Abas } from '@/components/ui/abas'
+import { Chip, Vazio } from '@/components/ui/pecas'
+import { Icone } from '@/components/ui/icones'
 
 type Busca = Promise<{
   de?: string
@@ -119,25 +122,28 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <AlternarModo
-            semana={q({ modo: undefined })}
-            dia={q({ modo: 'dia', dia: diaFoco })}
-            ehDia={ehDia}
+          <Abas
+            rotuloDoGrupo="Como ver a agenda"
+            ativo={ehDia ? 'dia' : 'semana'}
+            itens={[
+              { id: 'semana', rotulo: 'Semana', href: q({ modo: undefined }) },
+              { id: 'dia', rotulo: 'Dia por recurso', href: q({ modo: 'dia', dia: diaFoco }) },
+            ]}
           />
 
-          <div className="flex items-center overflow-hidden rounded-[12px] border border-linha bg-superficie">
+          <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
             <Link
               href={ehDia
                 ? q({ dia: somarDias(diaFoco, -1) })
                 : q({ de: somarDias(segunda, -7) })}
               aria-label={ehDia ? 'Dia anterior' : 'Semana anterior'}
-              className="px-3 py-2.5 font-mono text-[13px] text-tinta-media hover:bg-superficie-mais-suave"
+              className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
             >
-              ‹
+              <Icone nome="antes" />
             </Link>
             <Link
               href={ehDia ? q({ dia: hoje }) : q({ de: segundaDe(hoje) })}
-              className="px-3 py-2.5 text-[13px] font-medium whitespace-nowrap hover:bg-superficie-mais-suave"
+              className="flex min-h-11 items-center px-3 text-[13px] font-medium whitespace-nowrap hover:bg-superficie-mais-suave"
             >
               {ehDia ? 'Hoje' : 'Esta semana'}
             </Link>
@@ -146,9 +152,9 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                 ? q({ dia: somarDias(diaFoco, 1) })
                 : q({ de: somarDias(segunda, 7) })}
               aria-label={ehDia ? 'Próximo dia' : 'Próxima semana'}
-              className="px-3 py-2.5 font-mono text-[13px] text-tinta-media hover:bg-superficie-mais-suave"
+              className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
             >
-              ›
+              <Icone nome="depois" />
             </Link>
           </div>
         </div>
@@ -194,12 +200,20 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         <>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[12.5px] text-tinta-media">Colunas por</span>
-            <Chip href={q({ eixo: 'local' })} ativo={porLocal}>Local</Chip>
-            <Chip href={q({ eixo: 'profissional' })} ativo={!porLocal}>
-              {rotulos.profissional.singular}
-            </Chip>
+            <Abas
+              rotuloDoGrupo="O que fica nas colunas"
+              ativo={porLocal ? 'local' : 'profissional'}
+              itens={[
+                { id: 'local', rotulo: 'Local', href: q({ eixo: 'local' }) },
+                {
+                  id: 'profissional',
+                  rotulo: rotulos.profissional.singular,
+                  href: q({ eixo: 'profissional' }),
+                },
+              ]}
+            />
             {feriados[diaFoco] ? (
-              <span className="rounded-[9px] bg-atencao-fundo px-2.5 py-1 text-[11.5px] font-medium text-atencao">
+              <span className="rounded-peca bg-atencao-fundo px-2.5 py-1 text-[11.5px] font-medium text-atencao">
                 {feriados[diaFoco]}
               </span>
             ) : null}
@@ -238,7 +252,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                   key={d}
                   href={q({ dia: d })}
                   aria-current={d === diaFoco ? 'page' : undefined}
-                  className={`flex min-h-11 min-w-11 flex-col items-center justify-center rounded-[11px] border px-2 ${
+                  className={`flex min-h-11 min-w-11 flex-col items-center justify-center rounded-padrao border px-2 ${
                     d === diaFoco
                       ? 'border-escuro bg-escuro text-tinta-clara'
                       : 'border-linha bg-superficie'
@@ -253,18 +267,22 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             </nav>
 
             {feriados[diaFoco] ? (
-              <p className="mb-2 rounded-[11px] bg-atencao-fundo px-3 py-2 text-[12.5px] text-atencao">
+              <p className="mb-2 rounded-padrao bg-atencao-fundo px-3 py-2 text-[12.5px] text-atencao">
                 {feriados[diaFoco]}
               </p>
             ) : null}
 
             {doDia.length === 0 ? (
-              <p className="rounded-[15px] border border-dashed border-[#C6D2CD] px-4 py-6 text-center text-[13px] text-tinta-media">
-                Nada marcado neste dia.
-              </p>
+              <div className="rounded-grande border border-dashed border-linha-tracejada">
+                <Vazio
+                  icone="semana"
+                  titulo="Nada marcado neste dia"
+                  texto="Pode ser feriado ou dia fechado na configuração de funcionamento."
+                />
+              </div>
             ) : (
               <ul
-                className="flex flex-col rounded-[20px] border border-linha bg-superficie p-1.5"
+                className="flex flex-col rounded-cartao border border-linha bg-superficie p-1.5"
                 aria-label={rotulos.sessao.plural}
               >
                 {doDia.map((s) => (
@@ -279,7 +297,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
       <div className="flex flex-wrap items-center gap-4 text-[12px] text-tinta-media">
         {[
           ['bg-superficie-suave border-linha-suave', 'horário normal'],
-          ['bg-[#FFF6F1] border-[#F7DACB]', 'acima da capacidade'],
+          ['bg-alerta-superficie border-alerta-linha', 'acima da capacidade'],
           ['bg-superficie-mais-suave border-linha', 'cancelado'],
           ['bg-atencao-fundo border-atencao-fundo', 'feriado ou fechado'],
         ].map(([cor, rotulo]) => (
@@ -291,27 +309,5 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         <span className="text-tinta-fraca">Em celular a grade vira um dia por vez.</span>
       </div>
     </div>
-  )
-}
-
-function Chip({
-  href, ativo, children,
-}: {
-  href: string
-  ativo: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={ativo ? 'page' : undefined}
-      className={`inline-flex min-h-9 items-center gap-2 rounded-full border px-3 text-[13px] ${
-        ativo
-          ? 'border-escuro bg-escuro font-medium text-tinta-clara'
-          : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-suave'
-      }`}
-    >
-      {children}
-    </Link>
   )
 }

@@ -9,6 +9,7 @@ import {
 } from '@/server/config/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
+import { Icone, type NomeIcone } from '@/components/ui/icones'
 import { SecaoLocais, SecaoServicos } from '@/components/config/catalogo'
 import { SecaoPadroes } from '@/components/config/padroes'
 import { SecaoVocabulario } from '@/components/config/vocabulario'
@@ -21,14 +22,14 @@ import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
 // os glifos são os do protótipo: mono, discretos, e o suficiente para achar a
 // seção pelo canto do olho depois da terceira visita
 const SECOES = [
-  { chave: 'servicos', rotulo: 'Serviços', glifo: '≡' },
-  { chave: 'equipe', rotulo: 'Equipe', glifo: '◈' },
-  { chave: 'locais', rotulo: 'Locais', glifo: '▢' },
-  { chave: 'padroes', rotulo: 'Padrões', glifo: '#' },
-  { chave: 'vocabulario', rotulo: 'Vocabulário', glifo: 'A' },
-  { chave: 'funcionamento', rotulo: 'Funcionamento', glifo: '◷' },
-  { chave: 'usuarios', rotulo: 'Usuários', glifo: '◇' },
-] as const
+  { chave: 'servicos', rotulo: 'Serviços', icone: 'lista' },
+  { chave: 'equipe', rotulo: 'Equipe', icone: 'pessoas' },
+  { chave: 'locais', rotulo: 'Locais', icone: 'local' },
+  { chave: 'padroes', rotulo: 'Padrões', icone: 'regua' },
+  { chave: 'vocabulario', rotulo: 'Vocabulário', icone: 'texto' },
+  { chave: 'funcionamento', rotulo: 'Funcionamento', icone: 'relogio' },
+  { chave: 'usuarios', rotulo: 'Usuários', icone: 'chave' },
+] as const satisfies ReadonlyArray<{ chave: string; rotulo: string; icone: NomeIcone }>
 
 type Secao = (typeof SECOES)[number]['chave']
 
@@ -81,22 +82,20 @@ export default async function Config({
         <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">
           <nav
             aria-label="Seções da configuração"
-            className="flex flex-col gap-0.5 rounded-[20px] border border-linha bg-superficie p-2"
+            className="flex flex-col gap-0.5 rounded-cartao border border-linha bg-superficie p-2"
           >
             {SECOES.map((x) => (
               <Link
                 key={x.chave}
                 href={`/config?s=${x.chave}`}
                 aria-current={secao === x.chave ? 'page' : undefined}
-                className={`flex items-center gap-3 rounded-[13px] px-3 py-2.5 ${
+                className={`flex min-h-11 items-center gap-3 rounded-media px-3 transition-colors duration-150 ${
                   secao === x.chave
                     ? 'bg-escuro text-tinta-clara'
                     : 'text-tinta-media hover:bg-superficie-mais-suave'
                 }`}
               >
-                <span aria-hidden className="font-mono text-[13px] opacity-80">
-                  {x.glifo}
-                </span>
+                <Icone nome={x.icone} tamanho={18} />
                 <span
                   className={`text-[13.5px] ${secao === x.chave ? 'font-medium' : ''}`}
                 >

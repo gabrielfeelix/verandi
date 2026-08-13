@@ -35,7 +35,7 @@ export function ProximaTurma({
   ).length
 
   return (
-    <article className="relative overflow-hidden rounded-[20px] bg-[linear-gradient(180deg,#12211C_0%,#173029_100%)] px-6 py-5.5 text-tinta-clara shadow-[0_14px_30px_-20px_rgba(18,33,28,.6)]">
+    <article className="relative overflow-hidden rounded-cartao bg-[linear-gradient(180deg,#12211C_0%,#173029_100%)] px-6 py-5.5 text-tinta-clara shadow-[0_14px_30px_-20px_rgba(18,33,28,.6)]">
       <span
         aria-hidden
         className="pointer-events-none absolute -top-10 -right-10 size-[220px] rounded-full bg-[radial-gradient(circle,rgba(42,195,163,.22),transparent_70%)]"
@@ -51,7 +51,7 @@ export function ProximaTurma({
             <span className="font-titulo text-[40px] leading-none font-semibold tracking-[-.03em]">
               {sessao.hora}
             </span>
-            <span className="text-[12.5px] text-[#9FB5AE]">{faltam}</span>
+            <span className="text-[12.5px] text-tinta-escura-media">{faltam}</span>
           </div>
 
           <div className="flex min-w-0 flex-col gap-2.5">
@@ -59,7 +59,7 @@ export function ProximaTurma({
               <h2 className="font-titulo text-[23px] leading-tight font-semibold">
                 {sessao.servico}
               </h2>
-              <span className="rounded-[8px] bg-tinta-clara/12 px-2.5 py-[3px] font-mono text-[12px] text-[#CDE3DD]">
+              <span className="rounded-peca bg-tinta-clara/12 px-2.5 py-[3px] font-mono text-[12px] text-[#CDE3DD]">
                 {sessao.ocupacao.ocupadas}/{sessao.ocupacao.capacidade}
               </span>
             </div>
@@ -105,7 +105,7 @@ export function ProximaTurma({
                     {p.tags.map((t) => (
                       <span
                         key={t}
-                        className="rounded-[5px] bg-[rgba(240,105,60,.18)] px-1.5 py-[2px] text-[9.5px] font-semibold tracking-[.08em] text-[#F5A88A] uppercase"
+                        className="rounded-minima bg-[rgba(240,105,60,.18)] px-1.5 py-[2px] text-[9.5px] font-semibold tracking-[.08em] text-[#F5A88A] uppercase"
                       >
                         {t}
                       </span>
@@ -114,7 +114,7 @@ export function ProximaTurma({
                 )
               })}
               {sessao.pessoas.length === 0 ? (
-                <span className="text-[12.5px] text-[#9FB5AE]">
+                <span className="text-[12.5px] text-tinta-escura-media">
                   Ninguém marcado nesta {rotulo.toLowerCase()} ainda.
                 </span>
               ) : null}
@@ -134,7 +134,7 @@ export function ProximaTurma({
                   router.refresh()
                 })
               }
-              className="min-h-11 rounded-[12px] bg-menta px-4 text-[14px] font-semibold text-[#08201A] transition-[background-color,transform] duration-150 hover:bg-[#38D6B4] active:translate-y-px disabled:opacity-60"
+              className="min-h-11 rounded-padrao bg-menta px-4 text-[14px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px disabled:opacity-60"
             >
               {aMarcar === 0 ? 'Chamada feita' : 'Marcar todos presentes'}
             </button>
@@ -142,14 +142,14 @@ export function ProximaTurma({
 
           <Link
             href={`/sessao/${sessao.id}`}
-            className="flex min-h-11 items-center justify-center rounded-[12px] border border-tinta-clara/22 px-4 text-[13px] hover:bg-tinta-clara/10"
+            className="flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[13px] hover:bg-tinta-clara/10"
           >
             Abrir {rotulo.toLowerCase()}
           </Link>
 
           <Link
             href={`/sessao/${sessao.id}#encaixar`}
-            className="text-center text-[12px] text-[#9FB5AE] hover:text-tinta-clara"
+            className="text-center text-[12px] text-tinta-escura-media hover:text-tinta-clara"
           >
             Encaixar {rotuloPessoa.toLowerCase()}
           </Link>

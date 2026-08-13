@@ -33,7 +33,7 @@ export function FaixaSuporte({ conta }: { conta: string }) {
           await sairDoSuporte()
           router.push('/contas-4yu')
         })}
-        className="min-h-9 rounded-[--radius-peca] bg-white/15 px-3 text-[12.5px] font-medium"
+        className="min-h-9 rounded-peca bg-white/15 px-3 text-[12.5px] font-medium"
       >
         Sair do suporte
       </button>

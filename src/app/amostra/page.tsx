@@ -1,11 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Botao } from '@/components/ui/botao'
+import { Botao, BotaoIcone } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { ProvedorDeAviso, useAviso } from '@/components/ui/desfazer'
+import { Abas } from '@/components/ui/abas'
+import { Menu } from '@/components/ui/menu'
+import { Icone, type NomeIcone } from '@/components/ui/icones'
 import {
-  Avatar, Campo, Cartao, Chip, Esqueleto, Etiqueta, Nota, Rotulo, entrada,
+  Avatar, Campo, Cartao, Chip, Esqueleto, Etiqueta, Nota, Ocupacao, Paginacao,
+  Rotulo, Vazio, entrada,
 } from '@/components/ui/pecas'
 import { TINTA, type Tinta } from '@/components/ui/tintas'
 
@@ -18,6 +22,13 @@ import { TINTA, type Tinta } from '@/components/ui/tintas'
  */
 const TINTAS: Tinta[] = ['positivo', 'atencao', 'alerta', 'info', 'licenca', 'neutro']
 
+const ICONES: NomeIcone[] = [
+  'check', 'x', 'aviso', 'licenca', 'hoje', 'semana', 'pessoas', 'pendencias',
+  'vaga', 'grade', 'config', 'conta', 'lista', 'local', 'regua', 'texto',
+  'relogio', 'chave', 'kebab', 'sair', 'antes', 'depois', 'mais', 'menos',
+  'lapis', 'fechar',
+]
+
 export default function Amostra() {
   return (
     <ProvedorDeAviso>
@@ -28,6 +39,8 @@ export default function Amostra() {
 
 function Conteudo() {
   const [chip, setChip] = useState('seg')
+  const [aba, setAba] = useState('todas')
+  const [pagina, setPagina] = useState(1)
   const [modal, setModal] = useState<null | 'normal' | 'perigo'>(null)
   const avisar = useAviso()
 
@@ -49,9 +62,20 @@ function Conteudo() {
           <Botao tom="primario">Salvar</Botao>
           <Botao tom="secundario">Cancelar</Botao>
           <Botao tom="perigo">Encerrar série</Botao>
-          <Botao tom="texto">Ver ficha completa</Botao>
+          <Botao tom="fantasma">Ver ficha completa</Botao>
+          <Botao tom="perigo-leve">Remover</Botao>
+          <Botao tom="tracejado"><Icone nome="mais" tamanho={16} />Adicionar sala</Botao>
           <Botao tom="secundario" miudo>Miúdo</Botao>
           <Botao disabled>Desabilitado</Botao>
+          <BotaoIcone icone="lapis" titulo="Editar" />
+          <BotaoIcone icone="x" titulo="Remover" perigo />
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-media bg-escuro p-3">
+          <Botao tom="claro">Entrar</Botao>
+          <Botao tom="contorno-claro">Sair da conta</Botao>
+          <span className="text-[11.5px] text-tinta-escura-media">
+            os dois tons que existem para o painel escuro
+          </span>
         </div>
         <p className="mt-3 text-[11.5px] text-tinta-media">
           Altura mínima de 44px, menos no miúdo — a tela de Sessão é usada em pé,
@@ -76,7 +100,7 @@ function Conteudo() {
       <Cartao titulo="Tintas com significado">
         <div className="flex flex-wrap gap-2">
           {TINTAS.map((t) => (
-            <span key={t} className={`rounded-[--radius-peca] px-3 py-2 text-[12.5px] ${TINTA[t]}`}>
+            <span key={t} className={`rounded-peca px-3 py-2 text-[12.5px] ${TINTA[t]}`}>
               {t}
             </span>
           ))}
@@ -94,8 +118,60 @@ function Conteudo() {
           <Etiqueta tinta="licenca" glifo="~">Licença</Etiqueta>
           <Etiqueta tinta="info">Avulso</Etiqueta>
           <Etiqueta tinta="neutro">Reserva</Etiqueta>
-          <Etiqueta tinta="alerta">5/4</Etiqueta>
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Ocupacao usadas={3} capacidade={4} />
+          <Ocupacao usadas={4} capacidade={4} />
+          <Ocupacao usadas={5} capacidade={4} />
+          <span className="text-[11.5px] text-tinta-media">
+            passar da capacidade fica laranja e continua aceitando encaixe
+          </span>
+        </div>
+      </Cartao>
+
+      <Cartao titulo="Ícones">
+        <div className="flex flex-wrap gap-3">
+          {ICONES.map((n) => (
+            <span
+              key={n}
+              title={n}
+              className="flex size-11 items-center justify-center rounded-peca border border-linha-suave text-tinta-media"
+            >
+              <Icone nome={n} />
+            </span>
+          ))}
+        </div>
+        <p className="mt-3 text-[11.5px] text-tinta-media">
+          Um traço só, `currentColor`, sem biblioteca externa e sem emoji.
+        </p>
+      </Cartao>
+
+      <Cartao
+        titulo="Abas e menu"
+        acao={
+          <Menu
+            titulo="Ações da lista"
+            itens={[
+              { rotulo: 'Editar', icone: 'lapis', aoEscolher: () => avisar({ texto: 'Editar' }) },
+              { rotulo: 'Duplicar', icone: 'mais', aoEscolher: () => avisar({ texto: 'Duplicada' }) },
+              { rotulo: 'Remover', icone: 'x', perigo: true, aoEscolher: () => avisar({ texto: 'Removida' }) },
+            ]}
+          />
+        }
+      >
+        <Abas
+          rotuloDoGrupo="Filtro da lista"
+          ativo={aba}
+          aoTrocar={setAba}
+          itens={[
+            { id: 'todas', rotulo: 'Todas', contagem: 24 },
+            { id: 'hoje', rotulo: 'Hoje', contagem: 6 },
+            { id: 'sem', rotulo: 'Sem vaga fixa', contagem: 2 },
+          ]}
+        />
+        <p className="mt-3 text-[11.5px] text-tinta-media">
+          O ativo não clareia no hover — clarear faz parecer que desligou.
+        </p>
       </Cartao>
 
       <Cartao titulo="Chip">
@@ -165,6 +241,19 @@ function Conteudo() {
           <Esqueleto largura="160px" />
           <Esqueleto largura="100%" altura={40} />
         </div>
+      </Cartao>
+
+      <Cartao titulo="Estado vazio">
+        <Vazio
+          icone="hoje"
+          titulo="Nada marcado nesta quinta"
+          texto="Dia sem aula é informação, não falha — por isso a tela não fala em erro nem manda tentar de novo."
+          acao={<Botao tom="secundario">Ver a semana</Botao>}
+        />
+      </Cartao>
+
+      <Cartao titulo="Paginação">
+        <Paginacao pagina={pagina} total={94} porPagina={20} aoIr={setPagina} />
       </Cartao>
 
       <Cartao titulo="Modal e desfazer">

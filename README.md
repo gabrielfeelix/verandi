@@ -51,7 +51,8 @@ ocupação, decidir se o encaixe cabe — é onde os bugs difíceis moram.
 | [docs/TELAS.md](docs/TELAS.md) | o que cada tela faz — **o visual quem decide é o protótipo** |
 | [docs/DESIGN.md](docs/DESIGN.md) | tokens, primitivos e as regras que o protótipo aplica sem dizer |
 | [docs/VESTIR.md](docs/VESTIR.md) | **como deixar a tela idêntica ao protótipo** — leia antes de mexer em interface |
-| [`Design system Verandi/`](Design%20system%20Verandi/) | **a especificação de interface**: onde a tela divergir dele, é a tela que muda |
+| [`Design system Verandi-att/DESIGN-SYSTEM.md`](Design%20system%20Verandi-att/DESIGN-SYSTEM.md) | **a especificação de interface**: onde a tela divergir dele, é a tela que muda |
+| [`Design system Verandi/`](Design%20system%20Verandi/) | o protótipo antigo, só para o caso que o novo não previu |
 | [docs/PLANO.md](docs/PLANO.md) | os marcos e a ordem de construção |
 | [handoff](handoff) | o briefing original |
 

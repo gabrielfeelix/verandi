@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #E7EBE9; -webkit-font-smoothing: antialiased; }
+  a { color: #0E7C6B; text-decoration: none; }
+  a:hover { color: #0A5E51; }
+  @keyframes lFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @keyframes lHalo { 0%, 100% { box-shadow: 0 0 0 0 rgba(42,195,163,.35); } 50% { box-shadow: 0 0 0 9px rgba(42,195,163,0); } }
+</style>
+</helmet>
+
+<div style="display:flex; flex-direction:column; gap:64px; padding:56px 48px 96px; font-family:'DM Sans',sans-serif; color:#141A18;">
+
+  <section style="display:flex; flex-direction:column; gap:22px;">
+    <div style="display:flex; align-items:baseline; gap:14px;">
+      <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:26px; letter-spacing:-.02em;">Login — três direções</span>
+      <span style="font-size:13.5px; color:#5D6B66;">as áreas pontilhadas são slots de arte: arraste sua ilustração em cima e ela fica salva</span>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:40px; align-items:flex-start;">
+
+      <!-- ============ 1a — ATELIÊ ============ -->
+      <div id="1a" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-family:'DM Mono',monospace; font-size:12px; font-weight:500; padding:5px 10px; border-radius:8px; background:#12211C; color:#EAF3F0;">1a</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px;">Ateliê</span>
+          <span style="font-size:12.5px; color:#7B8681;">papel, traço fino, cena solta ao redor do cartão</span>
+        </div>
+
+        <div style="position:relative; width:1120px; height:700px; border-radius:22px; overflow:hidden; background:#F5F2EA; border:1px solid #E1DACB;">
+          <div style="position:absolute; inset:0; opacity:.55; background-image:radial-gradient(#DFD5C0 1px, transparent 1px); background-size:22px 22px;"></div>
+          <div style="position:absolute; left:0; right:0; bottom:118px; height:1px; background:#DFD5C0;"></div>
+
+          <div style="position:absolute; top:34px; left:44px; display:flex; align-items:center; gap:11px;">
+            <span style="width:34px; height:34px; border-radius:11px; background:#12211C; color:#2AC3A3; display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:18px;">V</span>
+            <div style="display:flex; flex-direction:column; line-height:1.15;">
+              <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px;">Verandi</span>
+              <span style="font-family:'DM Mono',monospace; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:#9A9080;">agenda de estúdios</span>
+            </div>
+          </div>
+          <div style="position:absolute; top:34px; right:44px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:13px; color:#5D6B66;">Não tem conta?</span>
+            <span style="font-size:13px; font-weight:500; padding:9px 15px; border-radius:11px; background:#F0C97C; color:#4A3611;">Falar com a gente</span>
+          </div>
+
+          <div style="position:absolute; left:56px; bottom:118px; width:330px; height:300px; opacity:.95;">
+            <image-slot id="v1-esq" shape="rect" fit="contain" placeholder="Ilustração 1 — traço fino: bloco/aparelho de pilates com padrão de pontinhos, 330×300, fundo transparente"></image-slot>
+          </div>
+          <div style="position:absolute; right:52px; bottom:118px; width:390px; height:360px;">
+            <image-slot id="v1-dir" shape="rect" fit="contain" placeholder="Ilustração 2 — pessoa sentada com prancheta fazendo chamada, mesmo traço, 390×360, fundo transparente"></image-slot>
+          </div>
+          <div style="position:absolute; left:415px; top:96px; width:150px; height:70px; opacity:.8;">
+            <image-slot id="v1-rabisco" shape="rect" fit="contain" placeholder="Rabisco fino (linha ondulada)"></image-slot>
+          </div>
+
+          <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:392px; padding:34px 34px 28px; border-radius:24px; background:#fff; box-shadow:0 34px 60px -34px rgba(40,34,20,.35);">
+            <div style="text-align:center; padding-bottom:22px;">
+              <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:25px; letter-spacing:-.02em;">Entrar no estúdio</div>
+              <div style="font-size:13.5px; color:#7B8681; padding-top:6px; line-height:1.5;">Sua agenda de hoje está esperando.</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; align-items:center; gap:10px; padding:13px 15px; border-radius:13px; border:1px solid #E4DED0; background:#FBFAF6;">
+                <span style="font-family:'DM Mono',monospace; font-size:12px; color:#A79C88;">@</span>
+                <span style="font-size:14px; color:#9A9080;">e-mail ou telefone</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; padding:13px 15px; border-radius:13px; border:1px solid #E4DED0; background:#FBFAF6;">
+                <span style="font-family:'DM Mono',monospace; font-size:12px; color:#A79C88;">•</span>
+                <span style="font-size:14px; color:#9A9080; flex:1;">senha</span>
+                <span style="font-size:12px; color:#7B8681;">mostrar</span>
+              </div>
+              <div style="font-size:12.5px; color:#7B8681; padding:2px 2px 6px;">Esqueci a senha</div>
+              <div style="text-align:center; padding:13px; border-radius:13px; background:#12211C; color:#EAF3F0; font-size:14.5px; font-weight:600;">Entrar</div>
+              <div style="display:flex; align-items:center; gap:12px; padding:6px 0;">
+                <span style="flex:1; height:1px; background:#EFEADF;"></span>
+                <span style="font-size:11.5px; color:#A79C88;">ou</span>
+                <span style="flex:1; height:1px; background:#EFEADF;"></span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:center; gap:9px; padding:12px; border-radius:13px; border:1px solid #E4DED0; font-size:13.5px; font-weight:500;">
+                <span style="width:17px; height:17px; border-radius:50%; background:#F0C97C;"></span>Entrar com link no e-mail
+              </div>
+            </div>
+          </div>
+
+          <div style="position:absolute; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:space-between; padding:0 44px; height:118px; font-size:12px; color:#A79C88;">
+            <span>Verandi · 4YU</span>
+            <span>Privacidade · Suporte</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 1b — CENA ============ -->
+      <div id="1b" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-family:'DM Mono',monospace; font-size:12px; font-weight:500; padding:5px 10px; border-radius:8px; background:#12211C; color:#EAF3F0;">1b</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px;">Cena</span>
+          <span style="font-size:12.5px; color:#7B8681;">ilustração grande sangrando, formulário recortado por curva</span>
+        </div>
+
+        <div style="position:relative; width:1120px; height:700px; border-radius:22px; overflow:hidden; background:#0C1A15;">
+          <div style="position:absolute; inset:0;">
+            <image-slot id="v2-cena" style="color:#9FB5AE" shape="rect" fit="cover" placeholder="Ilustração de cena, 1120×700 — o estúdio ao amanhecer visto de dentro: aparelhos, planta, luz entrando pela janela. Paleta verde profundo → menta → âmbar"></image-slot>
+          </div>
+          <div style="position:absolute; inset:0; pointer-events:none; background:linear-gradient(100deg, rgba(10,22,18,.92) 0%, rgba(10,22,18,.86) 34%, rgba(10,22,18,.12) 56%, rgba(10,22,18,0) 72%);"></div>
+
+          <div style="position:absolute; left:0; top:0; bottom:0; width:520px; display:flex; flex-direction:column; justify-content:space-between; padding:44px 52px; pointer-events:none;">
+            <div style="display:flex; align-items:center; gap:11px;">
+              <span style="width:34px; height:34px; border-radius:11px; background:#2AC3A3; color:#0B1A15; display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:18px;">V</span>
+              <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px; color:#EAF3F0;">Verandi</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:20px;">
+              <div>
+                <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:34px; line-height:1.12; letter-spacing:-.025em; color:#EAF3F0; text-wrap:pretty;">Bom dia.<br />Quem chega hoje já está na lista.</div>
+                <div style="font-size:14px; line-height:1.6; color:#9FB5AE; padding-top:12px; max-width:330px;">Entre e veja a próxima turma, quem falta confirmar e o que ficou pendente de ontem.</div>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:11px; pointer-events:auto;">
+                <div style="display:flex; align-items:center; gap:11px; padding:14px 16px; border-radius:14px; background:rgba(234,243,240,.08); border:1px solid rgba(234,243,240,.16);">
+                  <span style="font-family:'DM Mono',monospace; font-size:12px; color:#7E958D;">@</span>
+                  <span style="font-size:14px; color:#9FB5AE;">e-mail ou telefone</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:11px; padding:14px 16px; border-radius:14px; background:rgba(234,243,240,.08); border:1px solid rgba(234,243,240,.16);">
+                  <span style="font-family:'DM Mono',monospace; font-size:12px; color:#7E958D;">•</span>
+                  <span style="font-size:14px; color:#9FB5AE; flex:1;">senha</span>
+                  <span style="font-size:12px; color:#7E958D;">mostrar</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:9px; padding:15px; border-radius:14px; background:#2AC3A3; color:#08201A; font-size:14.5px; font-weight:600;">
+                  Entrar
+                  <span style="width:7px; height:7px; border-radius:50%; background:#08201A; animation:lHalo 2.4s ease-in-out infinite;"></span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:#7E958D; padding-top:2px;">
+                  <span>Esqueci a senha</span>
+                  <span style="color:#2AC3A3;">Entrar com link no e-mail</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size:11.5px; color:#5F756E;">Verandi · 4YU · Privacidade</div>
+          </div>
+
+          <div style="position:absolute; right:56px; top:52px; display:flex; flex-direction:column; gap:8px; padding:16px 18px; border-radius:18px; background:rgba(12,26,21,.55); backdrop-filter:blur(8px); border:1px solid rgba(234,243,240,.14); width:236px;">
+            <span style="font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:#2AC3A3;">Agora no estúdio</span>
+            <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:22px; color:#EAF3F0;">09:00 · Pilates Solo</span>
+            <span style="font-size:12.5px; color:#9FB5AE;">Thalya Ribeiro · Sala 1 · 3/4</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 1c — CARTÃO DUPLO ============ -->
+      <div id="1c" style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-family:'DM Mono',monospace; font-size:12px; font-weight:500; padding:5px 10px; border-radius:8px; background:#12211C; color:#EAF3F0;">1c</span>
+          <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px;">Cartão duplo</span>
+          <span style="font-size:12.5px; color:#7B8681;">painel de boas-vindas com personagens, formulário limpo ao lado</span>
+        </div>
+
+        <div style="position:relative; width:1120px; height:700px; border-radius:22px; overflow:hidden; background:#EEF1EF; display:flex; align-items:center; justify-content:center;">
+          <div style="width:1000px; height:600px; border-radius:26px; background:#fff; box-shadow:0 40px 70px -44px rgba(20,26,24,.45); padding:22px; display:grid; grid-template-columns:1fr 1fr; gap:22px;">
+
+            <div style="position:relative; border-radius:20px; overflow:hidden; background:linear-gradient(165deg,#12211C 0%,#1B3A31 62%,#245045 100%); padding:34px 32px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div style="position:absolute; right:-60px; top:-60px; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle,rgba(42,195,163,.26),transparent 70%);"></div>
+              <div style="position:relative;">
+                <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:31px; line-height:1.15; letter-spacing:-.025em; color:#EAF3F0; text-wrap:pretty;">A agenda inteira<br />em uma tela só.</div>
+                <div style="width:64px; height:3px; border-radius:2px; background:#2AC3A3; margin:16px 0 14px;"></div>
+                <div style="font-size:13.5px; line-height:1.6; color:#9FB5AE; max-width:290px;">Chamada em dois toques, reposição sem planilha e a semana inteira visível de uma vez.</div>
+              </div>
+              <div style="position:relative; height:270px; margin:0 -14px -34px; animation:lFloat 7s ease-in-out infinite;">
+                <image-slot id="v3-personagens" style="color:#A9C6BC" shape="rect" fit="contain" placeholder="Ilustração de personagens, ~430×270, fundo transparente — professora com prancheta e aluna em roupa de treino, estilo 3D suave ou vetor com sombra macia"></image-slot>
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; justify-content:center; padding:14px 34px;">
+              <div style="display:flex; align-items:center; gap:11px; padding-bottom:26px;">
+                <span style="width:36px; height:36px; border-radius:12px; background:#12211C; color:#2AC3A3; display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:19px;">V</span>
+                <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:19px;">Verandi</span>
+              </div>
+              <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:27px; letter-spacing:-.02em;">Que bom te ver</div>
+              <div style="font-size:13.5px; color:#7B8681; padding:7px 0 22px;">Entre com o e-mail que recebeu o convite.</div>
+
+              <div style="display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#8B9691;">E-mail</span>
+                  <div style="display:flex; align-items:center; padding:14px 15px; border-radius:13px; background:#F6F8F7; border:1px solid #E7ECEA; font-size:14px; color:#9AA5A0;">thalya@studiovitalis.com</div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#8B9691;">Senha</span>
+                  <div style="display:flex; align-items:center; padding:14px 15px; border-radius:13px; background:#fff; border:1px solid #0E7C6B; font-size:14px; color:#141A18;">
+                    <span style="flex:1;">••••••••</span>
+                    <span style="font-size:12px; color:#0E7C6B; font-weight:500;">ocultar</span>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:2px 0 6px;">
+                  <span style="display:inline-flex; align-items:center; gap:8px; font-size:13px; color:#5D6B66;">
+                    <span style="width:17px; height:17px; border-radius:5px; background:#12211C; color:#2AC3A3; display:flex; align-items:center; justify-content:center; font-size:10px;">✓</span>
+                    Manter conectada
+                  </span>
+                  <span style="font-size:13px; color:#0E7C6B;">Esqueci a senha</span>
+                </div>
+                <div style="text-align:center; padding:15px; border-radius:14px; background:#12211C; color:#EAF3F0; font-size:14.5px; font-weight:600;">Entrar</div>
+                <div style="display:flex; align-items:center; justify-content:center; gap:9px; padding:13px; border-radius:14px; border:1px solid #DFE5E2; font-size:13.5px; font-weight:500; color:#141A18;">
+                  <span style="width:16px; height:16px; border-radius:50%; background:#DCEDE7;"></span>Receber link por e-mail
+                </div>
+                <div style="text-align:center; font-size:12.5px; color:#8B9691; padding-top:8px;">Ainda não tem convite? <span style="color:#0E7C6B; font-weight:500;">Falar com o estúdio</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+</x-dc>
+</body>
+</html>

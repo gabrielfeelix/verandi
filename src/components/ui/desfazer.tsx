@@ -37,15 +37,16 @@ export function ProvedorDeAviso({ children }: { children: React.ReactNode }) {
       {aviso ? (
         <div
           role="status"
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-lg items-center justify-between gap-4 rounded-[--radius-padrao] bg-escuro px-4 py-3 text-tinta-clara shadow-[--shadow-elevado]"
-          style={{ animation: 'vd-sobe .12s ease-out' }}
+          className="fixed inset-x-4 bottom-[26px] z-50 mx-auto flex max-w-lg items-center gap-4 rounded-media bg-escuro px-4 py-3.5 text-tinta-clara shadow-aviso"
+          style={{ animation: 'vd-surge .34s var(--ease-sobe) both' }}
         >
-          <span className="text-[13px]">{aviso.texto}</span>
+          <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-menta" />
+          <span className="flex-1 text-[13.5px]">{aviso.texto}</span>
           {aviso.desfazer ? (
             <button
               type="button"
               onClick={() => { aviso.desfazer?.(); setAviso(null) }}
-              className="min-h-9 shrink-0 px-2 text-[13px] font-medium text-menta underline"
+              className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-tinta-clara/24 px-3 text-[12px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-tinta-clara/10"
             >
               Desfazer
             </button>

@@ -37,7 +37,7 @@ export function CartaoNumero({
 }) {
   const pele = {
     neutro: 'bg-superficie border-linha',
-    alerta: 'bg-[#FDF0E9] border-[#F7DACB]',
+    alerta: 'bg-[#FDF0E9] border-alerta-linha',
     positivo: 'bg-[#E9F5F0] border-[#CBE5DB]',
   }[tom]
   const rotuloCor = {
@@ -62,13 +62,13 @@ export function CartaoNumero({
     <div
       role="group"
       aria-label={`${rotulo}: ${valor} ${sub}`}
-      className={`rounded-[16px] border px-4 py-4 ${pele}`}
+      className={`rounded-grande border px-4 py-4 ${pele}`}
     >
       <div className="flex items-center justify-between">
         <span className={`text-[12px] font-medium ${rotuloCor}`}>{rotulo}</span>
         <span
           aria-hidden
-          className={`flex size-[22px] items-center justify-center rounded-[7px] font-mono text-[11px] ${chip}`}
+          className={`flex size-[22px] items-center justify-center rounded-minima font-mono text-[11px] ${chip}`}
         >
           {glifo}
         </span>
@@ -158,7 +158,7 @@ export function SeloEstado({ estado }: { estado: keyof typeof ESTADO | string })
   const e = ESTADO[estado] ?? ESTADO.aberta
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-[9px] px-2.5 py-[5px] text-[11.5px] font-medium ${e.bg} ${e.fg}`}
+      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${e.bg} ${e.fg}`}
     >
       <span aria-hidden className="size-1.5 rounded-full bg-current" />
       {e.rotulo}
@@ -204,7 +204,7 @@ export function LinhaAgenda({
   return (
     <Link
       href={`/sessao/${sessao.id}`}
-      className={`grid grid-cols-[66px_30px_1fr_auto_auto] items-center gap-3.5 rounded-[14px] p-3 transition-[background-color,transform] duration-200 hover:translate-x-0.5 hover:bg-superficie-mais-suave ${
+      className={`grid grid-cols-[66px_30px_1fr_auto_auto] items-center gap-3.5 rounded-media p-3 transition-[background-color,transform] duration-200 hover:translate-x-0.5 hover:bg-superficie-mais-suave ${
         agora ? 'bg-[#F3F8F6]' : ''
       }`}
     >
@@ -241,7 +241,7 @@ export function LinhaAgenda({
         <PilhaPessoas pessoas={sessao.pessoas} apagado={passou} />
         <span className="w-[18px]" />
         <span
-          className={`rounded-[8px] px-2 py-[3px] font-mono text-[12px] ${
+          className={`rounded-peca px-2 py-[3px] font-mono text-[12px] ${
             // laranja só acima da capacidade, como no protótipo: turma cheia é
             // estado normal do dia, e pintar toda turma de alerta apagaria o
             // único caso que pede olho — o 5/4
@@ -285,7 +285,7 @@ export function FaixaPeriodo({
       <span className="text-[10.5px] font-semibold tracking-[.12em] text-tinta-media uppercase">
         {titulo}
       </span>
-      <span aria-hidden className="h-px flex-1 bg-[#EFF3F1]" />
+      <span aria-hidden className="h-px flex-1 bg-linha-fina" />
       <span className="text-[11.5px] text-tinta-media">
         {n} {(n === 1 ? rotulo.singular : rotulo.plural).toLowerCase()}
       </span>
@@ -304,7 +304,7 @@ export function Bloco({
 }) {
   return (
     <section
-      className={`rounded-[20px] border border-linha bg-superficie p-4 ${className}`}
+      className={`rounded-cartao border border-linha bg-superficie p-4 ${className}`}
     >
       {titulo ? (
         <div className="flex items-baseline justify-between pb-3">

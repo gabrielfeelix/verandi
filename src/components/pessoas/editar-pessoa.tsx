@@ -23,7 +23,7 @@ export function EditarPessoa({ pessoa }: { pessoa: Pessoa }) {
     return (
       <button
         type="button" onClick={() => setAberto(true)}
-        className="min-h-10 rounded-[11px] border border-linha bg-superficie px-3.5 text-[12.5px] hover:bg-superficie-suave"
+        className="min-h-10 rounded-padrao border border-linha bg-superficie px-3.5 text-[12.5px] hover:bg-superficie-suave"
       >
         Editar dados
       </button>
@@ -32,7 +32,7 @@ export function EditarPessoa({ pessoa }: { pessoa: Pessoa }) {
 
   return (
     <form
-      className="flex w-[min(420px,80vw)] flex-col gap-3 rounded-[15px] border border-linha-suave bg-superficie-suave p-3.5"
+      className="flex w-[min(420px,80vw)] flex-col gap-3 rounded-grande border border-linha-suave bg-superficie-suave p-3.5"
       action={(f) => {
         iniciar(async () => {
           await editarPessoa(pessoa.id, {
@@ -61,7 +61,7 @@ export function EditarPessoa({ pessoa }: { pessoa: Pessoa }) {
         <div key={n} className="flex flex-col gap-1">
           <label htmlFor={n}>{r}</label>
           <input id={n} name={n} type={t} defaultValue={v}
-                 className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]" />
+                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]" />
         </div>
       ))}
 
@@ -70,7 +70,7 @@ export function EditarPessoa({ pessoa }: { pessoa: Pessoa }) {
         <textarea
           id="observacao" name="observacao" rows={3}
           defaultValue={pessoa.observacao ?? ''}
-          className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+          className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
         />
       </div>
 
@@ -80,7 +80,7 @@ export function EditarPessoa({ pessoa }: { pessoa: Pessoa }) {
       </label>
 
       <div className="flex gap-2">
-        <button type="submit" disabled={pendente} className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]">
+        <button type="submit" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
           Salvar
         </button>
         <button type="button" onClick={() => setAberto(false)} className="px-2 underline">

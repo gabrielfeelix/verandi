@@ -48,14 +48,31 @@ const paraLinha = (l: LinhaResumo): PessoaLinha => ({
   ultimaPresenca: l.ultima_presenca,
 })
 
+/** Vinte por página, como manda o design system. */
+export const POR_PAGINA = 20
+
 export async function listarPessoas(
   db: Db,
   contaId: string,
-  opts: { busca?: string; filtros?: FiltroPessoa[]; fuso?: string } = {},
-): Promise<PessoaLinha[]> {
+  opts: {
+    busca?: string
+    filtros?: FiltroPessoa[]
+    fuso?: string
+    /** 1-indexada; sem ela vem a página 1 */
+    pagina?: number
+  } = {},
+): Promise<{ linhas: PessoaLinha[]; total: number }> {
   const filtros = opts.filtros ?? []
 
-  let q = db.from('pessoa_resumo').select('*').eq('conta_id', contaId)
+  /*
+   * `count: 'exact'` porque a paginação precisa dizer "de 94", e não "de muitos".
+   * Antes daqui havia um `.limit(300)` mudo: quem passasse de 300 cadastros
+   * simplesmente sumia da tela, sem nada avisando — nem a pessoa, nem o log.
+   */
+  let q = db
+    .from('pessoa_resumo')
+    .select('*', { count: 'exact' })
+    .eq('conta_id', contaId)
 
   // inativa some do padrão e continua no histórico: quem parou em março
   // precisa continuar existindo no março
@@ -75,9 +92,16 @@ export async function listarPessoas(
          .lte('vencimento_plano', localDe(limite, opts.fuso ?? 'UTC').data)
   }
 
-  const { data, error } = await q.order('nome').limit(300).returns<LinhaResumo[]>()
+  const pagina = Math.max(1, opts.pagina ?? 1)
+  const de = (pagina - 1) * POR_PAGINA
+
+  const { data, error, count } = await q
+    .order('nome')
+    .range(de, de + POR_PAGINA - 1)
+    .returns<LinhaResumo[]>()
   if (error) throw error
-  return (data ?? []).map(paraLinha)
+
+  return { linhas: (data ?? []).map(paraLinha), total: count ?? 0 }
 }
 
 export type VagaDaPessoa = {

@@ -57,16 +57,16 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
       {grupos.map((g) => (
         <section
           key={g.tipo}
-          className="overflow-hidden rounded-[20px] border border-linha bg-superficie"
+          className="overflow-hidden rounded-cartao border border-linha bg-superficie"
         >
           {/* cada grupo tem a sua tinta: quatro contagens laranja lado a lado
               não hierarquizam nada */}
           <div
-            className={`flex items-center gap-3 border-b border-[#EFF3F1] px-4.5 py-3.5 ${
+            className={`flex items-center gap-3 border-b border-linha-fina px-4.5 py-3.5 ${
               TINTA_GRUPO[g.tipo] ?? 'bg-superficie-suave text-tinta-media'
             }`}
           >
-            <span className="flex size-8 items-center justify-center rounded-[10px] bg-superficie/70 text-[14px] font-semibold">
+            <span className="flex size-8 items-center justify-center rounded-peca bg-superficie/70 text-[14px] font-semibold">
               {g.itens.length}
             </span>
             <span className="flex flex-col leading-[1.3]">
@@ -82,14 +82,14 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
               return (
                 <li
                   key={`${p.tipo}-${p.referenciaId}`}
-                  className="flex flex-wrap items-center gap-3.5 border-b border-[#F4F7F5] px-4.5 py-3 last:border-b-0 hover:bg-[#FBFCFB]"
+                  className="flex flex-wrap items-center gap-3.5 border-b border-linha-fina px-4.5 py-3 last:border-b-0 hover:bg-superficie-tenue"
                 >
                   {/* chamada não feita é sobre um horário, não sobre alguém —
                       avatar com as iniciais de "Pilates solo" seria enfeite */}
                   {p.tipo === 'chamada_nao_feita' ? (
                     <span
                       aria-hidden
-                      className="flex size-8.5 shrink-0 items-center justify-center rounded-[11px] bg-superficie-mais-suave font-mono text-[13px] text-tinta-media"
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-padrao bg-superficie-mais-suave font-mono text-[13px] text-tinta-media"
                     >
                       ◷
                     </span>
@@ -110,14 +110,14 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
                   <span className="flex items-center gap-1.5">
                     <Link
                       href={p.href}
-                      className="inline-flex min-h-10 items-center rounded-[11px] bg-escuro px-3.5 text-[12.5px] font-medium text-tinta-clara hover:bg-[#1D332B]"
+                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[12.5px] font-medium text-tinta-clara hover:bg-escuro-hover"
                     >
                       Resolver
                     </Link>
                     <button
                       type="button"
                       onClick={() => setDispensando(p)}
-                      className="min-h-10 rounded-[11px] border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                      className="min-h-10 rounded-padrao border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
                     >
                       Dispensar
                     </button>

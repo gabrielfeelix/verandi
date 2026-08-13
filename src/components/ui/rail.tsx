@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSyncExternalStore } from 'react'
+import { Icone, type NomeIcone } from './icones'
 
 export type ItemRail = {
   href: string
@@ -10,7 +11,7 @@ export type ItemRail = {
   rotulo: string
   /** o nome curto, que é o que cabe embaixo do glifo quando o rail está fechado */
   curto: string
-  glifo: string
+  icone: NomeIcone
   /** número em laranja; `0` não desenha nada, porque zero não é pendência */
   badge?: number
 }
@@ -75,13 +76,15 @@ export function Rail({
   return (
     // o `aside` acompanha a altura da página para o escuro não terminar no meio
     // do rolar; o conteúdo dele é que fica preso no topo
+    // a largura muda sem transição de propósito: animar `width` de um container
+    // que re-renderiza a cada navegação trava a animação no meio do caminho
     <aside
-      style={{ width: aberto ? 212 : 68 }}
-      className="hidden shrink-0 self-stretch bg-escuro transition-[width] duration-200 md:block"
+      style={{ width: aberto ? 212 : 74 }}
+      className="ruido-escuro hidden shrink-0 self-stretch bg-escuro md:block"
     >
-      <div className="sticky top-0 flex h-dvh flex-col gap-5 px-3 py-4">
+      <div className="relative z-[1] sticky top-0 flex h-dvh flex-col gap-5 px-3 py-4">
       <div className="flex items-center gap-3 pl-1">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-menta font-titulo text-[19px] font-bold text-escuro">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[19px] font-bold text-escuro">
           V
         </span>
         {aberto ? (
@@ -105,23 +108,21 @@ export function Rail({
               href={i.href}
               title={i.rotulo}
               aria-current={ativo ? 'page' : undefined}
-              className={`relative flex items-center rounded-[14px] transition-colors duration-200 ${
+              className={`relative flex items-center rounded-media transition-colors duration-150 active:scale-[.96] ${
                 aberto
-                  ? 'min-h-10 flex-row gap-3 px-3'
-                  : 'min-h-13 flex-col justify-center gap-0.5 px-1 py-1.5'
+                  ? 'min-h-[46px] flex-row gap-3 px-3'
+                  : 'min-h-[46px] flex-col justify-center gap-0.5 px-1 py-1.5'
               } ${
                 ativo
-                  ? 'bg-menta/15 text-menta'
-                  : 'text-[#8FA8A0] hover:bg-white/8 hover:text-tinta-clara'
+                  ? 'bg-menta/16 text-menta'
+                  : 'text-tinta-escura-fraca hover:bg-white/9 hover:text-tinta-clara'
               }`}
             >
-              <span aria-hidden className="flex size-5 shrink-0 items-center justify-center">
-                {i.glifo}
-              </span>
+              <Icone nome={i.icone} />
               <span
                 className={
                   aberto
-                    ? 'min-w-0 flex-1 truncate text-[13.5px]'
+                    ? 'min-w-0 flex-1 truncate text-[13px]'
                     : 'text-[8px] tracking-[.06em] uppercase'
                 }
               >
@@ -129,7 +130,7 @@ export function Rail({
               </span>
               {i.badge ? (
                 <span
-                  className={`flex h-[18px] min-w-[19px] items-center justify-center rounded-[9px] bg-[#F0693C] px-1.5 text-[10px] font-semibold text-white ${
+                  className={`flex h-[18px] min-w-[19px] items-center justify-center rounded-peca bg-destaque px-1.5 text-[10px] font-semibold text-white ${
                     aberto ? 'ml-auto' : 'absolute top-1 right-1'
                   }`}
                 >
@@ -147,14 +148,14 @@ export function Rail({
           type="button"
           onClick={() => gravarRail(!aberto)}
           aria-expanded={aberto}
-          className="flex min-h-10 items-center gap-3 rounded-[12px] px-3 text-[#8FA8A0] hover:bg-white/8 hover:text-tinta-clara"
+          className="flex min-h-10 items-center gap-3 rounded-padrao px-3 text-tinta-escura-fraca hover:bg-white/8 hover:text-tinta-clara"
         >
           <span
             aria-hidden
-            className="inline-block w-6 shrink-0 text-center font-mono text-[16px] transition-transform duration-300"
+            className="inline-flex w-6 shrink-0 justify-center transition-transform duration-200"
             style={{ transform: `rotate(${aberto ? 180 : 0}deg)` }}
           >
-            ›
+            <Icone nome="depois" />
           </span>
           <span className={aberto ? 'text-[12.5px] whitespace-nowrap' : 'sr-only'}>
             {aberto ? 'Retrair menu' : 'Expandir menu'}
@@ -162,7 +163,7 @@ export function Rail({
         </button>
 
         <div
-          className={`flex items-center gap-3 rounded-[14px] p-1.5 ${
+          className={`flex items-center gap-3 rounded-media p-1.5 ${
             aberto ? '' : 'flex-col'
           }`}
         >
@@ -175,7 +176,7 @@ export function Rail({
           {aberto ? (
             <span className="flex min-w-0 flex-col leading-tight">
               <span className="truncate text-[12.5px] text-tinta-clara">{pessoa}</span>
-              <span className="text-[10.5px] text-[#8FA8A0]">
+              <span className="text-[10.5px] text-tinta-escura-fraca">
                 {papel}
                 {podeTrocar ? (
                   <>
@@ -218,16 +219,14 @@ export function BarraInferior({ itens }: { itens: ItemRail[] }) {
             key={i.href}
             href={i.href}
             aria-current={ativo ? 'page' : undefined}
-            className={`relative flex min-h-13 flex-1 flex-col items-center justify-center gap-1 rounded-[13px] ${
-              ativo ? 'bg-superficie-mais-suave text-marca' : 'text-tinta-media'
+            className={`relative flex min-h-13 flex-1 flex-col items-center justify-center gap-1 rounded-media ${
+              ativo ? 'bg-positivo-superficie text-marca' : 'text-tinta-media'
             }`}
           >
-            <span aria-hidden className="flex size-5 items-center justify-center">
-              {i.glifo}
-            </span>
+            <Icone nome={i.icone} />
             <span className="text-[10px] font-medium">{i.curto}</span>
             {i.badge ? (
-              <span className="absolute top-1 right-3 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#F0693C] px-1 text-[9px] font-semibold text-white">
+              <span className="absolute top-1 right-3 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-destaque px-1 text-[9px] font-semibold text-white">
                 {i.badge}
               </span>
             ) : null}

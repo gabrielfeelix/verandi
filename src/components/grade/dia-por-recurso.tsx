@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import type { SessaoResumo } from '@/server/agenda/consultas'
+import { Vazio } from '@/components/ui/pecas'
 import { CelulaTurma } from './grade-semana'
 
 export type Recurso = { id: string; nome: string; cor?: string | null }
@@ -32,8 +32,8 @@ export function DiaPorRecurso({
 
   if (horas.length === 0 || colunas.length === 0) {
     return (
-      <section className="rounded-[20px] border border-dashed border-[#C6D2CD] bg-superficie px-6 py-8 text-center">
-        <p className="text-[13px] text-tinta-media">{vazio}</p>
+      <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie">
+        <Vazio icone="semana" titulo="Nada marcado neste dia" texto={vazio} />
       </section>
     )
   }
@@ -47,7 +47,7 @@ export function DiaPorRecurso({
   return (
     <section
       aria-label="Dia por recurso"
-      className="max-h-[calc(100vh-210px)] overflow-auto rounded-[20px] border border-linha bg-superficie p-3.5"
+      className="max-h-[calc(100vh-210px)] overflow-auto rounded-cartao border border-linha bg-superficie p-3.5"
     >
       <div
         className="grid gap-1.5"
@@ -60,7 +60,7 @@ export function DiaPorRecurso({
         {colunas.map((r) => (
           <div
             key={r.id}
-            className="sticky top-0 z-3 flex flex-col items-center gap-0.5 rounded-[10px] bg-superficie px-2 pt-1.5 pb-2.5 shadow-[0_6px_0_#fff]"
+            className="sticky top-0 z-3 flex flex-col items-center gap-0.5 rounded-peca bg-superficie px-2 pt-1.5 pb-2.5 shadow-[0_6px_0_#fff]"
           >
             <span className="flex items-center gap-1.5">
               {r.cor ? (
@@ -90,7 +90,7 @@ export function DiaPorRecurso({
                 return (
                   <div
                     key={r.id}
-                    className="flex min-h-14 items-center justify-center rounded-[12px] border border-[#F1F5F3] bg-[#FBFCFB] font-mono text-[13px] text-[#C6D2CD]"
+                    className="flex min-h-14 items-center justify-center rounded-padrao border border-linha-fina bg-superficie-tenue font-mono text-[13px] text-linha-tracejada"
                   >
                     <span aria-hidden>+</span>
                   </div>
@@ -99,7 +99,7 @@ export function DiaPorRecurso({
               return (
                 <div
                   key={r.id}
-                  className="flex min-h-14 flex-col gap-1.5 rounded-[12px] border border-linha-suave bg-superficie p-1"
+                  className="flex min-h-14 flex-col gap-1.5 rounded-padrao border border-linha-suave bg-superficie p-1"
                 >
                   {celula.map((s) => (
                     <CelulaTurma key={s.id} sessao={s} />
@@ -111,37 +111,5 @@ export function DiaPorRecurso({
         ))}
       </div>
     </section>
-  )
-}
-
-/** O par de botões Semana | Dia, que troca o modo pela URL. */
-export function AlternarModo({
-  semana, dia, ehDia,
-}: {
-  semana: string
-  dia: string
-  ehDia: boolean
-}) {
-  return (
-    <div className="flex gap-[3px] rounded-[12px] border border-linha bg-superficie p-[3px]">
-      <Link
-        href={semana}
-        aria-current={ehDia ? undefined : 'page'}
-        className={`rounded-[9px] px-3 py-2 text-[13px] font-medium ${
-          ehDia ? 'text-tinta-media' : 'bg-escuro text-tinta-clara'
-        }`}
-      >
-        Semana
-      </Link>
-      <Link
-        href={dia}
-        aria-current={ehDia ? 'page' : undefined}
-        className={`rounded-[9px] px-3 py-2 text-[13px] font-medium ${
-          ehDia ? 'bg-escuro text-tinta-clara' : 'text-tinta-media'
-        }`}
-      >
-        Dia por recurso
-      </Link>
-    </div>
   )
 }

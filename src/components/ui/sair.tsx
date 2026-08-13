@@ -7,7 +7,7 @@ export function Sair() {
       <button
         type="submit"
         title="Sair"
-        className="min-h-9 rounded-[--radius-peca] px-2 text-[12px] text-[#8FA8A0] underline hover:text-tinta-clara"
+        className="min-h-9 rounded-peca px-2 text-[12px] text-tinta-escura-fraca underline hover:text-tinta-clara"
       >
         Sair
       </button>
