@@ -52,6 +52,33 @@ export function hojeEm(fuso: string): string {
   return localDe(new Date().toISOString(), fuso).data
 }
 
+/**
+ * O relógio, lido de um lugar só.
+ *
+ * Existe como função nomeada porque `Date.now()` escrito dentro de um componente
+ * é impuro no meio do render — o lint do React reclama com razão. A tela pede a
+ * hora aqui, uma vez, e passa o número adiante.
+ */
+export function agoraMs(): number {
+  return Date.now()
+}
+
+/** "começa em 21 min" / "começa em 2h10". Zero ou negativo já começou. */
+export function quantoFalta(inicio: string, agora: number): string {
+  const min = Math.round((new Date(inicio).getTime() - agora) / 60000)
+  if (min <= 0) return 'já começou'
+  if (min < 60) return `começa em ${min} min`
+  return `começa em ${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}`
+}
+
+/** A hora local da conta agora, em número — para escolher a saudação. */
+export function horaEm(fuso: string, agora: number): number {
+  return Number(
+    new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', hour12: false, timeZone: fuso })
+      .format(new Date(agora)),
+  )
+}
+
 /** Data e hora locais de um instante, no fuso da conta. */
 export function localDe(iso: string, fuso: string): { data: string; hora: string } {
   const fmt = new Intl.DateTimeFormat('en-CA', {

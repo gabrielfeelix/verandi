@@ -17,11 +17,21 @@ export type SessaoResumo = {
   servico: string
   profissionalId: string | null
   profissional: string | null
+  /** a cor do profissional na grade: é ela que identifica quem dá a aula */
+  corProfissional: string | null
   local: string | null
   status: 'prevista' | 'realizada' | 'cancelada'
   motivoCancelamento: string | null
   ocupacao: Ocupacao
   chamada: EstadoChamada
+  /**
+   * Quem está na turma, na ordem em que o banco devolveu.
+   *
+   * A lista existe porque a agenda do dia mostra os avatares empilhados: quem dá
+   * a aula reconhece a turma pela cara das pessoas antes de ler o nome do
+   * serviço.
+   */
+  pessoas: Array<{ nome: string; status: StatusParticipacao; tags: string[] }>
 }
 
 export type ParticipacaoDetalhe = {
@@ -41,9 +51,9 @@ export type SessaoDetalhe = SessaoResumo & { participacoes: ParticipacaoDetalhe[
 const CAMPOS_RESUMO = `
   id, inicio, duracao_min, capacidade, status, motivo_cancelamento, profissional_id,
   servico:servico_id(nome),
-  profissional:profissional_id(nome),
+  profissional:profissional_id(nome, cor),
   local:local_id(nome),
-  participacao(status)
+  participacao(status, pessoa:pessoa_id(nome, pessoa_tag(tag)))
 `
 
 type Embutido = { nome: string } | null
@@ -56,9 +66,12 @@ type LinhaResumo = {
   motivo_cancelamento: string | null
   profissional_id: string | null
   servico: Embutido
-  profissional: Embutido
+  profissional: ({ nome: string; cor: string | null }) | null
   local: Embutido
-  participacao: { status: StatusParticipacao }[]
+  participacao: Array<{
+    status: StatusParticipacao
+    pessoa: { nome: string; pessoa_tag: { tag: string }[] } | null
+  }>
 }
 
 function paraResumo(l: LinhaResumo, fuso: string): SessaoResumo {
@@ -73,11 +86,19 @@ function paraResumo(l: LinhaResumo, fuso: string): SessaoResumo {
     servico: l.servico?.nome ?? '—',
     profissionalId: l.profissional_id,
     profissional: l.profissional?.nome ?? null,
+    corProfissional: l.profissional?.cor ?? null,
     local: l.local?.nome ?? null,
     status: l.status,
     motivoCancelamento: l.motivo_cancelamento,
     ocupacao: calcularOcupacao(l.capacidade, status),
     chamada: estadoDaChamada(status),
+    pessoas: l.participacao
+      .filter((p) => p.pessoa !== null)
+      .map((p) => ({
+        nome: p.pessoa!.nome,
+        status: p.status,
+        tags: (p.pessoa!.pessoa_tag ?? []).map((t) => t.tag),
+      })),
   }
 }
 
@@ -141,7 +162,7 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
       id, conta_id, inicio, duracao_min, capacidade, status, motivo_cancelamento,
       profissional_id,
       servico:servico_id(nome),
-      profissional:profissional_id(nome),
+      profissional:profissional_id(nome, cor),
       local:local_id(nome),
       participacao(
         id, status, origem, reposicao_de_id, observacao,
@@ -168,7 +189,18 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
   }
 
   const resumo = paraResumo(
-    { ...data, participacao: data.participacao.map((p) => ({ status: p.status })) },
+    {
+      ...data,
+      participacao: data.participacao.map((p) => ({
+        status: p.status,
+        pessoa: p.pessoa
+          ? {
+              nome: p.pessoa.nome,
+              pessoa_tag: (porPessoa.get(p.pessoa.id) ?? []).map((tag) => ({ tag })),
+            }
+          : null,
+      })),
+    },
     fuso,
   )
 

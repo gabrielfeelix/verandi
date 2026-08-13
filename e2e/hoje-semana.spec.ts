@@ -104,12 +104,15 @@ test('Hoje destaca a chamada pendente e anda entre os dias', async ({ page }) =>
   await entrar(page, email)
   await page.goto('/hoje?dia=2026-08-03')
 
-  await expect(page.getByText('1 chamada pendente.')).toBeVisible()
+  // o cartão do topo é quem diz isso agora — ver a revisão de interface
+  await expect(
+    page.getByRole('group', { name: /Chamadas pendentes: 1/ }),
+  ).toBeVisible()
   await expect(page.getByRole('link', { name: /07:00/ })).toBeVisible()
 
   // a quarta é da Sofia: o profissional não vê a agenda dela
   await page.goto('/hoje?dia=2026-08-05')
-  await expect(page.getByText('Nenhum horário neste dia.')).toBeVisible()
+  await expect(page.getByText('Nada marcado neste dia')).toBeVisible()
 })
 
 test('dono alterna entre a própria agenda e a de todos', async ({ page }) => {
@@ -119,7 +122,7 @@ test('dono alterna entre a própria agenda e a de todos', async ({ page }) => {
 
   await page.goto('/hoje?dia=2026-08-05&todos=1')
   await expect(page.getByRole('link', { name: /10:00/ })).toBeVisible()
-  await expect(page.getByText('Sofia')).toBeVisible()
+  await expect(page.getByText('Sofia', { exact: true }).first()).toBeVisible()
 })
 
 test('dia sem horário diz isso com naturalidade', async ({ page }) => {
@@ -128,5 +131,5 @@ test('dia sem horário diz isso com naturalidade', async ({ page }) => {
   await entrar(page, email)
 
   await page.goto('/hoje?dia=2026-08-09&todos=1') // domingo
-  await expect(page.getByText('Nenhum horário neste dia.')).toBeVisible()
+  await expect(page.getByText('Nada marcado neste dia')).toBeVisible()
 })

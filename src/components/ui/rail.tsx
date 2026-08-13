@@ -32,8 +32,12 @@ function assinarRail(avisar: () => void) {
   }
 }
 
+/**
+ * Fechado é o padrão, como no protótipo: a tela de trabalho é densa, e o rótulo
+ * curto embaixo do glifo já diz onde se clica. Quem abre, abre uma vez.
+ */
 function lerRail() {
-  return window.localStorage.getItem(CHAVE) !== 'nao'
+  return window.localStorage.getItem(CHAVE) === 'sim'
 }
 
 function gravarRail(aberto: boolean) {
@@ -66,13 +70,16 @@ export function Rail({
 }) {
   const pathname = usePathname()
   // a preferência é do dispositivo, não da conta: mesma pessoa, telas diferentes
-  const aberto = useSyncExternalStore(assinarRail, lerRail, () => true)
+  const aberto = useSyncExternalStore(assinarRail, lerRail, () => false)
 
   return (
+    // o `aside` acompanha a altura da página para o escuro não terminar no meio
+    // do rolar; o conteúdo dele é que fica preso no topo
     <aside
       style={{ width: aberto ? 212 : 68 }}
-      className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-5 bg-escuro px-3 py-4 transition-[width] duration-200 md:flex"
+      className="hidden shrink-0 self-stretch bg-escuro transition-[width] duration-200 md:block"
     >
+      <div className="sticky top-0 flex h-dvh flex-col gap-5 px-3 py-4">
       <div className="flex items-center gap-3 pl-1">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-[12px] bg-menta font-titulo text-[19px] font-bold text-escuro">
           V
@@ -184,6 +191,7 @@ export function Rail({
           {aberto ? sair : null}
         </div>
         {aberto ? null : <div className="flex justify-center">{sair}</div>}
+        </div>
       </div>
     </aside>
   )
