@@ -35,7 +35,8 @@ test('desativar serviço tira das escolhas novas e mantém no histórico', async
   await page.getByRole('checkbox', { name: 'Ativo' }).uncheck()
   await page.getByRole('button', { name: 'Salvar' }).click()
 
-  await expect(page.getByText('inativo')).toBeVisible()
+  // desativado sai da lista de cima e vai para a gaveta do pé, como no protótipo
+  await expect(page.getByRole('button', { name: /1 serviço desativado/ })).toBeVisible()
 
   await expect.poll(async () => {
     const { data } = await admin.from('servico')
@@ -246,7 +247,7 @@ test('profissional sem login é normal — nome na grade não precisa de acesso'
   await entrar(page, c.email)
   await page.goto('/config?s=equipe')
 
-  await expect(page.getByText('só na grade')).toBeVisible()
+  await expect(page.getByText('Sem usuário', { exact: true })).toBeVisible()
 })
 
 test('a foto some do balde quando é removida, não só da coluna', async ({ page }) => {

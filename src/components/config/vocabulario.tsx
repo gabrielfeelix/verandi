@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Cartao, Nota, entrada } from '@/components/ui/pecas'
+import { Nota } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarVocabulario } from '@/server/config/acoes'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
@@ -37,87 +37,102 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
 
   const de = (c: ChaveVocabulario) => valores.find((i) => i.chave === c)!
 
+  const sujo = valores.some(
+    (i) =>
+      i.singular !== itens.find((x) => x.chave === i.chave)!.singular ||
+      i.plural !== itens.find((x) => x.chave === i.chave)!.plural,
+  )
+
   return (
-    <Cartao titulo="Vocabulário">
-      <div className="flex flex-col gap-5">
-        <p className="text-[12.5px] text-tinta-media">
-          Como este negócio chama cada coisa. Muda o texto de todas as telas —
-          e só o texto: nada nos dados é reescrito.
-        </p>
+    <section className="rounded-[20px] border border-linha bg-superficie px-5 py-4.5">
+      <h2 className="font-titulo text-[19px] font-semibold">Vocabulário</h2>
+      <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
+        Como este negócio chama cada coisa. Muda o texto de todas as telas — e só
+        o texto: nada nos dados é reescrito.
+      </p>
 
-        <div className="flex flex-col gap-4">
-          {valores.map((i) => (
-            <div key={i.chave} className="flex flex-wrap items-start gap-3">
-              <div className="w-full sm:w-40">
-                <span className="text-[12.5px] font-medium">{i.padrao.singular}</span>
-                <p className="text-[11.5px] text-tinta-media">{i.explica}</p>
-              </div>
-              <Campo rotulo="Singular" htmlFor={`v-${i.chave}-s`}>
-                <input
-                  id={`v-${i.chave}-s`} className={entrada} value={i.singular}
-                  onChange={(e) => muda(i.chave, 'singular', e.target.value)}
-                />
-              </Campo>
-              <Campo rotulo="Plural" htmlFor={`v-${i.chave}-p`}>
-                <input
-                  id={`v-${i.chave}-p`} className={entrada} value={i.plural}
-                  onChange={(e) => muda(i.chave, 'plural', e.target.value)}
-                />
-              </Campo>
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
+        {valores.map((i) => (
+          <div key={i.chave} className="flex flex-col gap-1.5">
+            <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+              {i.padrao.singular}
+            </span>
+            {/* singular e plural na mesma caixa: são a mesma decisão, e separar
+                em dois campos faz parecer que dá para escolher só um */}
+            <div className="flex items-center gap-2 rounded-[12px] border border-linha-suave bg-superficie-suave px-3 py-1 focus-within:border-marca focus-within:bg-superficie">
+              <input
+                aria-label={`${i.explica}, no singular`}
+                className="min-h-10 min-w-0 flex-1 bg-transparent text-[14px] font-medium outline-none"
+                value={i.singular}
+                onChange={(e) => muda(i.chave, 'singular', e.target.value)}
+              />
+              <input
+                aria-label={`${i.explica}, no plural`}
+                className="min-h-10 w-20 min-w-0 bg-transparent text-right font-mono text-[11px] text-tinta-media outline-none"
+                value={i.plural}
+                onChange={(e) => muda(i.chave, 'plural', e.target.value)}
+              />
             </div>
-          ))}
-        </div>
-
-        {/* A prévia é o que faz a seção fazer sentido antes de salvar */}
-        <div className="flex flex-col gap-2 rounded-[--radius-padrao] bg-superficie-suave p-3">
-          <span className="text-[12.5px] font-medium">Vai aparecer assim</span>
-          <ul className="flex flex-col gap-1 text-[12.5px] text-tinta-media">
-            <li>
-              Menu: <strong className="text-tinta">{de('pessoa').plural}</strong>
-            </li>
-            <li>
-              Tela de {de('sessao').singular.toLowerCase()}:{' '}
-              <strong className="text-tinta">
-                {de('pessoa').plural} nesta {de('sessao').singular.toLowerCase()} · 3/4
-              </strong>
-            </li>
-            <li>
-              Botão de encaixe:{' '}
-              <strong className="text-tinta">
-                Encaixar {de('pessoa').singular.toLowerCase()}
-              </strong>
-            </li>
-            <li>
-              Grade fixa:{' '}
-              <strong className="text-tinta">
-                Criar {de('serie').singular.toLowerCase()}
-              </strong>
-            </li>
-          </ul>
-        </div>
-
-        {erro ? <Nota tom="alerta">{erro}</Nota> : null}
-
-        <div>
-          <Botao
-            disabled={pendente}
-            onClick={() => iniciar(async () => {
-              setErro(null)
-              try {
-                await salvarVocabulario(valores.map((i) => ({
-                  chave: i.chave, singular: i.singular, plural: i.plural,
-                })))
-                avisar({ texto: 'Vocabulário atualizado em todas as telas' })
-                router.refresh()
-              } catch (e) {
-                setErro(e instanceof Error ? e.message : 'não deu para salvar')
-              }
-            })}
-          >
-            Salvar vocabulário
-          </Botao>
-        </div>
+          </div>
+        ))}
       </div>
-    </Cartao>
+
+      {/* A prévia é o que faz a seção fazer sentido antes de salvar */}
+      <div className="mt-4 rounded-[16px] border border-[#CFEBE1] bg-[#F3FAF7] p-4">
+        <p className="pb-2.5 text-[10.5px] font-semibold tracking-[.1em] text-[#3E7A6C] uppercase">
+          Onde isso aparece — antes de salvar
+        </p>
+        <ul className="flex flex-col gap-1.5">
+          {[
+            ['Menu', de('pessoa').plural],
+            [
+              `Tela de ${de('sessao').singular.toLowerCase()}`,
+              `${de('pessoa').plural} nesta ${de('sessao').singular.toLowerCase()} · 3/4`,
+            ],
+            ['Botão de encaixe', `Encaixar ${de('pessoa').singular.toLowerCase()}`],
+            ['Grade fixa', `Criar ${de('serie').singular.toLowerCase()}`],
+          ].map(([onde, texto]) => (
+            <li
+              key={onde}
+              className="flex items-center gap-2.5 rounded-[11px] border border-positivo-fundo bg-superficie px-3 py-2.5"
+            >
+              <span className="w-26 shrink-0 text-[11px] text-tinta-media">{onde}</span>
+              <span className="flex-1 text-[13.5px]">{texto}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {erro ? <div className="pt-3"><Nota tom="alerta">{erro}</Nota></div> : null}
+
+      <div className="flex gap-2.5 pt-4">
+        <Botao
+          disabled={pendente}
+          className="min-h-11 rounded-[12px] px-4.5 text-[13.5px] font-semibold"
+          onClick={() => iniciar(async () => {
+            setErro(null)
+            try {
+              await salvarVocabulario(valores.map((i) => ({
+                chave: i.chave, singular: i.singular, plural: i.plural,
+              })))
+              avisar({ texto: 'Vocabulário atualizado em todas as telas' })
+              router.refresh()
+            } catch (e) {
+              setErro(e instanceof Error ? e.message : 'não deu para salvar')
+            }
+          })}
+        >
+          Salvar vocabulário
+        </Botao>
+        <Botao
+          tom="secundario"
+          disabled={pendente || !sujo}
+          className="min-h-11 rounded-[12px] px-4.5 text-[13.5px]"
+          onClick={() => { setValores(itens); setErro(null) }}
+        >
+          Descartar
+        </Botao>
+      </div>
+    </section>
   )
 }

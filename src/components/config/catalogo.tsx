@@ -3,7 +3,10 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Cartao, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import {
+  BotaoLinha, Dado, Estado, FaixaFormulario, LinhaConfig, PainelConfig, Recolhivel,
+} from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarServico, salvarLocal } from '@/server/config/acoes'
 import type { ServicoLinha, LocalLinha } from '@/server/config/consultas'
@@ -45,18 +48,65 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
   const ativos = servicos.filter((s) => s.ativo)
   const inativos = servicos.filter((s) => !s.ativo)
 
-  return (
-    <Cartao
-      titulo="Serviços"
-      acao={<Botao miudo onClick={() => { setNovo(true); setEditando(null) }}>Novo serviço</Botao>}
-    >
-      <div className="flex flex-col gap-3">
-        <p className="text-[12.5px] text-tinta-media">
-          O que o negócio oferece. Aparece nas escolhas de horário fixo, de sessão
-          e de agendamento.
-        </p>
+  /** O mesmo formulário serve o ativo e o desativado — muda só o que ele diz. */
+  function formularioServico(s: ServicoLinha) {
+    return (
+      <Formulario
+        pendente={pendente}
+        erro={erro}
+        aoCancelar={() => setEditando(null)}
+        aoSalvar={(f) => salvar(
+          async () => {
+            await salvarServico({
+              id: s.id,
+              nome: String(f.get('nome') ?? ''),
+              duracaoMin: Number(f.get('duracaoMin')),
+              capacidadePadrao: Number(f.get('capacidade')),
+              ativo: f.get('ativo') === 'on',
+            })
+          },
+          'Serviço atualizado',
+          () => setEditando(null),
+        )}
+      >
+        <Campo rotulo="Nome" htmlFor={`n-${s.id}`}>
+          <input id={`n-${s.id}`} name="nome" defaultValue={s.nome}
+            required className={entrada} />
+        </Campo>
+        <Campo rotulo="Duração (min)" htmlFor={`d-${s.id}`}>
+          <input id={`d-${s.id}`} name="duracaoMin" type="number" min={1}
+            defaultValue={s.duracaoMin} className={`${entrada} w-28`} />
+        </Campo>
+        <Campo rotulo="Capacidade padrão" htmlFor={`c-${s.id}`}>
+          <input id={`c-${s.id}`} name="capacidade" type="number" min={1}
+            defaultValue={s.capacidadePadrao} className={`${entrada} w-28`} />
+        </Campo>
+        <label className="flex items-center gap-2 self-end pb-2 text-[12.5px]">
+          <input type="checkbox" name="ativo" defaultChecked={s.ativo} />
+          Ativo
+        </label>
+        {!s.ativo || s.emUso > 0 ? (
+          <Nota tom="atencao">
+            Desativado, some das escolhas novas e continua aparecendo no
+            histórico. {s.emUso > 0 ? `${s.emUso} horário(s) fixo(s) usam este serviço.` : ''}
+          </Nota>
+        ) : null}
+      </Formulario>
+    )
+  }
 
-        {novo ? (
+  return (
+    <PainelConfig
+      titulo="Serviços"
+      sub="Desativar não quebra histórico: sai das escolhas novas, continua no passado"
+      acao={
+        <Botao miudo onClick={() => { setNovo(true); setEditando(null) }}>
+          Novo serviço
+        </Botao>
+      }
+    >
+      {novo ? (
+        <FaixaFormulario>
           <Formulario
             pendente={pendente}
             erro={erro}
@@ -89,81 +139,66 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
                 defaultValue={4} className={`${entrada} w-28`} />
             </Campo>
           </Formulario>
-        ) : null}
+        </FaixaFormulario>
+      ) : null}
 
-        {servicos.length === 0 && !novo ? (
-          <Nota tom="neutro">
-            Nenhum serviço ainda. É o primeiro cadastro da conta — sem serviço não
-            dá para montar a grade.
-          </Nota>
-        ) : null}
+      {servicos.length === 0 && !novo ? (
+        <p className="px-5 py-6 text-[13px] text-tinta-media">
+          Nenhum serviço ainda. É o primeiro cadastro da conta — sem serviço não
+          dá para montar a grade.
+        </p>
+      ) : null}
 
-        <ul className="flex flex-col gap-2">
-          {[...ativos, ...inativos].map((s) => (
-            <li key={s.id} className="rounded-[--radius-padrao] border border-linha-suave p-3">
+      {ativos.map((s) => (
+        <div key={s.id}>
+          {editando === s.id ? (
+            <FaixaFormulario>{formularioServico(s)}</FaixaFormulario>
+          ) : (
+            <LinhaConfig
+              nome={s.nome}
+              detalhe={
+                <>
+                  {s.duracaoMin} min
+                  {s.emUso > 0 ? ` · ${s.emUso} na grade` : ''}
+                </>
+              }
+            >
+              <Dado>cap. {s.capacidadePadrao}</Dado>
+              <Estado ativo />
+              <BotaoLinha onClick={() => { setEditando(s.id); setNovo(false) }}>
+                Editar
+              </BotaoLinha>
+            </LinhaConfig>
+          )}
+        </div>
+      ))}
+
+      {inativos.length > 0 ? (
+        <Recolhivel
+          rotulo={`${inativos.length} serviço${inativos.length > 1 ? 's' : ''} desativado${inativos.length > 1 ? 's' : ''}`}
+        >
+          {inativos.map((s) => (
+            <div key={s.id}>
               {editando === s.id ? (
-                <Formulario
-                  pendente={pendente}
-                  erro={erro}
-                  aoCancelar={() => setEditando(null)}
-                  aoSalvar={(f) => salvar(
-                    async () => {
-                      await salvarServico({
-                        id: s.id,
-                        nome: String(f.get('nome') ?? ''),
-                        duracaoMin: Number(f.get('duracaoMin')),
-                        capacidadePadrao: Number(f.get('capacidade')),
-                        ativo: f.get('ativo') === 'on',
-                      })
-                    },
-                    'Serviço atualizado',
-                    () => setEditando(null),
-                  )}
-                >
-                  <Campo rotulo="Nome" htmlFor={`n-${s.id}`}>
-                    <input id={`n-${s.id}`} name="nome" defaultValue={s.nome}
-                      required className={entrada} />
-                  </Campo>
-                  <Campo rotulo="Duração (min)" htmlFor={`d-${s.id}`}>
-                    <input id={`d-${s.id}`} name="duracaoMin" type="number" min={1}
-                      defaultValue={s.duracaoMin} className={`${entrada} w-28`} />
-                  </Campo>
-                  <Campo rotulo="Capacidade padrão" htmlFor={`c-${s.id}`}>
-                    <input id={`c-${s.id}`} name="capacidade" type="number" min={1}
-                      defaultValue={s.capacidadePadrao} className={`${entrada} w-28`} />
-                  </Campo>
-                  <label className="flex items-center gap-2 self-end pb-2 text-[12.5px]">
-                    <input type="checkbox" name="ativo" defaultChecked={s.ativo} />
-                    Ativo
-                  </label>
-                  {!s.ativo || s.emUso > 0 ? (
-                    <Nota tom="atencao">
-                      Desativado, some das escolhas novas e continua aparecendo no
-                      histórico. {s.emUso > 0 ? `${s.emUso} horário(s) fixo(s) usam este serviço.` : ''}
-                    </Nota>
-                  ) : null}
-                </Formulario>
+                <FaixaFormulario>{formularioServico(s)}</FaixaFormulario>
               ) : (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="font-medium">{s.nome}</span>
-                  <span className="font-mono text-[12.5px] text-tinta-media">
-                    {s.duracaoMin} min · {s.capacidadePadrao} vagas
-                  </span>
-                  {s.emUso > 0 ? (
-                    <Etiqueta tinta="neutro">{s.emUso} na grade</Etiqueta>
-                  ) : null}
-                  {!s.ativo ? <Etiqueta tinta="neutro">inativo</Etiqueta> : null}
-                  <Botao tom="texto" miudo className="ml-auto"
-                    onClick={() => { setEditando(s.id); setNovo(false) }}>
+                <LinhaConfig
+                  apagado
+                  nome={s.nome}
+                  detalhe={`${s.duracaoMin} min${s.emUso > 0 ? ` · ${s.emUso} na grade` : ''}`}
+                >
+                  <Dado>cap. {s.capacidadePadrao}</Dado>
+                  <Estado ativo={false} />
+                  <BotaoLinha tom="marca" onClick={() => { setEditando(s.id); setNovo(false) }}>
                     Editar
-                  </Botao>
-                </div>
+                  </BotaoLinha>
+                </LinhaConfig>
               )}
-            </li>
+            </div>
           ))}
-        </ul>
-      </div>
-    </Cartao>
+        </Recolhivel>
+      ) : null}
+    </PainelConfig>
   )
 }
 
@@ -172,18 +207,60 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
   const [editando, setEditando] = useState<string | null>(null)
   const { pendente, erro, salvar } = useSalvar()
 
-  return (
-    <Cartao
-      titulo="Locais"
-      acao={<Botao miudo onClick={() => { setNovo(true); setEditando(null) }}>Novo local</Botao>}
-    >
-      <div className="flex flex-col gap-3">
-        <p className="text-[12.5px] text-tinta-media">
-          Sala, cadeira, consultório, domicílio. A capacidade é o limite físico —
-          serve de aviso, não bloqueia.
-        </p>
+  const ativos = locais.filter((l) => l.ativo)
+  const inativos = locais.filter((l) => !l.ativo)
 
-        {novo ? (
+  function formularioLocal(l: LocalLinha) {
+    return (
+      <Formulario
+        pendente={pendente}
+        erro={erro}
+        aoCancelar={() => setEditando(null)}
+        aoSalvar={(f) => salvar(
+          async () => {
+            const cap = String(f.get('capacidade') ?? '')
+            await salvarLocal({
+              id: l.id,
+              nome: String(f.get('nome') ?? ''),
+              capacidade: cap ? Number(cap) : null,
+              ativo: f.get('ativo') === 'on',
+            })
+          },
+          'Local atualizado',
+          () => setEditando(null),
+        )}
+      >
+        <Campo rotulo="Nome" htmlFor={`ln-${l.id}`}>
+          <input id={`ln-${l.id}`} name="nome" defaultValue={l.nome}
+            required className={entrada} />
+        </Campo>
+        <Campo rotulo="Capacidade" htmlFor={`lc-${l.id}`}>
+          <input id={`lc-${l.id}`} name="capacidade" type="number" min={1}
+            defaultValue={l.capacidade ?? undefined} className={`${entrada} w-28`} />
+        </Campo>
+        <label className="flex items-center gap-2 self-end pb-2 text-[12.5px]">
+          <input type="checkbox" name="ativo" defaultChecked={l.ativo} />
+          Ativo
+        </label>
+        <Nota tom="atencao">
+          Renomear muda o nome em todas as sessões, inclusive nas antigas.
+        </Nota>
+      </Formulario>
+    )
+  }
+
+  return (
+    <PainelConfig
+      titulo="Locais"
+      sub="Sala, cadeira, consultório, domicílio. A capacidade é o limite físico — avisa, não bloqueia"
+      acao={
+        <Botao miudo onClick={() => { setNovo(true); setEditando(null) }}>
+          Novo local
+        </Botao>
+      }
+    >
+      {novo ? (
+        <FaixaFormulario>
           <Formulario
             pendente={pendente}
             erro={erro}
@@ -209,74 +286,57 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
                 className={`${entrada} w-28`} />
             </Campo>
           </Formulario>
-        ) : null}
+        </FaixaFormulario>
+      ) : null}
 
-        {locais.length === 0 && !novo ? (
-          <Nota tom="neutro">
-            Nenhum local ainda. Horário fixo funciona sem local — cadastre quando
-            houver mais de um lugar para separar.
-          </Nota>
-        ) : null}
+      {locais.length === 0 && !novo ? (
+        <p className="px-5 py-6 text-[13px] text-tinta-media">
+          Nenhum local ainda. Horário fixo funciona sem local — cadastre quando
+          houver mais de um lugar para separar.
+        </p>
+      ) : null}
 
-        <ul className="flex flex-col gap-2">
-          {locais.map((l) => (
-            <li key={l.id} className="rounded-[--radius-padrao] border border-linha-suave p-3">
+      {ativos.map((l) => (
+        <div key={l.id}>
+          {editando === l.id ? (
+            <FaixaFormulario>{formularioLocal(l)}</FaixaFormulario>
+          ) : (
+            <LinhaConfig
+              nome={l.nome}
+              detalhe={l.emUso > 0 ? `${l.emUso} na grade` : 'sem horário fixo ainda'}
+            >
+              {l.capacidade ? <Dado>cabe {l.capacidade}</Dado> : null}
+              <Estado ativo />
+              <BotaoLinha onClick={() => { setEditando(l.id); setNovo(false) }}>
+                Editar
+              </BotaoLinha>
+            </LinhaConfig>
+          )}
+        </div>
+      ))}
+
+      {inativos.length > 0 ? (
+        <Recolhivel
+          rotulo={`${inativos.length} local${inativos.length > 1 ? 'is' : ''} desativado${inativos.length > 1 ? 's' : ''}`}
+        >
+          {inativos.map((l) => (
+            <div key={l.id}>
               {editando === l.id ? (
-                <Formulario
-                  pendente={pendente}
-                  erro={erro}
-                  aoCancelar={() => setEditando(null)}
-                  aoSalvar={(f) => salvar(
-                    async () => {
-                      const cap = String(f.get('capacidade') ?? '')
-                      await salvarLocal({
-                        id: l.id,
-                        nome: String(f.get('nome') ?? ''),
-                        capacidade: cap ? Number(cap) : null,
-                        ativo: f.get('ativo') === 'on',
-                      })
-                    },
-                    'Local atualizado',
-                    () => setEditando(null),
-                  )}
-                >
-                  <Campo rotulo="Nome" htmlFor={`ln-${l.id}`}>
-                    <input id={`ln-${l.id}`} name="nome" defaultValue={l.nome}
-                      required className={entrada} />
-                  </Campo>
-                  <Campo rotulo="Capacidade" htmlFor={`lc-${l.id}`}>
-                    <input id={`lc-${l.id}`} name="capacidade" type="number" min={1}
-                      defaultValue={l.capacidade ?? undefined} className={`${entrada} w-28`} />
-                  </Campo>
-                  <label className="flex items-center gap-2 self-end pb-2 text-[12.5px]">
-                    <input type="checkbox" name="ativo" defaultChecked={l.ativo} />
-                    Ativo
-                  </label>
-                  <Nota tom="atencao">
-                    Renomear muda o nome em todas as sessões, inclusive nas antigas.
-                  </Nota>
-                </Formulario>
+                <FaixaFormulario>{formularioLocal(l)}</FaixaFormulario>
               ) : (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="font-medium">{l.nome}</span>
-                  {l.capacidade ? (
-                    <span className="font-mono text-[12.5px] text-tinta-media">
-                      cabe {l.capacidade}
-                    </span>
-                  ) : null}
-                  {l.emUso > 0 ? <Etiqueta tinta="neutro">{l.emUso} na grade</Etiqueta> : null}
-                  {!l.ativo ? <Etiqueta tinta="neutro">inativo</Etiqueta> : null}
-                  <Botao tom="texto" miudo className="ml-auto"
-                    onClick={() => { setEditando(l.id); setNovo(false) }}>
+                <LinhaConfig apagado nome={l.nome} detalhe={l.emUso > 0 ? `${l.emUso} na grade` : undefined}>
+                  {l.capacidade ? <Dado>cabe {l.capacidade}</Dado> : null}
+                  <Estado ativo={false} />
+                  <BotaoLinha tom="marca" onClick={() => { setEditando(l.id); setNovo(false) }}>
                     Editar
-                  </Botao>
-                </div>
+                  </BotaoLinha>
+                </LinhaConfig>
               )}
-            </li>
+            </div>
           ))}
-        </ul>
-      </div>
-    </Cartao>
+        </Recolhivel>
+      ) : null}
+    </PainelConfig>
   )
 }
 

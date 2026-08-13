@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Avatar, Campo, Cartao, Chip, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
+import { BotaoLinha, FaixaFormulario, LinhaConfig, PainelConfig } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { CORES_PROFISSIONAL } from '@/components/ui/tintas'
 import { salvarProfissional, removerFoto } from '@/server/config/acoes'
@@ -19,11 +20,13 @@ type ServicoOpcao = { id: string; nome: string }
  * se mostra quem já tem.
  */
 export function SecaoEquipe({
-  equipe, servicos, rotuloProfissional,
+  equipe, servicos, rotuloProfissional, rotuloPlural,
 }: {
   equipe: ProfissionalLinha[]
   servicos: ServicoOpcao[]
   rotuloProfissional: string
+  /** o título é o plural da conta: "Profissionais", "Professores", "Doutores" */
+  rotuloPlural: string
 }) {
   const [aberto, setAberto] = useState<string | 'novo' | null>(null)
   const [erro, setErro] = useState<string | null>(null)
@@ -45,21 +48,41 @@ export function SecaoEquipe({
     })
   }
 
+  /**
+   * Desativar manda o cadastro inteiro de volta, com `ativo` de fora.
+   *
+   * Mandar só o `id` apagaria e-mail, cor e os serviços que a pessoa atende —
+   * `salvarProfissional` reescreve a linha com o que chega, e o que não chega
+   * some.
+   */
+  function desativar(p: ProfissionalLinha) {
+    const f = new FormData()
+    f.set('id', p.id)
+    f.set('nome', p.nome)
+    f.set('email', p.email ?? '')
+    f.set('telefone', p.telefone ?? '')
+    f.set('cor', p.cor ?? '')
+    p.servicoIds.forEach((id) => f.append('servicos', id))
+    comErro(
+      async () => { await salvarProfissional(f) },
+      `${p.nome} desativado — o histórico continua com o nome dele`,
+    )
+  }
+
+  const nomeDoServico = new Map(servicos.map((s) => [s.id, s.nome]))
+
   return (
-    <Cartao
-      titulo="Equipe"
+    <PainelConfig
+      titulo={rotuloPlural}
+      sub="Existe sem usuário: um nome na grade não precisa de acesso ao sistema"
       acao={
         <Botao miudo onClick={() => setAberto('novo')}>
           Novo {rotuloProfissional.toLowerCase()}
         </Botao>
       }
     >
-      <div className="flex flex-col gap-3">
-        <p className="text-[12.5px] text-tinta-media">
-          Quem atende. A cor identifica a pessoa na grade da semana.
-        </p>
-
-        {aberto === 'novo' ? (
+      {aberto === 'novo' ? (
+        <FaixaFormulario>
           <Formulario
             servicos={servicos}
             pendente={pendente}
@@ -71,65 +94,96 @@ export function SecaoEquipe({
               () => setAberto(null),
             )}
           />
-        ) : null}
+        </FaixaFormulario>
+      ) : null}
 
-        {equipe.length === 0 && aberto !== 'novo' ? (
-          <Nota tom="neutro">
-            Ninguém cadastrado ainda. Horário fixo funciona sem profissional
-            definido, mas a grade fica mais clara com nome e cor.
-          </Nota>
-        ) : null}
+      {equipe.length === 0 && aberto !== 'novo' ? (
+        <p className="px-5 py-6 text-[13px] text-tinta-media">
+          Ninguém cadastrado ainda. Horário fixo funciona sem{' '}
+          {rotuloProfissional.toLowerCase()} definido, mas a grade fica mais
+          clara com nome e cor.
+        </p>
+      ) : null}
 
-        <ul className="flex flex-col gap-2">
-          {equipe.map((p) => (
-            <li key={p.id} className="rounded-[--radius-padrao] border border-linha-suave p-3">
-              {aberto === p.id ? (
-                <Formulario
-                  profissional={p}
-                  servicos={servicos}
-                  pendente={pendente}
-                  erro={erro}
-                  aoCancelar={() => setAberto(null)}
-                  aoSalvar={(f) => comErro(
-                    async () => { await salvarProfissional(f) },
-                    'Profissional atualizado',
-                    () => setAberto(null),
-                  )}
-                  aoRemoverFoto={() => comErro(
-                    () => removerFoto(p.id),
-                    'Foto removida',
-                  )}
+      {equipe.map((p) => (
+        <div key={p.id}>
+          {aberto === p.id ? (
+            <FaixaFormulario>
+              <Formulario
+                profissional={p}
+                servicos={servicos}
+                pendente={pendente}
+                erro={erro}
+                aoCancelar={() => setAberto(null)}
+                aoSalvar={(f) => comErro(
+                  async () => { await salvarProfissional(f) },
+                  'Profissional atualizado',
+                  () => setAberto(null),
+                )}
+                aoRemoverFoto={() => comErro(
+                  () => removerFoto(p.id),
+                  'Foto removida',
+                )}
+              />
+            </FaixaFormulario>
+          ) : (
+            <LinhaConfig
+              apagado={!p.ativo}
+              antes={
+                <Avatar
+                  nome={p.nome} foto={p.fotoUrl} tamanho={40}
+                  anel={p.cor ?? undefined} decorativo
                 />
-              ) : (
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <Avatar
-                    nome={p.nome} foto={p.fotoUrl} tamanho={40}
-                    anel={p.cor ?? undefined} decorativo
-                  />
-                  <span className="font-medium">{p.nome}</span>
-                  {p.email ? (
-                    <span className="text-[12.5px] text-tinta-media">{p.email}</span>
-                  ) : null}
-                  {p.temLogin ? (
-                    <Etiqueta tinta="positivo">tem login</Etiqueta>
-                  ) : (
-                    <Etiqueta tinta="neutro">só na grade</Etiqueta>
-                  )}
-                  {p.servicoIds.length > 0 ? (
-                    <Etiqueta tinta="info">{p.servicoIds.length} serviço(s)</Etiqueta>
-                  ) : null}
-                  {p.emUso > 0 ? <Etiqueta tinta="neutro">{p.emUso} na grade</Etiqueta> : null}
-                  {!p.ativo ? <Etiqueta tinta="neutro">inativo</Etiqueta> : null}
-                  <Botao tom="texto" miudo className="ml-auto" onClick={() => setAberto(p.id)}>
-                    Editar
-                  </Botao>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </Cartao>
+              }
+              nome={p.nome}
+              detalhe={
+                <span className="flex flex-col">
+                  {/* vazio explicado, nunca vazio mudo */}
+                  <span>{p.email ?? 'sem e-mail cadastrado'}</span>
+                  <span className="text-[11.5px] text-tinta-media">
+                    {p.servicoIds.length === 0
+                      ? 'atende qualquer serviço'
+                      : `atende ${p.servicoIds
+                          .map((id) => nomeDoServico.get(id))
+                          .filter(Boolean)
+                          .join(', ')}`}
+                    {p.emUso > 0 ? ` · ${p.emUso} na grade` : ''}
+                  </span>
+                </span>
+              }
+            >
+              <span
+                className={`rounded-[9px] px-2.5 py-[5px] text-[11.5px] font-medium ${
+                  p.temLogin
+                    ? 'bg-positivo-fundo text-positivo'
+                    : 'bg-neutro-fundo text-tinta-media'
+                }`}
+              >
+                {p.temLogin ? 'Tem login' : 'Sem usuário'}
+              </span>
+              <span className="flex gap-1.5">
+                <BotaoLinha onClick={() => setAberto(p.id)}>Editar</BotaoLinha>
+                {p.ativo ? (
+                  <BotaoLinha
+                    title={`Desativar ${p.nome}`}
+                    aria-label={`Desativar ${p.nome}`}
+                    disabled={pendente}
+                    onClick={() => desativar(p)}
+                    className="px-0"
+                  >
+                    <span aria-hidden className="block w-8 text-center">×</span>
+                  </BotaoLinha>
+                ) : (
+                  <span className="rounded-[9px] bg-neutro-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-tinta-media">
+                    Desativado
+                  </span>
+                )}
+              </span>
+            </LinhaConfig>
+          )}
+        </div>
+      ))}
+    </PainelConfig>
   )
 }
 

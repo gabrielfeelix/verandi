@@ -18,14 +18,16 @@ import { listarEquipe } from '@/server/config/equipe'
 import { SecaoUsuarios } from '@/components/config/usuarios'
 import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
 
+// os glifos são os do protótipo: mono, discretos, e o suficiente para achar a
+// seção pelo canto do olho depois da terceira visita
 const SECOES = [
-  { chave: 'servicos', rotulo: 'Serviços' },
-  { chave: 'equipe', rotulo: 'Equipe' },
-  { chave: 'locais', rotulo: 'Locais' },
-  { chave: 'padroes', rotulo: 'Padrões' },
-  { chave: 'vocabulario', rotulo: 'Vocabulário' },
-  { chave: 'funcionamento', rotulo: 'Funcionamento' },
-  { chave: 'usuarios', rotulo: 'Usuários' },
+  { chave: 'servicos', rotulo: 'Serviços', glifo: '≡' },
+  { chave: 'equipe', rotulo: 'Equipe', glifo: '◈' },
+  { chave: 'locais', rotulo: 'Locais', glifo: '▢' },
+  { chave: 'padroes', rotulo: 'Padrões', glifo: '#' },
+  { chave: 'vocabulario', rotulo: 'Vocabulário', glifo: 'A' },
+  { chave: 'funcionamento', rotulo: 'Funcionamento', glifo: '◷' },
+  { chave: 'usuarios', rotulo: 'Usuários', glifo: '◇' },
 ] as const
 
 type Secao = (typeof SECOES)[number]['chave']
@@ -65,32 +67,46 @@ export default async function Config({
 
   return (
     <ProvedorDeAviso>
-      <div className="flex max-w-4xl flex-col gap-5">
-        <header className="flex flex-col gap-1">
-          <h1 className="font-titulo text-[30px] font-semibold tracking-[-.02em]">
-            Configuração
+      <div className="flex flex-col gap-4">
+        <header>
+          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+            Configuração da conta
           </h1>
-          <p className="text-tinta-media">
-            Ajusta o sistema ao negócio, sem código.
+          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+            É aqui que o sistema deixa de ser genérico e vira o sistema do
+            negócio.
           </p>
         </header>
 
-        <nav className="flex flex-wrap gap-1" aria-label="Seções da configuração">
-          {SECOES.map((x) => (
-            <Link
-              key={x.chave}
-              href={`/config?s=${x.chave}`}
-              aria-current={secao === x.chave ? 'page' : undefined}
-              className={`rounded-[--radius-peca] px-3 py-2 text-[13px] ${
-                secao === x.chave
-                  ? 'bg-escuro font-medium text-tinta-clara'
-                  : 'text-tinta-media hover:bg-superficie-mais-suave'
-              }`}
-            >
-              {x.rotulo}
-            </Link>
-          ))}
-        </nav>
+        <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">
+          <nav
+            aria-label="Seções da configuração"
+            className="flex flex-col gap-0.5 rounded-[20px] border border-linha bg-superficie p-2"
+          >
+            {SECOES.map((x) => (
+              <Link
+                key={x.chave}
+                href={`/config?s=${x.chave}`}
+                aria-current={secao === x.chave ? 'page' : undefined}
+                className={`flex items-center gap-3 rounded-[13px] px-3 py-2.5 ${
+                  secao === x.chave
+                    ? 'bg-escuro text-tinta-clara'
+                    : 'text-tinta-media hover:bg-superficie-mais-suave'
+                }`}
+              >
+                <span aria-hidden className="font-mono text-[13px] opacity-80">
+                  {x.glifo}
+                </span>
+                <span
+                  className={`text-[13.5px] ${secao === x.chave ? 'font-medium' : ''}`}
+                >
+                  {x.rotulo}
+                </span>
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex min-w-0 flex-col gap-3.5">
 
         {secao === 'servicos' ? (
           <SecaoServicos servicos={await listarServicos(db, conta.contaId)} />
@@ -103,6 +119,7 @@ export default async function Config({
               .filter((x) => x.ativo)
               .map((x) => ({ id: x.id, nome: x.nome }))}
             rotuloProfissional={rotulos.profissional.singular}
+            rotuloPlural={rotulos.profissional.plural}
           />
         ) : null}
 
@@ -140,6 +157,8 @@ export default async function Config({
             datas={await listarDatasFechadas(db, conta.contaId, hojeEm(conta.fuso))}
           />
         ) : null}
+          </div>
+        </div>
       </div>
     </ProvedorDeAviso>
   )
