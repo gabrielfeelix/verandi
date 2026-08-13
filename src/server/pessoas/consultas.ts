@@ -51,7 +51,7 @@ const paraLinha = (l: LinhaResumo): PessoaLinha => ({
 export async function listarPessoas(
   db: Db,
   contaId: string,
-  opts: { busca?: string; filtros?: FiltroPessoa[] } = {},
+  opts: { busca?: string; filtros?: FiltroPessoa[]; fuso?: string } = {},
 ): Promise<PessoaLinha[]> {
   const filtros = opts.filtros ?? []
 
@@ -68,10 +68,11 @@ export async function listarPessoas(
   if (filtros.includes('sem_horario_fixo')) q = q.eq('vagas_ativas', 0)
   if (filtros.includes('faltou_duas')) q = q.gte('faltas_recentes', 2)
   if (filtros.includes('plano_vencendo')) {
-    const hoje = new Date()
-    const limite = new Date(hoje.getTime() + 15 * 86_400_000)
+    // "daqui a 15 dias" no fuso da conta, não em UTC: às 21h em Brasília o
+    // corte em UTC já é o dia seguinte, e o filtro passa a mentir por um dia
+    const limite = new Date(Date.now() + 15 * 86_400_000).toISOString()
     q = q.not('vencimento_plano', 'is', null)
-         .lte('vencimento_plano', limite.toISOString().slice(0, 10))
+         .lte('vencimento_plano', localDe(limite, opts.fuso ?? 'UTC').data)
   }
 
   const { data, error } = await q.order('nome').limit(300).returns<LinhaResumo[]>()

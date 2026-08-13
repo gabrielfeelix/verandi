@@ -21,7 +21,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
 
   const filtros = (Array.isArray(f) ? f : f ? [f] : []) as FiltroPessoa[]
-  const pessoas = await listarPessoas(db, conta.contaId, { busca: q, filtros })
+  const pessoas = await listarPessoas(db, conta.contaId, { busca: q, filtros, fuso: conta.fuso })
 
   return (
     <div className="flex max-w-4xl flex-col gap-4">
