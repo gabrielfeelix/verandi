@@ -21,15 +21,15 @@ export default async function Pendencias() {
 
   return (
     <ProvedorDeAviso>
-      <div className="flex max-w-4xl flex-col gap-5">
-        <header className="flex flex-col gap-1">
-          <h1 className="font-titulo text-[30px] font-semibold tracking-[-.02em]">
+      <div className="flex flex-col gap-4">
+        <header>
+          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Pendências
           </h1>
-          <p className="text-tinta-media">
+          <p className="pt-[3px] text-[13.5px] text-tinta-media">
             {total === 0
-              ? 'Nada esperando por você.'
-              : `${total} coisa(s) esperando decisão.`}
+              ? 'Nada exige ação humana agora.'
+              : `${total} ${total === 1 ? 'item exige' : 'itens exigem'} ação humana · o objetivo é zerar`}
           </p>
         </header>
 

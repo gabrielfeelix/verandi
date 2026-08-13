@@ -135,10 +135,13 @@ async function chamadasNaoFeitas(
       return {
         tipo: 'chamada_nao_feita' as const,
         referenciaId: s.id,
-        titulo: `${s.servico?.nome ?? 'Horário'} · ${dia} ${hora}`,
+        // hora primeiro, data curta depois: quem varre a lista procura o
+        // horário, e "2026-08-13" ocupa espaço dizendo o ano que a pessoa já sabe
+        titulo: `${hora} · ${s.servico?.nome ?? 'Horário'}`,
         detalhe: [
+          `${dia.slice(8)}/${dia.slice(5, 7)}`,
           s.profissional?.nome,
-          `${s.participacao.length} pessoa(s)`,
+          `${s.participacao.length} ${s.participacao.length === 1 ? 'pessoa' : 'pessoas'}`,
         ].filter(Boolean).join(' · '),
         diasEmAberto: diasDesde(s.inicio),
         href: `/sessao/${s.id}`,

@@ -3,12 +3,20 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Botao } from '@/components/ui/botao'
-import { Cartao, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { Modal } from '@/components/ui/modal'
 import { useAviso } from '@/components/ui/desfazer'
 import { dispensarPendencia } from '@/server/pendencias/acoes'
 import type { GrupoPendencia, Pendencia } from '@/server/pendencias/consultas'
+
+/** A tinta de cada grupo, a mesma do cartão de Hoje. */
+const TINTA_GRUPO: Record<string, string> = {
+  chamada_nao_feita: 'bg-alerta-fundo text-alerta',
+  reposicao_aberta: 'bg-atencao-fundo text-atencao',
+  reserva_esperando: 'bg-info-fundo text-info',
+  cadastro_incompleto: 'bg-neutro-fundo text-tinta-media',
+}
 
 const MOTIVOS = [
   'Já resolvido fora do sistema',
@@ -47,39 +55,78 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
   return (
     <div className="flex flex-col gap-4">
       {grupos.map((g) => (
-        <Cartao
+        <section
           key={g.tipo}
-          titulo={g.titulo}
-          acao={<Etiqueta tinta="neutro">{g.itens.length}</Etiqueta>}
+          className="overflow-hidden rounded-[20px] border border-linha bg-superficie"
         >
-          <p className="mb-3 text-[12.5px] text-tinta-media">{g.sub}</p>
-          <ul className="flex flex-col gap-2">
+          {/* cada grupo tem a sua tinta: quatro contagens laranja lado a lado
+              não hierarquizam nada */}
+          <div
+            className={`flex items-center gap-3 border-b border-[#EFF3F1] px-4.5 py-3.5 ${
+              TINTA_GRUPO[g.tipo] ?? 'bg-superficie-suave text-tinta-media'
+            }`}
+          >
+            <span className="flex size-8 items-center justify-center rounded-[10px] bg-superficie/70 text-[14px] font-semibold">
+              {g.itens.length}
+            </span>
+            <span className="flex flex-col leading-[1.3]">
+              <h2 className="text-[14px] font-medium">{g.titulo}</h2>
+              <span className="text-[11.5px] opacity-75">{g.sub}</span>
+            </span>
+          </div>
+
+          <ul>
             {g.itens.map((p) => {
               const i = idade(p.diasEmAberto)
+              const [fundo, frente] = paresDe(p.titulo)
               return (
-                <li key={`${p.tipo}-${p.referenciaId}`}
-                  className="flex flex-wrap items-center gap-3 rounded-[--radius-padrao] border border-linha-suave p-3">
-                  <div className="flex min-w-40 flex-col">
-                    <span className="font-medium">{p.titulo}</span>
-                    <span className="text-[12.5px] text-tinta-media">{p.detalhe}</span>
+                <li
+                  key={`${p.tipo}-${p.referenciaId}`}
+                  className="flex flex-wrap items-center gap-3.5 border-b border-[#F4F7F5] px-4.5 py-3 last:border-b-0 hover:bg-[#FBFCFB]"
+                >
+                  {/* chamada não feita é sobre um horário, não sobre alguém —
+                      avatar com as iniciais de "Pilates solo" seria enfeite */}
+                  {p.tipo === 'chamada_nao_feita' ? (
+                    <span
+                      aria-hidden
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-[11px] bg-superficie-mais-suave font-mono text-[13px] text-tinta-media"
+                    >
+                      ◷
+                    </span>
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[11.5px] font-semibold"
+                      style={{ background: fundo, color: frente }}
+                    >
+                      {iniciaisDe(p.titulo)}
+                    </span>
+                  )}
+                  <div className="flex min-w-40 flex-1 flex-col leading-[1.35]">
+                    <span className="text-[14px] font-medium">{p.titulo}</span>
+                    <span className="text-[12px] text-tinta-media">{p.detalhe}</span>
                   </div>
                   {i ? <Etiqueta tinta={i.tinta}>{i.texto}</Etiqueta> : null}
-                  <span className="ml-auto flex items-center gap-2">
+                  <span className="flex items-center gap-1.5">
                     <Link
                       href={p.href}
-                      className="inline-flex min-h-11 items-center rounded-[--radius-padrao] border border-linha bg-superficie px-4 text-[13px] font-medium"
+                      className="inline-flex min-h-10 items-center rounded-[11px] bg-escuro px-3.5 text-[12.5px] font-medium text-tinta-clara hover:bg-[#1D332B]"
                     >
                       Resolver
                     </Link>
-                    <Botao tom="texto" miudo onClick={() => setDispensando(p)}>
+                    <button
+                      type="button"
+                      onClick={() => setDispensando(p)}
+                      className="min-h-10 rounded-[11px] border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                    >
                       Dispensar
-                    </Botao>
+                    </button>
                   </span>
                 </li>
               )
             })}
           </ul>
-        </Cartao>
+        </section>
       ))}
 
       <Modal
