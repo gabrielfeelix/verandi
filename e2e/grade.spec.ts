@@ -101,7 +101,8 @@ test('a grade mostra ocupação e separa as encerradas', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await expect(page.getByText('2/4')).toBeVisible()
+  // o resumo do dia também diz "2/4 ocupadas"; a etiqueta da linha é a exata
+  await expect(page.getByText('2/4', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Encerradas' })).toBeVisible()
   await expect(page.getByText(`encerrada em ${ontem}`)).toBeVisible()
 })
