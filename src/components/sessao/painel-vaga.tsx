@@ -22,6 +22,8 @@ export function PainelVaga({
   const [busca, setBusca] = useState('')
   const [origem, setOrigem] = useState<'avulso' | 'reposicao' | 'encaixe' | 'reserva'>('avulso')
   const [aviso, setAviso] = useState<string | null>(null)
+  /** quem está esperando a confirmação de passar da capacidade */
+  const [excedente, setExcedente] = useState<string | null>(null)
 
   const normalizar = (s: string) =>
     s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
@@ -32,19 +34,31 @@ export function PainelVaga({
         .filter((c) => normalizar(c.nome).includes(normalizar(busca)))
         .slice(0, 8)
 
-  function adicionar(pessoaId: string) {
+  /**
+   * Encaixar acima da capacidade **pede confirmação explícita**.
+   *
+   * A tela mostra 4/4; sem o segundo passo, o excedente viraria acidente de
+   * clique em vez de decisão de quem está no balcão.
+   */
+  function adicionar(pessoaId: string, confirmarAcima = false) {
     setAviso(null)
     iniciar(async () => {
-      const r = await encaixar({ sessaoId, pessoaId, origem })
-      if (!r.ok) {
-        setAviso(
-          r.motivo === 'lotada'
-            ? 'Este horário está cheio. Para caber mais um, aumente a capacidade abaixo.'
-            : `Essa ${rotuloPessoa.toLowerCase()} já está neste horário.`,
-        )
-      } else {
+      const r = await encaixar({ sessaoId, pessoaId, origem, confirmarAcima })
+      if (r.ok) {
         setBusca('')
+        setExcedente(null)
+        return
       }
+      if (r.motivo === 'acima_da_capacidade') {
+        setExcedente(pessoaId)
+        return
+      }
+      setExcedente(null)
+      setAviso(
+        r.motivo === 'lotada'
+          ? 'Este horário está cheio. Para caber mais um, aumente a capacidade abaixo.'
+          : `Essa ${rotuloPessoa.toLowerCase()} já está neste horário.`,
+      )
     })
   }
 
@@ -98,6 +112,36 @@ export function PainelVaga({
                 </li>
               ))}
             </ul>
+          ) : null}
+
+          {/* Passa da capacidade: a tela conta o que vai acontecer e pede o
+              segundo toque. 5/4 é decisão de quem está no balcão, com nome e
+              registro — nunca o sistema deixando passar. */}
+          {excedente ? (
+            <div className="flex flex-col gap-2 rounded border p-3">
+              <p>
+                Este horário já está com {ocupacao.ocupadas}/{ocupacao.capacidade}.
+                Encaixar deixa {ocupacao.ocupadas + 1}/{ocupacao.capacidade}, e fica
+                registrado como decisão sua.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={pendente}
+                  onClick={() => adicionar(excedente, true)}
+                  className="rounded border px-3 py-2"
+                >
+                  Encaixar mesmo assim
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExcedente(null)}
+                  className="px-2 py-2 underline"
+                >
+                  Não encaixar
+                </button>
+              </div>
+            </div>
           ) : null}
 
           {aviso ? <p role="alert">{aviso}</p> : null}

@@ -70,7 +70,7 @@ export async function mudarStatus(
 
 export type ResultadoEncaixe =
   | { ok: true }
-  | { ok: false; motivo: 'lotada' | 'ja_participa' }
+  | { ok: false; motivo: 'lotada' | 'ja_participa' | 'acima_da_capacidade' }
 
 /**
  * Confere a vaga **na hora de gravar**, relendo a ocupação — não confia no que
@@ -81,6 +81,8 @@ export async function encaixar(entrada: {
   pessoaId: string
   origem: Exclude<OrigemParticipacao, 'recorrente'>
   reposicaoDeId?: string
+  /** o usuário viu que passa da capacidade e confirmou mesmo assim */
+  confirmarAcima?: boolean
 }): Promise<ResultadoEncaixe> {
   const { db, conta, carimbo } = await quemRegistra()
 
@@ -94,13 +96,29 @@ export async function encaixar(entrada: {
     }>()
   if (error) throw error
 
+  // a conta decide se a recepção pode abrir exceção; a leitura é aqui e não na
+  // tela porque entre mostrar e clicar alguém pode ter mudado a configuração
+  const { data: padrao } = await db.from('conta')
+    .select('encaixe_acima').eq('id', conta.contaId).single<{ encaixe_acima: boolean }>()
+
   const jaParticipa = sessao.participacao.some((p) => p.pessoa_id === entrada.pessoaId)
   const ocupacao = calcularOcupacao(
     sessao.capacidade,
     sessao.participacao.map((p) => p.status),
   )
-  const veredito = avaliarEncaixe(ocupacao, jaParticipa)
+  const veredito = avaliarEncaixe(ocupacao, jaParticipa, padrao?.encaixe_acima ?? false)
   if (!veredito.cabe) return { ok: false, motivo: veredito.motivo! }
+
+  /*
+   * Encaixe acima da capacidade **exige confirmação explícita**.
+   *
+   * Sem isto, a tela mostraria 4/4 e a pessoa clicaria achando que havia vaga —
+   * e o excedente viraria acidente em vez de decisão. Quem confirma sabe o que
+   * está fazendo, e o registro guarda quem foi.
+   */
+  if (veredito.acimaDaCapacidade && !entrada.confirmarAcima) {
+    return { ok: false, motivo: 'acima_da_capacidade' }
+  }
 
   const { error: erroInsert } = await db.from('participacao').insert({
     conta_id: conta.contaId,
