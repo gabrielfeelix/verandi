@@ -143,8 +143,10 @@ async function main() {
     conta_id: contaId, data: '2026-09-07', tipo: 'feriado', descricao: 'Independência',
   })
 
+  // o `suporte` entra no seed porque a tela da 4YU não tem outro jeito de ser
+  // vista em desenvolvimento — sem ele, `/contas-4yu` redireciona para `/hoje`
   for (const [n, papel] of [['prof', 'profissional'], ['dono', 'dono'],
-                            ['recepcao', 'recepcao']]) {
+                            ['recepcao', 'recepcao'], ['suporte', 'suporte']]) {
     const email = `${n}@dev.local`
     const { data: existente } = await db.auth.admin.listUsers()
     const achado = existente.users.find((u) => u.email === email)
@@ -161,7 +163,10 @@ async function main() {
 
   console.log(`conta ${contaId}`)
   console.log(`${seriesCriadas.length} séries · ${pessoas.length} pessoas · ${unicas.length} vagas`)
-  console.log(`entrar com dono@dev.local / prof@dev.local / recepcao@dev.local — senha ${SENHA}`)
+  console.log(
+    'entrar com dono@dev.local / prof@dev.local / recepcao@dev.local / ' +
+    `suporte@dev.local — senha ${SENHA}`,
+  )
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

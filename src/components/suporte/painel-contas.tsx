@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Cartao, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { paresDe } from '@/components/hoje/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarConta, entrarComoSuporte, suspenderConta } from '@/server/suporte/acoes'
 import type { AcessoSuporte, ContaSinais } from '@/server/suporte/consultas'
@@ -42,14 +43,31 @@ export function PainelContas({
 
   return (
     <div className="flex flex-col gap-4">
-      <Cartao
-        titulo="Contas"
-        acao={<Botao miudo onClick={() => setCriando(true)}>Nova conta</Botao>}
-      >
-        <div className="flex flex-col gap-3">
+      {/* Entrar na conta de um cliente é o acesso mais forte do sistema, e a
+          tela diz isso antes de oferecer o botão. */}
+      <p className="flex items-start gap-2.5 rounded-[14px] border border-[#F6E7C9] bg-[#FDF8EE] px-3.5 py-3 text-[13px] leading-relaxed text-[#7A5E1E]">
+        <span
+          aria-hidden
+          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#F6E7C9] font-mono text-[11px]"
+        >
+          !
+        </span>
+        <span>
+          Entrar como suporte mostra uma faixa dentro da conta enquanto durar, e
+          toda ação fica registrada com quem fez. Ver dado de cliente sem que
+          ninguém saiba é constrangedor de propósito.
+        </span>
+      </p>
+
+      <section className="overflow-hidden rounded-[20px] border border-linha bg-superficie">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EFF3F1] px-4.5 py-3.5">
+          <h2 className="font-titulo text-[19px] font-semibold">Contas</h2>
+          <Botao miudo onClick={() => setCriando(true)}>Nova conta</Botao>
+        </div>
+        <div className="flex flex-col">
           {criando ? (
             <form
-              className="flex flex-col gap-3 rounded-[--radius-padrao] bg-superficie-suave p-3"
+              className="flex flex-col gap-3 border-b border-[#F4F7F5] bg-superficie-suave px-4.5 py-4"
               action={(f) => comErro(async () => {
                 const r = await criarConta({
                   nome: String(f.get('nome') ?? ''),
@@ -94,7 +112,7 @@ export function PainelContas({
           ) : null}
 
           {convite ? (
-            <div className="flex flex-col gap-2 rounded-[--radius-padrao] border border-linha p-3">
+            <div className="m-4 flex flex-col gap-2 rounded-[13px] border border-linha p-3">
               <span className="text-[12.5px] font-medium">
                 Convite do dono ({convite.para}) — copie agora
               </span>
@@ -114,14 +132,26 @@ export function PainelContas({
             </div>
           ) : null}
 
-          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+          {erro ? <div className="px-4.5 pb-3"><Nota tom="alerta">{erro}</Nota></div> : null}
 
-          <ul className="flex flex-col gap-2">
-            {contas.map((c) => (
-              <li key={c.id}
-                className="flex flex-wrap items-center gap-3 rounded-[--radius-padrao] border border-linha-suave p-3">
-                <div className="flex min-w-48 flex-col">
-                  <span className="font-medium">{c.nome}</span>
+          <ul>
+            {contas.map((c) => {
+              const [fundo, frente] = paresDe(c.nome)
+              return (
+              <li
+                key={c.id}
+                className="flex flex-wrap items-center gap-3.5 border-b border-[#F4F7F5] px-4.5 py-3.5 last:border-b-0 hover:bg-[#FBFCFB]"
+              >
+                <span
+                  aria-hidden
+                  className="flex size-9 shrink-0 items-center justify-center rounded-[12px] font-titulo text-[14px] font-bold"
+                  style={{ background: fundo, color: frente }}
+                >
+                  {c.nome.trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase()}
+                </span>
+
+                <div className="flex min-w-40 flex-1 flex-col leading-[1.35]">
+                  <span className="text-[14px] font-medium">{c.nome}</span>
                   <span className="font-mono text-[11.5px] text-tinta-media">{c.slug}</span>
                 </div>
 
@@ -144,7 +174,7 @@ export function PainelContas({
 
                 {!c.ativa ? <Etiqueta tinta="alerta">suspensa</Etiqueta> : null}
 
-                <span className="ml-auto flex flex-wrap gap-2">
+                <span className="flex flex-wrap gap-1.5">
                   <Botao
                     tom="secundario" miudo disabled={pendente}
                     onClick={() => comErro(async () => {
@@ -165,13 +195,15 @@ export function PainelContas({
                   </Botao>
                 </span>
               </li>
-            ))}
+              )
+            })}
           </ul>
         </div>
-      </Cartao>
+      </section>
 
-      <Cartao titulo="Log de acesso da 4YU">
-        <p className="mb-3 text-[12.5px] text-tinta-media">
+      <section className="rounded-[20px] border border-linha bg-superficie p-4">
+        <h2 className="font-titulo text-[19px] font-semibold">Log de acesso da 4YU</h2>
+        <p className="pt-1 pb-3 text-[12.5px] text-tinta-media">
           Toda entrada em conta de cliente fica registrada, com início e fim.
         </p>
         {acessos.length === 0 ? (
@@ -191,7 +223,7 @@ export function PainelContas({
             ))}
           </ul>
         )}
-      </Cartao>
+      </section>
     </div>
   )
 }

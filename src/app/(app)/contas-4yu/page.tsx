@@ -23,13 +23,15 @@ export default async function Contas4YU() {
 
   return (
     <ProvedorDeAviso>
-      <div className="flex max-w-4xl flex-col gap-5">
-        <header className="flex flex-col gap-1">
-          <h1 className="font-titulo text-[30px] font-semibold tracking-[-.02em]">
+      <div className="flex flex-col gap-4">
+        <header>
+          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Contas
           </h1>
-          <p className="text-tinta-media">
-            {contas.length} conta(s) de cliente.
+          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+            Painel da 4YU · {contas.length}{' '}
+            {contas.length === 1 ? 'conta' : 'contas'} · sinais de vida antes da
+            reclamação
           </p>
         </header>
 
