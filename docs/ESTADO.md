@@ -3,92 +3,122 @@
 Arquivo de leitura obrigatória ao voltar ao projeto. É o único que pode estar
 desatualizado sem causar dano — desde que se saiba disso.
 
-**Última atualização:** 12/ago/2026 · **Plano 01 (Fundação) concluído.**
+**Última atualização:** 13/ago/2026 · **Planos 01 e 02 concluídos.**
 
 ## O que existe hoje
 
-**Banco** — três migrations aplicadas. `conta`, `usuario_conta`, `vocabulario`,
+**Banco** — quatro migrations. `conta`, `usuario_conta`, `vocabulario`,
 `pessoa`, `pessoa_tag`, `profissional`, `servico`, `local`, `serie`, `vaga`,
-`sessao`, `participacao`, `excecao_calendario`. RLS ligada com política em todas,
-e teste provando que um cliente não enxerga o dado do outro.
+`sessao`, `participacao`, `excecao_calendario`, mais a view `pessoa_resumo`.
+RLS ligada com política em todas, provada por teste.
 
 **`core/`** — puro, sem import de banco, Next ou rede, verificado por `grep` no
-fechamento do plano. Contém a aritmética de data, a expansão de série em
-ocorrências, o cálculo de ocupação, a decisão de encaixe, o vocabulário e o
-destino por papel.
+fechamento de cada plano. Aritmética de data, expansão de série, ocupação,
+encaixe, estado da chamada, vocabulário e destino por papel.
 
-**`server/`** — o cliente admin, a conta ativa e a materialização de sessão sob
-demanda.
+**`server/`** — cliente admin, conta ativa, vocabulário, materialização sob
+demanda, consultas de agenda, ações de presença, consultas e ações de pessoa,
+disponibilidade.
 
-**Telas** — só `/entrar` e a raiz que redireciona por papel. `/hoje`, `/semana` e
-`/contas` ainda dão 404: são o Plano 02.
+**Telas prontas:**
+
+| Rota | O quê |
+|---|---|
+| `/entrar` | login, com destino por papel |
+| `/contas` | trocar de conta (só aparece para quem tem mais de uma) |
+| `/hoje` | agenda do dia, com chamada pendente em destaque |
+| `/semana` | grade semanal; em celular vira um dia por vez |
+| `/sessao/[id]` | **a tela do produto** — chamada em lote, encaixe, capacidade do dia, cancelamento |
+| `/pessoas` | lista com busca sem acento e cinco filtros |
+| `/pessoas/[id]` | ficha: dados, vagas, histórico, reposições em aberto |
+| `/vaga` | busca de horário livre, com os cheios em lista separada |
+
+**Ainda não existem** (Plano 03): `/pendencias`, `/grade` (editor de séries),
+`/config`, `/importar`, `/convite`, e a tela de contas da 4YU. A grade fixa é
+cadastrada por `scripts/semear-dev.mjs` ou direto no banco.
 
 ## Testes
 
 | Suíte | Comando | Quantos |
 |---|---|---|
-| Unidade + integração | `npm test` | 63 |
-| Navegador | `npm run test:e2e` | 6 |
+| Unidade + integração | `npm test` | 99 |
+| Navegador | `npm run test:e2e` | 25 |
 
-Os testes de unidade rodam em menos de um segundo, sem banco. Os de integração
-usam o Supabase local; os de navegador sobem o `next dev` sozinhos.
+Os de unidade rodam em menos de um segundo, sem banco.
 
 ## Versões
 
-Next **16.3.0** · React **19.2.8** · Tailwind **4** · TypeScript **5** ·
-Vitest **4.1.10** · Playwright · Supabase CLI **2.114.0** · Node **24.18.0** ·
-Docker **29.6.1**.
+Next **16.3.0** · React **19.2.8** · Tailwind **4** · TypeScript **5**
+(target ES2022) · Vitest **4.1.10** · Playwright · Supabase CLI **2.114.0** ·
+Node **24.18.0** · Docker **29.6.1**.
 
 ## Como subir
 
 ```bash
-npx supabase start        # local, no Docker
+npx supabase start           # local, no Docker — faixa 564xx
+node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
 npm run dev
 ```
 
-O Supabase local da Verandi usa a faixa **564xx** (API `56421`, banco `56422`,
-studio `56423`). As faixas 543xx e 554xx já estão ocupadas na mesma máquina pelo
-`radar-ofertas` e pelo `otimiza-gestor`.
+Entrar com `dono@dev.local`, `prof@dev.local` ou `recepcao@dev.local`, senha
+`senha-de-teste-123`.
 
-Para regenerar o `.env.local` a partir do Supabase local, ver a Tarefa 9, passo 8
-do [plano 01](planos/01-fundacao.md).
+As faixas 543xx e 554xx já estão ocupadas na mesma máquina pelo `radar-ofertas`
+e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
+**56423** (studio).
 
-## Decisões tomadas durante a execução
+## Armadilhas que já custaram tempo
 
-Coisas que o plano não previa e que valem estar num lugar só:
+Coisas que a execução ensinou e que não estavam nos planos:
 
 - **`GRANT` é camada separada de RLS.** Tabela criada por migration não recebe
   privilégio sozinha; sem `grant`, até a chave de serviço leva
-  `42501 permission denied`. Toda migration termina com o bloco de grants.
-- **O índice de `(serie_id, inicio)` não é parcial.** `ON CONFLICT` só usa índice
-  parcial se o predicado for repetido na consulta, e o PostgREST não manda
-  predicado. Constraint simples dá a mesma semântica, porque nulo é distinto de
-  nulo — sessão avulsa segue sem restrição.
-- **`middleware.ts` virou `proxy.ts`.** Exigência do Next 16; feito pelo codemod
-  oficial.
-- **Consulta do Supabase precisa de `.returns<T[]>()`** enquanto não houver tipos
-  do banco gerados, senão o `tsc` recusa com `GenericStringError`.
+  `42501 permission denied`. Se o erro for `42501`, olhe o `grant` antes de
+  olhar a política. Toda migration termina com o bloco de grants.
+- **Insert em lote pelo PostgREST normaliza as linhas para o mesmo conjunto de
+  colunas, e preenche o que falta com `NULL` — o default da coluna não é
+  aplicado.** Omitir `status` ou `ativo` em uma linha só quebra o lote inteiro
+  com `23502`. **Mordeu duas vezes.** Regra: em insert em lote, todas as linhas
+  carregam as mesmas chaves. Vale especialmente para o importador do Plano 03.
+- **`ON CONFLICT` não usa índice único parcial** sem repetir o predicado, e o
+  PostgREST não manda predicado. Por isso `sessao (serie_id, inicio)` é
+  constraint simples — nulo é distinto de nulo, então sessão avulsa segue livre.
+- **View precisa de `security_invoker = true`**, senão roda com os direitos de
+  quem criou e passa por cima da RLS. `pessoa_resumo` depende disso.
+- **Coluna gerada exige função `IMMUTABLE`.** `unaccent()` de um argumento é
+  `STABLE`; a forma de dois argumentos, com dicionário fixo, dá para marcar
+  immutable — é como `pessoa.nome_busca` funciona.
+- **Consulta do Supabase precisa de `.returns<T[]>()`** enquanto não houver
+  tipos do banco gerados, senão o `tsc` recusa com `GenericStringError`.
+- **`middleware.ts` virou `proxy.ts`** no Next 16 (codemod oficial).
 - **Dono e suporte enxergam o vínculo dos colegas na conta.** É proposital — são
   eles que gerenciam usuários. Por isso `contaAtiva()` filtra pelo próprio
-  `usuario_id`, e há teste travando os dois lados.
+  `usuario_id`.
+- **No Playwright, `getByRole('alert')` colide com o anunciador de rota do
+  Next.** Usar o texto. E depois de ação otimista, conferir o banco com
+  `expect.poll` — sem isso o teste corre na frente da escrita.
+- **`getByLabel` não casa com `placeholder`.**
 
 ## O que fazer em seguida
 
-**Plano 02 — Operação.** Ainda não está escrito; escrever é o primeiro passo. A
-ordem prevista em [PLANO.md](PLANO.md) é: Sessão (com chamada em lote) → Hoje →
-Grade da semana → Pessoas e ficha → Novo agendamento e Buscar vaga.
+**Plano 03 — Implantação.** Ainda não está escrito. Ordem prevista:
+**Grade fixa** (editor de séries) → **Configuração** (com vocabulário) →
+**Pendências** → **Importador**.
 
-Duas coisas que dependem de gente, não de código:
+Duas coisas dependem de gente, não de código:
 
 1. **Perguntar à operação o que significam `XX` e `F EXP`** na planilha (17 e 2
-   ocorrências). O print da conversa sugere que o `X` é marca improvisada — *"não
-   criei palavra fixa na minha, coloquei um x"* — mas isso não é resposta
-   suficiente para importar. Sem isso o Plano 03 não fecha.
-2. **Decidir onde o Supabase de produção vai morar.** A organização `4YU Systems`
-   tem dois projetos ativos (`radar-ofertas`, `autofluxos`) e o `Otimiza Gestor`
-   pausado, que é o teto do plano gratuito. As saídas são pausar um, abrir
-   segunda organização, ou pagar Pro. Não bloqueia nada até o deploy.
+   ocorrências). O print da conversa sugere que o `X` é marca improvisada —
+   *"não criei palavra fixa na minha, coloquei um x"* — o que não é resposta
+   suficiente para importar. **Sem isso o Plano 03 não fecha.**
+2. **Decidir onde o Supabase de produção vai morar.** A organização
+   `4YU Systems` tem dois projetos ativos (`radar-ofertas`, `autofluxos`) e o
+   `Otimiza Gestor` pausado, que é o teto do plano gratuito. As saídas são
+   pausar um, abrir segunda organização, ou pagar Pro. Não bloqueia até o deploy.
 
-Uma dívida técnica anotada, que não bloqueia: **gerar os tipos do banco**
-(`supabase gen types typescript --local`) e tipar o cliente, para poder tirar os
-`.returns<T[]>()` espalhados.
+Dívidas técnicas anotadas, que não bloqueiam:
+
+- **Gerar os tipos do banco** (`supabase gen types typescript --local`) e tipar
+  o cliente, para poder tirar os `.returns<T[]>()` espalhados.
+- **O `PainelVaga` carrega todas as pessoas da conta** para a busca de encaixe.
+  Funciona com 24 e com algumas centenas; com milhares, vira busca no servidor.
