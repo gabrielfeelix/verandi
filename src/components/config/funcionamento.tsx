@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Cartao, Chip, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import {
   salvarFuncionamento, salvarDataFechada, removerDataFechada,
@@ -58,160 +58,189 @@ export function SecaoFuncionamento({
   const hoje = new Date().toLocaleDateString('en-CA')
 
   return (
-    <div className="flex flex-col gap-4">
-      <Cartao titulo="Funcionamento">
-        <div className="flex flex-col gap-4">
-          <p className="text-[12.5px] text-tinta-media">
-            Os dias e horários em que o negócio abre. Serve para sugerir faixa ao
-            montar a grade e para o dia fechado explicar que não é falha.
-          </p>
+    <section className="rounded-[20px] border border-linha bg-superficie px-5 py-4.5">
+      <h2 className="font-titulo text-[19px] font-semibold">
+        Funcionamento e feriados
+      </h2>
+      <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
+        Dias e horários em que o negócio abre; datas fechadas.
+      </p>
 
-          <ul className="flex flex-col gap-2">
-            {estado.map((d) => (
-              <li key={d.diaSemana} className="flex flex-wrap items-center gap-3">
-                <span className="w-24 text-[13px]">{DIAS[d.diaSemana]}</span>
-                <Chip ativo={!!d.abre} onClick={() => alterna(d.diaSemana)}>
-                  {d.abre ? 'Aberto' : 'Fechado'}
-                </Chip>
-                {d.abre ? (
-                  <>
-                    <input
-                      type="time" value={d.abre} aria-label={`${DIAS[d.diaSemana]} abre`}
-                      onChange={(e) => muda(d.diaSemana, 'abre', e.target.value)}
-                      className={`${entrada} w-32`}
-                    />
-                    <span className="text-tinta-media">até</span>
-                    <input
-                      type="time" value={d.fecha ?? ''} aria-label={`${DIAS[d.diaSemana]} fecha`}
-                      onChange={(e) => muda(d.diaSemana, 'fecha', e.target.value)}
-                      className={`${entrada} w-32`}
-                    />
-                  </>
-                ) : null}
-              </li>
-            ))}
-          </ul>
+      <div className="flex flex-col gap-[7px]">
+        {estado.map((d) => (
+          <div
+            key={d.diaSemana}
+            className={`flex flex-wrap items-center gap-3.5 rounded-[12px] border border-[#EFF3F1] px-3.5 py-2.5 ${
+              d.abre ? 'bg-superficie' : 'bg-superficie-suave'
+            }`}
+          >
+            <span className="w-20 text-[13.5px] font-medium">{DIAS[d.diaSemana]}</span>
 
-          <Nota tom="atencao">
-            Fechar um dia não apaga os horários fixos que já existem nele — eles
-            continuam na grade, e a agenda daquele dia passa a dizer que o
-            negócio não abre.
-          </Nota>
+            {d.abre ? (
+              <span className="flex flex-1 flex-wrap items-center gap-2">
+                <input
+                  type="time" value={d.abre} aria-label={`${DIAS[d.diaSemana]} abre`}
+                  onChange={(e) => muda(d.diaSemana, 'abre', e.target.value)}
+                  className="min-h-10 rounded-[10px] border border-linha bg-superficie px-2.5 font-mono text-[13px]"
+                />
+                <span className="text-[12px] text-tinta-media">até</span>
+                <input
+                  type="time" value={d.fecha ?? ''} aria-label={`${DIAS[d.diaSemana]} fecha`}
+                  onChange={(e) => muda(d.diaSemana, 'fecha', e.target.value)}
+                  className="min-h-10 rounded-[10px] border border-linha bg-superficie px-2.5 font-mono text-[13px]"
+                />
+              </span>
+            ) : (
+              <span className="flex-1 font-mono text-[13px] text-tinta-fraca">
+                não abre
+              </span>
+            )}
 
-          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
-
-          <div>
-            <Botao
-              disabled={pendente}
-              onClick={() => comErro(
-                () => salvarFuncionamento(estado),
-                'Funcionamento salvo',
-              )}
+            <button
+              type="button"
+              onClick={() => alterna(d.diaSemana)}
+              className={`rounded-[8px] px-2.5 py-1 text-[11.5px] font-medium ${
+                d.abre
+                  ? 'bg-positivo-fundo text-positivo'
+                  : 'bg-neutro-fundo text-tinta-media'
+              }`}
             >
-              Salvar funcionamento
-            </Botao>
+              {d.abre ? 'Aberto' : 'Fechado'}
+            </button>
           </div>
-        </div>
-      </Cartao>
+        ))}
+      </div>
 
-      <Cartao
-        titulo="Datas fechadas"
-        acao={<Botao miudo onClick={() => setNovaData(true)}>Nova data</Botao>}
-      >
-        <div className="flex flex-col gap-3">
-          <p className="text-[12.5px] text-tinta-media">
-            Feriado, recesso ou manutenção.
-          </p>
+      <p className="mt-3.5 rounded-[14px] border border-[#F6E7C9] bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
+        Fechar um dia não apaga os horários fixos que já existem nele — eles
+        continuam na grade, e a agenda daquele dia passa a dizer que o negócio
+        não abre.
+      </p>
 
-          {novaData ? (
-            <form
-              className="flex flex-col gap-3 rounded-[--radius-padrao] bg-superficie-suave p-3"
-              action={(f) => comErro(
-                async () => {
-                  const r = await salvarDataFechada({
-                    data: String(f.get('data') ?? ''),
-                    tipo: String(f.get('tipo') ?? 'feriado') as 'feriado' | 'fechado',
-                    descricao: String(f.get('descricao') ?? ''),
-                    acao: String(f.get('acao') ?? 'cancelar_avisar') as
-                      'cancelar_avisar' | 'so_marcar',
-                  })
-                  avisar({
-                    texto: r.sessoesCanceladas > 0
-                      ? `Data marcada · ${r.sessoesCanceladas} horário(s) cancelado(s)`
-                      : 'Data marcada',
-                  })
-                },
-                'Data marcada',
-                () => setNovaData(false),
-              )}
-            >
-              <div className="flex flex-wrap items-start gap-3">
-                <Campo rotulo="Data" htmlFor="dt-data">
-                  <input id="dt-data" name="data" type="date" required
-                    defaultValue={hoje} className={entrada} />
-                </Campo>
-                <Campo rotulo="Nome" htmlFor="dt-desc" dica="aparece na agenda do dia">
-                  <input id="dt-desc" name="descricao" className={entrada}
-                    placeholder="Natal" />
-                </Campo>
-                <Campo rotulo="Tipo" htmlFor="dt-tipo">
-                  <select id="dt-tipo" name="tipo" className={entrada}>
-                    <option value="feriado">Feriado</option>
-                    <option value="fechado">Fechado</option>
-                  </select>
-                </Campo>
-                <Campo
-                  rotulo="O que fazer com os horários do dia" htmlFor="dt-acao"
-                  dica="cancelar avisa quem tinha vaga fixa"
-                >
-                  <select id="dt-acao" name="acao" className={entrada}>
-                    <option value="cancelar_avisar">Cancelar e avisar</option>
-                    <option value="so_marcar">Só marcar como fechado</option>
-                  </select>
-                </Campo>
-              </div>
+      {erro ? <div className="pt-3"><Nota tom="alerta">{erro}</Nota></div> : null}
 
-              <Nota tom="atencao">
-                Cancelar risca os horários daquele dia com o motivo, em vez de
-                fazer eles sumirem. O que já aconteceu não muda.
-              </Nota>
+      <div className="pt-3.5">
+        <Botao
+          disabled={pendente}
+          className="min-h-10 rounded-[11px]"
+          onClick={() => comErro(
+            () => salvarFuncionamento(estado),
+            'Funcionamento salvo',
+          )}
+        >
+          Salvar funcionamento
+        </Botao>
+      </div>
 
-              <div className="flex gap-2">
-                <Botao type="submit" miudo disabled={pendente}>Marcar data</Botao>
-                <Botao type="button" tom="texto" miudo onClick={() => setNovaData(false)}>
-                  Cancelar
-                </Botao>
-              </div>
-            </form>
-          ) : null}
+      <div className="pt-4">
+        <p className="pb-2.5 text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+          Datas fechadas
+        </p>
 
-          {datas.length === 0 && !novaData ? (
-            <Nota tom="neutro">
-              Nenhuma data marcada daqui para frente.
+        {novaData ? (
+          <form
+            className="mb-3 flex flex-col gap-3 rounded-[15px] border border-[#EFF3F1] bg-superficie-suave p-4"
+            action={(f) => comErro(
+              async () => {
+                const r = await salvarDataFechada({
+                  data: String(f.get('data') ?? ''),
+                  tipo: String(f.get('tipo') ?? 'feriado') as 'feriado' | 'fechado',
+                  descricao: String(f.get('descricao') ?? ''),
+                  acao: String(f.get('acao') ?? 'cancelar_avisar') as
+                    'cancelar_avisar' | 'so_marcar',
+                })
+                avisar({
+                  texto: r.sessoesCanceladas > 0
+                    ? `Data marcada · ${r.sessoesCanceladas} horário(s) cancelado(s)`
+                    : 'Data marcada',
+                })
+              },
+              'Data marcada',
+              () => setNovaData(false),
+            )}
+          >
+            <div className="flex flex-wrap items-start gap-3">
+              <Campo rotulo="Data" htmlFor="dt-data">
+                <input id="dt-data" name="data" type="date" required
+                  defaultValue={hoje} className={entrada} />
+              </Campo>
+              <Campo rotulo="Nome" htmlFor="dt-desc" dica="aparece na agenda do dia">
+                <input id="dt-desc" name="descricao" className={entrada}
+                  placeholder="Natal" />
+              </Campo>
+              <Campo rotulo="Tipo" htmlFor="dt-tipo">
+                <select id="dt-tipo" name="tipo" className={entrada}>
+                  <option value="feriado">Feriado</option>
+                  <option value="fechado">Fechado</option>
+                </select>
+              </Campo>
+              <Campo
+                rotulo="O que fazer com os horários do dia" htmlFor="dt-acao"
+                dica="cancelar avisa quem tinha vaga fixa"
+              >
+                <select id="dt-acao" name="acao" className={entrada}>
+                  <option value="cancelar_avisar">Cancelar e avisar</option>
+                  <option value="so_marcar">Só marcar como fechado</option>
+                </select>
+              </Campo>
+            </div>
+
+            <Nota tom="atencao">
+              Cancelar risca os horários daquele dia com o motivo, em vez de
+              fazer eles sumirem. O que já aconteceu não muda.
             </Nota>
-          ) : null}
 
-          <ul className="flex flex-col gap-2">
-            {datas.map((d) => (
-              <li key={d.id}
-                className="flex flex-wrap items-center gap-3 rounded-[--radius-padrao] border border-linha-suave p-3">
-                <span className="font-mono text-[13px]">{d.data}</span>
-                <span>{d.descricao ?? d.tipo}</span>
-                <Etiqueta tinta={d.tipo === 'feriado' ? 'info' : 'neutro'}>{d.tipo}</Etiqueta>
-                {d.acao === 'cancelar_avisar' ? (
-                  <Etiqueta tinta="alerta">cancela os horários</Etiqueta>
-                ) : null}
-                <Botao
-                  tom="texto" miudo className="ml-auto" disabled={pendente}
-                  onClick={() => comErro(() => removerDataFechada(d.id), 'Data removida')}
-                >
-                  Remover
-                </Botao>
-              </li>
-            ))}
-          </ul>
+            <div className="flex gap-2">
+              <Botao type="submit" miudo disabled={pendente}>Marcar data</Botao>
+              <Botao type="button" tom="texto" miudo onClick={() => setNovaData(false)}>
+                Cancelar
+              </Botao>
+            </div>
+          </form>
+        ) : null}
+
+        <div className="flex flex-wrap gap-[7px]">
+          {datas.map((d) => (
+            <span
+              key={d.id}
+              className="inline-flex items-center gap-2 rounded-[11px] border border-linha-suave bg-superficie-suave py-1.5 pr-2 pl-3 text-[13px]"
+            >
+              <span className="font-mono text-[12px] text-tinta-media">
+                {d.data.slice(8)}/{d.data.slice(5, 7)}
+              </span>
+              {d.descricao ?? d.tipo}
+              {d.acao === 'cancelar_avisar' ? (
+                <span className="rounded-[6px] bg-alerta-fundo px-1.5 py-0.5 text-[10px] font-medium text-alerta">
+                  cancela
+                </span>
+              ) : null}
+              <button
+                type="button"
+                aria-label={`Remover ${d.descricao ?? d.data}`}
+                disabled={pendente}
+                onClick={() => comErro(() => removerDataFechada(d.id), 'Data removida')}
+                className="flex size-7 items-center justify-center rounded-[7px] text-tinta-fraca hover:bg-alerta-fundo hover:text-alerta"
+              >
+                <span aria-hidden>×</span>
+              </button>
+            </span>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setNovaData(true)}
+            className="min-h-10 rounded-[11px] border border-dashed border-[#C6D2CD] px-3.5 text-[13px] whitespace-nowrap text-marca hover:bg-superficie-suave"
+          >
+            + Nova data fechada
+          </button>
         </div>
-      </Cartao>
-    </div>
+
+        {datas.length === 0 && !novaData ? (
+          <p className="pt-2.5 text-[12.5px] text-tinta-media">
+            Nenhuma data marcada daqui para frente.
+          </p>
+        ) : null}
+      </div>
+    </section>
   )
 }

@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Cartao, Chip, Nota, entrada } from '@/components/ui/pecas'
+import { Nota, entrada } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarPadroes } from '@/server/config/acoes'
 import type { Padroes } from '@/server/config/consultas'
@@ -11,93 +11,167 @@ import type { Padroes } from '@/server/config/consultas'
 /**
  * A seção Padrões: os números que o resto do sistema assume quando ninguém diz
  * o contrário, e as duas regras que mudam o comportamento da agenda.
+ *
+ * Cada linha é rótulo e consequência de um lado, controle do outro — a forma do
+ * protótipo. Um formulário de campos numerados obrigaria a pessoa a adivinhar o
+ * que cada número faz.
  */
 export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
-  const [horarios, setHorarios] = useState(padroes.horariosSugeridos)
+  const [v, setV] = useState(padroes)
   const [novoHorario, setNovoHorario] = useState('')
-  const [encaixe, setEncaixe] = useState(padroes.encaixeAcima)
-  const [credito, setCredito] = useState(padroes.creditoFaltaAvisada)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
   const avisar = useAviso()
 
+  const sujo = JSON.stringify(v) !== JSON.stringify(padroes)
+
   function acrescentar() {
     const h = novoHorario.trim()
-    if (!h || horarios.includes(h)) return
-    setHorarios([...horarios, h].sort())
+    if (!h || v.horariosSugeridos.includes(h)) return
+    setV({ ...v, horariosSugeridos: [...v.horariosSugeridos, h].sort() })
     setNovoHorario('')
   }
 
+  function salvar() {
+    iniciar(async () => {
+      setErro(null)
+      try {
+        await salvarPadroes({
+          capacidadePadrao: v.capacidadePadrao,
+          duracaoPadraoMin: v.duracaoPadraoMin,
+          intervaloMin: v.intervaloMin,
+          prazoReposicaoDias: v.prazoReposicaoDias,
+          encaixeAcima: v.encaixeAcima,
+          creditoFaltaAvisada: v.creditoFaltaAvisada,
+          horariosSugeridos: v.horariosSugeridos,
+        })
+        avisar({ texto: 'Padrões salvos' })
+        router.refresh()
+      } catch (e) {
+        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+      }
+    })
+  }
+
   return (
-    <Cartao titulo="Padrões">
-      <form
-        className="flex flex-col gap-5"
-        action={(f) => iniciar(async () => {
-          setErro(null)
-          try {
-            await salvarPadroes({
-              capacidadePadrao: Number(f.get('capacidade')),
-              duracaoPadraoMin: Number(f.get('duracao')),
-              intervaloMin: Number(f.get('intervalo')),
-              prazoReposicaoDias: Number(f.get('prazo')),
-              encaixeAcima: encaixe,
-              creditoFaltaAvisada: credito,
-              horariosSugeridos: horarios,
-            })
-            avisar({ texto: 'Padrões salvos' })
-            router.refresh()
-          } catch (e) {
-            setErro(e instanceof Error ? e.message : 'não deu para salvar')
-          }
-        })}
-      >
-        <div className="flex flex-wrap gap-4">
-          <Campo
-            rotulo="Vagas por sessão" htmlFor="p-cap"
-            dica="usado quando o serviço não tem capacidade própria"
-          >
-            <input id="p-cap" name="capacidade" type="number" min={1}
-              defaultValue={padroes.capacidadePadrao} className={`${entrada} w-28`} />
-          </Campo>
+    <section className="rounded-[20px] border border-linha bg-superficie px-5 py-4.5">
+      <h2 className="font-titulo text-[19px] font-semibold">Padrões</h2>
+      <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
+        O que já vem preenchido quando você cria algo novo. Sempre dá para mudar
+        na hora.
+      </p>
 
-          <Campo rotulo="Duração da sessão" htmlFor="p-dur" dica="minutos">
-            <input id="p-dur" name="duracao" type="number" min={1}
-              defaultValue={padroes.duracaoPadraoMin} className={`${entrada} w-28`} />
-          </Campo>
+      <div className="flex flex-col gap-2.5">
+        <LinhaPadrao
+          rotulo="Vagas por sessão"
+          detalhe="usado quando o serviço não tem capacidade própria"
+        >
+          <Contador
+            rotulo="Vagas por sessão"
+            valor={v.capacidadePadrao}
+            min={1}
+            max={40}
+            unidade="pessoas"
+            aoMudar={(n) => setV({ ...v, capacidadePadrao: n })}
+          />
+        </LinhaPadrao>
 
-          <Campo
-            rotulo="Intervalo entre sessões" htmlFor="p-int"
-            dica="folga entre uma e a próxima, em minutos"
-          >
-            <input id="p-int" name="intervalo" type="number" min={0}
-              defaultValue={padroes.intervaloMin} className={`${entrada} w-28`} />
-          </Campo>
+        <LinhaPadrao
+          rotulo="Duração da sessão"
+          detalhe="o tamanho de um horário na grade"
+        >
+          <Contador
+            rotulo="Duração da sessão"
+            valor={v.duracaoPadraoMin}
+            min={5}
+            max={240}
+            passo={5}
+            unidade="minutos"
+            aoMudar={(n) => setV({ ...v, duracaoPadraoMin: n })}
+          />
+        </LinhaPadrao>
 
-          <Campo
-            rotulo="Prazo da reposição" htmlFor="p-prazo"
-            dica="dias até o crédito de uma falta expirar"
-          >
-            <input id="p-prazo" name="prazo" type="number" min={1}
-              defaultValue={padroes.prazoReposicaoDias} className={`${entrada} w-28`} />
-          </Campo>
-        </div>
+        <LinhaPadrao
+          rotulo="Intervalo entre sessões"
+          detalhe="a folga que separa uma da próxima — é ela que sugere o horário seguinte"
+        >
+          <Contador
+            rotulo="Intervalo entre sessões"
+            valor={v.intervaloMin}
+            min={0}
+            max={120}
+            passo={5}
+            unidade="minutos"
+            aoMudar={(n) => setV({ ...v, intervaloMin: n })}
+          />
+        </LinhaPadrao>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-[12.5px] font-medium">Horários sugeridos</span>
-          <p className="text-[11.5px] text-tinta-media">
-            Os atalhos que aparecem ao montar a grade. Sempre dá para digitar
-            outro na mão.
-          </p>
+        <LinhaPadrao
+          rotulo="Prazo da reposição"
+          detalhe="depois disso o crédito de uma falta expira, e a pendência sai da lista"
+        >
+          <Contador
+            rotulo="Prazo da reposição"
+            valor={v.prazoReposicaoDias}
+            min={1}
+            max={365}
+            unidade="dias"
+            aoMudar={(n) => setV({ ...v, prazoReposicaoDias: n })}
+          />
+        </LinhaPadrao>
+
+        <LinhaPadrao
+          rotulo="Encaixe acima da capacidade"
+          detalhe="vale para quem está na recepção. A busca de vaga e o robô continuam sem enxergar horário cheio — 5/4 é sempre alguém decidindo"
+        >
+          <Opcoes
+            rotulo="Encaixe acima da capacidade"
+            valor={v.encaixeAcima}
+            opcoes={[
+              [true, 'Permitir com aviso'],
+              [false, 'Bloquear'],
+            ]}
+            aoMudar={(b) => setV({ ...v, encaixeAcima: b })}
+          />
+        </LinhaPadrao>
+
+        <LinhaPadrao
+          rotulo="Falta avisada gera crédito"
+          detalhe="exigir antecedência mínima depende de saber a que horas a pessoa avisou; hoje só sabemos quando a recepção registrou"
+        >
+          <Opcoes
+            rotulo="Falta avisada gera crédito"
+            valor={v.creditoFaltaAvisada}
+            opcoes={[
+              [true, 'Sim'],
+              [false, 'Não'],
+            ]}
+            aoMudar={(b) => setV({ ...v, creditoFaltaAvisada: b })}
+          />
+        </LinhaPadrao>
+
+        <LinhaPadrao
+          rotulo="Horários sugeridos"
+          detalhe="os atalhos que aparecem ao montar a grade; sempre dá para digitar outro na mão"
+        >
           <div className="flex flex-wrap items-center gap-2">
-            {horarios.map((h) => (
-              <Chip
-                key={h} ativo
-                onClick={() => setHorarios(horarios.filter((x) => x !== h))}
+            {v.horariosSugeridos.map((h) => (
+              <button
+                key={h}
+                type="button"
                 aria-label={`remover ${h}`}
+                onClick={() =>
+                  setV({
+                    ...v,
+                    horariosSugeridos: v.horariosSugeridos.filter((x) => x !== h),
+                  })
+                }
+                className="inline-flex min-h-9 items-center gap-2 rounded-[11px] border border-linha bg-superficie px-3 font-mono text-[12.5px] hover:border-[#F0D6C8] hover:bg-[#FFF6F1] hover:text-alerta"
               >
-                <span className="font-mono">{h}</span> ×
-              </Chip>
+                {h}
+                <span aria-hidden>×</span>
+              </button>
             ))}
             <input
               type="time" value={novoHorario} aria-label="Novo horário"
@@ -108,41 +182,151 @@ export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
               Acrescentar
             </Botao>
           </div>
-        </div>
+        </LinhaPadrao>
+      </div>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-[12.5px] font-medium">Encaixe acima da capacidade</span>
-          <div className="flex flex-wrap gap-2">
-            <Chip ativo={encaixe} onClick={() => setEncaixe(true)}>Permitir com aviso</Chip>
-            <Chip ativo={!encaixe} onClick={() => setEncaixe(false)}>Bloquear</Chip>
-          </div>
-          {/* A metade do princípio antigo que continua de pé, e o motivo dela */}
-          <Nota tom="atencao">
-            Vale para quem está na recepção decidindo abrir exceção. A busca de
-            vaga e o robô continuam sem enxergar horário cheio de qualquer jeito —
-            5/4 é sempre alguém decidindo, nunca o sistema deixando passar.
-          </Nota>
-        </div>
+      <p className="mt-4 rounded-[14px] border border-[#CFEBE1] bg-[#F3FAF7] px-3.5 py-3 text-[12.5px] leading-relaxed text-[#3E7A6C]">
+        Mudar um padrão não mexe em nada que já existe. Vale só para o que for
+        criado daqui em diante — cada serviço ainda pode ter a sua própria
+        capacidade.
+      </p>
 
-        <div className="flex flex-col gap-2">
-          <span className="text-[12.5px] font-medium">Falta avisada gera crédito</span>
-          <div className="flex flex-wrap gap-2">
-            <Chip ativo={credito} onClick={() => setCredito(true)}>Sim</Chip>
-            <Chip ativo={!credito} onClick={() => setCredito(false)}>Não</Chip>
-          </div>
-          <Nota tom="neutro">
-            Exigir antecedência mínima depende de saber a que horas a pessoa
-            avisou. Hoje só sabemos quando a recepção registrou — a opção entra
-            quando o aviso chegar pelo robô.
-          </Nota>
-        </div>
+      {erro ? <div className="pt-3"><Nota tom="alerta">{erro}</Nota></div> : null}
 
-        {erro ? <Nota tom="alerta">{erro}</Nota> : null}
-
-        <div>
-          <Botao type="submit" disabled={pendente}>Salvar padrões</Botao>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#EFF3F1] pt-4">
+        <span className="text-[12.5px] text-tinta-media">
+          {sujo ? 'Há mudanças não salvas.' : 'Tudo salvo.'}
+        </span>
+        <div className="flex gap-2">
+          <Botao
+            tom="secundario" disabled={pendente || !sujo}
+            className="min-h-10 rounded-[11px]"
+            onClick={() => { setV(padroes); setErro(null) }}
+          >
+            Descartar
+          </Botao>
+          <Botao
+            disabled={pendente || !sujo}
+            className="min-h-10 rounded-[11px] font-semibold"
+            onClick={salvar}
+          >
+            Salvar padrões
+          </Botao>
         </div>
-      </form>
-    </Cartao>
+      </div>
+    </section>
+  )
+}
+
+function LinhaPadrao({
+  rotulo, detalhe, children,
+}: {
+  rotulo: string
+  detalhe: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-[15px] border border-[#EFF3F1] bg-superficie-suave px-4 py-3.5">
+      <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-[3px]">
+        <span className="text-[14px] font-medium">{rotulo}</span>
+        <span className="text-[12px] leading-[1.45] text-tinta-media">{detalhe}</span>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+/**
+ * O `−` valor `+` do protótipo.
+ *
+ * Tem campo de digitação por baixo (o `input` continua lá, com `aria-label`),
+ * porque ir de 60 a 5 no passo de 5 é dezesseis toques.
+ */
+function Contador({
+  rotulo, valor, min, max, passo = 1, unidade, aoMudar,
+}: {
+  rotulo: string
+  valor: number
+  min: number
+  max: number
+  passo?: number
+  unidade: string
+  aoMudar: (n: number) => void
+}) {
+  const limitar = (n: number) => Math.min(max, Math.max(min, n))
+  return (
+    // os botões ficam com "menos" e "mais" secos de propósito: repetir o rótulo
+    // do campo neles faria o nome acessível casar com três elementos, e aí nem
+    // teste nem leitor de tela consegue apontar o campo. O que dá contexto é a
+    // ordem — o rótulo da linha vem imediatamente antes
+    <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex items-center overflow-hidden rounded-[12px] border border-linha bg-superficie">
+        <button
+          type="button"
+          aria-label="menos"
+          title={`Diminuir ${rotulo.toLowerCase()}`}
+          disabled={valor <= min}
+          onClick={() => aoMudar(limitar(valor - passo))}
+          className="h-11 w-11 font-mono text-[15px] text-tinta-media hover:bg-superficie-mais-suave disabled:opacity-40"
+        >
+          −
+        </button>
+        <span aria-hidden className="h-full w-px self-stretch bg-[#EFF3F1]" />
+        <input
+          aria-label={rotulo}
+          value={valor}
+          inputMode="numeric"
+          onChange={(e) => {
+            const n = Number(e.target.value.replace(/\D/g, ''))
+            if (!Number.isNaN(n)) aoMudar(limitar(n))
+          }}
+          className="h-11 w-14 bg-transparent text-center font-mono text-[16px] font-medium outline-none"
+        />
+        <span aria-hidden className="h-full w-px self-stretch bg-[#EFF3F1]" />
+        <button
+          type="button"
+          aria-label="mais"
+          title={`Aumentar ${rotulo.toLowerCase()}`}
+          disabled={valor >= max}
+          onClick={() => aoMudar(limitar(valor + passo))}
+          className="h-11 w-11 font-mono text-[15px] text-tinta-media hover:bg-superficie-mais-suave disabled:opacity-40"
+        >
+          +
+        </button>
+      </div>
+      <span className="text-[12px] text-tinta-media">{unidade}</span>
+    </div>
+  )
+}
+
+/** Duas escolhas mutuamente exclusivas, com a ativa em escuro. */
+function Opcoes({
+  rotulo, valor, opcoes, aoMudar,
+}: {
+  rotulo: string
+  valor: boolean
+  opcoes: Array<[boolean, string]>
+  aoMudar: (b: boolean) => void
+}) {
+  return (
+    // botões com `aria-pressed`, não `radiogroup`: são duas escolhas que se
+    // alternam, e o papel de botão é o que a tela realmente oferece
+    <div aria-label={rotulo} className="flex flex-wrap gap-1.5">
+      {opcoes.map(([b, texto]) => (
+        <button
+          key={texto}
+          type="button"
+          aria-pressed={valor === b}
+          onClick={() => aoMudar(b)}
+          className={`min-h-10 rounded-[11px] border px-3.5 text-[12.5px] whitespace-nowrap ${
+            valor === b
+              ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+              : 'border-linha bg-superficie text-tinta-media hover:border-[#C6D2CD]'
+          }`}
+        >
+          {texto}
+        </button>
+      ))}
+    </div>
   )
 }

@@ -186,7 +186,9 @@ test('"só marcar como fechado" não cancela nada', async ({ page }) => {
   await page.getByLabel('O que fazer com os horários do dia').selectOption('so_marcar')
   await page.getByRole('button', { name: 'Marcar data' }).click()
 
-  await expect(page.getByText('2036-11-15')).toBeVisible()
+  // a etiqueta mostra dia/mês, como no protótipo — o ano só apareceria para
+  // ocupar espaço numa lista que é sempre de datas próximas
+  await expect(page.getByText('15/11')).toBeVisible()
   const { data } = await admin.from('sessao').select('status').eq('id', sessao!.id).single()
   expect(data!.status).toBe('prevista')
 })

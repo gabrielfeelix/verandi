@@ -3,7 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Avatar, Campo, Cartao, Chip, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { Avatar, Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { BotaoLinha, FaixaFormulario, LinhaConfig, PainelConfig } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import {
   convidar, revogarConvite, mudarPapel, removerUsuario, gerarLinkDeSenha,
@@ -56,20 +57,17 @@ export function SecaoUsuarios({
     `${typeof window === 'undefined' ? '' : window.location.origin}/convite/${token}`
 
   return (
-    <div className="flex flex-col gap-4">
-      <Cartao
+    <div className="flex flex-col gap-3.5">
+      <PainelConfig
         titulo="Usuários"
+        sub="Remover usuário nunca apaga o que ele registrou"
         acao={<Botao miudo onClick={() => setConvidando(true)}>Convidar</Botao>}
       >
-        <div className="flex flex-col gap-3">
-          <p className="text-[12.5px] text-tinta-media">
-            Quem entra no sistema. Profissional que só aparece na grade não
-            precisa estar aqui.
-          </p>
-
+        <div className="flex flex-col">
           {convidando ? (
+            <FaixaFormulario>
             <form
-              className="flex flex-col gap-3 rounded-[--radius-padrao] bg-superficie-suave p-3"
+              className="flex flex-col gap-3"
               action={(f) => comErro(async () => {
                 const r = await convidar({
                   email: String(f.get('email') ?? ''),
@@ -104,11 +102,12 @@ export function SecaoUsuarios({
                 </Botao>
               </div>
             </form>
+            </FaixaFormulario>
           ) : null}
 
           {/* Aparece uma vez: depois só dá para revogar e criar outro */}
           {link ? (
-            <div className="flex flex-col gap-2 rounded-[--radius-padrao] border border-linha p-3">
+            <div className="m-4 flex flex-col gap-2 rounded-[--radius-padrao] border border-linha p-3">
               <span className="text-[12.5px] font-medium">
                 Link para {link.para} — copie agora
               </span>
@@ -133,27 +132,32 @@ export function SecaoUsuarios({
             </div>
           ) : null}
 
-          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+          {erro ? <div className="px-5 pb-3"><Nota tom="alerta">{erro}</Nota></div> : null}
 
-          <ul className="flex flex-col gap-2">
-            {usuarios.filter((u) => u.ativo).map((u) => (
-              <li key={u.usuarioId}
-                className="flex flex-wrap items-center gap-3 rounded-[--radius-padrao] border border-linha-suave p-3">
-                <Avatar nome={u.email} decorativo />
-                <span className="text-[13px]">{u.email}</span>
+          {usuarios.filter((u) => u.ativo).map((u) => (
+            <LinhaConfig
+              key={u.usuarioId}
+              antes={<Avatar nome={u.email} tamanho={40} decorativo />}
+              nome={u.email.split('@')[0]}
+              detalhe={
+                <span className="flex flex-col">
+                  <span>{u.email}</span>
+                  <span className="text-[11.5px] text-tinta-media">
+                    {u.ultimoAcesso
+                      ? `último acesso ${new Date(u.ultimoAcesso).toLocaleDateString('pt-BR')}`
+                      : 'nunca acessou'}
+                  </span>
+                </span>
+              }
+            >
                 <Etiqueta tinta={TINTA_PAPEL[u.papel] ?? 'neutro'}>
                   {NOME_PAPEL[u.papel] ?? u.papel}
                 </Etiqueta>
-                <span className="text-[11.5px] text-tinta-media">
-                  {u.ultimoAcesso
-                    ? `último acesso ${new Date(u.ultimoAcesso).toLocaleDateString('pt-BR')}`
-                    : 'nunca acessou'}
-                </span>
 
                 {u.usuarioId === meuId ? (
                   <Etiqueta tinta="neutro">você</Etiqueta>
                 ) : (
-                  <span className="ml-auto flex flex-wrap items-center gap-2">
+                  <span className="flex flex-wrap items-center gap-2">
                     <select
                       aria-label={`Papel de ${u.email}`}
                       defaultValue={u.papel}
@@ -167,63 +171,64 @@ export function SecaoUsuarios({
                         <option key={p} value={p}>{NOME_PAPEL[p]}</option>
                       ))}
                     </select>
-                    <Botao
-                      tom="secundario" miudo disabled={pendente}
+                    <BotaoLinha
+                      disabled={pendente}
                       onClick={() => comErro(async () => {
                         const r = await gerarLinkDeSenha(u.usuarioId)
                         setLink({ url: urlDe(r.token), para: u.email })
                       })}
                     >
                       Redefinir senha
-                    </Botao>
-                    <Botao
-                      tom="texto" miudo disabled={pendente}
+                    </BotaoLinha>
+                    <BotaoLinha
+                      disabled={pendente}
                       onClick={() => comErro(
                         () => removerUsuario(u.usuarioId),
                         'Acesso removido',
                       )}
                     >
                       Remover acesso
-                    </Botao>
+                    </BotaoLinha>
                   </span>
                 )}
-              </li>
-            ))}
-          </ul>
+            </LinhaConfig>
+          ))}
 
-          <Nota tom="neutro">
+          <p className="px-5 py-3.5 text-[12px] text-tinta-media">
             Remover não apaga nada do que a pessoa registrou: a presença marcada
             por ela continua marcada por ela. Se for profissional, o nome segue
             na grade — o que acaba é o acesso.
-          </Nota>
+          </p>
         </div>
-      </Cartao>
+      </PainelConfig>
 
       {convites.length > 0 ? (
-        <Cartao titulo="Convites em aberto">
-          <ul className="flex flex-col gap-2">
-            {convites.map((c) => (
-              <li key={c.id}
-                className="flex flex-wrap items-center gap-3 rounded-[--radius-padrao] border border-linha-suave p-3">
-                <span className="text-[13px]">{c.email}</span>
-                <Etiqueta tinta={c.tipo === 'senha' ? 'atencao' : 'info'}>
-                  {c.tipo === 'senha' ? 'redefinir senha' : NOME_PAPEL[c.papel]}
-                </Etiqueta>
-                <span className="text-[11.5px] text-tinta-media">
-                  {c.expirado
-                    ? 'expirado'
-                    : `expira ${new Date(c.expiraEm).toLocaleDateString('pt-BR')}`}
-                </span>
-                <Botao
-                  tom="texto" miudo className="ml-auto" disabled={pendente}
-                  onClick={() => comErro(() => revogarConvite(c.id), 'Convite cancelado')}
-                >
-                  Cancelar convite
-                </Botao>
-              </li>
-            ))}
-          </ul>
-        </Cartao>
+        <PainelConfig
+          titulo="Convites em aberto"
+          sub="O link aparece uma vez; perdeu, revoga e cria outro"
+        >
+          {convites.map((c) => (
+            <LinhaConfig
+              key={c.id}
+              nome={c.email}
+              detalhe={
+                c.expirado
+                  ? 'expirado'
+                  : `expira ${new Date(c.expiraEm).toLocaleDateString('pt-BR')}`
+              }
+            >
+              <Etiqueta tinta={c.tipo === 'senha' ? 'atencao' : 'info'}>
+                {c.tipo === 'senha' ? 'redefinir senha' : NOME_PAPEL[c.papel]}
+              </Etiqueta>
+              <BotaoLinha
+                disabled={pendente}
+                onClick={() => comErro(() => revogarConvite(c.id), 'Convite cancelado')}
+              >
+                Cancelar convite
+              </BotaoLinha>
+            </LinhaConfig>
+          ))}
+        </PainelConfig>
       ) : null}
     </div>
   )
