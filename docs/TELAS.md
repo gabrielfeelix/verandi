@@ -25,11 +25,22 @@ numa sala, com a mão ocupada. Grade da semana é a única que assume tela larga
 celular ela vira um dia por vez. Todas as outras funcionam iguais nos três
 tamanhos.
 
-**Lotada é lotada — e abrir vaga é uma ação, não um contorno.** Horário cheio não
-aparece como disponível, nem na tela nem para o bot. Para caber mais um, o
-profissional **aumenta a capacidade daquela sessão**, e aí a vaga existe de
-verdade. Nenhuma tela deve oferecer "encaixar mesmo assim": ou a capacidade sobe,
-ou não cabe.
+**Cheio nunca é oferecido; passar da capacidade é decisão de gente.**
+*(Revisto em 13/ago/2026 — antes esta regra proibia encaixe acima da capacidade
+em qualquer caso. Ver `planos/03-configuracao.md`.)*
+
+Horário cheio **não aparece como disponível** na busca de vaga nem para o bot, e
+isso não é configurável: oferecer o que não cabe é prometer o que não existe.
+
+Quem está na recepção, olhando para a pessoa na frente dela, **pode** abrir
+exceção — se a conta permitir, em Configuração → Padrões. A tela mostra `4/4`,
+conta que encaixar deixa `5/4`, e exige um segundo toque. Assim o excedente é
+sempre decisão registrada, com nome, e nunca acidente de clique.
+
+Continua existindo **aumentar a capacidade daquela sessão**, com propósito
+separado: encaixe é exceção de um dia; capacidade é dizer que aquela turma agora
+é de cinco — e aí a vaga existe para a tela, para a busca e para o bot ao mesmo
+tempo.
 
 **Fora capacidade, nada bloqueia.** Data passada aceita registro. Sessão
 cancelada aceita correção. Pessoa sem telefone é normal — 30% não têm. A única

@@ -160,10 +160,22 @@ Sem isso, trocar a Marina pela Sofia em setembro reescreveria quem deu aula em
 março — e a planilha de março passaria a mentir. É o mesmo motivo pelo qual o
 AutoFluxos congela `sessions.flow_version_id`.
 
-## Capacidade é verdade: lotada é lotada, e quem abre vaga é o profissional
+## Capacidade é verdade: o que é oferecido nunca mente
 
-Cinco vagas com cinco pessoas significa **indisponível**. A sexta pessoa não vê
-aquele horário, e o bot não oferece ele. Não existe "encaixar mesmo assim".
+> **Revisto em 13/ago/2026.** Este capítulo dizia que não existia "encaixar mesmo
+> assim" em caso nenhum. Metade caiu por decisão de produto, e a metade que
+> importa ficou de pé — a explicação está logo abaixo e em
+> `planos/03-configuracao.md`.
+
+Cinco vagas com cinco pessoas significa **indisponível para quem procura**: a
+busca de vaga não mostra aquele horário, e a API do bot não oferece ele. Isso não
+é configurável.
+
+O que a conta pode permitir (Configuração → Padrões) é a **recepção** abrir
+exceção, com aviso e confirmação explícita. A diferença é quem decide: uma pessoa
+olhando para outra pessoa é uma coisa; um robô confirmando sozinho a sexta vaga
+de uma turma de quatro, às onze da noite, sem ninguém ver, é outra. `5/4` é
+sempre alguém decidindo, com nome e registro.
 
 O que existe é **aumentar a capacidade daquela sessão**. O professor decide que
 naquela quarta cabem seis, muda a capacidade do dia, e aí a vaga passa a existir
