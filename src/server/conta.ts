@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import type { Papel } from '@/core/acesso/destino'
 
@@ -55,4 +56,32 @@ export async function contaAtiva(): Promise<ContaAtiva | null> {
     papel: linha.papel as Papel,
     nome: (linha.conta as unknown as { nome: string }).nome,
   }
+}
+
+/** Como `contaAtiva`, mas para telas que não fazem sentido sem conta. */
+export async function exigirConta(): Promise<ContaAtiva> {
+  const conta = await contaAtiva()
+  if (!conta) redirect('/entrar')
+  return conta
+}
+
+/** Todas as contas do usuário, para a tela de troca. */
+export async function contasDoUsuario(): Promise<
+  Array<{ contaId: string; nome: string; papel: Papel }>
+> {
+  const db = await clienteServidor()
+  const { data: { user } } = await db.auth.getUser()
+  if (!user) return []
+
+  const { data } = await db
+    .from('usuario_conta')
+    .select('conta_id, papel, conta:conta_id(nome)')
+    .eq('usuario_id', user.id)
+    .eq('ativo', true)
+
+  return (data ?? []).map((l) => ({
+    contaId: l.conta_id,
+    papel: l.papel as Papel,
+    nome: (l.conta as unknown as { nome: string }).nome,
+  }))
 }
