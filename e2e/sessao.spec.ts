@@ -37,7 +37,7 @@ test('mostra ocupação, origem e quem está sem telefone', async ({ page }) => 
   await page.goto(`/sessao/${c.sessaoId}`)
 
   await expect(page.getByText('3/4', { exact: true })).toBeVisible()
-  await expect(page.getByText('Chamada pendente.')).toBeVisible()
+  await expect(page.getByText('Chamada pendente').first()).toBeVisible()
   await expect(page.getByText('gestante')).toBeVisible()
   // nenhuma das três tem telefone no cenário
   await expect(page.getByText('sem telefone').first()).toBeVisible()
@@ -49,8 +49,8 @@ test('um toque marca todo mundo presente e a chamada fecha', async ({ page }) =>
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await page.getByRole('button', { name: /Todos vieram \(3\)/ }).click()
-  await expect(page.getByRole('button', { name: /Todos vieram/ })).toBeHidden()
+  await page.getByRole('button', { name: /Marcar todos presentes \(3\)/ }).click()
+  await expect(page.getByRole('button', { name: /Marcar todos presentes/ })).toBeHidden()
 
   // a UI é otimista: o botão some antes de a escrita chegar ao banco.
   // conferir o banco sem poll testaria a animação, não o registro.
@@ -70,8 +70,8 @@ test('marcar a exceção primeiro e depois "todos vieram" preserva a falta', asy
   await linhaBeatriz.getByRole('button', { name: 'Faltou' }).click()
   await expect(page.getByRole('status')).toContainText('Beatriz Nogueira')
 
-  await page.getByRole('button', { name: /Todos vieram \(2\)/ }).click()
-  await expect(page.getByRole('button', { name: /Todos vieram/ })).toBeHidden()
+  await page.getByRole('button', { name: /Marcar todos presentes \(2\)/ }).click()
+  await expect(page.getByRole('button', { name: /Marcar todos presentes/ })).toBeHidden()
 
   await expect.poll(async () => {
     const { data } = await admin.from('participacao')
@@ -110,8 +110,9 @@ test('sessão cancelada mostra o motivo e não deixa registrar', async ({ page }
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await expect(page.getByText('Horário cancelado — Professora doente')).toBeVisible()
-  await expect(page.getByRole('button', { name: /Todos vieram/ })).toBeHidden()
+  // a frase agora nomeia a entidade da conta: "Aula cancelada", "Sessão cancelada"
+  await expect(page.getByText(/cancelada — Professora doente/)).toBeVisible()
+  await expect(page.getByRole('button', { name: /Marcar todos presentes/ })).toBeHidden()
 })
 
 test('a tela usa o rótulo da conta, não a palavra do código', async ({ page }) => {
@@ -124,6 +125,10 @@ test('a tela usa o rótulo da conta, não a palavra do código', async ({ page }
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Aula de quarta')
+  // o h1 agora é o nome do serviço, como no protótipo; o vocabulário da conta
+  // aparece no título da lista e na trilha
+  await expect(
+    page.getByRole('heading', { name: 'Alunos nesta aula' }),
+  ).toBeVisible()
   await expect(page.getByRole('list', { name: 'Alunos' })).toBeVisible()
 })

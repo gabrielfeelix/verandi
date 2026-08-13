@@ -226,3 +226,53 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
 
   return { ...resumo, participacoes }
 }
+
+export type FaltaEmAberto = {
+  participacaoId: string
+  data: string
+  servico: string
+  status: StatusParticipacao
+}
+
+/**
+ * As faltas desta pessoa que ainda geraram crédito e ninguém repôs.
+ *
+ * É o que o menu "apontar reposição" oferece: sem esta lista, quem repõe teria
+ * que lembrar de cabeça qual falta está sendo paga — que é exatamente o que a
+ * planilha fazia com `REP 05/6` escrito na célula.
+ */
+export async function faltasEmAberto(
+  db: Db, contaId: string, pessoaId: string,
+): Promise<FaltaEmAberto[]> {
+  const { data, error } = await db
+    .from('participacao')
+    .select('id, status, sessao:sessao_id(inicio, servico:servico_id(nome))')
+    .eq('conta_id', contaId)
+    .eq('pessoa_id', pessoaId)
+    .in('status', ['falta', 'falta_avisada'])
+    .returns<{
+      id: string
+      status: StatusParticipacao
+      sessao: { inicio: string; servico: { nome: string } | null } | null
+    }[]>()
+  if (error) throw error
+  if (!data?.length) return []
+
+  const { data: usadas } = await db
+    .from('participacao')
+    .select('reposicao_de_id')
+    .eq('conta_id', contaId)
+    .not('reposicao_de_id', 'is', null)
+    .returns<{ reposicao_de_id: string }[]>()
+  const jaReposta = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
+
+  return data
+    .filter((p) => p.sessao && !jaReposta.has(p.id))
+    .sort((a, b) => (a.sessao!.inicio < b.sessao!.inicio ? 1 : -1))
+    .map((p) => ({
+      participacaoId: p.id,
+      data: p.sessao!.inicio.slice(0, 10),
+      servico: p.sessao!.servico?.nome ?? '—',
+      status: p.status,
+    }))
+}

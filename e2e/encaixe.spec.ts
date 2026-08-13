@@ -123,7 +123,7 @@ test('cancelar o horário avisa quantas pessoas serão afetadas', async ({ page 
   await page.getByLabel('Cancelar este horário').fill('Sala interditada')
   await page.getByRole('button', { name: 'Cancelar horário' }).click()
 
-  await expect(page.getByText('Horário cancelado — Sala interditada')).toBeVisible()
+  await expect(page.getByText(/cancelada — Sala interditada/)).toBeVisible()
   expect(textoDoAviso).toContain('2 pessoa(s)')
 })
 

@@ -63,10 +63,13 @@ export function PainelVaga({
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded border p-3">
+    <section
+      id="encaixar"
+      className="flex flex-col gap-4 rounded-[20px] border border-linha bg-superficie p-4"
+    >
       <div>
-        <h2 className="font-medium">Vagas</h2>
-        <p className={ocupacao.excedida ? 'font-bold' : undefined}>
+        <h2 className="font-titulo text-[17px] font-semibold">Vagas</h2>
+        <p className={`text-[12.5px] ${ocupacao.excedida ? 'font-medium text-alerta' : 'text-tinta-media'}`}>
           {ocupacao.ocupadas}/{ocupacao.capacidade}
           {ocupacao.lotada ? ' — cheio' : ` — ${ocupacao.livres} livre(s)`}
         </p>
@@ -74,13 +77,15 @@ export function PainelVaga({
 
       {!cancelada ? (
         <div className="flex flex-col gap-2">
-          <label htmlFor="busca-pessoa">Colocar alguém neste horário</label>
+          <label htmlFor="busca-pessoa" className="text-[12.5px] font-medium">
+            Colocar alguém neste horário
+          </label>
 
           <select
             aria-label="Tipo"
             value={origem}
             onChange={(e) => setOrigem(e.target.value as typeof origem)}
-            className="rounded border px-2 py-1"
+            className="min-h-10 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px]"
           >
             <option value="avulso">Avulso</option>
             <option value="reposicao">Reposição</option>
@@ -93,7 +98,7 @@ export function PainelVaga({
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome"
-            className="rounded border px-3 py-2"
+            className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px] placeholder:text-tinta-fraca"
           />
 
           {achados.length > 0 ? (
@@ -104,10 +109,10 @@ export function PainelVaga({
                     type="button"
                     disabled={pendente}
                     onClick={() => adicionar(c.id)}
-                    className="w-full rounded border px-3 py-2 text-left"
+                    className="w-full rounded-[11px] border border-linha-suave px-3 py-2.5 text-left text-[13px] hover:border-marca hover:bg-[#F9FCFB]"
                   >
                     {c.nome}
-                    <span className="ml-2 text-sm opacity-60">{c.detalhe}</span>
+                    <span className="ml-2 text-[11.5px] text-tinta-media">{c.detalhe}</span>
                   </button>
                 </li>
               ))}
@@ -118,8 +123,8 @@ export function PainelVaga({
               segundo toque. 5/4 é decisão de quem está no balcão, com nome e
               registro — nunca o sistema deixando passar. */}
           {excedente ? (
-            <div className="flex flex-col gap-2 rounded border p-3">
-              <p>
+            <div className="flex flex-col gap-2 rounded-[13px] border border-[#F7DACB] bg-[#FFF6F1] p-3">
+              <p className="text-[12.5px] leading-relaxed text-[#8A4526]">
                 Este horário já está com {ocupacao.ocupadas}/{ocupacao.capacidade}.
                 Encaixar deixa {ocupacao.ocupadas + 1}/{ocupacao.capacidade}, e fica
                 registrado como decisão sua.
@@ -129,14 +134,14 @@ export function PainelVaga({
                   type="button"
                   disabled={pendente}
                   onClick={() => adicionar(excedente, true)}
-                  className="rounded border px-3 py-2"
+                  className="min-h-10 rounded-[11px] bg-alerta px-3 text-[12.5px] font-medium text-white"
                 >
                   Encaixar mesmo assim
                 </button>
                 <button
                   type="button"
                   onClick={() => setExcedente(null)}
-                  className="px-2 py-2 underline"
+                  className="min-h-10 px-2 text-[12.5px] text-tinta-media underline"
                 >
                   Não encaixar
                 </button>
@@ -144,7 +149,11 @@ export function PainelVaga({
             </div>
           ) : null}
 
-          {aviso ? <p role="alert">{aviso}</p> : null}
+          {aviso ? (
+            <p role="alert" className="rounded-[11px] bg-atencao-fundo px-3 py-2 text-[12.5px] text-atencao">
+              {aviso}
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -156,21 +165,26 @@ export function PainelVaga({
             setAviso(null)
           })
         }}
-        className="flex items-end gap-2"
+        className="flex items-end gap-2 border-t border-[#EFF3F1] pt-3"
       >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="capacidade">Capacidade só deste dia</label>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="capacidade" className="text-[12.5px] font-medium">
+            Capacidade só deste dia
+          </label>
           <input
             id="capacidade" name="capacidade" type="number" min={1}
             defaultValue={ocupacao.capacidade}
-            className="w-24 rounded border px-2 py-1"
+            className="min-h-10 w-24 rounded-[11px] border border-linha bg-superficie px-2.5 text-center font-mono text-[14px]"
           />
         </div>
-        <button type="submit" disabled={pendente} className="rounded border px-3 py-1">
+        <button
+          type="submit" disabled={pendente}
+          className="min-h-10 rounded-[11px] border border-linha bg-superficie px-3 text-[12.5px] hover:bg-superficie-suave"
+        >
           Salvar
         </button>
       </form>
-      <p className="text-sm opacity-60">
+      <p className="text-[11.5px] leading-relaxed text-tinta-media">
         Muda só este horário. A grade fixa das outras semanas continua igual.
       </p>
 
@@ -183,16 +197,21 @@ export function PainelVaga({
             if (!confirm(`Cancelar este horário? ${quantos} pessoa(s) serão avisadas.`)) return
             iniciar(() => cancelarSessao(sessaoId, motivo))
           }}
-          className="flex items-end gap-2 border-t pt-3"
+          className="flex items-end gap-2 border-t border-[#EFF3F1] pt-3"
         >
-          <div className="flex flex-1 flex-col gap-1">
-            <label htmlFor="motivo">Cancelar este horário</label>
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label htmlFor="motivo" className="text-[12.5px] font-medium">
+              Cancelar este horário
+            </label>
             <input
               id="motivo" name="motivo" required placeholder="Motivo"
-              className="rounded border px-2 py-1"
+              className="min-h-10 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px] placeholder:text-tinta-fraca"
             />
           </div>
-          <button type="submit" disabled={pendente} className="rounded border px-3 py-1">
+          <button
+            type="submit" disabled={pendente}
+            className="min-h-10 rounded-[11px] border border-[#F0D6C8] bg-[#FFF6F1] px-3 text-[12.5px] font-medium text-alerta hover:bg-[#FDE9E0]"
+          >
             Cancelar horário
           </button>
         </form>

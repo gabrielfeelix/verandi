@@ -182,3 +182,111 @@ export async function removerParticipacao(participacaoId: string): Promise<void>
   if (error) throw error
   if (data) atualizarTela(data.sessao_id)
 }
+
+/**
+ * A observação de uma participação: "chegou atrasada", "lesão no ombro".
+ *
+ * Hoje ela é visível para todo mundo que abre a sessão. Está anotado como
+ * dívida no `ESTADO.md`: no primeiro cliente de saúde isso vira pré-requisito,
+ * porque "lesão no ombro" é dado de saúde e recepção ver tudo é problema de
+ * LGPD, não de gosto.
+ */
+export async function salvarObservacao(
+  participacaoId: string,
+  observacao: string,
+): Promise<void> {
+  const { db, carimbo } = await quemRegistra()
+  const texto = observacao.trim()
+
+  const { data, error } = await db
+    .from('participacao')
+    .update({ observacao: texto || null, ...carimbo })
+    .eq('id', participacaoId)
+    .select('sessao_id')
+    .maybeSingle<{ sessao_id: string }>()
+
+  if (error) throw error
+  if (data) atualizarTela(data.sessao_id)
+}
+
+/**
+ * Aponta de qual falta esta participação é a reposição.
+ *
+ * É o `REP 05/6` da planilha virando chave estrangeira. Sem ele, o controle de
+ * quem tem crédito mora na memória de quem escreveu — e some quando essa pessoa
+ * entra de férias.
+ *
+ * Passar `null` desfaz o apontamento. Trocar a origem para `reposicao` junto é
+ * de propósito: uma coisa é a consequência da outra, e deixar as duas soltas
+ * cria participação marcada como reposição que não repõe nada.
+ */
+export async function apontarReposicao(
+  participacaoId: string,
+  faltaId: string | null,
+): Promise<void> {
+  const { db, carimbo } = await quemRegistra()
+
+  const { data, error } = await db
+    .from('participacao')
+    .update({
+      reposicao_de_id: faltaId,
+      ...(faltaId ? { origem: 'reposicao' as const } : {}),
+      ...carimbo,
+    })
+    .eq('id', participacaoId)
+    .select('sessao_id')
+    .maybeSingle<{ sessao_id: string }>()
+
+  if (error) throw error
+  if (data) atualizarTela(data.sessao_id)
+}
+
+/**
+ * Corrige de onde a pessoa veio: fixo, avulso, reposição, encaixe, reserva.
+ *
+ * Existe porque quem encaixa às pressas escolhe errado, e origem errada
+ * distorce a leitura da turma — a planilha resolvia isso por posição na folha,
+ * e a tela precisa de um jeito de consertar.
+ */
+export async function trocarOrigem(
+  participacaoId: string,
+  origem: OrigemParticipacao,
+): Promise<void> {
+  const { db, carimbo } = await quemRegistra()
+
+  const { data, error } = await db
+    .from('participacao')
+    .update({
+      origem,
+      // deixar o vínculo pendurado numa participação que não é mais reposição
+      // faria a falta continuar contando como já reposta
+      ...(origem === 'reposicao' ? {} : { reposicao_de_id: null }),
+      ...carimbo,
+    })
+    .eq('id', participacaoId)
+    .select('sessao_id')
+    .maybeSingle<{ sessao_id: string }>()
+
+  if (error) throw error
+  if (data) atualizarTela(data.sessao_id)
+}
+
+/**
+ * Troca quem atende **só nesta sessão**.
+ *
+ * A série continua com o profissional dela: cobrir uma quarta-feira não é mudar
+ * a grade. Como `sessao` guarda cópia do profissional, e não referência viva, a
+ * troca de hoje não reescreve o que valia em março.
+ */
+export async function trocarProfissionalDaSessao(
+  sessaoId: string,
+  profissionalId: string | null,
+): Promise<void> {
+  const { db } = await quemRegistra()
+  const { error } = await db
+    .from('sessao')
+    .update({ profissional_id: profissionalId })
+    .eq('id', sessaoId)
+  if (error) throw error
+  atualizarTela(sessaoId)
+}
