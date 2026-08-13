@@ -3,16 +3,16 @@
 Arquivo de leitura obrigatória ao voltar ao projeto. É o único que pode estar
 desatualizado sem causar dano — desde que se saiba disso.
 
-**Última atualização:** 13/ago/2026 · **Planos 01 e 02 concluídos. Plano 03 nas
-Tarefas 0 a 9 — falta o fechamento e vestir as telas do Plano 02.**
+**Última atualização:** 13/ago/2026 · **Planos 01, 02 e 03 concluídos, incluindo
+a Tarefa 11 (vestir). Falta a Tarefa 10 — a prova manual de ponta a ponta.**
 
 ---
 
 ## Em uma frase
 
-Uma conta nasce vazia, se configura inteira pela tela e opera a semana. O que
-falta é **cara**: as oito telas do Plano 02 ainda estão com a casca crua, e o
-protótipo virou a especificação.
+Uma conta nasce vazia, se configura inteira pela tela e opera a semana — e
+agora com a cara do protótipo, tela por tela, conferida em captura lado a lado.
+O que falta é a prova de ponta a ponta feita à mão.
 
 ## Verificado agora
 
@@ -48,19 +48,29 @@ estado de convite, papéis concedíveis.
 
 **Design system** — `docs/DESIGN.md` é o contrato; `/amostra` mostra as nove
 peças em todas as variações. O protótipo em `Design system Verandi/` é a
-especificação de interface: onde a tela divergir dele, é a tela que muda.
+especificação de interface: onde a tela divergir dele, é a tela que muda. O
+método de comparação está em [`VESTIR.md`](VESTIR.md), e as duas capturas saem
+de `scripts/tira-prototipo.mjs` e `scripts/tira-produto.mjs`.
+
+**Três divergências do protótipo, de propósito**, cada uma escrita no commit que
+a criou: alvo de toque de 44px onde o protótipo desenha 34px (a Sessão é usada
+em pé); etiqueta de ocupação só fica laranja **acima** da capacidade, como o
+protótipo renderiza — turma cheia é estado normal do dia; e a busca global do
+cabeçalho fica reservada e desabilitada, porque a funcionalidade não existe e
+inventá-la seria pior do que deixá-la faltando.
 
 **Telas:**
 
 | Rota | O quê | Vestida? |
 |---|---|---|
-| `/entrar` | login, com destino por papel | não |
-| `/contas` | trocar de conta | não |
-| `/hoje` · `/semana` | agenda do dia e da semana | não |
-| `/sessao/[id]` | a tela do produto — chamada, encaixe, capacidade | não |
-| `/pessoas` · `/pessoas/[id]` | lista, busca e ficha | não |
-| `/vaga` | busca de horário livre | não |
-| `/grade` | criar, editar, duplicar e encerrar horário fixo | parcial |
+| `/entrar` | login, com destino por papel | sim |
+| `/contas` | trocar de conta | sim |
+| `/hoje` | agenda do dia, com a próxima turma em destaque | sim |
+| `/semana` | grade da semana **e o modo Dia por recurso** | sim |
+| `/sessao/[id]` | a tela do produto — chamada, encaixe, capacidade, menu por pessoa | sim |
+| `/pessoas` · `/pessoas/[id]` | lista, busca e ficha | sim |
+| `/vaga` | busca de horário livre | sim |
+| `/grade` | criar, editar, duplicar e encerrar horário fixo | sim |
 | `/config` | serviços, equipe, locais, padrões, vocabulário, funcionamento, usuários | sim |
 | `/pendencias` | o inbox de quem opera | sim |
 | `/contas-4yu` | contas dos clientes, com sinais de vida | sim |
@@ -76,15 +86,13 @@ especificação de interface: onde a tela divergir dele, é a tela que muda.
 - **Tarefa 10, fechamento:** a prova manual de ponta a ponta (criar conta →
   aceitar convite → cadastrar → montar grade → convidar recepção → registrar
   chamada), sem `psql` e sem seed.
-- **Tarefa 11, vestir — leia [`VESTIR.md`](VESTIR.md) antes de começar.** As
-  telas usam os tokens e **não parecem o protótipo**: o shell ainda é o
-  `<header>` de links do Plano 02, e nenhuma tela vai parecer o produto enquanto
-  ele não virar o trilho lateral. `node scripts/tira-prototipo.mjs` gera as
-  capturas para comparar. Depois do shell vêm as oito telas do Plano 02, o modo
-  **Dia por recurso** na grade (colunas = sala ou profissional, para quem tem
-  sete salas), o filtro por local, e o menu por pessoa na Sessão (observação,
-  apontar reposição, trocar origem) — o modelo já aguenta os três, a tela é que
-  não expõe.
+- **Tarefa 11, vestir: feita.** O trilho lateral escuro substituiu a barra de
+  links, e as doze telas foram refeitas contra a captura do protótipo. Entraram
+  junto as três coisas que o modelo aguentava e a tela não expunha: o **menu por
+  pessoa** na Sessão (observação, apontar reposição, trocar origem, remover), o
+  modo **Dia por recurso** em `/semana` (colunas = sala ou profissional) e o
+  **filtro por local**. O método está em [`VESTIR.md`](VESTIR.md); as capturas
+  saem de `scripts/tira-prototipo.mjs` e `scripts/tira-produto.mjs`.
 
 ### Marco 2 — o bot conversa com a agenda
 
@@ -129,7 +137,9 @@ teto do plano gratuito. Não bloqueia nada até o deploy.
 - **Gerar os tipos do banco** (`supabase gen types typescript --local`) para
   tirar os `.returns<T[]>()` e os `as unknown as` espalhados.
 - **`/contas-4yu` lista todas as contas sem paginação nem busca.** Com dezenas
-  de clientes vai bem; com centenas, não.
+  de clientes vai bem; com centenas, não — e o banco de desenvolvimento já
+  mostra o defeito, porque as contas que os testes deixam para trás passaram de
+  mil linhas na tela.
 - **`PainelVaga` carrega todas as pessoas da conta** para a busca de encaixe.
 - **`/hoje` e `/semana` materializam a cada visita.** Correto e idempotente, mas
   é uma escrita por leitura de página.
@@ -160,7 +170,8 @@ node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
 npm run dev
 ```
 
-Entrar com `dono@dev.local`, `prof@dev.local` ou `recepcao@dev.local`, senha
+Entrar com `dono@dev.local`, `prof@dev.local`, `recepcao@dev.local` ou
+`suporte@dev.local` (este último é o único jeito de ver `/contas-4yu`), senha
 `senha-de-teste-123`. **`supabase db reset` apaga o seed** — rode o semeador de
 novo depois.
 
@@ -201,3 +212,15 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   falta de memória. Em produção a mesma suíte caiu de 8,8 para 4,3 minutos.
 - **No Playwright, `getByRole('alert')` colide com o anunciador de rota do
   Next.** Use o texto. E `getByLabel` não casa com `placeholder`.
+- **`aria-label` não pode repetir o rótulo do campo nos botões vizinhos.** Os
+  `−`/`+` de Padrões e os quatro botões de status da Sessão levavam o nome do
+  campo (ou da pessoa) dentro do rótulo; com isso `getByLabel('Prazo da
+  reposição')` casava com três elementos, e nem o teste nem o leitor de tela
+  conseguiam apontar o campo. O contexto vem da ordem na linha, não da repetição.
+- **Vestir tela quebra teste de propósito, e isso é contrato.** Os testes de
+  navegador buscam por papel e por texto: mudar "Todos vieram" para "Marcar
+  todos presentes" quebra dez deles. Atualizar o teste é certo — desde que o
+  commit diga qual texto mudou e por quê.
+- **Ler o código do protótipo não substitui abrir a tela dele.** Foi o erro que
+  originou o `VESTIR.md`: tokens certos, telas genéricas. Rode os dois
+  capturadores e compare 1440×1000 lado a lado.
