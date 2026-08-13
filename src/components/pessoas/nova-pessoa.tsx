@@ -23,7 +23,7 @@ export function NovaPessoa({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="self-start rounded border px-3 py-2"
+        className="min-h-11 rounded-[12px] bg-escuro px-3.5 text-[13px] font-medium text-tinta-clara hover:bg-[#1D332B]"
       >
         Cadastrar {rotuloPessoa.toLowerCase()}
       </button>
@@ -32,7 +32,7 @@ export function NovaPessoa({
 
   return (
     <form
-      className="flex flex-wrap items-end gap-2 rounded border p-3"
+      className="flex flex-wrap items-end gap-2 rounded-[15px] border border-linha-suave bg-superficie-suave p-3"
       action={(f) => {
         const nome = String(f.get('nome') ?? '')
         const telefone = String(f.get('telefone') ?? '')
@@ -45,19 +45,33 @@ export function NovaPessoa({
       }}
     >
       <div className="flex flex-col gap-1">
-        <label htmlFor="nome">Nome</label>
-        <input id="nome" name="nome" required className="rounded border px-3 py-2" />
+        <label htmlFor="nome" className="text-[12.5px] font-medium">Nome</label>
+        <input
+          id="nome" name="nome" required autoFocus
+          className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+        />
       </div>
 
       <div className="flex flex-col gap-1">
-        <label htmlFor="telefone">Telefone (opcional)</label>
-        <input id="telefone" name="telefone" className="rounded border px-3 py-2" />
+        <label htmlFor="telefone" className="text-[12.5px] font-medium">
+          Telefone (opcional)
+        </label>
+        <input
+          id="telefone" name="telefone"
+          className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]"
+        />
       </div>
 
-      <button type="submit" disabled={pendente} className="rounded border px-3 py-2">
+      <button
+        type="submit" disabled={pendente}
+        className="min-h-11 rounded-[11px] bg-escuro px-4 text-[13px] font-medium text-tinta-clara disabled:opacity-60"
+      >
         Salvar
       </button>
-      <button type="button" onClick={() => setAberto(false)} className="px-2 py-2 underline">
+      <button
+        type="button" onClick={() => setAberto(false)}
+        className="min-h-11 px-2 text-[12.5px] text-tinta-media underline"
+      >
         Cancelar
       </button>
     </form>

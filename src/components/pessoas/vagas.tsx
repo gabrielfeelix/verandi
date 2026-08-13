@@ -20,17 +20,25 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {ativas.length === 0 ? (
-        <p className="opacity-70">Sem horário fixo.</p>
+        <p className="text-[12.5px] text-tinta-media">
+          Sem horário fixo. Quem só vem de vez em quando é normal — a vaga
+          recorrente é para quem ocupa o mesmo horário toda semana.
+        </p>
       ) : (
         <ul className="flex flex-col gap-2">
           {ativas.map((v) => (
-            <li key={v.id} className="flex flex-wrap items-center gap-2 rounded border p-2">
-              <span>{v.rotulo}</span>
-              <span className="text-sm opacity-70">desde {v.desde}</span>
+            <li
+              key={v.id}
+              className="flex flex-wrap items-center gap-2.5 rounded-[12px] border border-linha-suave bg-superficie-suave px-3 py-2.5"
+            >
+              <span className="text-[13.5px] font-medium">{v.rotulo}</span>
+              <span className="font-mono text-[11.5px] text-tinta-media">
+                desde {v.desde.slice(8)}/{v.desde.slice(5, 7)}/{v.desde.slice(2, 4)}
+              </span>
               <button
                 type="button"
                 disabled={pendente}
-                className="ml-auto text-sm underline"
+                className="ml-auto min-h-9 rounded-[10px] border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:border-[#F0D6C8] hover:bg-[#FFF6F1] hover:text-alerta"
                 onClick={() => {
                   if (confirm('Encerrar a partir de hoje? O histórico anterior fica.')) {
                     iniciar(() => encerrarVaga(v.id, hoje))
@@ -46,10 +54,10 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
 
       {encerradas.length > 0 ? (
         <details>
-          <summary className="cursor-pointer text-sm opacity-70">
+          <summary className="cursor-pointer text-[12.5px] text-tinta-media">
             {encerradas.length} encerrada(s)
           </summary>
-          <ul className="mt-2 flex flex-col gap-1 text-sm opacity-70">
+          <ul className="mt-2 flex flex-col gap-1 text-[12.5px] text-tinta-media">
             {encerradas.map((v) => (
               <li key={v.id}>{v.rotulo} — de {v.desde} até {v.ate}</li>
             ))}
@@ -66,8 +74,10 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
         }}
       >
         <div className="flex flex-col gap-1">
-          <label htmlFor="serie">Nova {rotuloVaga.toLowerCase()}</label>
-          <select id="serie" name="serie" required className="rounded border px-2 py-2">
+          <label htmlFor="serie" className="text-[12.5px] font-medium">
+            Nova {rotuloVaga.toLowerCase()}
+          </label>
+          <select id="serie" name="serie" required className="min-h-11 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px]">
             <option value="">escolha o horário</option>
             {series.map((s) => (
               <option key={s.id} value={s.id}>{s.rotulo}</option>
@@ -76,17 +86,17 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="desde">A partir de</label>
+          <label htmlFor="desde" className="text-[12.5px] font-medium">A partir de</label>
           <input id="desde" name="desde" type="date" defaultValue={hoje}
-                 className="rounded border px-2 py-2" />
+                 className="min-h-11 rounded-[11px] border border-linha bg-superficie px-2.5 text-[13px]" />
         </div>
 
-        <button type="submit" disabled={pendente} className="rounded border px-3 py-2">
+        <button type="submit" disabled={pendente} className="min-h-11 rounded-[11px] border border-linha bg-superficie px-3 text-[13px]">
           Adicionar
         </button>
       </form>
 
-      <p className="text-sm opacity-60">
+      <p className="text-[11.5px] text-tinta-media">
         Ocupa esse horário toda semana, por tempo indeterminado.
       </p>
     </div>
