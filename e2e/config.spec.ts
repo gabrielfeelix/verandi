@@ -110,6 +110,16 @@ test('vocabulário mostra o efeito antes de salvar, e muda a navegação depois'
   await expect(page.getByText('Encaixar aluno')).toBeVisible()
 
   await page.getByRole('button', { name: 'Salvar vocabulário' }).click()
+
+  // o que se prova é que a navegação lê o vocabulário da conta — recarregar
+  // tira da conta o tempo de propagação do cache, que não é o assunto do teste
+  await expect.poll(async () => {
+    const { data } = await admin.from('vocabulario')
+      .select('plural').eq('conta_id', c.contaId).eq('chave', 'pessoa').maybeSingle()
+    return data?.plural
+  }).toBe('Alunos')
+
+  await page.reload()
   await expect(page.getByRole('link', { name: 'Alunos' })).toBeVisible()
 })
 

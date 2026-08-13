@@ -37,6 +37,14 @@ test('registrar a chamada tira a pendência sem passo extra', async ({ page }) =
   await page.goto(`/sessao/${c.sessaoId}`)
   await page.getByRole('button', { name: 'Todos vieram' }).click()
 
+  // esperar a escrita antes de navegar: a ação roda numa transição, e sair da
+  // página no meio dela testa o estado anterior
+  await expect.poll(async () => {
+    const { data } = await admin.from('participacao')
+      .select('status').eq('sessao_id', c.sessaoId).single()
+    return data?.status
+  }).toBe('presente')
+
   await page.goto('/pendencias')
   await expect(page.getByText('Nada pendente')).toBeVisible()
 })
