@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Os tokens do design system, com nome de função.
+ *
+ * Cor com nome de cor é cor que ninguém troca depois: `--color-marca`, não
+ * `--color-verde-escuro`. Os valores vêm do protótipo em `Design system
+ * Verandi/`, e o contrato está em `docs/DESIGN.md`.
+ */
+@theme {
+  /* base */
+  --color-fundo: #eef1ef;
+  --color-superficie: #ffffff;
+  --color-superficie-suave: #f6f8f7;
+  --color-superficie-mais-suave: #f1f5f3;
+  --color-tinta: #141a18;
+  --color-tinta-media: #5d6b66;
+  --color-tinta-fraca: #8b9691;
+  --color-tinta-clara: #eaf3f0;
+  --color-linha: #dfe5e2;
+  --color-linha-suave: #e7ecea;
+
+  /* marca */
+  --color-marca: #0e7c6b;
+  --color-marca-forte: #0a5e51;
+  --color-escuro: #12211c;
+  --color-menta: #2ac3a3;
+
+  /* tintas com significado — sempre acompanhadas de texto ou glifo */
+  --color-positivo-fundo: #dcede7;
+  --color-positivo: #0e7c6b;
+  --color-atencao-fundo: #f6e7c9;
+  --color-atencao: #8a6a22;
+  --color-alerta-fundo: #fbe4d9;
+  --color-alerta: #c5502a;
+  --color-info-fundo: #e4e9f5;
+  --color-info: #42507a;
+  --color-licenca-fundo: #e9e6f3;
+  --color-licenca: #5b4c7c;
+  --color-neutro-fundo: #edf1ef;
+  --color-neutro: #5d6b66;
+
+  /* tipografia */
+  --font-titulo: var(--fonte-titulo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--fonte-texto), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--fonte-mono), ui-monospace, monospace;
+
+  /* forma */
+  --radius-peca: 9px;
+  --radius-padrao: 11px;
+  --radius-cartao: 20px;
+
+  --shadow-elevado: 0 18px 34px -20px rgba(20, 26, 24, 0.45);
+  --shadow-modal: 0 30px 60px -30px rgba(18, 33, 28, 0.6);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/*
+ * O protótipo põe `user-select: none` e `caret-color: transparent` no body para
+ * a demonstração não parecer editável. No produto isso quebra copiar telefone,
+ * copiar nome e leitor de tela — por isso não está aqui, e não deve voltar.
+ */
+body {
+  background: var(--color-fundo);
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+::selection {
+  background: #c9ede4;
+}
+
+/* Foco de teclado visível em tudo. O protótipo não desenha, o produto precisa. */
+:focus-visible {
+  outline: 2px solid var(--color-menta);
+  outline-offset: 2px;
+}
+
+@keyframes vd-sobe {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes vd-brilha {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

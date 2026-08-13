@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #EEF1EF; -webkit-font-smoothing: antialiased; }
+  a { color: #0E7C6B; text-decoration: none; }
+  a:hover { color: #0A5E51; }
+  ::selection { background: #C9EDE4; }
+  @keyframes eRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes eHalo { 0%,100% { box-shadow: 0 0 0 0 rgba(14,124,107,.22); } 50% { box-shadow: 0 0 0 7px rgba(14,124,107,0); } }
+</style>
+</helmet>
+<div data-screen-label="Hoje — Estúdio" style="display:flex; min-height:100vh; font-family:'DM Sans',sans-serif; color:#141A18; background:#EEF1EF;">
+
+  <aside style="width:74px; flex:0 0 74px; background:#12211C; display:flex; flex-direction:column; align-items:center; padding:18px 0 20px; gap:22px;">
+    <div style="width:36px; height:36px; border-radius:12px; background:#2AC3A3; color:#0B1A15; display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:19px;">V</div>
+    <nav style="display:flex; flex-direction:column; gap:6px; align-items:center; width:100%;">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+        <div title="{{ n.rotulo }}" style="position:relative; width:46px; height:46px; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; background:{{ n.bg }}; color:{{ n.fg }}; transition:background .15s ease;" style-hover="background:rgba(255,255,255,.09)">
+          <span style="font-family:'DM Mono',monospace; font-size:15px; line-height:1;">{{ n.glifo }}</span>
+          <span style="font-size:8px; letter-spacing:.06em; text-transform:uppercase; opacity:.75;">{{ n.curto }}</span>
+          <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute; top:5px; right:5px; min-width:15px; height:15px; padding:0 4px; border-radius:8px; background:#F0693C; color:#fff; font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center;">{{ n.badge }}</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="margin-top:auto; width:38px; height:38px; border-radius:50%; background:#2F4A40; color:#BFEBDD; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; border:2px solid #2AC3A3;">TH</div>
+  </aside>
+
+  <main style="flex:1; min-width:0; padding:20px 24px 56px; display:flex; flex-direction:column; gap:18px;">
+
+    <header style="display:flex; align-items:center; justify-content:space-between; gap:20px;">
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h1 style="margin:0; font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:30px; line-height:1.05; letter-spacing:-.02em;">Bom dia, Thalya</h1>
+          </div>
+          <div style="font-size:13.5px; color:#5D6B66; padding-top:3px;">Quarta, 12 de agosto · Studio Vitalis</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-radius:12px; background:#fff; border:1px solid #DFE5E2; color:#8B9691; font-size:13px; min-width:220px;">
+          <span style="font-family:'DM Mono',monospace;">/</span>
+          <span>Buscar aluno ou horário</span>
+        </div>
+        <div style="display:flex; align-items:center; background:#fff; border:1px solid #DFE5E2; border-radius:12px; overflow:hidden;">
+          <button style="border:0; background:transparent; padding:9px 11px; cursor:pointer; color:#5D6B66; font-family:'DM Mono',monospace; font-size:13px;" style-hover="background:#F1F5F3">‹</button>
+          <span style="padding:9px 10px; font-size:13px; font-weight:500;">Hoje</span>
+          <button style="border:0; background:transparent; padding:9px 11px; cursor:pointer; color:#5D6B66; font-family:'DM Mono',monospace; font-size:13px;" style-hover="background:#F1F5F3">›</button>
+        </div>
+        <div style="display:flex; padding:3px; background:#fff; border:1px solid #DFE5E2; border-radius:12px; gap:3px;">
+          <button onClick="{{ setMinha }}" style="{{ tabMinha }}">Minha agenda</button>
+          <button onClick="{{ setTodos }}" style="{{ tabTodos }}">Todos</button>
+        </div>
+      </div>
+    </header>
+
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px;">
+      <sc-for list="{{ cards }}" as="c" hint-placeholder-count="4">
+        <div style="position:relative; padding:15px 16px; border-radius:16px; background:{{ c.bg }}; border:1px solid {{ c.borda }}; overflow:hidden;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12px; font-weight:500; color:{{ c.rotuloCor }};">{{ c.rotulo }}</span>
+            <span style="width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:11px; background:{{ c.chipBg }}; color:{{ c.chipFg }};">{{ c.glifo }}</span>
+          </div>
+          <div style="display:flex; align-items:flex-end; gap:8px; padding-top:8px;">
+            <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:30px; line-height:1; letter-spacing:-.02em; color:{{ c.valorCor }};">{{ c.valor }}</span>
+            <span style="font-size:12px; color:#7B8681; padding-bottom:3px;">{{ c.sub }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:grid; grid-template-columns:minmax(0,1fr) 316px; gap:16px; align-items:start;">
+
+      <div style="display:flex; flex-direction:column; gap:14px;">
+
+        <sc-if value="{{ hasProxima }}" hint-placeholder-val="{{ true }}">
+        <article style="position:relative; border-radius:20px; background:linear-gradient(180deg,#12211C 0%,#173029 100%); color:#EAF3F0; padding:22px 24px; overflow:hidden; box-shadow:0 14px 30px -20px rgba(18,33,28,.6);">
+          <div style="position:absolute; right:-40px; top:-40px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(42,195,163,.22),transparent 70%);"></div>
+          <div style="position:relative; display:flex; align-items:flex-start; justify-content:space-between; gap:26px;">
+            <div style="display:flex; gap:22px;">
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <span style="display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#2AC3A3;">
+                  <span style="width:7px; height:7px; border-radius:50%; background:#2AC3A3; animation:eHalo 2.4s ease-in-out infinite;"></span>Próxima turma
+                </span>
+                <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:40px; line-height:1; letter-spacing:-.03em;">{{ proxima.hora }}</span>
+                <span style="font-size:12.5px; color:#9FB5AE;">começa em {{ proxima.faltam }}</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:11px;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                  <h2 style="margin:0; font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:23px; line-height:1.1;">{{ proxima.servico }}</h2>
+                  <span style="font-family:'DM Mono',monospace; font-size:12px; padding:3px 9px; border-radius:8px; background:rgba(234,243,240,.12); color:#CDE3DD;">{{ proxima.ocupacao }}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:13px; font-size:13px; color:#B7CBC5;">
+                  <span style="display:inline-flex; align-items:center; gap:7px;"><span style="width:8px; height:8px; border-radius:50%; background:{{ proxima.profCor }};"></span>{{ proxima.prof }}</span>
+                  <span style="opacity:.4;">·</span><span>{{ proxima.local }}</span>
+                </div>
+                <div style="display:flex; gap:7px; flex-wrap:wrap;">
+                  <sc-for list="{{ proxima.pessoas }}" as="p" hint-placeholder-count="4">
+                    <div style="display:flex; align-items:center; gap:8px; padding:5px 12px 5px 5px; border-radius:999px; background:rgba(234,243,240,.08); border:1px solid rgba(234,243,240,.12);">
+                      <span style="width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; background:{{ p.bg }}; color:{{ p.fg }};">{{ p.ini }}</span>
+                      <span style="font-size:13px; color:#EAF3F0;">{{ p.nome }}</span>
+                      <sc-if value="{{ p.marca }}" hint-placeholder-val="{{ false }}">
+                        <span style="font-size:9.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; padding:2px 6px; border-radius:5px; background:rgba(240,105,60,.18); color:#F5A88A;">{{ p.marca }}</span>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:9px; min-width:206px;">
+              <button onClick="{{ marcarTodos }}" style="border:0; background:#2AC3A3; color:#08201A; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; padding:13px 16px; border-radius:12px; cursor:pointer; transition:transform .12s ease, background .15s ease;" style-hover="background:#38D6B4" style-active="transform:translateY(1px)">Marcar todos presentes</button>
+              <button style="border:1px solid rgba(234,243,240,.22); background:transparent; color:#EAF3F0; font-family:'DM Sans',sans-serif; font-size:13px; padding:11px 16px; border-radius:12px; cursor:pointer;" style-hover="background:rgba(234,243,240,.1)">Abrir turma</button>
+              <button style="border:0; background:transparent; color:#9FB5AE; font-size:12px; cursor:pointer;" style-hover="color:#EAF3F0">Encaixar aluno</button>
+            </div>
+          </div>
+        </article>
+        </sc-if>
+
+        <sc-if value="{{ undo.aberto }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 16px; border-radius:14px; background:#fff; border:1px solid #C9EDE4; box-shadow:0 8px 20px -14px rgba(14,124,107,.5); animation:eRise .18s ease both;">
+            <span style="display:flex; align-items:center; gap:10px; font-size:13.5px;"><span style="width:8px; height:8px; border-radius:50%; background:#0E7C6B;"></span>{{ undo.texto }}</span>
+            <button onClick="{{ desfazer }}" style="border:1px solid #DFE5E2; background:#F4F8F6; color:#0E7C6B; font-size:12px; font-weight:600; padding:7px 13px; border-radius:9px; cursor:pointer;" style-hover="background:#E7F4F0">Desfazer</button>
+          </div>
+        </sc-if>
+
+        <section style="border-radius:20px; background:#fff; border:1px solid #DFE5E2; padding:6px 8px 10px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 12px 8px;">
+            <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px;">Agenda do dia</span>
+            <span style="font-size:12px; color:#8B9691;">{{ totalSessoes }} turmas · {{ pendentes }} chamada(s) pendente(s)</span>
+          </div>
+          <div style="display:flex; flex-direction:column;">
+            <sc-for list="{{ sessoes }}" as="s" hint-placeholder-count="6">
+              <div style="display:grid; grid-template-columns:66px 14px 1fr auto auto; align-items:center; gap:14px; padding:12px 12px; border-radius:14px; cursor:pointer; background:{{ s.rowBg }}; transition:background .15s ease;" style-hover="background:#F1F5F3">
+                <div style="display:flex; flex-direction:column;">
+                  <span style="font-family:'DM Mono',monospace; font-size:15px; color:{{ s.horaCor }}; text-decoration:{{ s.risco }};">{{ s.hora }}</span>
+                  <span style="font-size:10.5px; color:#9AA5A0;">{{ s.duracao }}</span>
+                </div>
+                <div style="position:relative; align-self:stretch; display:flex; justify-content:center;">
+                  <span style="width:3px; border-radius:2px; background:{{ s.profCor }}; opacity:{{ s.faixaOp }};"></span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; min-width:0;">
+                  <span style="font-size:15px; font-weight:500; color:{{ s.tituloCor }}; text-decoration:{{ s.risco }};">{{ s.servico }}</span>
+                  <span style="font-size:12px; color:#7B8681;">{{ s.prof }} · {{ s.nota }}</span>
+                </div>
+                <div style="display:flex; align-items:center;">
+                  <sc-for list="{{ s.pessoas }}" as="p" hint-placeholder-count="3">
+                    <span title="{{ p.nome }}" style="width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; background:{{ p.bg }}; color:{{ p.fg }}; border:2px solid #fff; margin-right:-9px; opacity:{{ s.avatarOp }};">{{ p.ini }}</span>
+                  </sc-for>
+                  <span style="width:18px;"></span>
+                  <span style="font-family:'DM Mono',monospace; font-size:12px; padding:3px 8px; border-radius:8px; background:{{ s.ocupBg }}; color:{{ s.ocupFg }};">{{ s.ocupacao }}</span>
+                </div>
+                <span style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:500; padding:5px 10px; border-radius:9px; background:{{ s.stBg }}; color:{{ s.stFg }};">
+                  <span style="width:6px; height:6px; border-radius:50%; background:{{ s.stFg }};"></span>{{ s.stLabel }}
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <section style="border-radius:20px; background:#fff; border:1px solid #DFE5E2; padding:16px;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; padding-bottom:12px;">
+            <span style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px;">Pendências</span>
+            <a href="#" style="font-size:12px; font-weight:500;">Ver tudo</a>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <sc-for list="{{ pendencias }}" as="q" hint-placeholder-count="4">
+              <div style="display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:13px; background:#F6F8F7; cursor:pointer; transition:background .15s ease;" style-hover="background:#EDF3F0">
+                <span style="width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; background:{{ q.bg }}; color:{{ q.fg }};">{{ q.n }}</span>
+                <div style="display:flex; flex-direction:column; line-height:1.3; min-width:0;">
+                  <span style="font-size:13px; font-weight:500;">{{ q.titulo }}</span>
+                  <span style="font-size:11.5px; color:#8B9691;">{{ q.detalhe }}</span>
+                </div>
+                <span style="margin-left:auto; font-family:'DM Mono',monospace; font-size:13px; color:#A9B3AE;">›</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="border-radius:20px; background:#fff; border:1px solid #DFE5E2; padding:16px;">
+          <div style="font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:17px; padding-bottom:12px;">Professores hoje</div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <sc-for list="{{ profs }}" as="pr" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; gap:11px;">
+                <span style="width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; background:{{ pr.bg }}; color:{{ pr.fg }};">{{ pr.ini }}</span>
+                <div style="display:flex; flex-direction:column; flex:1; min-width:0; gap:5px;">
+                  <span style="font-size:13px; font-weight:500;">{{ pr.nome }}</span>
+                  <span style="height:5px; border-radius:3px; background:#EDF1EF; overflow:hidden; display:block;">
+                    <span style="display:block; height:5px; width:{{ pr.pct }}; background:{{ pr.cor }}; border-radius:3px;"></span>
+                  </span>
+                </div>
+                <span style="font-family:'DM Mono',monospace; font-size:11.5px; color:#8B9691;">{{ pr.carga }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="border-radius:20px; border:1px dashed #C6D2CD; padding:15px; background:#F6F8F7;">
+          <div style="font-size:12.5px; line-height:1.55; color:#5D6B66;">Turma lotada não é bloqueio: <strong style="color:#141A18; font-weight:600;">5/4</strong> aparece em laranja e o encaixe segue permitido.</div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const CORES = { thalya: "#0E7C6B", carol: "#F0693C", nath: "#4A5C8C" };
+const AV = [
+  ["#DCEDE7", "#0E7C6B"], ["#E4E9F5", "#42507A"], ["#FBE4D9", "#B4562F"],
+  ["#E9E6F3", "#5B4C7C"], ["#E5EFDC", "#4E6B37"], ["#F6E7C9", "#8A6A22"]
+];
+function pessoa(nome, i, marca) {
+  const p = nome.trim().split(" ");
+  const ini = (p[0][0] + (p[1] ? p[1][0] : "")).toUpperCase();
+  const [bg, fg] = AV[i % AV.length];
+  return { nome, ini, bg, fg, marca: marca || false };
+}
+const ST = {
+  feita: { stLabel: "Feita", stBg: "#E3F2ED", stFg: "#0E7C6B" },
+  pendente: { stLabel: "Pendente", stBg: "#FDE9E0", stFg: "#C5502A" },
+  cancelada: { stLabel: "Cancelada", stBg: "#EDF1EF", stFg: "#8B9691" },
+  aberta: { stLabel: "Aberta", stBg: "#F1F5F3", stFg: "#7B8681" }
+};
+function ocup(o, cheia) {
+  return cheia
+    ? { ocupacao: o, ocupBg: "#FDE9E0", ocupFg: "#C5502A" }
+    : { ocupacao: o, ocupBg: "#F1F5F3", ocupFg: "#5D6B66" };
+}
+const NORMAL = { rowBg: "transparent", risco: "none", avatarOp: "1", faixaOp: "1", horaCor: "#141A18", tituloCor: "#141A18" };
+const PASSOU = { rowBg: "transparent", risco: "none", avatarOp: ".8", faixaOp: ".45", horaCor: "#7B8681", tituloCor: "#414A47" };
+
+class Component extends DCLogic {
+  state = { escopo: "minha", undo: { aberto: false, texto: "" } };
+
+  tab(a) {
+    return a
+      ? "border:0; background:#12211C; color:#EAF3F0; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; padding:7px 13px; border-radius:9px; cursor:pointer;"
+      : "border:0; background:transparent; color:#5D6B66; font-family:'DM Sans',sans-serif; font-size:13px; padding:7px 13px; border-radius:9px; cursor:pointer;";
+  }
+  marcarTodos = () => {
+    this.setState({ undo: { aberto: true, texto: "4 presenças registradas · Pilates Solo 09:00" } });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ undo: { aberto: false, texto: "" } }), 6000);
+  };
+  desfazer = () => this.setState({ undo: { aberto: false, texto: "" } });
+
+  renderVals() {
+    const escopo = this.state.escopo;
+    const proxima = {
+      hora: "09:00", faltam: "22 min", servico: "Pilates Solo", prof: "Thalya Ribeiro",
+      profCor: "#2AC3A3", local: "Sala 1", ocupacao: "3/4",
+      pessoas: [pessoa("Ruth Salgado", 0), pessoa("Bianca Mendes", 1, "gestante"), pessoa("Larissa Cruz", 4), pessoa("Otávio Lemos", 2, "encaixe")]
+    };
+
+    let sessoes = [
+      { hora: "07:00", duracao: "50 min", servico: "Pilates Solo", prof: "Thalya", profCor: CORES.thalya, nota: "Sala 1 · 4 presenças, 1 falta",
+        pessoas: [pessoa("Vera Lúcia", 0), pessoa("Cássia Mota", 4), pessoa("Tiago Reis", 2), pessoa("Elza Bueno", 5)], ...ocup("4/4"), ...ST.feita, ...PASSOU },
+      { hora: "08:00", duracao: "50 min", servico: "Fáscia", prof: "Carol", profCor: CORES.carol, nota: "Sala 2 · ninguém registrou",
+        pessoas: [pessoa("Rita Campos", 2), pessoa("Simone Vaz", 1), pessoa("Paulo Herrera", 3)], ...ocup("3/4"), ...ST.pendente, ...PASSOU, rowBg: "#FFFAF7" },
+      { hora: "08:00", duracao: "50 min", servico: "Boxe infantil", prof: "Nath", profCor: CORES.nath, nota: "professora doente · 3 avisados",
+        pessoas: [pessoa("Léo Martins", 4), pessoa("Duda Farias", 5), pessoa("Ian Costa", 0)], ...ocup("3/6"), ...ST.cancelada, ...PASSOU, risco: "line-through", avatarOp: ".4", faixaOp: ".25" },
+      { hora: "10:00", duracao: "50 min", servico: "Pilates Solo", prof: "Thalya", profCor: CORES.thalya, nota: "Sala 1",
+        pessoas: [pessoa("Marina Alves", 4), pessoa("Cleide Rocha", 5), pessoa("Júlia Pontes", 1)], ...ocup("3/4"), ...ST.aberta, ...NORMAL },
+      { hora: "11:00", duracao: "50 min", servico: "Fáscia", prof: "Carol", profCor: CORES.carol, nota: "Sala 2 · lotada, encaixe permitido",
+        pessoas: [pessoa("Denise Faro", 2), pessoa("Ana Beatriz", 0), pessoa("Rafael Tinoco", 3), pessoa("Sueli Amaral", 5), pessoa("Iara Prado", 4)], ...ocup("5/4", true), ...ST.aberta, ...NORMAL },
+      { hora: "17:00", duracao: "50 min", servico: "Pilates Solo", prof: "Nath", profCor: CORES.nath, nota: "Sala 1",
+        pessoas: [pessoa("Hugo Braga", 3), pessoa("Priscila Dias", 5)], ...ocup("2/4"), ...ST.aberta, ...NORMAL },
+      { hora: "18:00", duracao: "50 min", servico: "Personal", prof: "Nath", profCor: CORES.nath, nota: "Sala 3",
+        pessoas: [pessoa("Eduardo Sá", 1)], ...ocup("1/1"), ...ST.aberta, ...NORMAL }
+    ];
+    if (escopo === "minha") sessoes = sessoes.filter(s => s.prof !== "Nath");
+
+    return {
+      proxima, hasProxima: true, sessoes,
+      totalSessoes: String(sessoes.length),
+      pendentes: String(sessoes.filter(s => s.stLabel === "Pendente").length),
+      cards: [
+        { rotulo: "Turmas hoje", valor: String(sessoes.length), sub: "até 18h", glifo: "≡", bg: "#fff", borda: "#DFE5E2", chipBg: "#F1F5F3", chipFg: "#5D6B66", rotuloCor: "#5D6B66", valorCor: "#141A18" },
+        { rotulo: "Chamadas pendentes", valor: String(sessoes.filter(s => s.stLabel === "Pendente").length), sub: "de sessões passadas", glifo: "!", bg: "#FFF6F1", borda: "#F7DACB", chipBg: "#FBE4D9", chipFg: "#C5502A", rotuloCor: "#A6552F", valorCor: "#C5502A" },
+        { rotulo: "Presenças", valor: "27", sub: "registradas hoje", glifo: "✓", bg: "#F3FAF7", borda: "#CFEBE1", chipBg: "#DCEDE7", chipFg: "#0E7C6B", rotuloCor: "#3E7A6C", valorCor: "#0E7C6B" },
+        { rotulo: "Reposições em aberto", valor: "3", sub: "mais antiga: 41 dias", glifo: "↺", bg: "#fff", borda: "#DFE5E2", chipBg: "#F1F5F3", chipFg: "#5D6B66", rotuloCor: "#5D6B66", valorCor: "#141A18" }
+      ],
+      nav: [
+        { rotulo: "Hoje", curto: "Hoje", glifo: "◍", bg: "rgba(42,195,163,.16)", fg: "#2AC3A3", badge: false },
+        { rotulo: "Grade da semana", curto: "Semana", glifo: "▦", bg: "transparent", fg: "#8FA8A0", badge: false },
+        { rotulo: "Pendências", curto: "Pend.", glifo: "◎", bg: "transparent", fg: "#8FA8A0", badge: "6" },
+        { rotulo: "Alunos", curto: "Alunos", glifo: "◇", bg: "transparent", fg: "#8FA8A0", badge: false },
+        { rotulo: "Buscar vaga", curto: "Vaga", glifo: "⌕", bg: "transparent", fg: "#8FA8A0", badge: false },
+        { rotulo: "Configuração", curto: "Config", glifo: "⚙", bg: "transparent", fg: "#8FA8A0", badge: false }
+      ],
+      pendencias: [
+        { n: "2", titulo: "Chamadas não feitas", detalhe: "Fáscia 08:00 · Solo ontem 19:00", bg: "#FBE4D9", fg: "#C5502A" },
+        { n: "3", titulo: "Reposições em aberto", detalhe: "a mais antiga há 41 dias", bg: "#F6E7C9", fg: "#8A6A22" },
+        { n: "1", titulo: "Reserva esperando", detalhe: "Solo 07:00 · quinta", bg: "#E4E9F5", fg: "#42507A" },
+        { n: "6", titulo: "Sem telefone", detalhe: "não dá para avisar", bg: "#EDF1EF", fg: "#5D6B66" }
+      ],
+      profs: [
+        { nome: "Thalya Ribeiro", ini: "TH", bg: "#DCEDE7", fg: "#0E7C6B", cor: CORES.thalya, carga: "4 turmas", pct: "80%" },
+        { nome: "Carol Nunes", ini: "CN", bg: "#FBE4D9", fg: "#B4562F", cor: CORES.carol, carga: "2 turmas", pct: "40%" },
+        { nome: "Nath Coelho", ini: "NC", bg: "#E4E9F5", fg: "#42507A", cor: CORES.nath, carga: "2 turmas", pct: "40%" }
+      ],
+      tabMinha: this.tab(escopo === "minha"),
+      tabTodos: this.tab(escopo === "todos"),
+      setMinha: () => this.setState({ escopo: "minha" }),
+      setTodos: () => this.setState({ escopo: "todos" }),
+      marcarTodos: this.marcarTodos, desfazer: this.desfazer, undo: this.state.undo
+    };
+  }
+}
+
+</script>
+</body>
+</html>

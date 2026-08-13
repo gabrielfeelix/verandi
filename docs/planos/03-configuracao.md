@@ -132,6 +132,129 @@ Não é trabalho do marco 1, mas é decisão de modelo: provavelmente anonimizar
 pessoa (nome, telefone, e-mail) preservando a linha, em vez de deletar. Escrito
 aqui para não ser descoberto no dia do pedido.
 
+## Revisão de 13/ago: o protótipo virou a especificação
+
+Depois das Tarefas 1–3, o protótipo visual (`Design system Verandi/`) foi lido
+inteiro e **passou a ser a especificação de interface e de produto**. Onde a tela
+divergir dele, é a tela que muda. O contrato de tokens e primitivos está em
+[`../DESIGN.md`](../DESIGN.md).
+
+Isso acrescenta trabalho que não estava aqui, e tira alguma coisa. O que segue é
+só a diferença.
+
+### O que muda de regra
+
+**Encaixe acima da capacidade passa a ser permitido, com aviso, e configurável.**
+Era o princípio mais duro do `TELAS.md` ("ou a capacidade sobe, ou não cabe"), e
+cai por decisão de produto. **Metade dele fica de pé, e é a metade que importa:**
+
+| Função | Antes | Agora |
+|---|---|---|
+| `avaliarEncaixe` — a recepção encaixando | recusa `lotada` | devolve `acima_da_capacidade`, e quem chama decide |
+| `temVagaParaOferecer` — busca de vaga e **API do bot** | recusa | **continua recusando** |
+
+A recepção olhando para a pessoa na frente dela e abrindo exceção é uma coisa. O
+bot confirmando sozinho a sexta pessoa numa turma de quatro, às 23h, sem ninguém
+ver, é outra. `5/4` continua sendo um estado que alguém criou de propósito, com
+nome e registro.
+
+`ajustarCapacidade` continua existindo, com propósito separado: encaixe é exceção
+de um dia, capacidade é dizer que aquela turma agora é de cinco.
+
+**Falta avisada gera crédito vira `Sim/Não`.** O protótipo oferece "só com 3h de
+antecedência", e isso **não é implementável honestamente hoje**: não guardamos
+quando a pessoa avisou, só quando a recepção digitou. A opção entra junto da
+confirmação por bot, no marco 2, com uma coluna `avisado_em` — que é quando o
+horário do aviso passa a existir de verdade.
+
+### O que entra no modelo
+
+| O quê | Onde | Por quê |
+|---|---|---|
+| `conta`: capacidade padrão, duração padrão, intervalo entre turmas, prazo da reposição, encaixe acima da capacidade, crédito por falta avisada | Tarefa 4 | seção Padrões do protótipo |
+| `conta`: horários sugeridos (os chips) | Tarefa 4 | chip de horário é configurável, com campo livre para 07:30 |
+| `local.capacidade` | Tarefa 4 | limite físico atrás do limite comercial; com encaixe liberado, é o aviso que sobrou |
+| `profissional`: e-mail, telefone, **foto** | Tarefa 4 | exige **Supabase Storage** — bucket, política, upload |
+| `profissional_servico` (N:N) | Tarefa 4 | filtra o seletor de profissional ao montar série |
+| `excecao_calendario`: o que fazer com as sessões do dia | Tarefa 4 | "cancelar e avisar" vs "só marcar como fechado" |
+
+**Prazo da reposição é o item mais valioso desta lista, e não é configuração:** é
+o que faz Pendências esvaziar. Hoje crédito de falta não expira nunca, e lista
+que nunca zera vira ruído — o modo de falha que o próprio `TELAS.md` avisa.
+
+### O que sai
+
+| O quê | Por quê |
+|---|---|
+| Papel `Financeiro` | aparece em Usuários e em Trocar papel, e **não aparece em Convidar** — contradição do próprio protótipo. O produto não tem nada financeiro, e o papel custaria migration de enum mais revisão das 28 políticas de RLS para não poder fazer nada de diferente |
+| Tipo do local | não muda comportamento nenhum; o nome já diz ("Sala 1", "Domicílio") |
+| Grupo "planos vencendo" em Pendências | o protótipo o moveu para filtro em Pessoas, e está certo: é lista que se lê, não ação que se toma |
+| Magic link e recuperação por e-mail | dependem de SMTP, que é marco 2. Substituídos pelo caminho abaixo |
+
+**Redefinir senha sem e-mail:** o dono redefine a de quem ele convidou, pela tela
+de Usuários; o suporte da 4YU redefine a do dono, pela tela de Contas. Mesma
+cobertura, zero infraestrutura, e quando o Resend entrar o e-mail vira só mais um
+caminho. Sem isso, toda senha esquecida na primeira semana é um chamado para a
+4YU com a chave de serviço na mão.
+
+**Intervalo entre turmas fica, com serviço definido:** é ele que gera o próximo
+chip de horário (fim + intervalo) e evita a busca de vaga oferecer encaixe
+colado. Sem consumidor seria número morto.
+
+### Grade da semana com muitas salas
+
+O modelo já aguenta sessões paralelas — `sessao` não tem constraint de horário
+único — e `grade-semana.tsx` já empilha todas as sessões da célula. O que falta é
+tratamento, e ele muda conforme o tamanho do negócio:
+
+| Negócio | Tela certa |
+|---|---|
+| 1 sala | grade semanal como está |
+| 2 salas | célula dividida, como o `celulaDupla` do protótipo |
+| 3+ | célula mostra duas e `+N`, abrindo o modal de horário paralelo |
+| 7 salas (tatuagem, barbearia) | **visão de dia por recurso**: colunas = local ou profissional, linhas = hora |
+
+Quem tem sete salas não pergunta "como está a semana", pergunta "como está hoje,
+sala por sala". Entra como alternância **Semana | Dia** em `/semana`, mais
+**filtro por local** — que hoje só existe por profissional.
+
+### Ordem revista
+
+```
+Tarefa 0   tokens e primitivos            ← faz as telas seguintes nascerem vestidas
+Tarefa 4   Config, com Padrões e Equipe
+Tarefa 4b  encaixe permitido com aviso    ← core/ e tela de Sessão
+Tarefa 5   Convite
+Tarefa 6   Usuários e redefinir senha
+Tarefa 7   Pendências, quatro grupos
+Tarefa 8   Faixa de suporte
+Tarefa 9   Contas da 4YU
+Tarefa 10  fechamento
+Tarefa 11  re-vestir o plano 02, modo Dia por recurso, kebab da Sessão
+```
+
+Construir as telas restantes com marcação descartável significaria refazer seis
+telas depois. Por isso os primitivos vêm primeiro.
+
+---
+
+### Tarefa 0: Tokens e primitivos
+
+**Arquivos:** modificar `src/app/globals.css`, `src/app/layout.tsx`; criar
+`src/components/ui/`; teste `e2e/primitivos.spec.ts`.
+
+**Entrega:** as nove peças de [`../DESIGN.md`](../DESIGN.md), sem regra de negócio
+dentro, e uma rota de amostra que as mostra todas — que é como se confere
+contraste e foco sem abrir seis telas.
+
+**Aceite:**
+- as três fontes entram por `next/font`, sem `<link>` para o Google
+- os tokens de cor viram variáveis de tema do Tailwind, com nome de função
+- `user-select: none` e `caret-color: transparent` **não** existem no produto
+- todo controle tem foco visível de teclado e alvo de 44px nos de presença
+- `prefers-reduced-motion` zera animação
+- a amostra renderiza as nove peças em todas as variações
+
 ## Estrutura de arquivos
 
 ```
