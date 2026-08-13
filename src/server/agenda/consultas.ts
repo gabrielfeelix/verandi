@@ -119,7 +119,10 @@ export async function sessoesDoIntervalo(
   return (data ?? []).map((l) => paraResumo(l, fuso))
 }
 
-type LinhaDetalhe = LinhaResumo & {
+// não é interseção com `LinhaResumo` de propósito: `participacao` tem forma
+// diferente aqui, e interseção de dois tipos de array vira um tipo que o
+// TypeScript não consegue estreitar
+type LinhaDetalhe = Omit<LinhaResumo, 'participacao'> & {
   conta_id: string
   participacao: Array<{
     id: string
