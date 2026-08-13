@@ -48,7 +48,7 @@ para chegar até ela.
 **Pronto quando:** com a grade cadastrada na mão, dá para registrar a chamada de
 um dia inteiro pelo celular, encaixar uma reposição, e ver a semana no desktop.
 
-### Plano 03 — Configuração
+### Plano 03 — Configuração · [`planos/03-configuracao.md`](planos/03-configuracao.md)
 
 O que faz um negócio qualquer se cadastrar e começar a operar sem ninguém da 4YU
 mexer no banco: **Grade fixa**, **Configuração** (serviços, profissionais,
