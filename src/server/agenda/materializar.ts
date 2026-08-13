@@ -1,7 +1,7 @@
 import { expandirSerie } from '@/core/agenda/expandir'
 import type { Excecao, Serie } from '@/core/agenda/tipos'
 import type { Db } from '../supabase'
-import { instante } from './fuso'
+import { instante, localDe } from './fuso'
 
 type LinhaVaga = { serie_id: string; pessoa_id: string; inicio: string; fim: string | null }
 
@@ -109,7 +109,9 @@ export async function materializarJanela(
     if (!dasSerie.length || !inseridas?.length) continue
 
     const participacoes = inseridas.flatMap((sessao) => {
-      const dia = String(sessao.inicio).slice(0, 10)
+      // a data local da sessão, não o pedaço do ISO: a turma das 21h em Brasília
+      // é 00h do dia seguinte em UTC, e a vaga tem vigência em data local
+      const dia = localDe(sessao.inicio, fuso).data
       return dasSerie
         .filter((v) => v.inicio <= dia && (v.fim === null || v.fim >= dia))
         .map((v) => ({

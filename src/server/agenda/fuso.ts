@@ -40,6 +40,18 @@ export function limitesDoDia(data: string, fuso: string): { de: string; ate: str
   }
 }
 
+/**
+ * O dia de hoje **na conta**, não na máquina nem em UTC.
+ *
+ * `new Date().toISOString().slice(0, 10)` parece inofensivo e não é: depois das
+ * 21h no horário de Brasília isso já devolve o dia seguinte. A ocupação da grade
+ * mudaria de número à noite, e a turma das 21h semearia participação contra a
+ * data errada.
+ */
+export function hojeEm(fuso: string): string {
+  return localDe(new Date().toISOString(), fuso).data
+}
+
 /** Data e hora locais de um instante, no fuso da conta. */
 export function localDe(iso: string, fuso: string): { data: string; hora: string } {
   const fmt = new Intl.DateTimeFormat('en-CA', {

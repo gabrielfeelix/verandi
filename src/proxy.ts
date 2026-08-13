@@ -21,7 +21,9 @@ export async function proxy(req: NextRequest) {
 
   const publica =
     req.nextUrl.pathname.startsWith('/entrar') ||
-    req.nextUrl.pathname.startsWith('/convite')
+    req.nextUrl.pathname.startsWith('/convite') ||
+    // a amostra dos primitivos não lê dado de conta nenhuma: é design system
+    req.nextUrl.pathname.startsWith('/amostra')
 
   if (!user && !publica) {
     return NextResponse.redirect(new URL('/entrar', req.url))

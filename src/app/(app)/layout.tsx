@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { exigirConta, clienteServidor, contasDoUsuario } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { Sair } from '@/components/ui/sair'
+import { FaixaSuporte } from '@/components/ui/faixa-suporte'
 
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
   const conta = await exigirConta()
@@ -13,6 +14,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-dvh">
+      {conta.papel === 'suporte' ? <FaixaSuporte conta={conta.nome} /> : null}
       {/* A conta ativa aparece em toda tela de propósito: operar na conta
           errada é o erro mais caro que este sistema permite, e é silencioso. */}
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3">
@@ -24,6 +26,11 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           {operacional ? <Link href="/semana">Semana</Link> : null}
           {operacional ? <Link href="/pessoas">{rotulos.pessoa.plural}</Link> : null}
           {operacional ? <Link href="/vaga">Buscar vaga</Link> : null}
+          {operacional ? <Link href="/pendencias">Pendências</Link> : null}
+          {operacional ? <Link href="/grade">Grade fixa</Link> : null}
+          {conta.papel === 'dono' || conta.papel === 'suporte'
+            ? <Link href="/config">Configuração</Link> : null}
+          {conta.papel === 'suporte' ? <Link href="/contas-4yu">Contas</Link> : null}
         </nav>
 
         <div className="ml-auto flex items-center gap-4">

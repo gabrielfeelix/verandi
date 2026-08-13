@@ -27,6 +27,9 @@ async function cenarioCheio() {
 
 test('horário cheio recusa o encaixe e aponta a saída', async ({ page }) => {
   const c = await cenarioCheio()
+  // esta conta escolheu bloquear excedente: lotada é lotada, e a saída é subir
+  // a capacidade do dia
+  await admin.from('conta').update({ encaixe_acima: false }).eq('id', c.contaId)
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
@@ -122,4 +125,71 @@ test('cancelar o horário avisa quantas pessoas serão afetadas', async ({ page 
 
   await expect(page.getByText('Horário cancelado — Sala interditada')).toBeVisible()
   expect(textoDoAviso).toContain('2 pessoa(s)')
+})
+
+test('com encaixe acima permitido, a tela pede confirmação e registra a exceção', async ({ page }) => {
+  const c = await cenarioCheio()
+  await admin.from('conta').update({ encaixe_acima: true }).eq('id', c.contaId)
+
+  await entrar(page, c.email)
+  await page.goto(`/sessao/${c.sessaoId}`)
+
+  await expect(page.getByText('2/2 — cheio')).toBeVisible()
+
+  await page.getByPlaceholder('Buscar por nome').fill('Beatriz')
+  await page.getByRole('button', { name: /Beatriz Nogueira/ }).click()
+
+  // não grava no primeiro toque: passa da capacidade e a tela conta isso
+  await expect(page.getByText(/Encaixar deixa 3\/2/)).toBeVisible()
+  const antes = await admin.from('participacao')
+    .select('*', { count: 'exact', head: true }).eq('sessao_id', c.sessaoId)
+  expect(antes.count).toBe(2)
+
+  await page.getByRole('button', { name: 'Encaixar mesmo assim' }).click()
+
+  await expect.poll(async () => {
+    const { count } = await admin.from('participacao')
+      .select('*', { count: 'exact', head: true }).eq('sessao_id', c.sessaoId)
+    return count
+  }).toBe(3)
+})
+
+test('desistir da confirmação não grava nada', async ({ page }) => {
+  const c = await cenarioCheio()
+  await admin.from('conta').update({ encaixe_acima: true }).eq('id', c.contaId)
+
+  await entrar(page, c.email)
+  await page.goto(`/sessao/${c.sessaoId}`)
+
+  await page.getByPlaceholder('Buscar por nome').fill('Beatriz')
+  await page.getByRole('button', { name: /Beatriz Nogueira/ }).click()
+  await page.getByRole('button', { name: 'Não encaixar' }).click()
+
+  const { count } = await admin.from('participacao')
+    .select('*', { count: 'exact', head: true }).eq('sessao_id', c.sessaoId)
+  expect(count).toBe(2)
+})
+
+test('a busca de vaga não oferece horário cheio, mesmo com encaixe permitido', async ({ page }) => {
+  const c = await cenarioCheio()
+  await admin.from('conta').update({ encaixe_acima: true }).eq('id', c.contaId)
+
+  // uma sessão cheia amanhã: a busca olha para frente
+  const amanha = new Date(Date.now() + 864e5).toISOString().slice(0, 10)
+  const { data: sessao } = await admin.from('sessao').insert({
+    conta_id: c.contaId, servico_id: c.servicoId, profissional_id: c.profissionalId,
+    local_id: c.localId, inicio: `${amanha}T13:00:00Z`, duracao_min: 60,
+    capacidade: 1, status: 'prevista', motivo_cancelamento: null,
+  }).select().single()
+  await admin.from('participacao').insert({
+    conta_id: c.contaId, sessao_id: sessao!.id, pessoa_id: c.pessoas[0].id,
+    origem: 'recorrente', status: 'esperada',
+  })
+
+  await entrar(page, c.email)
+  await page.goto('/vaga')
+
+  // a recepção pode abrir exceção olhando para a pessoa; a busca não decide nada
+  await expect(page.getByRole('heading', { name: /Cheios/ })).toBeVisible()
+  await expect(page.getByLabel('Horários cheios')).toContainText('1/1')
 })

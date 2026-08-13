@@ -87,3 +87,41 @@ describe('temVagaParaOferecer', () => {
     expect(temVagaParaOferecer(o)).toBe(false)
   })
 })
+
+describe('encaixe acima da capacidade', () => {
+  const cheia = calcularOcupacao(4, ['presente', 'presente', 'presente', 'presente'])
+
+  it('com a conta permitindo, cabe — e vem marcado como excedente', () => {
+    expect(avaliarEncaixe(cheia, false, true)).toEqual({
+      cabe: true, acimaDaCapacidade: true, podeAbrirVaga: true,
+    })
+  })
+
+  it('com a conta bloqueando, continua sendo lotada', () => {
+    expect(avaliarEncaixe(cheia, false, false)).toEqual({
+      cabe: false, motivo: 'lotada', podeAbrirVaga: true,
+    })
+  })
+
+  it('o padrão é bloquear: quem não passa a configuração não abre exceção sem querer', () => {
+    expect(avaliarEncaixe(cheia, false).cabe).toBe(false)
+  })
+
+  it('a mesma pessoa duas vezes é recusada mesmo com excedente permitido', () => {
+    // duplicata não tem saída nenhuma: é a única regra que o banco impõe
+    expect(avaliarEncaixe(cheia, true, true)).toEqual({
+      cabe: false, motivo: 'ja_participa', podeAbrirVaga: false,
+    })
+  })
+
+  it('a busca de vaga NÃO muda com a configuração — cheio nunca é oferecido', () => {
+    expect(temVagaParaOferecer(cheia)).toBe(false)
+    const comVaga = calcularOcupacao(4, ['presente'])
+    expect(temVagaParaOferecer(comVaga)).toBe(true)
+  })
+
+  it('já acima da capacidade, encaixar de novo continua permitido com aviso', () => {
+    const excedida = calcularOcupacao(2, ['presente', 'presente', 'presente'])
+    expect(avaliarEncaixe(excedida, false, true).acimaDaCapacidade).toBe(true)
+  })
+})
