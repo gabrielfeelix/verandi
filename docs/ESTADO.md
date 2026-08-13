@@ -14,6 +14,23 @@ Uma conta nasce vazia, se configura inteira pela tela e opera a semana — e
 agora com a cara do protótipo, tela por tela, conferida em captura lado a lado.
 O que falta é a prova de ponta a ponta feita à mão.
 
+## O próximo passo, em ordem
+
+1. **Tarefa 10 — a prova manual de ponta a ponta.** É a única coisa que falta do
+   Plano 03, e é a que prova a promessa do produto: a conta se configura
+   sozinha. O caminho, sem `psql` e sem seed: entrar como `suporte@dev.local` →
+   criar conta em `/contas-4yu` → copiar o link do convite → aceitar e definir
+   senha → cadastrar serviço, profissional e local em `/config` → montar uma
+   grade de três dias em `/grade` → convidar uma recepção → cadastrar uma pessoa
+   → criar a vaga na ficha dela → registrar a chamada em `/sessao/[id]`. O que
+   travar no caminho é defeito real: essa jornada nunca foi feita inteira pela
+   tela.
+2. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+   e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
+   dói no banco de desenvolvimento.
+3. **Marco 2** — API v1 para o AutoFluxos, eventos de saída, e-mail, confirmação
+   por bot. Nada disso exige tabela nova.
+
 ## Verificado agora
 
 | O quê | Resultado |
