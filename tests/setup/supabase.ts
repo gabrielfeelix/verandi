@@ -42,5 +42,5 @@ export async function comoUsuario(email: string, senha = 'senha-de-teste-123') {
   })
   if (erroLogin) throw erroLogin
 
-  return { cliente, usuarioId: data.user!.id }
+  return { cliente, usuarioId: data.user!.id, email }
 }

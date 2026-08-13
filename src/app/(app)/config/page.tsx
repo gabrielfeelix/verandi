@@ -15,6 +15,8 @@ import { SecaoVocabulario } from '@/components/config/vocabulario'
 import { SecaoFuncionamento } from '@/components/config/funcionamento'
 import { SecaoEquipe } from '@/components/config/equipe'
 import { listarEquipe } from '@/server/config/equipe'
+import { SecaoUsuarios } from '@/components/config/usuarios'
+import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
 
 const SECOES = [
   { chave: 'servicos', rotulo: 'Serviços' },
@@ -23,6 +25,7 @@ const SECOES = [
   { chave: 'padroes', rotulo: 'Padrões' },
   { chave: 'vocabulario', rotulo: 'Vocabulário' },
   { chave: 'funcionamento', rotulo: 'Funcionamento' },
+  { chave: 'usuarios', rotulo: 'Usuários' },
 ] as const
 
 type Secao = (typeof SECOES)[number]['chave']
@@ -120,6 +123,14 @@ export default async function Config({
               padrao: PADRAO[chave],
               explica: EXPLICA[chave],
             }))}
+          />
+        ) : null}
+
+        {secao === 'usuarios' ? (
+          <SecaoUsuarios
+            usuarios={await listarUsuarios(db, conta.contaId)}
+            convites={await listarConvites(db, conta.contaId)}
+            meuId={(await db.auth.getUser()).data.user?.id ?? ''}
           />
         ) : null}
 
