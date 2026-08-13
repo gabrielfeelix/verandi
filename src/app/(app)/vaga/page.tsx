@@ -5,7 +5,7 @@ import { horariosLivres } from '@/server/agenda/disponibilidade'
 import { somarDias, diaDaSemanaDe } from '@/core/agenda/datas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { AvatarProf } from '@/components/hoje/pecas'
-import { Chip, Vazio } from '@/components/ui/pecas'
+import { cartao, Chip, Vazio } from '@/components/ui/pecas'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 
 type Busca = Promise<{
@@ -76,7 +76,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
       </header>
 
       <div className="grid items-start gap-4 lg:grid-cols-[268px_minmax(0,1fr)]">
-        <section className="flex flex-col gap-4 rounded-cartao border border-linha bg-superficie p-4">
+        <section className={`flex flex-col gap-4 ${cartao} p-4`}>
           <div className="flex flex-col gap-2">
             <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
               Período
@@ -162,7 +162,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
             porDia(livres).map(([data, doDia]) => (
               <section
                 key={data}
-                className="overflow-hidden rounded-cartao border border-linha bg-superficie"
+                className={`overflow-hidden ${cartao}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
                   <h2 className="text-[13px] font-medium">
@@ -216,7 +216,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
               recepção prometer vaga que não existe. A única coisa que dá para
               fazer a partir daqui é ir na sessão e aumentar a capacidade. */}
           {cheios.length > 0 ? (
-            <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+            <section className={`overflow-hidden ${cartao}`}>
               <div className="border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
                 <h2 className="text-[13px] font-medium">Cheios ({cheios.length})</h2>
                 <p className="pt-0.5 text-[12px] text-tinta-media">

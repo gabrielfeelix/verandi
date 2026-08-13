@@ -3,7 +3,7 @@
 import { useState, useTransition, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Chip, Nota, entrada } from '@/components/ui/pecas'
+import { cartao, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarPadroes } from '@/server/config/acoes'
@@ -56,7 +56,7 @@ export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
   }
 
   return (
-    <section className="rounded-cartao border border-linha bg-superficie px-5 py-4.5">
+    <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[19px] font-semibold">Padrões</h2>
       <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
         O que já vem preenchido quando você cria algo novo. Sempre dá para mudar

@@ -4,7 +4,7 @@ import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { listarPessoas, POR_PAGINA, type FiltroPessoa } from '@/server/pessoas/consultas'
 import { NovaPessoa } from '@/components/pessoas/nova-pessoa'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
-import { Chip, Paginacao, Vazio } from '@/components/ui/pecas'
+import { cartao, Chip, Paginacao, Vazio } from '@/components/ui/pecas'
 
 const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   { valor: 'sem_telefone',     rotulo: 'Sem telefone' },
@@ -117,7 +117,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
         ) : null}
       </div>
 
-      <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+      <section className={`overflow-hidden ${cartao}`}>
         <div className="hidden grid-cols-[minmax(0,1fr)_132px_108px_116px_128px] gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid">
           {['Nome', 'Telefone', 'Horário fixo', 'Última presença', 'Situação'].map((c) => (
             <span

@@ -7,8 +7,9 @@ import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { marcarTodosPresentes, mudarStatus } from '@/server/agenda/acoes'
 import type { FaltaEmAberto } from '@/server/agenda/consultas'
 import { useAviso } from '@/components/ui/desfazer'
-import { GLIFO_PRESENCA, TINTA_ORIGEM } from '@/components/ui/tintas'
-import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
+import { GLIFO_PRESENCA, TINTA_ORIGEM, TINTA_PRESENCA } from '@/components/ui/tintas'
+import { cartao, Avatar, Vazio } from '@/components/ui/pecas'
+import { Icone } from '@/components/ui/icones'
 import { MenuPessoa } from './menu-pessoa'
 
 /**
@@ -98,7 +99,7 @@ export function ListaParticipacao({
   }
 
   return (
-    <section className="rounded-cartao border border-linha bg-superficie px-2.5 pt-2 pb-3">
+    <section className={`${cartao} px-2.5 pt-2 pb-3`}>
       <div className="flex items-center justify-between p-3">
         <h2 className="font-titulo text-[17px] font-semibold">
           {rotuloPessoas} nesta {rotuloSessao.toLowerCase()}
@@ -147,7 +148,6 @@ export function ListaParticipacao({
 
       <ul className="flex flex-col gap-1.5" aria-label={rotuloPessoas}>
         {lista.map((p) => {
-          const [fundo, frente] = paresDe(p.nome)
           const decidido = p.status !== 'esperada' && p.status !== 'confirmada'
           const detalhe = [
             p.reposicaoDeId ? 'repõe uma falta' : null,
@@ -163,31 +163,17 @@ export function ListaParticipacao({
                   : 'border-linha-fina bg-superficie-suave'
               }`}
             >
-              <span className="relative">
-                <span
-                  aria-hidden
-                  className="flex size-10 items-center justify-center rounded-full text-[13px] font-semibold"
-                  style={{ background: fundo, color: frente }}
-                >
-                  {iniciaisDe(p.nome)}
-                </span>
-                {decidido ? (
-                  <span
-                    aria-hidden
-                    className={`absolute -right-0.5 -bottom-0.5 flex size-[17px] items-center justify-center rounded-full border-2 border-superficie text-[9px] font-bold text-white ${
-                      p.status === 'presente'
-                        ? 'bg-positivo'
-                        : p.status === 'falta'
-                          ? 'bg-alerta'
-                          : p.status === 'falta_avisada'
-                            ? 'bg-atencao'
-                            : 'bg-licenca'
-                    }`}
-                  >
-                    {GLIFO_PRESENCA[p.status]}
-                  </span>
-                ) : null}
-              </span>
+              {/* o nome está escrito ao lado; o avatar aqui é reconhecimento */}
+              <Avatar
+                nome={p.nome}
+                tamanho={40}
+                decorativo
+                selo={
+                  decidido
+                    ? { tinta: TINTA_PRESENCA[p.status], glifo: GLIFO_PRESENCA[p.status] }
+                    : undefined
+                }
+              />
 
               <span className="flex min-w-0 flex-col gap-1.5">
                 <span className="flex flex-wrap items-center gap-2">
@@ -260,9 +246,12 @@ export function ListaParticipacao({
         })}
 
         {lista.length === 0 ? (
-          <li className="px-3 py-6 text-center text-[13px] text-tinta-media">
-            Ninguém marcado neste horário ainda. Não é erro de carregamento — é
-            uma {rotuloSessao.toLowerCase()} vazia.
+          <li>
+            <Vazio
+              icone="pessoas"
+              titulo="Ninguém marcado ainda"
+              texto={`Não é erro de carregamento — é uma ${rotuloSessao.toLowerCase()} vazia.`}
+            />
           </li>
         ) : null}
       </ul>
@@ -274,9 +263,9 @@ export function ListaParticipacao({
         >
           <span
             aria-hidden
-            className="flex size-10 items-center justify-center rounded-full border border-dashed border-linha-tracejada font-mono text-[15px] text-tinta-media"
+            className="flex size-10 items-center justify-center rounded-full border border-dashed border-linha-tracejada text-tinta-media"
           >
-            +
+            <Icone nome="mais" />
           </span>
           <span className="flex flex-col">
             <span className="text-[14px] font-medium text-marca">

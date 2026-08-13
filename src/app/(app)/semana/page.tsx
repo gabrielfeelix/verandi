@@ -8,7 +8,7 @@ import { GradeSemana } from '@/components/grade/grade-semana'
 import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
-import { Chip, Vazio } from '@/components/ui/pecas'
+import { cartao, Chip, Vazio } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
 
 type Busca = Promise<{
@@ -282,7 +282,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               </div>
             ) : (
               <ul
-                className="flex flex-col rounded-cartao border border-linha bg-superficie p-1.5"
+                className={`flex flex-col ${cartao} p-1.5`}
                 aria-label={rotulos.sessao.plural}
               >
                 {doDia.map((s) => (

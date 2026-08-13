@@ -8,6 +8,7 @@ import { ListaParticipacao } from '@/components/sessao/lista-participacao'
 import { PainelVaga } from '@/components/sessao/painel-vaga'
 import { TrocarProfissional } from '@/components/sessao/trocar-profissional'
 import { AvatarProf } from '@/components/hoje/pecas'
+import { cartao } from '@/components/ui/pecas'
 
 const DIAS = [
   'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira',
@@ -102,7 +103,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
           <span className="text-tinta">{sessao.servico} {sessao.hora}</span>
         </nav>
 
-        <article className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4.5 rounded-cartao border border-linha bg-superficie px-5.5 py-5">
+        <article className={`flex flex-wrap items-start justify-between gap-x-6 gap-y-4.5 ${cartao} px-5.5 py-5`}>
           <div className="flex min-w-0 flex-[1_1_340px] items-start gap-5.5">
             <div className="flex flex-col gap-1 border-r border-linha-suave pr-5.5">
               <span className="font-titulo text-[34px] leading-none font-semibold tracking-[-.03em]">
@@ -189,7 +190,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
           />
 
           <div className="flex flex-col gap-3.5">
-            <section className="rounded-cartao border border-linha bg-superficie p-4">
+            <section className={`${cartao} p-4`}>
               <h2 className="font-titulo text-[17px] font-semibold">
                 Resumo da chamada
               </h2>

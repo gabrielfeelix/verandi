@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { cartao, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { Modal } from '@/components/ui/modal'
 import { useAviso } from '@/components/ui/desfazer'
@@ -57,7 +57,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
       {grupos.map((g) => (
         <section
           key={g.tipo}
-          className="overflow-hidden rounded-cartao border border-linha bg-superficie"
+          className={`overflow-hidden ${cartao}`}
         >
           {/* cada grupo tem a sua tinta: quatro contagens laranja lado a lado
               não hierarquizam nada */}

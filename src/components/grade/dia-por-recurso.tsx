@@ -1,5 +1,5 @@
 import type { SessaoResumo } from '@/server/agenda/consultas'
-import { Vazio } from '@/components/ui/pecas'
+import { cartao, Vazio } from '@/components/ui/pecas'
 import { CelulaTurma } from './grade-semana'
 
 export type Recurso = { id: string; nome: string; cor?: string | null }
@@ -47,7 +47,7 @@ export function DiaPorRecurso({
   return (
     <section
       aria-label="Dia por recurso"
-      className="max-h-[calc(100vh-210px)] overflow-auto rounded-cartao border border-linha bg-superficie p-3.5"
+      className={`max-h-[calc(100vh-210px)] overflow-auto ${cartao} p-3.5`}
     >
       <div
         className="grid gap-1.5"

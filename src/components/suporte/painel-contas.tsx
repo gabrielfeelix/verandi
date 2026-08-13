@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import { cartao, Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
 import { paresDe } from '@/components/hoje/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarConta, entrarComoSuporte, suspenderConta } from '@/server/suporte/acoes'
@@ -59,7 +59,7 @@ export function PainelContas({
         </span>
       </p>
 
-      <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+      <section className={`overflow-hidden ${cartao}`}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-4.5 py-3.5">
           <h2 className="font-titulo text-[19px] font-semibold">Contas</h2>
           <Botao miudo onClick={() => setCriando(true)}>Nova conta</Botao>
@@ -201,7 +201,7 @@ export function PainelContas({
         </div>
       </section>
 
-      <section className="rounded-cartao border border-linha bg-superficie p-4">
+      <section className={`${cartao} p-4`}>
         <h2 className="font-titulo text-[19px] font-semibold">Log de acesso da 4YU</h2>
         <p className="pt-1 pb-3 text-[12.5px] text-tinta-media">
           Toda entrada em conta de cliente fica registrada, com início e fim.

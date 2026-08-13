@@ -87,7 +87,7 @@ test('quem avisou que não vem devolve a vaga', async ({ page }) => {
 
   await expect(page.getByText('1/2 — 1 livre(s)')).toBeVisible()
 
-  await page.getByLabel('Tipo').selectOption('reposicao')
+  await page.getByRole('button', { name: 'Reposição', exact: true }).click()
   await page.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await page.getByRole('button', { name: /Beatriz Nogueira/ }).click()
 
@@ -117,14 +117,16 @@ test('cancelar o horário avisa quantas pessoas serão afetadas', async ({ page 
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  let textoDoAviso = ''
-  page.on('dialog', (d) => { textoDoAviso = d.message(); d.accept() })
-
   await page.getByLabel('Cancelar este horário').fill('Sala interditada')
   await page.getByRole('button', { name: 'Cancelar horário' }).click()
 
+  // a confirmação diz o efeito nos dados, e não um `confirm()` do navegador
+  const confirmacao = page.getByRole('dialog')
+  await expect(confirmacao).toContainText('2 pessoa(s) serão avisadas')
+  await expect(confirmacao).toContainText('crédito de reposição')
+  await confirmacao.getByRole('button', { name: 'Cancelar horário' }).click()
+
   await expect(page.getByText(/cancelada — Sala interditada/)).toBeVisible()
-  expect(textoDoAviso).toContain('2 pessoa(s)')
 })
 
 test('com encaixe acima permitido, a tela pede confirmação e registra a exceção', async ({ page }) => {

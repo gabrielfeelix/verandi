@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import { cartao } from '@/components/ui/pecas'
 
 /**
  * A casca das seções de configuração, com as medidas do protótipo.
@@ -19,7 +20,7 @@ export function PainelConfig({
   children: ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+    <section className={`overflow-hidden ${cartao}`}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-5 py-4">
         <div>
           <h2 className="font-titulo text-[19px] font-semibold">{titulo}</h2>

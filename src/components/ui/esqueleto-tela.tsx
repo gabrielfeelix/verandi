@@ -1,4 +1,4 @@
-import { Esqueleto } from './pecas'
+import { cartao, Esqueleto } from './pecas'
 
 /**
  * O esqueleto de carregamento de cada tela, transcrito do `skel()` do protótipo.
@@ -233,7 +233,7 @@ function desenhar(b: Bloco) {
     case 'lateral':
       return (
         <div className="grid items-start gap-4 lg:grid-cols-[268px_minmax(0,1fr)]">
-          <div className="hidden flex-col gap-1 rounded-cartao border border-linha bg-superficie p-2 lg:flex">
+          <div className={`hidden flex-col gap-1 ${cartao} p-2 lg:flex`}>
             {Array.from({ length: 7 }, (_, i) => (
               <div key={i} className="flex items-center gap-3 px-3 py-3">
                 <Esqueleto largura={18} altura={18} raio={5} />

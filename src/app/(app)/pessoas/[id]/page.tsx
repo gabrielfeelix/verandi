@@ -7,6 +7,7 @@ import { EditarPessoa } from '@/components/pessoas/editar-pessoa'
 import { Vagas } from '@/components/pessoas/vagas'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { TINTA_PRESENCA, GLIFO_PRESENCA, TINTA_ORIGEM } from '@/components/ui/tintas'
+import { cartao } from '@/components/ui/pecas'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 
@@ -75,7 +76,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
         <span className="text-tinta">{p.nome}</span>
       </nav>
 
-      <article className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4 rounded-cartao border border-linha bg-superficie px-5.5 py-5">
+      <article className={`flex flex-wrap items-start justify-between gap-x-6 gap-y-4 ${cartao} px-5.5 py-5`}>
         <div className="flex min-w-0 flex-[1_1_360px] items-start gap-4.5">
           <span
             aria-hidden
@@ -157,7 +158,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-3.5">
-          <section className="rounded-cartao border border-linha bg-superficie p-4">
+          <section className={`${cartao} p-4`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3">
               <h2 className="font-titulo text-[17px] font-semibold">
                 {rotulos.vaga.plural}
@@ -181,7 +182,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
             />
           </section>
 
-          <section className="rounded-cartao border border-linha bg-superficie p-4">
+          <section className={`${cartao} p-4`}>
             <h2 className="pb-1 font-titulo text-[17px] font-semibold">Histórico</h2>
             <p className="pb-3 text-[12px] text-tinta-media">
               É o que responde &quot;ela vem mesmo?&quot; — a pergunta que hoje se
@@ -252,7 +253,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
         </div>
 
         <div className="flex flex-col gap-3.5">
-          <section className="rounded-cartao border border-linha bg-superficie p-4">
+          <section className={`${cartao} p-4`}>
             <h2 className="pb-3 font-titulo text-[17px] font-semibold">
               Próximos horários
             </h2>
@@ -279,7 +280,7 @@ export default async function Pessoa({ params }: { params: Promise<{ id: string 
             )}
           </section>
 
-          <section className="rounded-cartao border border-linha bg-superficie p-4">
+          <section className={`${cartao} p-4`}>
             <h2 className="pb-1 font-titulo text-[17px] font-semibold">
               Reposições em aberto
             </h2>

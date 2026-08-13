@@ -4,7 +4,7 @@ import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { listarSeries, catalogoDaGrade } from '@/server/grade/consultas'
 import { EditorSerie } from '@/components/grade/editor-serie'
 import { LinhaDaGrade } from '@/components/grade/linha-da-grade'
-import { Vazio } from '@/components/ui/pecas'
+import { cartao, Vazio } from '@/components/ui/pecas'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -83,7 +83,7 @@ export default async function Grade() {
         porDia.map((g) => (
           <section
             key={g.dia}
-            className="overflow-hidden rounded-cartao border border-linha bg-superficie"
+            className={`overflow-hidden ${cartao}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
               <h2 className="text-[13px] font-medium">{g.nome}</h2>
@@ -110,7 +110,7 @@ export default async function Grade() {
       )}
 
       {encerradas.length > 0 ? (
-        <section className="overflow-hidden rounded-cartao border border-linha bg-superficie">
+        <section className={`overflow-hidden ${cartao}`}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
             <h2 className="text-[13px] font-medium">Encerradas</h2>
             <span className="text-[12px] text-tinta-media">

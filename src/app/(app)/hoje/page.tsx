@@ -12,6 +12,7 @@ import { ProximaTurma } from '@/components/hoje/proxima-turma'
 import {
   Bloco, CartaoNumero, FaixaPeriodo, LinhaAgenda, AvatarProf,
 } from '@/components/hoje/pecas'
+import { cartao } from '@/components/ui/pecas'
 
 type Busca = Promise<{ dia?: string; todos?: string }>
 
@@ -226,7 +227,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             ) : null}
 
             {!proxima && sessoes.length > 0 ? (
-              <section className="flex flex-wrap items-center gap-x-5.5 gap-y-3.5 rounded-cartao border border-linha bg-superficie px-5 py-4.5">
+              <section className={`flex flex-wrap items-center gap-x-5.5 gap-y-3.5 ${cartao} px-5 py-4.5`}>
                 <div className="flex flex-col gap-[3px]">
                   <span className="text-[10.5px] font-semibold tracking-[.12em] text-tinta-media uppercase">
                     {ehHoje ? 'Dia encerrado' : 'Dia fechado'}
@@ -292,7 +293,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 </div>
               </section>
             ) : (
-              <section className="flex flex-col rounded-cartao border border-linha bg-superficie px-2 pt-1.5 pb-2.5">
+              <section className={`flex flex-col ${cartao} px-2 pt-1.5 pb-2.5`}>
                 <div className="flex items-center justify-between px-3 pt-3 pb-2">
                   <h2 className="font-titulo text-[17px] font-semibold">Agenda do dia</h2>
                   <span className="text-[12px] text-tinta-media">

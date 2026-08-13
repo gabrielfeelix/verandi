@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 import { AvatarProf } from '@/components/hoje/pecas'
+import { cartao } from '@/components/ui/pecas'
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
@@ -64,7 +65,7 @@ export function GradeSemana({
   return (
     <section
       aria-label="Grade da semana"
-      className="max-h-[calc(100vh-210px)] overflow-auto rounded-cartao border border-linha bg-superficie p-3.5"
+      className={`max-h-[calc(100vh-210px)] overflow-auto ${cartao} p-3.5`}
     >
       <div className="grid min-w-[920px] grid-cols-[58px_repeat(7,minmax(0,1fr))] gap-1.5">
         <div className="sticky top-0 z-3 bg-superficie" />

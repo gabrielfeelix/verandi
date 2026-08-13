@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { cartao, Campo, Nota, entrada } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import {
   salvarFuncionamento, salvarDataFechada, removerDataFechada,
@@ -58,7 +58,7 @@ export function SecaoFuncionamento({
   const hoje = new Date().toLocaleDateString('en-CA')
 
   return (
-    <section className="rounded-cartao border border-linha bg-superficie px-5 py-4.5">
+    <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[19px] font-semibold">
         Funcionamento e feriados
       </h2>

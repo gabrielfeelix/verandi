@@ -1,12 +1,22 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { TINTA, PARES_AVATAR, type Tinta } from './tintas'
+import { TINTA, TINTA_CHAPADA, PARES_AVATAR, type Tinta } from './tintas'
 import { Icone, type NomeIcone } from './icones'
 
 /**
  * As peças burras do design system. Nenhuma decide nada do domínio — quem sabe
  * o que é uma reposição é o `core/`, não um componente.
  */
+
+/**
+ * A superfície do cartão, sem estrutura nenhuma.
+ *
+ * Existe porque metade das seções do produto tem cabeçalho, rodapé ou grade
+ * própria e não cabe dentro do `<Cartao>` — e o que não pode acontecer é cada
+ * uma dessas escrever a borda e o raio de novo, cada vez de um jeito. Quem tem
+ * título e corpo usa `<Cartao>`; quem não tem, usa esta classe.
+ */
+export const cartao = 'rounded-cartao border border-linha bg-superficie'
 
 export function Cartao({
   titulo, acao, children, className = '',
@@ -17,9 +27,7 @@ export function Cartao({
   className?: string
 }) {
   return (
-    <section
-      className={`rounded-cartao border border-linha bg-superficie ${className}`}
-    >
+    <section className={`${cartao} ${className}`}>
       {titulo ? (
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-[18px] py-3.5">
           <h2 className="font-titulo text-[17px] font-semibold">{titulo}</h2>
@@ -325,13 +333,21 @@ function iniciaisDe(nome: string): string {
 }
 
 export function Avatar({
-  nome, foto, tamanho = 32, anel, decorativo = false,
+  nome, foto, tamanho = 32, anel, selo, decorativo = false,
 }: {
   nome: string
   foto?: string | null
   tamanho?: 24 | 32 | 40 | 56
   /** cor do profissional, quando o avatar é de alguém da equipe */
   anel?: string
+  /**
+   * O selo do canto: presente, falta, falta avisada, licença.
+   *
+   * Fica no avatar e não numa coluna à parte porque o que se procura numa lista
+   * de chamada é "quem ainda não tem marca" — e isso se vê varrendo os rostos,
+   * não lendo linha por linha.
+   */
+  selo?: { tinta: Tinta; glifo: string }
   /**
    * O nome já está escrito ao lado.
    *
@@ -342,7 +358,8 @@ export function Avatar({
 }) {
   const [fundo, frente] = paresDe(nome)
   const fonte = tamanho === 24 ? 10 : tamanho === 32 ? 12 : tamanho === 40 ? 12.5 : 17
-  return (
+
+  const rosto = (
     <span
       title={nome}
       aria-hidden={decorativo || undefined}
@@ -359,6 +376,20 @@ export function Avatar({
     >
       <span aria-hidden>{foto ? '' : iniciaisDe(nome)}</span>
       {decorativo ? null : <span className="sr-only">{nome}</span>}
+    </span>
+  )
+
+  if (!selo) return rosto
+
+  return (
+    <span className="relative inline-flex shrink-0">
+      {rosto}
+      <span
+        aria-hidden
+        className={`absolute -right-0.5 -bottom-0.5 flex size-[17px] items-center justify-center rounded-full border-2 border-superficie text-[9px] font-bold text-white ${TINTA_CHAPADA[selo.tinta]}`}
+      >
+        {selo.glifo}
+      </span>
     </span>
   )
 }

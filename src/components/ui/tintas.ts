@@ -16,6 +16,21 @@ export const TINTA: Record<Tinta, string> = {
   neutro: 'bg-neutro-fundo text-neutro',
 }
 
+/**
+ * A mesma tinta, chapada, para quando ela é o fundo e não a letra.
+ *
+ * É o que o selo no canto do avatar usa: lá a cor precisa aguentar um glifo
+ * branco em cima, e o par claro da tabela acima não aguenta.
+ */
+export const TINTA_CHAPADA: Record<Tinta, string> = {
+  positivo: 'bg-positivo',
+  atencao: 'bg-atencao',
+  alerta: 'bg-alerta',
+  info: 'bg-info',
+  licenca: 'bg-licenca',
+  neutro: 'bg-tinta-fraca',
+}
+
 /** Como a pessoa entrou nesta sessão. */
 export const TINTA_ORIGEM = {
   recorrente: 'positivo',

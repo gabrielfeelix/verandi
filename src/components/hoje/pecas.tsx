@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 import { PARES_AVATAR } from '@/components/ui/tintas'
+import { cartao } from '@/components/ui/pecas'
 
 /**
  * As peças da tela Hoje, com as medidas literais do protótipo.
@@ -304,7 +305,7 @@ export function Bloco({
 }) {
   return (
     <section
-      className={`rounded-cartao border border-linha bg-superficie p-4 ${className}`}
+      className={`${cartao} p-4 ${className}`}
     >
       {titulo ? (
         <div className="flex items-baseline justify-between pb-3">

@@ -18,6 +18,7 @@ import { SecaoEquipe } from '@/components/config/equipe'
 import { listarEquipe } from '@/server/config/equipe'
 import { SecaoUsuarios } from '@/components/config/usuarios'
 import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
+import { cartao } from '@/components/ui/pecas'
 
 // os glifos são os do protótipo: mono, discretos, e o suficiente para achar a
 // seção pelo canto do olho depois da terceira visita
@@ -82,7 +83,7 @@ export default async function Config({
         <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">
           <nav
             aria-label="Seções da configuração"
-            className="flex flex-col gap-0.5 rounded-cartao border border-linha bg-superficie p-2"
+            className={`flex flex-col gap-0.5 ${cartao} p-2`}
           >
             {SECOES.map((x) => (
               <Link

@@ -3,6 +3,9 @@
 import { useState, useTransition } from 'react'
 import type { Ocupacao } from '@/core/agenda/ocupacao'
 import { ajustarCapacidade, cancelarSessao, encaixar } from '@/server/agenda/acoes'
+import { Botao } from '@/components/ui/botao'
+import { Modal } from '@/components/ui/modal'
+import { cartao, Chip, Nota, entrada } from '@/components/ui/pecas'
 
 type Candidato = { id: string; nome: string; detalhe: string }
 
@@ -24,6 +27,8 @@ export function PainelVaga({
   const [aviso, setAviso] = useState<string | null>(null)
   /** quem está esperando a confirmação de passar da capacidade */
   const [excedente, setExcedente] = useState<string | null>(null)
+  /** o motivo já escrito, esperando a confirmação de cancelar */
+  const [aCancelar, setACancelar] = useState<string | null>(null)
 
   const normalizar = (s: string) =>
     s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
@@ -65,7 +70,7 @@ export function PainelVaga({
   return (
     <section
       id="encaixar"
-      className="flex flex-col gap-4 rounded-cartao border border-linha bg-superficie p-4"
+      className={`flex flex-col gap-4 ${cartao} p-4`}
     >
       <div>
         <h2 className="font-titulo text-[17px] font-semibold">Vagas</h2>
@@ -81,24 +86,28 @@ export function PainelVaga({
             Colocar alguém neste horário
           </label>
 
-          <select
-            aria-label="Tipo"
-            value={origem}
-            onChange={(e) => setOrigem(e.target.value as typeof origem)}
-            className="min-h-10 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px]"
-          >
-            <option value="avulso">Avulso</option>
-            <option value="reposicao">Reposição</option>
-            <option value="encaixe">Encaixe</option>
-            <option value="reserva">Reserva</option>
-          </select>
+          {/* quatro opções curtas: chips, não `<select>`. O menu esconde as
+              alternativas atrás de um clique e, no toque, cobre meia tela com
+              uma lista do sistema */}
+          <div aria-label="Tipo" className="flex flex-wrap gap-1.5">
+            {([
+              ['avulso', 'Avulso'],
+              ['reposicao', 'Reposição'],
+              ['encaixe', 'Encaixe'],
+              ['reserva', 'Reserva'],
+            ] as const).map(([valor, rotulo]) => (
+              <Chip key={valor} ativo={origem === valor} onClick={() => setOrigem(valor)}>
+                {rotulo}
+              </Chip>
+            ))}
+          </div>
 
           <input
             id="busca-pessoa"
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome"
-            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] placeholder:text-tinta-fraca"
+            className={entrada}
           />
 
           {achados.length > 0 ? (
@@ -109,7 +118,7 @@ export function PainelVaga({
                     type="button"
                     disabled={pendente}
                     onClick={() => adicionar(c.id)}
-                    className="w-full rounded-padrao border border-linha-suave px-3 py-2.5 text-left text-[13px] hover:border-marca hover:bg-[#F9FCFB]"
+                    className="w-full cursor-pointer rounded-padrao border border-linha-suave px-3 py-2.5 text-left text-[13px] transition-colors duration-150 hover:border-marca hover:bg-superficie-tenue"
                   >
                     {c.nome}
                     <span className="ml-2 text-[11.5px] text-tinta-media">{c.detalhe}</span>
@@ -130,29 +139,20 @@ export function PainelVaga({
                 registrado como decisão sua.
               </p>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  disabled={pendente}
-                  onClick={() => adicionar(excedente, true)}
-                  className="min-h-10 rounded-padrao bg-alerta px-3 text-[12.5px] font-medium text-white"
-                >
+                <Botao tom="perigo" miudo disabled={pendente} onClick={() => adicionar(excedente, true)}>
                   Encaixar mesmo assim
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setExcedente(null)}
-                  className="min-h-10 px-2 text-[12.5px] text-tinta-media underline"
-                >
+                </Botao>
+                <Botao tom="fantasma" miudo onClick={() => setExcedente(null)}>
                   Não encaixar
-                </button>
+                </Botao>
               </div>
             </div>
           ) : null}
 
           {aviso ? (
-            <p role="alert" className="rounded-padrao bg-atencao-fundo px-3 py-2 text-[12.5px] text-atencao">
-              {aviso}
-            </p>
+            <div role="alert">
+              <Nota tom="atencao">{aviso}</Nota>
+            </div>
           ) : null}
         </div>
       ) : null}
@@ -174,15 +174,12 @@ export function PainelVaga({
           <input
             id="capacidade" name="capacidade" type="number" min={1}
             defaultValue={ocupacao.capacidade}
-            className="min-h-10 w-24 rounded-padrao border border-linha bg-superficie px-2.5 text-center font-mono text-[14px]"
+            className={`${entrada} w-24 px-2.5 text-center font-mono`}
           />
         </div>
-        <button
-          type="submit" disabled={pendente}
-          className="min-h-10 rounded-padrao border border-linha bg-superficie px-3 text-[12.5px] hover:bg-superficie-suave"
-        >
+        <Botao type="submit" tom="secundario" miudo disabled={pendente}>
           Salvar
-        </button>
+        </Botao>
       </form>
       <p className="text-[11.5px] leading-relaxed text-tinta-media">
         Muda só este horário. A grade fixa das outras semanas continua igual.
@@ -193,9 +190,7 @@ export function PainelVaga({
           action={(f) => {
             const motivo = String(f.get('motivo') ?? '').trim()
             if (!motivo) return
-            const quantos = quantasPessoas
-            if (!confirm(`Cancelar este horário? ${quantos} pessoa(s) serão avisadas.`)) return
-            iniciar(() => cancelarSessao(sessaoId, motivo))
+            setACancelar(motivo)
           }}
           className="flex items-end gap-2 border-t border-linha-fina pt-3"
         >
@@ -203,19 +198,42 @@ export function PainelVaga({
             <label htmlFor="motivo" className="text-[12.5px] font-medium">
               Cancelar este horário
             </label>
-            <input
-              id="motivo" name="motivo" required placeholder="Motivo"
-              className="min-h-10 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px] placeholder:text-tinta-fraca"
-            />
+            <input id="motivo" name="motivo" required placeholder="Motivo" className={entrada} />
           </div>
-          <button
-            type="submit" disabled={pendente}
-            className="min-h-10 rounded-padrao border border-alerta-linha-forte bg-alerta-superficie px-3 text-[12.5px] font-medium text-alerta hover:bg-alerta-fundo"
-          >
+          <Botao type="submit" tom="perigo" miudo disabled={pendente}>
             Cancelar horário
-          </button>
+          </Botao>
         </form>
       ) : null}
+
+      {/*
+       * `confirm()` do navegador não cabia aqui: ele não diz o que acontece com
+       * o que já existe, não dá para ler com calma e aparece com a cara do
+       * sistema operacional no meio do produto.
+       */}
+      <Modal
+        aberto={aCancelar !== null}
+        perigo
+        largura="confirmacao"
+        titulo="Cancelar este horário?"
+        sub={aCancelar ?? undefined}
+        primario="Cancelar horário"
+        secundario="Voltar"
+        pendente={pendente}
+        aoFechar={() => setACancelar(null)}
+        aoConfirmar={() => {
+          const motivo = aCancelar
+          if (!motivo) return
+          setACancelar(null)
+          iniciar(() => cancelarSessao(sessaoId, motivo))
+        }}
+      >
+        <p className="text-[13px] leading-[1.55] text-tinta-media">
+          {quantasPessoas} pessoa(s) serão avisadas. O horário some da agenda do
+          dia e continua no histórico, com o motivo escrito — quem tem vaga fixa
+          neste horário ganha crédito de reposição.
+        </p>
+      </Modal>
     </section>
   )
 }

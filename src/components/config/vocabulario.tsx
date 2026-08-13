@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Nota } from '@/components/ui/pecas'
+import { cartao, Nota } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarVocabulario } from '@/server/config/acoes'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
@@ -44,7 +44,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
   )
 
   return (
-    <section className="rounded-cartao border border-linha bg-superficie px-5 py-4.5">
+    <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[19px] font-semibold">Vocabulário</h2>
       <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
         Como este negócio chama cada coisa. Muda o texto de todas as telas — e só
