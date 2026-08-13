@@ -61,7 +61,7 @@ serie ──gera──> sessao <──pendura── participacao ──> pessoa
 (regra)         (data)              (o estado)
 ```
 
-- **`serie`** é a regra: quarta-feira, 10h00, pilates solo, Carol, sala 1,
+- **`serie`** é a regra: quarta-feira, 10h00, pilates solo, Marina, sala 1,
   capacidade 4, valendo de março até segunda ordem. É a "turma" do pilates e a
   "grade fixa" de qualquer negócio. Um negócio 100% avulso simplesmente não tem
   séries.
@@ -104,7 +104,7 @@ Com isso, tudo que hoje é rabisco vira dado consultável:
 | `F EXP` (2) | **em aberto.** Ninguém soube dizer. |
 | `REP 05/6` (6) | `origem: reposicao` + `reposicao_de_id` apontando para a falta |
 | `P ANT 19H` (5) | idem — presente em outro horário É reposição |
-| `CLAUDIO - RESERVA` | `origem: reserva` |
+| `FULANO - RESERVA` | `origem: reserva` |
 | `(PERSONAL)`, `(Pers. Nath)` | `servico` + `profissional` |
 | `(Gestante)` | tag na pessoa |
 | `(Fascia)` | `servico` |
@@ -151,7 +151,7 @@ sessões que já existem**. A série descreve o futuro; a sessão guarda o que v
 naquele dia. Por isso `sessao` carrega cópia de `servico_id`,
 `profissional_id`, `local_id` e `capacidade` em vez de só apontar para a série.
 
-Sem isso, trocar a Carol pela Thalya em setembro reescreveria quem deu aula em
+Sem isso, trocar a Marina pela Sofia em setembro reescreveria quem deu aula em
 março — e a planilha de março passaria a mentir. É o mesmo motivo pelo qual o
 AutoFluxos congela `sessions.flow_version_id`.
 
@@ -228,7 +228,7 @@ No pilates é a mesma pessoa — e é exatamente o tipo de diferença que tem qu
 papel, não sistema diferente.
 
 **`profissional` é um papel, não um cadastro separado.** A tabela `profissional`
-existe e pode não ter usuário nenhum ligado a ela — a Thalya pode ser um nome na
+existe e pode não ter usuário nenhum ligado a ela — a Sofia pode ser um nome na
 grade antes de ter login. `profissional.usuario_id` é anulável de propósito.
 
 ## Notificação sai por evento, nunca por chamada direta
@@ -283,7 +283,7 @@ erro.**
 ```
 POST /api/v1/agendamento
      { "telefone", "dia", "hora", "tipo": "reposicao" }
-     → { "ok": true, "profissional": "Carol" }
+     → { "ok": true, "profissional": "Marina" }
      → { "ok": false, "motivo": "esse horário encheu" }
 
 POST /api/v1/presenca

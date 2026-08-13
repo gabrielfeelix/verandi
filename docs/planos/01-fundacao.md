@@ -602,11 +602,11 @@ Acrescentar ao fim de `tests/rls.test.ts`, dentro do mesmo `describe`:
   it('pessoa não vaza entre contas', async () => {
     const a = admin()
     await a.from('pessoa').insert([
-      { conta_id: contaA, nome: 'Emília da conta A' },
-      { conta_id: contaB, nome: 'Sabrina da conta B' },
+      { conta_id: contaA, nome: 'Helena da conta A' },
+      { conta_id: contaB, nome: 'Otávio da conta B' },
     ])
     const { data } = await clienteA.from('pessoa').select('nome')
-    expect(data?.map((p) => p.nome)).toEqual(['Emília da conta A'])
+    expect(data?.map((p) => p.nome)).toEqual(['Helena da conta A'])
   })
 
   it('pessoa sem telefone é aceita — 30% do dado real não tem', async () => {
@@ -819,7 +819,7 @@ describe('as constraints que o modelo depende', () => {
     serieId = se!.id
 
     const { data: p } = await a.from('pessoa')
-      .insert({ conta_id: contaId, nome: 'Emília' }).select().single()
+      .insert({ conta_id: contaId, nome: 'Helena' }).select().single()
     pessoaId = p!.id
 
     const { data: ss } = await a.from('sessao').insert({
@@ -1505,7 +1505,7 @@ describe('materializarJanela', () => {
     serieId = se!.id
 
     const { data: p } = await db.from('pessoa')
-      .insert({ conta_id: contaId, nome: 'Emília' }).select().single()
+      .insert({ conta_id: contaId, nome: 'Helena' }).select().single()
     pessoaId = p!.id
 
     await db.from('vaga').insert({
@@ -2033,9 +2033,9 @@ require('dotenv').config({path:'.env.local'});
 (async()=>{
   const a=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY);
   const {data:c}=await a.from('conta').insert({nome:'Estúdio de teste',slug:'teste'}).select().single();
-  const {data:u}=await a.auth.admin.createUser({email:'carol@teste.local',password:'senha-de-teste-123',email_confirm:true});
+  const {data:u}=await a.auth.admin.createUser({email:'professora@teste.local',password:'senha-de-teste-123',email_confirm:true});
   await a.from('usuario_conta').insert({usuario_id:u.user.id,conta_id:c.id,papel:'profissional'});
-  console.log('pronto: carol@teste.local / senha-de-teste-123');
+  console.log('pronto: professora@teste.local / senha-de-teste-123');
 })();
 "
 ```

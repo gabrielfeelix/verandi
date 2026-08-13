@@ -167,7 +167,7 @@ substitui a planilha.**
 
 Registrar a chamada de uma turma de quatro pessoas tem que caber em **um toque
 mais as exceções**. Sessões são pequenas — de 1 a 4 pessoas no caso real — então
-o caminho comum é "todos vieram, menos a Ruth". Se isso exigir quatro toques em
+o caminho comum é "todos vieram, menos uma". Se isso exigir quatro toques em
 vez de dois, a planilha ganha.
 
 A **origem** precisa ser distinguível de relance. Quem está na vaga fixa e quem
@@ -212,7 +212,7 @@ navegação lateral entre dias. Não é degradação, é a forma correta no tama
 pequeno.
 
 O filtro por profissional é o mais usado, porque a pergunta frequente é "como
-está a semana da Carol".
+está a semana da Marina".
 
 Exportar/imprimir parece secundário e não é: o negócio tem uma folha na parede há
 anos, e tirar isso de uma vez é o tipo de perda que faz o cliente voltar atrás.
@@ -449,8 +449,8 @@ Token de API se mostra **uma vez, na criação**. Depois só o nome, a data do �
 uso e revogar. Guardar token legível no banco é o tipo de decisão que só dói
 depois de vazar.
 
-Remover usuário nunca apaga o que ele registrou. Presença marcada pela Thalya
-continua marcada pela Thalya depois que a Thalya sai.
+Remover usuário nunca apaga o que ele registrou. Presença marcada pela Sofia
+continua marcada pela Sofia depois que a Sofia sai.
 
 Desativar serviço, profissional ou local **não pode quebrar histórico** — some das
 escolhas novas, continua aparecendo no passado.
@@ -490,7 +490,7 @@ depois, quando já são a base inteira.
 Os casos que a planilha do MGM garante que vão aparecer, e que a tela precisa
 tratar de frente:
 - profissional escrito de **doze formas diferentes** para cerca de seis pessoas
-  (`Prof. THALYA`, `PROF. THALYA`, `Prof.THALYA`, `THALYA`)
+  (`Prof. SOFIA`, `PROF. SOFIA`, `Prof.SOFIA`, `SOFIA`)
 - anotação dentro do nome (`(PERSONAL)`, `(Gestante)`, `- RESERVA`, `(Pers.
   Nath)`) que na verdade é serviço, tag, origem ou profissional
 - gente escrita **abaixo** das vagas numeradas — são as 47 pessoas fora da grade,

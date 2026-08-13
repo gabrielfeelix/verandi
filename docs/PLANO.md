@@ -13,7 +13,7 @@ deles deixa algo de pé.
 
 O critério de pronto do marco 1 é uma frase, e ela não menciona tecnologia:
 
-> **A Carol registra a chamada da semana inteira no sistema, e ninguém abre a
+> **A Marina registra a chamada da semana inteira no sistema, e ninguém abre a
 > planilha.**
 
 Se isso acontecer, o produto existe. Tudo que não serve a essa frase espera.
@@ -38,7 +38,7 @@ teste unitário rodando sem banco.
 
 ### Plano 02 — Operação
 
-As telas que a Carol usa: **Sessão** (com chamada em lote), **Hoje**, **Grade da
+As telas que a Marina usa: **Sessão** (com chamada em lote), **Hoje**, **Grade da
 semana**, **Pessoas**, **Ficha**, **Novo agendamento**, **Buscar vaga**.
 
 A tela de Sessão é a prova do produto e é onde o esforço vai. As outras existem
@@ -79,7 +79,7 @@ Nada disso exige tabela nova: o modelo do marco 1 já comporta
 ([ARQUITETURA.md](ARQUITETURA.md), seções de eventos e API).
 
 **Pronto quando:** alguém manda mensagem no WhatsApp do estúdio, remarca sozinho,
-e a mudança aparece na tela da Carol sem ninguém digitar.
+e a mudança aparece na tela da Marina sem ninguém digitar.
 
 ---
 

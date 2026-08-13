@@ -204,7 +204,7 @@ assim.
 ```
 POST /agendamento
      { "telefone": "...", "dia": "quarta", "hora": "10h00", "tipo": "reposicao" }
-     → { "ok": true, "profissional": "Carol" }
+     → { "ok": true, "profissional": "Marina" }
      → { "ok": false, "motivo": "esse horário encheu" }
 ```
 
