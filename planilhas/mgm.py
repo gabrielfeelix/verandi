@@ -48,8 +48,12 @@ def monta(turmas, saida):
 
     # ---------------------------------------------------------------- Início
     ws = wb.active; ws.title = 'Início'; moldura(ws)
+    ws.page_setup.orientation = 'landscape'; ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    from openpyxl.worksheet.properties import PageSetupProperties
+    ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
     ws.column_dimensions['A'].width = 3
-    for col, w in zip('BCDEFG', [22, 16, 16, 16, 16, 30]):
+    for col, w in zip('BCDEFG', [20, 18, 18, 18, 18, 24]):
         ws.column_dimensions[col].width = w
     titulo(ws, 'B2', 'MGM Pilates', 20)
     subtitulo(ws, 'B3', 'Turmas e alunos — dados de agosto/26, reorganizados a partir da lista de turma atual.')
@@ -92,8 +96,8 @@ def monta(turmas, saida):
     # ---------------------------------------------------------------- Turmas
     wt = wb.create_sheet('Turmas'); moldura(wt)
     titulo(wt, 'A1', 'Turmas'); wt.row_dimensions[1].height = 28
-    cols = ['Dia', 'Hora', 'Turma', 'Professor', 'Capacidade', 'Matriculadas', 'Livres', 'Situação']
-    prim = cabecalho(wt, 3, cols, [12, 9, 10, 14, 12, 13, 9, 14])
+    cols = ['Dia', 'Hora', 'Turma', 'Professor', 'Capacidade', 'Matriculadas', 'Livres', 'Situação', 'Para o robô', 'acum']
+    prim = cabecalho(wt, 3, cols, [12, 9, 10, 14, 12, 13, 9, 14, 12, 10])
     turmas_ord = sorted(turmas, key=lambda t: (DIAS_ORD.get(t['dia'], 9), t['hora_norm']))
     r = prim
     for t in turmas_ord:
@@ -106,14 +110,22 @@ def monta(turmas, saida):
         wt.cell(r, 6, f'=COUNTIFS(Alunos!$G:$G,$A{r}&" "&$B{r},Alunos!$H:$H,"Matrícula")').alignment = CENTRO
         wt.cell(r, 7, f'=MAX(0,$E{r}-$F{r})').alignment = CENTRO
         wt.cell(r, 8, 'Fechada' if t['fechado'] else f'=IF($G{r}=0,"Cheia","Tem vaga")').alignment = CENTRO
-        for c in range(1, 9):
+        wt.cell(r, 9, f'=IF(AND($G{r}>0,$H{r}<>"Fechada"),$B{r}&";","")').alignment = CENTRO
+        # Acumula ao longo do dia. Concatenação simples em vez de TEXTJOIN:
+        # função nova precisa do prefixo `_xlfn.` no arquivo e, sem ele, o
+        # Excel e o LibreOffice devolvem #NOME?.
+        anterior = f'$J{r-1}' if r > prim and BONITO[turmas_ord[r-prim-1]['dia']] == BONITO[t['dia']] else '""'
+        wt.cell(r, 10, f'={anterior}&$I{r}')
+        for c in range(1, 10):
             wt.cell(r, c).font = fonte(10)
             wt.cell(r, c).border = borda()
         r += 1
     ult = r - 1
-    zebra(wt, prim, ult, 8)
+    zebra(wt, prim, ult, 9)
+    wt.column_dimensions['J'].hidden = True
     wt.freeze_panes = f'A{prim}'
-    wt.auto_filter.ref = f'A3:H{ult}'
+    wt.auto_filter.ref = f'A3:I{ult}'
+    wt.print_area = f'A1:H{ult}'
     wt.conditional_formatting.add(f'H{prim}:H{ult}',
         CellIsRule(operator='equal', formula=['"Tem vaga"'], fill=fundo(OK_C), font=fonte(10, True, OK)))
     wt.conditional_formatting.add(f'H{prim}:H{ult}',
@@ -147,6 +159,7 @@ def monta(turmas, saida):
     zebra(wa, prim_a, ult_a, 8)
     wa.freeze_panes = f'A{prim_a}'
     wa.auto_filter.ref = f'A3:H{ult_a}'
+    wa.print_area = f'A1:H{ult_a}'
     dv = DataValidation(type='list', formula1='"Matrícula,Encaixe"', allow_blank=False)
     wa.add_data_validation(dv); dv.add(f'H{prim_a}:H{ult_a+200}')
     wa.conditional_formatting.add(f'H{prim_a}:H{ult_a}',
@@ -158,21 +171,37 @@ def monta(turmas, saida):
     subtitulo(wf, 'A2', 'Aba de saída, lida pelo robô do WhatsApp. Cada célula traz os horários com vaga naquele dia. Não precisa editar.')
     wf.merge_cells('A2:D2'); wf.row_dimensions[2].height = 30
     for col, w in zip('ABCD', [14, 46, 12, 40]): wf.column_dimensions[col].width = w
-    p = cabecalho(wf, 4, ['Dia', 'Horários com vaga', 'Quantos', 'Intervalo nomeado'], None)
+    p = cabecalho(wf, 4, ['Dia', 'Horários com vaga', 'Quantos', 'Intervalo nomeado', 'bruto'], None)
+    faixas = {}
+    for i, t in enumerate(turmas_ord):
+        d = BONITO[t['dia']]
+        lin = prim + i
+        faixas.setdefault(d, [lin, lin])[1] = lin
     r = p
     for dia in ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado']:
         wf.cell(r, 1, dia).font = fonte(10, True)
-        f = (f'=IFERROR(TEXTJOIN(";",1,FILTER(Turmas!$B${prim}:$B${ult},'
-             f'Turmas!$A${prim}:$A${ult}=$A{r},Turmas!$G${prim}:$G${ult}>0,'
-             f'Turmas!$H${prim}:$H${ult}<>"Fechada")),"")')
-        c = wf.cell(r, 2, f); c.font = fonte(10); c.alignment = ESQ
+        faixa = faixas.get(dia)
+        # Faixa contígua, e não FILTER: as turmas já estão em ordem de dia, e
+        # assim a fórmula roda em qualquer Excel. FILTER só existe no 365 e no
+        # Sheets — e falhava calado, mostrando "sem vaga" onde havia vaga.
+        # Junta sem separador e corta o ";" final. Assim não depende de o
+        # TEXTJOIN pular string vazia — que é onde ele varia entre programas e
+        # deixava buraco (";;") no meio da lista.
+        # Dia sem turma nenhuma não pode cair na faixa de outro dia.
+        wf.cell(r, 5, f'=Turmas!$J${faixa[1]}' if faixa else '')
+        c = wf.cell(r, 2, f'=IF($E{r}="","",LEFT($E{r},LEN($E{r})-1))')
+        c.font = fonte(10); c.alignment = ESQ
         wf.cell(r, 3, f'=IF($B{r}="",0,LEN($B{r})-LEN(SUBSTITUTE($B{r},";",""))+1)').alignment = CENTRO
         wf.cell(r, 4, SEM_ACENTO[dia]).font = fonte(10, False, GRAFITE)
         for c in range(1, 5): wf.cell(r, c).border = borda()
         r += 1
     zebra(wf, p, r-1, 4)
+    wf.column_dimensions['E'].hidden = True
+    wf.print_area = f'A1:D{r-1}'
     for i, dia in enumerate(['segunda','terca','quarta','quinta','sexta','sabado']):
         wb.defined_names.add(DefinedName(dia, attr_text=f"AutoFluxos!$B${p+i}"))
 
+    for nome, cor in {'Início': MARCA, 'Turmas': MARCA, 'Alunos': MARCA, 'AutoFluxos': 'A9B4C4'}.items():
+        wb[nome].sheet_properties.tabColor = cor
     wb.save(saida)
     return total_t, total_m, ult_a - prim_a + 1

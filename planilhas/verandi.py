@@ -15,6 +15,7 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.properties import PageSetupProperties
 from estilo import *
+from openpyxl.styles import Alignment
 
 DIAS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
 SEM_ACENTO = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo']
@@ -44,28 +45,29 @@ def monta(saida):
     wb = openpyxl.Workbook()
 
     # ------------------------------------------------------------- Início
-    ws = wb.active; ws.title = 'Início'; moldura(ws)
+    ws = wb.active; ws.title = 'Início'; moldura(ws); impressao(ws, True)
     ws.column_dimensions['A'].width = 3
-    for col, w in zip('BCDEFGH', [26, 18, 18, 18, 18, 18, 22]):
+    for col, w in zip('BCDEFGH', [17, 17, 17, 17, 17, 17, 17]):
         ws.column_dimensions[col].width = w
 
-    ws.merge_cells('B2:C4')
-    c = ws['B2']; c.value = 'sua\nlogo'; c.alignment = CENTRO
+    ws.merge_cells('B2:B4')
+    c = ws['B2']; c.value = 'sua\nlogo'
+    c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
     c.font = fonte(11, True, GRAFITE); c.fill = fundo(MARCA_C)
     ws.row_dimensions[2].height = 22; ws.row_dimensions[3].height = 22; ws.row_dimensions[4].height = 22
 
-    d = ws['D2']; d.value = '=IF(Config!$C$4="","Seu negócio",Config!$C$4)'
-    d.font = fonte(22, True, TINTA); d.alignment = ESQ
-    e = ws['D3']; e.value = '=CONCATENATE("Agenda ",Config!$C$5)'
+    d = ws['C2']; d.value = '=IF(Config!$C$4="","Seu negócio",Config!$C$4)'
+    d.font = fonte(20, True, TINTA); d.alignment = ESQ; ws.merge_cells('C2:E2')
+    e = ws['C3']; e.value = '=CONCATENATE("Agenda ",Config!$C$5)'
     e.font = fonte(12, False, GRAFITE); e.alignment = ESQ
-    f = ws['D4']; f.value = 'Verandi'; f.font = fonte(10, True, MARCA); f.alignment = ESQ
+    f = ws['C4']; f.value = 'Verandi'; f.font = fonte(10, True, MARCA); f.alignment = ESQ
 
     cartoes = [
         ('Horários por semana', f'=COUNTA(Grade!$B${G1}:$B${G2})'),
-        ('Vagas', f'=SUM(Grade!$F${G1}:$F${G2})'),
-        ('Matriculados', f'=SUM(Grade!$G${G1}:$G${G2})'),
-        ('Vagas livres', f'=SUM(Grade!$H${G1}:$H${G2})'),
-        ('Ocupação', f'=IFERROR(SUM(Grade!$G${G1}:$G${G2})/SUM(Grade!$F${G1}:$F${G2}),0)'),
+        ('Vagas', f'=SUM(Grade!$E${G1}:$E${G2})'),
+        ('Matriculados', f'=SUM(Grade!$F${G1}:$F${G2})'),
+        ('Vagas livres', f'=SUM(Grade!$G${G1}:$G${G2})'),
+        ('Ocupação', f'=IFERROR(SUM(Grade!$F${G1}:$F${G2})/SUM(Grade!$E${G1}:$E${G2}),0)'),
         ('Alunos ativos', f'=COUNTIF(Alunos!$J${A1_}:$J${A2},"Sim")'),
     ]
     for i, (rot, form) in enumerate(cartoes):
@@ -91,6 +93,7 @@ def monta(saida):
         ws.merge_cells(start_row=linha, start_column=3, end_row=linha, end_column=8)
         ws.row_dimensions[linha].height = 30
         linha += 1
+    ws.print_area = f'A1:H{linha + 2}'
     caixa(ws, f'B{linha+1}', f'H{linha+1}',
           'Regra de ouro: nunca apague uma coluna nem mude a ordem das abas. '
           'Acrescentar linha pode sempre; a planilha foi feita para crescer para baixo.')
@@ -139,6 +142,7 @@ def monta(saida):
 
     wb.defined_names.add(DefinedName('profissionais', attr_text=f'Config!$C${p}:$C${p+19}'))
     wb.defined_names.add(DefinedName('servicos', attr_text=f'Config!$C${q}:$C${q+14}'))
+    wc.print_area = f'A1:F{m + 8}'
     wb.defined_names.add(DefinedName('marcas', attr_text=f'Config!$B${m}:$B${m+len(marcas)-1}'))
 
     # -------------------------------------------------------------- Grade
@@ -146,18 +150,31 @@ def monta(saida):
     titulo(wg, 'A1', 'Grade da semana')
     subtitulo(wg, 'A2', 'Uma linha por horário fixo. É daqui que sai tudo: vagas livres, ocupação e o que o robô responde.')
     wg.merge_cells('A2:H2'); wg.row_dimensions[2].height = 26
-    cols = ['Dia', 'Hora', 'Quem atende', 'Serviço', 'Vagas', 'Matriculados', 'Livres', 'Situação']
+    cols = ['Dia', 'Hora', 'Quem atende', 'Serviço', 'Vagas', 'Matriculados', 'Livres', 'Situação'] + DIAS
     cabecalho(wg, 4, cols, [13, 9, 20, 22, 9, 14, 9, 14])
     for r in range(G1, G2 + 1):
         wg.cell(r, 6, f'=IF($A{r}="","",COUNTIFS(Alunos!$G:$G,$A{r}&" "&$B{r},Alunos!$J:$J,"Sim"))')
         wg.cell(r, 7, f'=IF($A{r}="","",MAX(0,$E{r}-$F{r}))')
         wg.cell(r, 8, f'=IF($A{r}="","",IF($G{r}=0,"Cheio","Tem vaga"))')
+        # Uma coluna auxiliar por dia da semana. Existe porque a Grade não é
+        # ordenada — quem preenche escreve na ordem que quiser — então não dá
+        # para somar faixa contígua. Ficam escondidas.
+        for j, dia in enumerate(DIAS):
+            col = get_column_letter(9 + j)
+            ant = f'${col}{r-1}' if r > G1 else '""'
+            wg.cell(r, 9 + j, f'={ant}&IF(AND($A{r}="{dia}",$G{r}>0),$B{r}&";","")')
         for c in range(1, 9):
             cel = wg.cell(r, c); cel.font = fonte(10); cel.border = borda()
             cel.alignment = ESQ if c in (1, 3, 4) else CENTRO
     zebra(wg, G1, G2, 8)
+    for j in range(len(DIAS)):
+        wg.column_dimensions[get_column_letter(9 + j)].hidden = True
     wg.freeze_panes = f'A{G1}'
     wg.auto_filter.ref = f'A4:H{G2}'
+    # Área de impressão limitada. Sem isto, as linhas reservadas em branco
+    # viram páginas vazias — o arquivo inteiro saía com 100 páginas. Quem
+    # precisar de mais é só esticar a área.
+    wg.print_area = f'A1:H{G1 + 55}'
     dv_dia = DataValidation(type='list', formula1=f'="{",".join(DIAS)}"', allow_blank=True)
     wg.add_data_validation(dv_dia); dv_dia.add(f'A{G1}:A{G2}')
     dv_prof = DataValidation(type='list', formula1='=profissionais', allow_blank=True)
@@ -185,6 +202,7 @@ def monta(saida):
     zebra(wa, A1_, A2, 10)
     wa.freeze_panes = f'C{A1_}'
     wa.auto_filter.ref = f'A4:J{A2}'
+    wa.print_area = f'A1:J{A1_ + 55}'
     dv_sn = DataValidation(type='list', formula1='"Sim,Não"', allow_blank=True)
     wa.add_data_validation(dv_sn); dv_sn.add(f'J{A1_}:J{A2}')
     wa.conditional_formatting.add(f'E{A1_}:E{A2}',
@@ -200,18 +218,28 @@ def monta(saida):
         wm.merge_cells('A2:F2'); wm.row_dimensions[2].height = 26
 
         # datas de cada dia da semana no mês, por fórmula
-        wm.cell(4, 8, 'Datas do mês').font = fonte(10, True, TINTA)
+        rot = wm.cell(4, 12, 'Datas do mês')
+        rot.font = fonte(9, True, 'FFFFFF'); rot.fill = fundo(MARCA); rot.alignment = CENTRO
+        for c in range(13, 18):
+            h = wm.cell(4, c, f'{c-12}ª'); h.font = fonte(9, True, 'FFFFFF')
+            h.fill = fundo(MARCA); h.alignment = CENTRO
         for j, dia in enumerate(DIAS):
             r = 5 + j
-            wm.cell(r, 8, dia).font = fonte(9, False, GRAFITE)
+            wm.cell(r, 12, dia).font = fonte(9, False, GRAFITE)
             for k in range(5):
                 base = (f'DATE(Config!$C$5,{i},1)+MOD({j+1}-WEEKDAY(DATE(Config!$C$5,{i},1),2)+7,7)+7*{k}')
                 f = f'=IF(MONTH({base})={i},{base},"")'
-                c = wm.cell(r, 9 + k, f)
+                c = wm.cell(r, 13 + k, f)
                 c.number_format = 'dd/mm'; c.font = fonte(9); c.alignment = CENTRO
                 c.border = borda()
-        for col, w in zip('HIJKLM', [11, 8, 8, 8, 8, 8]): wm.column_dimensions[col].width = w
-        zebra(wm, 5, 11, 13)
+        for col, w in zip('LMNOPQ', [14, 9, 9, 9, 9, 9]): wm.column_dimensions[col].width = w
+        wm.column_dimensions['K'].width = 3
+        # Listra só nas colunas do bloco. Antes ela varria a largura inteira e
+        # o bloco de datas parecia sujeira solta no meio da folha.
+        for r2 in range(5, 12):
+            if (r2 - 5) % 2 == 1:
+                for c in range(12, 18): wm.cell(r2, c).fill = fundo(FUNDO)
+        for c in range(12, 18): wm.cell(11, c).border = borda()
 
         cols = ['Dia', 'Hora', 'Quem atende', 'Aluno', '1ª', '2ª', '3ª', '4ª', '5ª', 'Faltas']
         cabecalho(wm, 13, cols, [13, 9, 18, 30, 7, 7, 7, 7, 7, 9])
@@ -224,6 +252,7 @@ def monta(saida):
         zebra(wm, prim, ult, 10)
         wm.freeze_panes = f'A{prim}'
         wm.auto_filter.ref = f'A13:J{ult}'
+        wm.print_area = f'A1:Q{prim + 55}'
         dvd = DataValidation(type='list', formula1=f'="{",".join(DIAS)}"', allow_blank=True)
         wm.add_data_validation(dvd); dvd.add(f'A{prim}:A{ult}')
         dvm = DataValidation(type='list', formula1='=marcas', allow_blank=True)
@@ -234,7 +263,7 @@ def monta(saida):
                 CellIsRule(operator='equal', formula=[f'"{cod}"'], fill=fundo(cor), font=fonte(10, True, txt)))
 
     # --------------------------------------------------------- AutoFluxos
-    wf = wb.create_sheet('AutoFluxos'); moldura(wf)
+    wf = wb.create_sheet('AutoFluxos'); moldura(wf); impressao(wf, False)
     titulo(wf, 'A1', 'AutoFluxos')
     subtitulo(wf, 'A2', 'Saída lida pelo robô do WhatsApp. Cada linha traz os horários com vaga naquele dia. Não edite esta aba.')
     wf.merge_cells('A2:D2'); wf.row_dimensions[2].height = 28
@@ -243,13 +272,25 @@ def monta(saida):
     for i, dia in enumerate(DIAS):
         r = p + i
         wf.cell(r, 1, dia).font = fonte(10, True)
-        wf.cell(r, 2, f'=IFERROR(TEXTJOIN(";",1,FILTER(Grade!$B${G1}:$B${G2},'
-                      f'Grade!$A${G1}:$A${G2}=$A{r},Grade!$G${G1}:$G${G2}>0)),"")').font = fonte(10)
+        col = get_column_letter(9 + i)
+        wf.cell(r, 5, f'=Grade!${col}${G2}')
+        wf.cell(r, 2, f'=IF($E{r}="","",LEFT($E{r},LEN($E{r})-1))').font = fonte(10)
         wf.cell(r, 3, f'=IF($B{r}="",0,LEN($B{r})-LEN(SUBSTITUTE($B{r},";",""))+1)').alignment = CENTRO
         wf.cell(r, 4, SEM_ACENTO[i]).font = fonte(10, False, GRAFITE)
         for c in range(1, 5): wf.cell(r, c).border = borda()
     zebra(wf, p, p + 6, 4)
+    wf.column_dimensions['E'].hidden = True
+    wf.print_area = f'A1:D{p + 6}'
     for i, nome in enumerate(SEM_ACENTO):
         wb.defined_names.add(DefinedName(nome, attr_text=f'AutoFluxos!$B${p+i}'))
+
+    # Cor de aba. Com 17 abas, achar o mês certo é o gesto mais repetido do
+    # arquivo — e cor resolve isso antes de a pessoa ler o nome.
+    cores = {'Início': MARCA, 'Config': GRAFITE, 'Grade': MARCA,
+             'Alunos': MARCA, 'AutoFluxos': 'A9B4C4'}
+    for nome, cor in cores.items(): wb[nome].sheet_properties.tabColor = cor
+    for i, mes in enumerate(MESES, start=1):
+        # Meses passados em tom apagado, o resto no tom da marca clara.
+        wb[f'{i:02d} {mes[:3]}'].sheet_properties.tabColor = 'C9DDE1'
 
     wb.save(saida)
