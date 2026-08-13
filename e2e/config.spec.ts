@@ -204,3 +204,93 @@ test('mexer na configuração registra quem fez', async ({ page }) => {
     return data?.map((l) => `${l.entidade}:${l.acao}`)
   }).toContain('local:criou')
 })
+
+test('cadastrar profissional com cor e serviços que atende', async ({ page }) => {
+  const c = await contaDono()
+  await entrar(page, c.email)
+  await page.goto('/config?s=equipe')
+
+  await page.getByRole('button', { name: /Novo/ }).click()
+  await page.getByLabel('Nome').fill('Sofia Andrade')
+  await page.getByLabel('E-mail').fill('sofia@estudio.local')
+  await page.getByRole('button', { name: 'Azul' }).click()
+  await page.getByRole('button', { name: 'Pilates solo' }).click()
+  await page.getByRole('button', { name: 'Salvar' }).click()
+
+  await expect(page.getByText('Sofia Andrade')).toBeVisible()
+
+  await expect.poll(async () => {
+    const { data } = await admin.from('profissional')
+      .select('cor, email, profissional_servico(servico_id)')
+      .eq('conta_id', c.contaId).eq('nome', 'Sofia Andrade').single()
+    return {
+      cor: data?.cor,
+      email: data?.email,
+      servicos: (data?.profissional_servico as { servico_id: string }[])?.length,
+    }
+  }).toEqual({ cor: '#4A5C8C', email: 'sofia@estudio.local', servicos: 1 })
+})
+
+test('profissional sem login é normal — nome na grade não precisa de acesso', async ({ page }) => {
+  const c = await contaDono()
+  await entrar(page, c.email)
+  await page.goto('/config?s=equipe')
+
+  await expect(page.getByText('só na grade')).toBeVisible()
+})
+
+test('a foto some do balde quando é removida, não só da coluna', async ({ page }) => {
+  const c = await contaDono()
+
+  // uma foto já enviada, pelo caminho que a ação usa
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64',
+  )
+  const caminho = `${c.contaId}/${c.profissionalId}.png`
+  await admin.storage.from('foto-profissional')
+    .upload(caminho, png, { contentType: 'image/png', upsert: true })
+  await admin.from('profissional').update({ foto_path: caminho }).eq('id', c.profissionalId)
+
+  await entrar(page, c.email)
+  await page.goto('/config?s=equipe')
+  await page.getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: 'Remover foto' }).click()
+
+  await expect.poll(async () => {
+    const { data } = await admin.storage.from('foto-profissional').list(c.contaId)
+    return data?.length ?? 0
+  }).toBe(0)
+
+  const { data } = await admin.from('profissional')
+    .select('foto_path').eq('id', c.profissionalId).single()
+  expect(data!.foto_path).toBeNull()
+})
+
+test('a foto de uma conta não é legível por outra', async ({ page }) => {
+  const a = await contaDono()
+  const b = await contaDono()
+
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64',
+  )
+  const caminho = `${a.contaId}/${a.profissionalId}.png`
+  await admin.storage.from('foto-profissional')
+    .upload(caminho, png, { contentType: 'image/png', upsert: true })
+
+  // o dono da conta B, autenticado, não enxerga o arquivo da conta A
+  await entrar(page, b.email)
+  const visivel = await page.evaluate(async ([url, chave, caminho]) => {
+    const r = await fetch(`${url}/storage/v1/object/list/foto-profissional`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: chave },
+      body: JSON.stringify({ prefix: caminho.split('/')[0], limit: 10 }),
+    })
+    const j = await r.json()
+    return Array.isArray(j) ? j.length : 0
+  }, [process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://127.0.0.1:56421',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '', caminho])
+
+  expect(visivel).toBe(0)
+})

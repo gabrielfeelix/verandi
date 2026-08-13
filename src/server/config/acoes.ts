@@ -5,6 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { hojeEm, instante } from '../agenda/fuso'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
+import { BALDE_FOTO } from './equipe'
 
 /**
  * Configuração é de quem manda na conta. A RLS recusa igual; aqui a recusa
@@ -298,6 +299,119 @@ export async function removerDataFechada(id: string): Promise<void> {
   await registrar(db, {
     contaId: conta.contaId, entidade: 'excecao_calendario', entidadeId: id,
     acao: 'removeu',
+  })
+  revalidatePath('/config')
+}
+
+// ---------------------------------------------------------------------------
+// Equipe
+// ---------------------------------------------------------------------------
+
+const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp']
+const TAMANHO_MAX = 2 * 1024 * 1024
+
+/**
+ * Cria ou edita um profissional, com foto opcional.
+ *
+ * `profissional` existe sem usuário de propósito: um nome na grade não precisa
+ * de acesso ao sistema. Dar login é outro ato, e ele mora no convite.
+ */
+export async function salvarProfissional(entrada: FormData): Promise<{ id: string }> {
+  const conta = await exigirDono()
+  const db = await clienteServidor()
+
+  const id = String(entrada.get('id') ?? '') || undefined
+  const nome = String(entrada.get('nome') ?? '').trim()
+  if (!nome) throw new Error('o profissional precisa de nome')
+
+  const linha = {
+    conta_id: conta.contaId,
+    nome,
+    email: String(entrada.get('email') ?? '').trim() || null,
+    telefone: String(entrada.get('telefone') ?? '').trim() || null,
+    cor: String(entrada.get('cor') ?? '').trim() || null,
+    ativo: entrada.get('ativo') === 'on',
+  }
+
+  const r = id
+    ? await db.from('profissional').update(linha).eq('id', id)
+        .select('id').single<{ id: string }>()
+    : await db.from('profissional').insert(linha).select('id').single<{ id: string }>()
+  if (r.error) throw r.error
+  const profissionalId = r.data.id
+
+  const foto = entrada.get('foto')
+  if (foto instanceof File && foto.size > 0) {
+    if (!TIPOS_FOTO.includes(foto.type)) {
+      throw new Error('a foto precisa ser JPEG, PNG ou WEBP')
+    }
+    if (foto.size > TAMANHO_MAX) throw new Error('a foto precisa ter até 2 MB')
+
+    // a primeira pasta é a conta: é por ela que a política do balde separa um
+    // cliente do outro
+    const ext = foto.type === 'image/png' ? 'png' : foto.type === 'image/webp' ? 'webp' : 'jpg'
+    const caminho = `${conta.contaId}/${profissionalId}.${ext}`
+
+    const envio = await db.storage.from(BALDE_FOTO)
+      .upload(caminho, foto, { upsert: true, contentType: foto.type })
+    if (envio.error) throw envio.error
+
+    const atualiza = await db.from('profissional')
+      .update({ foto_path: caminho }).eq('id', profissionalId)
+    if (atualiza.error) throw atualiza.error
+  }
+
+  const servicos = entrada.getAll('servicos').map(String).filter(Boolean)
+  const antigos = await db.from('profissional_servico')
+    .delete().eq('profissional_id', profissionalId)
+  if (antigos.error) throw antigos.error
+  if (servicos.length) {
+    const vinculo = await db.from('profissional_servico').insert(
+      servicos.map((servicoId) => ({
+        conta_id: conta.contaId,
+        profissional_id: profissionalId,
+        servico_id: servicoId,
+      })),
+    )
+    if (vinculo.error) throw vinculo.error
+  }
+
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'profissional', entidadeId: profissionalId,
+    acao: id ? (linha.ativo ? 'editou' : 'desativou') : 'criou',
+    detalhe: { nome, servicos: servicos.length },
+  })
+
+  revalidatePath('/config')
+  revalidatePath('/grade')
+  return { id: profissionalId }
+}
+
+/**
+ * Tira a foto, e tira do balde também.
+ *
+ * Apagar só a coluna deixaria o arquivo lá — dado pessoal órfão que ninguém
+ * lembra de existir é o pior tipo de dado pessoal.
+ */
+export async function removerFoto(profissionalId: string): Promise<void> {
+  const conta = await exigirDono()
+  const db = await clienteServidor()
+
+  const { data, error } = await db.from('profissional')
+    .select('foto_path').eq('id', profissionalId).single<{ foto_path: string | null }>()
+  if (error) throw error
+  if (!data.foto_path) return
+
+  const apaga = await db.storage.from(BALDE_FOTO).remove([data.foto_path])
+  if (apaga.error) throw apaga.error
+
+  const limpa = await db.from('profissional')
+    .update({ foto_path: null }).eq('id', profissionalId)
+  if (limpa.error) throw limpa.error
+
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'profissional', entidadeId: profissionalId,
+    acao: 'editou', detalhe: { foto: 'removida' },
   })
   revalidatePath('/config')
 }

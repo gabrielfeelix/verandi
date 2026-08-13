@@ -13,9 +13,12 @@ import { SecaoLocais, SecaoServicos } from '@/components/config/catalogo'
 import { SecaoPadroes } from '@/components/config/padroes'
 import { SecaoVocabulario } from '@/components/config/vocabulario'
 import { SecaoFuncionamento } from '@/components/config/funcionamento'
+import { SecaoEquipe } from '@/components/config/equipe'
+import { listarEquipe } from '@/server/config/equipe'
 
 const SECOES = [
   { chave: 'servicos', rotulo: 'Serviços' },
+  { chave: 'equipe', rotulo: 'Equipe' },
   { chave: 'locais', rotulo: 'Locais' },
   { chave: 'padroes', rotulo: 'Padrões' },
   { chave: 'vocabulario', rotulo: 'Vocabulário' },
@@ -88,6 +91,16 @@ export default async function Config({
 
         {secao === 'servicos' ? (
           <SecaoServicos servicos={await listarServicos(db, conta.contaId)} />
+        ) : null}
+
+        {secao === 'equipe' ? (
+          <SecaoEquipe
+            equipe={await listarEquipe(db, conta.contaId)}
+            servicos={(await listarServicos(db, conta.contaId))
+              .filter((x) => x.ativo)
+              .map((x) => ({ id: x.id, nome: x.nome }))}
+            rotuloProfissional={rotulos.profissional.singular}
+          />
         ) : null}
 
         {secao === 'locais' ? (
