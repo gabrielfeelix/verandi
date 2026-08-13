@@ -148,7 +148,9 @@ export async function revogarConvite(id: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export type ResultadoConvite =
-  | { ok: true; contaNome: string; email: string }
+  // o papel viaja junto porque a tela precisa dizer no que a pessoa está
+  // entrando antes de ela aceitar: conta e papel, não só "você foi convidada"
+  | { ok: true; contaNome: string; email: string; papel: Papel; tipo: string }
   | { ok: false; motivo: EstadoConvite }
 
 type LinhaConvite = {
@@ -188,7 +190,13 @@ export async function lerConvite(token: string): Promise<ResultadoConvite> {
   )
   if (estado !== 'valido' || !data) return { ok: false, motivo: estado }
 
-  return { ok: true, contaNome: data.conta?.nome ?? '', email: data.email }
+  return {
+    ok: true,
+    contaNome: data.conta?.nome ?? '',
+    email: data.email,
+    papel: data.papel,
+    tipo: data.tipo,
+  }
 }
 
 /**
@@ -252,7 +260,13 @@ export async function aceitarConvite(
   }).eq('id', convite.id)
   if (erroMarca) throw erroMarca
 
-  return { ok: true, contaNome: convite.conta?.nome ?? '', email: convite.email }
+  return {
+    ok: true,
+    contaNome: convite.conta?.nome ?? '',
+    email: convite.email,
+    papel: convite.papel,
+    tipo: convite.tipo,
+  }
 }
 
 /** O Auth não tem busca por e-mail; a lista paginada é o caminho que existe. */

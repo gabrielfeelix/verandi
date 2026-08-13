@@ -1,5 +1,13 @@
 import { lerConvite } from '@/server/usuarios/acoes'
 import { AceitarConvite } from '@/components/usuarios/aceitar-convite'
+import { PainelAcesso } from '@/components/ui/painel-acesso'
+
+const PAPEL: Record<string, string> = {
+  dono: 'dono da conta — mexe em tudo, inclusive configuração e usuários',
+  recepcao: 'recepção — marca, remarca e cadastra, sem mexer na configuração',
+  profissional: 'profissional — a sua agenda e as suas pessoas',
+  suporte: 'suporte da 4YU — acesso registrado em toda ação',
+}
 
 const RECUSA: Record<string, string> = {
   expirado: 'Este convite passou do prazo. Peça um novo para quem te convidou.',
@@ -23,29 +31,52 @@ export default async function Convite({
   const r = await lerConvite(token)
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-5 p-6">
-      <header className="flex flex-col gap-1">
-        <span className="text-[10.5px] font-medium tracking-[.1em] text-tinta-fraca uppercase">
-          Verandi
-        </span>
-        <h1 className="font-titulo text-[30px] font-semibold tracking-[-.02em]">
-          {r.ok ? 'Que bom te ver' : 'Este link não vale mais'}
-        </h1>
-        {r.ok ? (
-          <p className="text-tinta-media">
-            Você foi convidada para <strong className="text-tinta">{r.contaNome}</strong>.
-            Defina uma senha para entrar.
-          </p>
-        ) : (
-          <p className="text-tinta-media">{RECUSA[r.motivo]}</p>
-        )}
-      </header>
+    <PainelAcesso
+      titulo="Seu lugar no estúdio já está pronto."
+      texto="Quem convidou já definiu o que você pode fazer. É só criar a senha e começar."
+    >
+      <h1 className="font-titulo text-[25px] leading-tight font-semibold tracking-[-.02em]">
+        {r.ok ? 'Você foi convidada' : 'Este link não vale mais'}
+      </h1>
 
       {r.ok ? (
-        <AceitarConvite token={token} email={r.email} />
+        <>
+          <p className="pt-2 pb-4 text-[13.5px] leading-relaxed text-tinta-media">
+            Você entra em <strong className="text-tinta">{r.contaNome}</strong>{' '}
+            com o e-mail <strong className="text-tinta">{r.email}</strong>.
+          </p>
+
+          {/* qual conta e qual papel, antes de aceitar: sem isso a pessoa não
+              sabe no que está entrando */}
+          {r.tipo === 'acesso' ? (
+            <p className="mb-5 rounded-[13px] border border-linha-suave bg-superficie-suave px-3.5 py-3 text-[12.5px] leading-relaxed text-tinta-media">
+              <span className="font-medium text-tinta">
+                Como {PAPEL[r.papel]?.split(' — ')[0] ?? r.papel}
+              </span>
+              {PAPEL[r.papel] ? ` — ${PAPEL[r.papel].split(' — ')[1]}` : ''}
+            </p>
+          ) : (
+            <p className="mb-5 rounded-[13px] border border-[#F6E7C9] bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
+              Este link é para redefinir a sua senha. O acesso que você já tinha
+              continua o mesmo.
+            </p>
+          )}
+          <AceitarConvite token={token} />
+        </>
       ) : (
-        <a href="/entrar" className="text-marca underline">Ir para a entrada</a>
+        <>
+          {/* estado recusado precisa dizer o que fazer, não dar erro genérico */}
+          <p className="pt-2 pb-5 text-[13.5px] leading-relaxed text-tinta-media">
+            {RECUSA[r.motivo]}
+          </p>
+          <a
+            href="/entrar"
+            className="inline-flex min-h-12 items-center justify-center rounded-[14px] bg-escuro px-4 text-[14px] font-semibold text-tinta-clara"
+          >
+            Ir para a entrada
+          </a>
+        </>
       )}
-    </main>
+    </PainelAcesso>
   )
 }
