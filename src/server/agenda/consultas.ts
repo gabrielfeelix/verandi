@@ -19,6 +19,7 @@ export type SessaoResumo = {
   profissional: string | null
   /** a cor do profissional na grade: é ela que identifica quem dá a aula */
   corProfissional: string | null
+  localId: string | null
   local: string | null
   status: 'prevista' | 'realizada' | 'cancelada'
   motivoCancelamento: string | null
@@ -49,7 +50,8 @@ export type ParticipacaoDetalhe = {
 export type SessaoDetalhe = SessaoResumo & { participacoes: ParticipacaoDetalhe[] }
 
 const CAMPOS_RESUMO = `
-  id, inicio, duracao_min, capacidade, status, motivo_cancelamento, profissional_id,
+  id, inicio, duracao_min, capacidade, status, motivo_cancelamento,
+  profissional_id, local_id,
   servico:servico_id(nome),
   profissional:profissional_id(nome, cor),
   local:local_id(nome),
@@ -65,6 +67,7 @@ type LinhaResumo = {
   status: 'prevista' | 'realizada' | 'cancelada'
   motivo_cancelamento: string | null
   profissional_id: string | null
+  local_id: string | null
   servico: Embutido
   profissional: ({ nome: string; cor: string | null }) | null
   local: Embutido
@@ -87,6 +90,7 @@ function paraResumo(l: LinhaResumo, fuso: string): SessaoResumo {
     profissionalId: l.profissional_id,
     profissional: l.profissional?.nome ?? null,
     corProfissional: l.profissional?.cor ?? null,
+    localId: l.local_id,
     local: l.local?.nome ?? null,
     status: l.status,
     motivoCancelamento: l.motivo_cancelamento,
@@ -160,7 +164,7 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
     .from('sessao')
     .select(`
       id, conta_id, inicio, duracao_min, capacidade, status, motivo_cancelamento,
-      profissional_id,
+      profissional_id, local_id,
       servico:servico_id(nome),
       profissional:profissional_id(nome, cor),
       local:local_id(nome),

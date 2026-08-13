@@ -42,11 +42,13 @@ test('a grade da semana materializa sozinha e mostra a ocupação', async ({ pag
 
   // nada foi materializado ainda: abrir a semana é o gatilho
   await page.goto('/semana?de=2026-08-03')
-  await expect(page.getByRole('heading', { level: 1 }))
-    .toContainText('Semana de 2026-08-03')
+  // o h1 é "Grade da semana", como no protótipo; a faixa de datas está na
+  // linha de baixo, junto da contagem
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Grade da semana')
+  await expect(page.getByText('03/08 a 09/08')).toBeVisible()
 
-  const grade = page.locator('table')
-  await expect(grade.getByRole('row').filter({ hasText: '07:00' })).toBeVisible()
+  const grade = page.getByRole('region', { name: 'Grade da semana' })
+  await expect(grade.getByText('07:00')).toBeVisible()
   await expect(grade.getByText('1/4').first()).toBeVisible()
   await expect(grade.getByText('1/2').first()).toBeVisible()
 
@@ -61,7 +63,9 @@ test('feriado aparece na coluna do dia', async ({ page }) => {
   await entrar(page, email)
 
   await page.goto('/semana?de=2026-08-03')
-  await expect(page.locator('table').getByText('Feriado municipal')).toBeVisible()
+  await expect(
+    page.getByRole('region', { name: 'Grade da semana' }).getByText('Feriado municipal'),
+  ).toBeVisible()
 })
 
 test('filtrar por profissional mostra só a agenda dele', async ({ page }) => {
@@ -70,7 +74,7 @@ test('filtrar por profissional mostra só a agenda dele', async ({ page }) => {
   await entrar(page, email)
 
   await page.goto(`/semana?de=2026-08-03&profissional=${c.outroProfId}`)
-  const grade = page.locator('table')
+  const grade = page.getByRole('region', { name: 'Grade da semana' })
   await expect(grade.getByText('Sofia').first()).toBeVisible()
   await expect(grade.getByText('Marina')).toBeHidden()
 })
@@ -82,7 +86,7 @@ test('em celular a grade vira um dia por vez', async ({ page }) => {
   await entrar(page, email)
 
   await page.goto('/semana?de=2026-08-03&dia=2026-08-05')
-  await expect(page.locator('table')).toBeHidden()
+  await expect(page.getByRole('region', { name: 'Grade da semana' })).toBeHidden()
   await expect(page.getByRole('link', { name: /10:00/ })).toBeVisible()
 })
 
@@ -92,7 +96,8 @@ test('clicar numa célula abre a sessão', async ({ page }) => {
   await entrar(page, email)
 
   await page.goto('/semana?de=2026-08-03')
-  await page.locator('table a').first().click()
+  await page.getByRole('region', { name: 'Grade da semana' })
+    .locator('a[href^="/sessao/"]').first().click()
   await expect(page).toHaveURL(/\/sessao\//)
 })
 
