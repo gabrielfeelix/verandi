@@ -110,6 +110,55 @@ export function colide(a: SerieBase, b: SerieBase): 'profissional' | 'local' | n
   return null
 }
 
+export type SerieExistente = SerieBase & {
+  id: string
+  nomeProfissional: string | null
+  nomeLocal: string | null
+}
+
+export type Colisao = {
+  diaSemana: number
+  horaInicio: string
+  tipo: 'profissional' | 'local'
+  /** o nome que já ocupa — sem isto a mensagem não ajuda ninguém */
+  ocupadoPor: string
+  serieId: string
+}
+
+/**
+ * Todas as colisões de uma série que ainda não existe contra as que existem.
+ *
+ * Serve tanto para criar em vários dias quanto para editar uma: quem chama
+ * decide o que fazer com a lista.
+ */
+export function colisoesDe(
+  nova: Pick<NovaSerie, 'diasSemana' | 'horaInicio' | 'duracaoMin' | 'profissionalId' | 'localId'>,
+  existentes: SerieExistente[],
+): Colisao[] {
+  const saida: Colisao[] = []
+  for (const dia of new Set(nova.diasSemana)) {
+    const candidata: SerieBase = {
+      diaSemana: dia,
+      horaInicio: nova.horaInicio,
+      duracaoMin: nova.duracaoMin,
+      profissionalId: nova.profissionalId ?? null,
+      localId: nova.localId ?? null,
+    }
+    for (const e of existentes) {
+      const tipo = colide(candidata, e)
+      if (tipo === null) continue
+      saida.push({
+        diaSemana: dia,
+        horaInicio: nova.horaInicio,
+        tipo,
+        ocupadoPor: (tipo === 'profissional' ? e.nomeProfissional : e.nomeLocal) ?? '—',
+        serieId: e.id,
+      })
+    }
+  }
+  return saida
+}
+
 export type SessaoParaReconciliar = {
   id: string
   /** instante absoluto, ISO */

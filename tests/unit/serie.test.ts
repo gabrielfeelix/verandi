@@ -2,9 +2,11 @@ import { describe, it, expect } from 'vitest'
 import {
   linhasDaSerie,
   colide,
+  colisoesDe,
   alcanceDaEdicao,
   type NovaSerie,
   type SerieBase,
+  type SerieExistente,
   type SessaoParaReconciliar,
 } from '@/core/agenda/serie'
 
@@ -118,6 +120,76 @@ describe('colide', () => {
   it('a série que engloba a outra colide', () => {
     expect(colide(base({ duracaoMin: 180 }), base({ horaInicio: '08:00' })))
       .toBe('profissional')
+  })
+})
+
+const existente = (over: Partial<SerieExistente> = {}): SerieExistente => ({
+  id: 'e1',
+  diaSemana: 1,
+  horaInicio: '07:00:00',
+  duracaoMin: 60,
+  profissionalId: 'prof-1',
+  localId: 'local-1',
+  nomeProfissional: 'Marina',
+  nomeLocal: 'Sala 1',
+  ...over,
+})
+
+describe('colisoesDe', () => {
+  it('acha a colisão em cada dia pedido', () => {
+    const r = colisoesDe(
+      { diasSemana: [1, 3], horaInicio: '07:30', duracaoMin: 60,
+        profissionalId: 'prof-1', localId: null },
+      [existente({ id: 'seg' }), existente({ id: 'qua', diaSemana: 3 })],
+    )
+    expect(r.map((c) => c.serieId)).toEqual(['seg', 'qua'])
+    expect(r.every((c) => c.tipo === 'profissional')).toBe(true)
+  })
+
+  it('a mensagem carrega o nome de quem já ocupa', () => {
+    const [c] = colisoesDe(
+      { diasSemana: [1], horaInicio: '07:30', duracaoMin: 60,
+        profissionalId: 'prof-1', localId: null },
+      [existente()],
+    )
+    expect(c.ocupadoPor).toBe('Marina')
+  })
+
+  it('colisão de local aponta o nome da sala', () => {
+    const [c] = colisoesDe(
+      { diasSemana: [1], horaInicio: '07:30', duracaoMin: 60,
+        profissionalId: 'prof-9', localId: 'local-1' },
+      [existente()],
+    )
+    expect(c.tipo).toBe('local')
+    expect(c.ocupadoPor).toBe('Sala 1')
+  })
+
+  it('dia sem conflito não gera colisão', () => {
+    const r = colisoesDe(
+      { diasSemana: [2, 4], horaInicio: '07:00', duracaoMin: 60,
+        profissionalId: 'prof-1', localId: 'local-1' },
+      [existente()],
+    )
+    expect(r).toEqual([])
+  })
+
+  it('grade vazia nunca colide', () => {
+    const r = colisoesDe(
+      { diasSemana: [1, 2, 3, 4, 5], horaInicio: '07:00', duracaoMin: 60,
+        profissionalId: 'prof-1', localId: 'local-1' },
+      [],
+    )
+    expect(r).toEqual([])
+  })
+
+  it('dia repetido no pedido não duplica o aviso', () => {
+    const r = colisoesDe(
+      { diasSemana: [1, 1], horaInicio: '07:00', duracaoMin: 60,
+        profissionalId: 'prof-1', localId: null },
+      [existente()],
+    )
+    expect(r).toHaveLength(1)
   })
 })
 

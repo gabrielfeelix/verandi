@@ -24,6 +24,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           {operacional ? <Link href="/semana">Semana</Link> : null}
           {operacional ? <Link href="/pessoas">{rotulos.pessoa.plural}</Link> : null}
           {operacional ? <Link href="/vaga">Buscar vaga</Link> : null}
+          {operacional ? <Link href="/grade">Grade fixa</Link> : null}
         </nav>
 
         <div className="ml-auto flex items-center gap-4">
