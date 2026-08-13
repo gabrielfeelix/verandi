@@ -725,10 +725,17 @@ create table sessao (
 );
 
 -- o que torna a materialização sob demanda segura contra corrida.
--- parcial porque `serie_id` é nulo em sessão avulsa, e duas avulsas no mesmo
--- horário são legítimas (dois profissionais, duas salas).
-create unique index sessao_serie_inicio_uk
-  on sessao (serie_id, inicio) where serie_id is not null;
+--
+-- Não é índice parcial de propósito. Um `where serie_id is not null` diria a
+-- mesma coisa, mas `ON CONFLICT` só usa índice parcial se o predicado for
+-- repetido na consulta — e o PostgREST não tem como mandar predicado, então o
+-- upsert quebraria com "no unique or exclusion constraint matching".
+--
+-- A constraint simples já basta porque no Postgres nulos são distintos entre
+-- si (NULLS DISTINCT é o padrão): duas sessões avulsas no mesmo instante, com
+-- `serie_id` nulo, continuam permitidas — e elas são legítimas, porque são
+-- dois profissionais ou duas salas.
+alter table sessao add constraint sessao_serie_inicio_uk unique (serie_id, inicio);
 create index sessao_conta_inicio_ix on sessao (conta_id, inicio);
 
 create table participacao (
