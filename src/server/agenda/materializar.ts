@@ -33,11 +33,27 @@ function instante(data: string, hora: string, fuso: string): string {
 
 type LinhaVaga = { serie_id: string; pessoa_id: string; inicio: string; fim: string | null }
 
+type LinhaSerie = {
+  id: string
+  servico_id: string
+  profissional_id: string | null
+  local_id: string | null
+  dia_semana: 0 | 1 | 2 | 3 | 4 | 5 | 6
+  hora_inicio: string
+  duracao_min: number
+  capacidade: number
+  vigencia_inicio: string
+  vigencia_fim: string | null
+  ativo: boolean
+}
+
+type LinhaSessao = { id: string; inicio: string }
+
 /**
  * Cria as sessões da janela que ainda não existem, e semeia as participações
  * de quem tem vaga recorrente.
  *
- * Idempotente por construção: o `UNIQUE (serie_id, inicio)` parcial e o
+ * Idempotente por construção: o `UNIQUE (serie_id, inicio)` e o
  * `UNIQUE (sessao_id, pessoa_id)` transformam corrida em conflito ignorado.
  * Duas abas abrindo a mesma semana ao mesmo tempo não duplicam nada, e não
  * existe job agendado para esquecer de rodar.
@@ -53,6 +69,8 @@ export async function materializarJanela(
   if (erroConta) throw erroConta
   const fuso = conta!.fuso as string
 
+  // `.returns<>()` porque o cliente não tem os tipos do banco gerados: sem
+  // isso o supabase-js devolve `GenericStringError` e o tsc recusa tudo
   const { data: series, error: erroSeries } = await db
     .from('serie')
     .select(
@@ -60,17 +78,20 @@ export async function materializarJanela(
       'duracao_min, capacidade, vigencia_inicio, vigencia_fim, ativo',
     )
     .eq('conta_id', contaId).eq('ativo', true)
+    .returns<LinhaSerie[]>()
   if (erroSeries) throw erroSeries
   if (!series?.length) return { criadas: 0, participacoesCriadas: 0 }
 
   const { data: excecoesBrutas } = await db
     .from('excecao_calendario').select('data, tipo')
     .eq('conta_id', contaId).gte('data', de).lte('data', ate)
-  const excecoes = (excecoesBrutas ?? []) as Excecao[]
+    .returns<Excecao[]>()
+  const excecoes = excecoesBrutas ?? []
 
   const { data: vagasBrutas } = await db
     .from('vaga').select('serie_id, pessoa_id, inicio, fim').eq('conta_id', contaId)
-  const vagas = (vagasBrutas ?? []) as LinhaVaga[]
+    .returns<LinhaVaga[]>()
+  const vagas = vagasBrutas ?? []
 
   let criadas = 0
   let participacoesCriadas = 0
@@ -108,6 +129,7 @@ export async function materializarJanela(
       .from('sessao')
       .upsert(linhas, { onConflict: 'serie_id,inicio', ignoreDuplicates: true })
       .select('id, inicio')
+      .returns<LinhaSessao[]>()
     if (error) throw error
     criadas += inseridas?.length ?? 0
 

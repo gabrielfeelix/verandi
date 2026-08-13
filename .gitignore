@@ -35,3 +35,5 @@ npm-debug.log*
 venv/
 yarn-debug.log*
 yarn-error.log*
+test-results/
+playwright-report/

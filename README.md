@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Verandi
 
-## Getting Started
+SaaS de agendamento multi-inquilino, da [4YU](https://4yu.com.br). Serve qualquer
+negócio que marque horário — estúdio, clínica, salão, personal, professor
+particular — com **vaga recorrente** e **horário avulso** no mesmo modelo.
 
-First, run the development server:
+Não é o sistema de um cliente. O primeiro cliente é a evidência, não o alvo, e a
+régua que decide tudo é:
+
+> Isto é **agendamento**, ou é **este cliente**?
+
+Se for do cliente, vira linha de configuração. Nunca coluna nova, nunca `if`.
+
+## Subir
 
 ```bash
+npx supabase start   # Postgres local, no Docker
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O Supabase local usa a faixa 564xx (API `56421`, studio `56423`). O `.env.local`
+sai do `npx supabase status -o env` — ver [ESTADO.md](docs/ESTADO.md).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Testar
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test         # unidade e integração
+npm run test:e2e # navegador, sobe o dev sozinho
+```
 
-## Learn More
+Os testes de `src/core/` rodam sem banco nenhum, em menos de um segundo. É de
+propósito: a matemática de agenda — expandir recorrência, aplicar feriado, contar
+ocupação, decidir se o encaixe cabe — é onde os bugs difíceis moram.
 
-To learn more about Next.js, take a look at the following resources:
+## Documentação
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Arquivo | O quê |
+|---|---|
+| [docs/ESTADO.md](docs/ESTADO.md) | **comece por aqui** — onde paramos e o que fazer em seguida |
+| [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | vocabulário, entidades e as decisões que não dá para tomar duas vezes |
+| [docs/TELAS.md](docs/TELAS.md) | o que cada tela faz, sem decidir visual |
+| [docs/PLANO.md](docs/PLANO.md) | os marcos e a ordem de construção |
+| [handoff](handoff) | o briefing original |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estrutura
 
-## Deploy on Vercel
+```
+src/
+├── core/      ★ zero import de Next, Supabase ou rede — testável sem subir nada
+├── server/    repositórios, ações de servidor, materialização
+├── app/       rotas (ver TELAS.md)
+└── components/
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`core/` não importa nada de `app/`, `server/` ou do banco. A dependência anda
+numa direção só, e há uma verificação disso no fechamento de cada plano.
