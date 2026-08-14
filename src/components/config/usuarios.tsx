@@ -23,9 +23,15 @@ const TINTA_PAPEL: Record<string, 'positivo' | 'info' | 'atencao' | 'neutro'> = 
 /**
  * Quem tem acesso, com que papel.
  *
- * O link do convite aparece **uma vez**, aqui, e é copiado para o WhatsApp.
- * Enquanto não houver envio por e-mail, esse é o caminho inteiro — e ele já é o
- * caminho real de quem opera um estúdio.
+ * O convite **sai por e-mail**, e o link aparece logo abaixo como plano B — não
+ * como uma segunda opção a escolher. Quem confia no e-mail nem olha para o
+ * link; quem trabalha no WhatsApp copia e segue. Duas ações lado a lado
+ * pedindo uma escolha é que confundiria.
+ *
+ * O plano B não é luxo: domínio de envio novo cai em spam nas primeiras
+ * semanas, e sem o link visível o convite viraria chamado para a 4YU. Também é
+ * por isso que a tela diz se o e-mail saiu de verdade em vez de afirmar que
+ * saiu.
  */
 export function SecaoUsuarios({
   usuarios, convites, meuId,
@@ -35,7 +41,16 @@ export function SecaoUsuarios({
   meuId: string
 }) {
   const [convidando, setConvidando] = useState(false)
-  const [link, setLink] = useState<{ url: string; para: string } | null>(null)
+  /*
+   * `enviado` só existe para o convite. O link de redefinir senha ainda não sai
+   * por e-mail — dizer "o e-mail não saiu" ali seria inventar uma falha que não
+   * houve, num painel em que a pessoa confia para saber o que aconteceu.
+   */
+  const [link, setLink] = useState<
+    | { tipo: 'convite'; url: string; para: string; enviado: boolean }
+    | { tipo: 'senha'; url: string; para: string }
+    | null
+  >(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
@@ -74,7 +89,12 @@ export function SecaoUsuarios({
                   email: String(f.get('email') ?? ''),
                   papel: String(f.get('papel') ?? 'profissional') as PapelConvidavel,
                 })
-                setLink({ url: urlDe(r.token), para: String(f.get('email') ?? '') })
+                setLink({
+                  tipo: 'convite',
+                  url: urlDe(r.token),
+                  para: String(f.get('email') ?? ''),
+                  enviado: r.emailEnviado,
+                })
                 setConvidando(false)
               })}
             >
@@ -93,11 +113,11 @@ export function SecaoUsuarios({
                 </Campo>
               </div>
               <Nota tom="positivo">
-                O convite vale por 7 dias. O link aparece uma vez, na tela — é
-                você que manda para a pessoa.
+                O convite vale por 7 dias. Mandamos por e-mail, e o link
+                aparece aqui caso você prefira enviar por outro caminho.
               </Nota>
               <div className="flex gap-2">
-                <Botao type="submit" miudo disabled={pendente}>Criar convite</Botao>
+                <Botao type="submit" miudo disabled={pendente}>Enviar convite</Botao>
                 <Botao type="button" tom="fantasma" miudo onClick={() => setConvidando(false)}>
                   Cancelar
                 </Botao>
@@ -106,11 +126,21 @@ export function SecaoUsuarios({
             </FaixaFormulario>
           ) : null}
 
-          {/* Aparece uma vez: depois só dá para revogar e criar outro */}
           {link ? (
             <div className="m-4 flex flex-col gap-2 rounded-padrao border border-linha p-3">
               <span className="text-[12.5px] font-medium">
-                Link para {link.para} — copie agora
+                {link.tipo === 'senha'
+                  ? `Link de senha para ${link.para}`
+                  : link.enviado
+                    ? `Convite enviado para ${link.para}`
+                    : `Convite criado para ${link.para}`}
+              </span>
+              <span className="text-[12.5px] text-suave">
+                {link.tipo === 'senha'
+                  ? 'Mande para a pessoa:'
+                  : link.enviado
+                    ? 'Não chegou? Mande o link direto:'
+                    : 'O e-mail não saiu. Mande o link direto:'}
               </span>
               <input readOnly value={link.url} className={`${entrada} font-mono text-[12px]`}
                 aria-label="Link do convite" onFocus={(e) => e.currentTarget.select()} />
@@ -128,7 +158,7 @@ export function SecaoUsuarios({
               </div>
               <Nota tom="atencao">
                 Este link não aparece de novo. Se perder, revogue o convite e
-                crie outro.
+                crie outro — o e-mail que já saiu continua valendo.
               </Nota>
             </div>
           ) : null}
@@ -183,7 +213,7 @@ export function SecaoUsuarios({
                         icone: 'chave' as const,
                         aoEscolher: () => comErro(async () => {
                           const r = await gerarLinkDeSenha(u.usuarioId)
-                          setLink({ url: urlDe(r.token), para: u.email })
+                          setLink({ tipo: 'senha', url: urlDe(r.token), para: u.email })
                         }),
                       },
                       {

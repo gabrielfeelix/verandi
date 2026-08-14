@@ -27,5 +27,12 @@ export default defineConfig({
     url: 'http://localhost:3000/entrar',
     reuseExistingServer: true,
     timeout: 180_000,
+    /*
+     * A suíte roda contra build de produção, e é daí que `NODE_ENV` sai. Sem
+     * `APP_URL` o link do e-mail de convite sairia apontando para lugar nenhum
+     * — o envio é engolido de propósito, então isso passaria calado aqui e só
+     * apareceria na caixa de entrada de outra pessoa.
+     */
+    env: { APP_URL: 'http://localhost:3000' },
   },
 })

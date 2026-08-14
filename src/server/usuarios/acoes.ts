@@ -5,6 +5,9 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { clienteAdmin } from '../supabase'
 import { registrar } from '../log'
+import { envia } from '../email/brevo'
+import { urlDoApp } from '../url'
+import { montaConvite } from '@/core/email/convite'
 import { estadoDoConvite, type EstadoConvite } from '@/core/acesso/convite'
 import type { Papel } from '@/core/acesso/destino'
 import { PAPEIS_CONVIDAVEIS, type PapelConvidavel } from '@/core/acesso/papeis'
@@ -37,6 +40,49 @@ async function exigirDono() {
   return conta
 }
 
+/**
+ * Manda o convite por e-mail, e engole qualquer falha.
+ *
+ * Nada aqui dentro pode derrubar a criação do convite — nem o Brevo fora do ar,
+ * nem `APP_URL` faltando na produção, nem um defeito no template. O link na
+ * tela é o plano B justamente para isso, e ele é montado no navegador, sem
+ * depender de nada disto.
+ *
+ * A primeira versão deixava `urlDoApp()` lançar, e a suíte de navegador — que
+ * roda contra build de produção, sem `APP_URL` — mostrou o custo: convite
+ * nenhum era criado. Falhar alto é certo para configuração que ninguém vê;
+ * aqui, alto é o log, não a tela de quem está trabalhando.
+ */
+async function tentaMandarConvite(d: {
+  para: string
+  conta: string
+  papel: string
+  token: string
+  quemConvidou: string | null
+}): Promise<boolean> {
+  try {
+    const conteudo = montaConvite({
+      nomeDaConta: d.conta,
+      papel: d.papel,
+      link: `${urlDoApp()}/convite/${d.token}`,
+      quemConvidou: d.quemConvidou,
+      diasAteExpirar: DIAS_ATE_EXPIRAR,
+    })
+    return await envia({
+      para: d.para,
+      de: d.conta,
+      assunto: conteudo.assunto,
+      html: conteudo.html,
+      texto: conteudo.texto,
+      // "quem é você?" tem que chegar em quem convidou, não num chamado para a 4YU
+      responderPara: d.quemConvidou ? { email: d.quemConvidou } : undefined,
+    })
+  } catch (e) {
+    console.error('[convite] não deu para mandar o e-mail:', e)
+    return false
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Convidar
 // ---------------------------------------------------------------------------
@@ -44,7 +90,7 @@ async function exigirDono() {
 export async function convidar(entrada: {
   email: string
   papel: PapelConvidavel
-}): Promise<{ id: string; token: string }> {
+}): Promise<{ id: string; token: string; emailEnviado: boolean }> {
   const conta = await exigirDono()
   const db = await clienteServidor()
 
@@ -83,8 +129,25 @@ export async function convidar(entrada: {
     contaId: conta.contaId, entidade: 'convite', entidadeId: data.id,
     acao: 'criou', detalhe: { email, papel: entrada.papel },
   })
+
+  /*
+   * O e-mail é o caminho principal; o link na tela é o plano B.
+   *
+   * Por isso `envia` não lança e o convite não depende dele: se o Brevo
+   * piscar, ou o endereço estiver errado, ou cair no spam, a dona ainda tem o
+   * link para mandar pelo WhatsApp. `emailEnviado` é o que deixa a tela dizer
+   * a verdade sobre o que aconteceu, em vez de afirmar um envio que não houve.
+   */
+  const emailEnviado = await tentaMandarConvite({
+    para: email,
+    conta: conta.nome,
+    papel: entrada.papel,
+    token,
+    quemConvidou: user?.email ?? null,
+  })
+
   revalidatePath('/config')
-  return { id: data.id, token }
+  return { id: data.id, token, emailEnviado }
 }
 
 /**

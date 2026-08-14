@@ -13,7 +13,7 @@ async function convitePelaTela(page: import('@playwright/test').Page, para: stri
   await page.getByRole('button', { name: 'Convidar' }).click()
   await page.getByLabel('E-mail').fill(para)
   await page.getByLabel('Papel').selectOption({ label: papel })
-  await page.getByRole('button', { name: 'Criar convite' }).click()
+  await page.getByRole('button', { name: 'Enviar convite' }).click()
 
   const campo = page.getByLabel('Link do convite')
   await expect(campo).toBeVisible()
