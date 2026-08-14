@@ -34,22 +34,31 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
    existiam: **a página rolava atrás do modal**, o que o DESIGN-SYSTEM 4.7
    proíbe. O que ficou pendente e por quê está em
    [`planos/07-acertos-de-interface.md`](planos/07-acertos-de-interface.md).
+7. **O onboarding entrou, e mora dentro do sistema.** O produto abre inteiro e
+   as boas-vindas vêm por cima, no mesmo modal do resto: a primeira versão era
+   uma rota com a casca do login, e uma segunda tela igual à de entrar faz a
+   pessoa achar que o login não funcionou. O último cartão pergunta como o
+   negócio chama as coisas e escreve o vocabulário de uma vez; depois vêm os
+   apontamentos, por papel, sobre as telas de verdade. Migration `0042`, já em
+   produção. Detalhe em [`planos/05-onboarding.md`](planos/05-onboarding.md).
+8. **Duas listas novas de trabalho**, do Gabriel olhando o produto e a
+   concorrência: [`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md)
+   (movimento da marca na espera, ilustração onde não há dado) e
+   [`planos/09-defeitos-apontados.md`](planos/09-defeitos-apontados.md) (a barra
+   fixa da Sessão repete o que já está no cabeçalho).
 
 ## O próximo passo, em ordem
 
-1. **Terminar de conferir o onboarding**, que foi construído em 14/08 e está com
-   a suíte inteira por rodar. O que existe está em
-   [`planos/05-onboarding.md`](planos/05-onboarding.md).
-2. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+1. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
    e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
    dói no banco de desenvolvimento.
-3. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
+2. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
    enquanto a sessão é resolvida, e ilustração onde ainda não há dado. É
    acabamento com razão de existir, e a razão está em
    [`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md).
-4. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
+3. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
    Nada disso exige tabela nova.
-5. **Cadastre-se**, por último, por decisão do Gabriel: a análise está pronta em
+4. **Cadastre-se**, por último, por decisão do Gabriel: a análise está pronta em
    [`planos/06-cadastro-e-organizacoes.md`](planos/06-cadastro-e-organizacoes.md),
    e a decisão de quem se cadastra sozinho ainda não foi tomada.
 
@@ -102,12 +111,13 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **251 passaram** |
-| `npm run test:e2e` | **99 passaram** |
+| `npm test` | **269 passaram** |
+| `npm run test:e2e` | **106 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
-| tabelas em `app_verandi` · em `public` | **21 · 0** (as 12 do AutoFluxos seguem intactas) |
+| tabelas em `app_verandi` · em `public` | **22 · 0** (as 12 do AutoFluxos seguem intactas) |
 | RLS em produção | 20 de 20; `anon` não alcança nada |
 | `https://verandi.4yu.com.br` | 200, falando com o banco de produção |
+| migration `0042` em produção · onboarding abrindo lá | aplicada · sim, sem 5xx |
 | Tarefa 10, jornada inteira em banco virgem | 13 passos, terminou em "Chamada feita" |
 | `core/` sem import de banco, Next ou rede | limpo |
 | nenhuma tela com "Aluno"/"Turma"/"Paciente"/"Professor" fixo | limpo |
@@ -117,7 +127,7 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco:** doze migrations (`0030_vr_` a `0041_vr_`), RLS com política em todas as
+**Banco:** treze migrations (`0030_vr_` a `0042_vr_`), RLS com política em todas as
 tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
@@ -127,6 +137,7 @@ usuario_conta · vocabulario · convite
 pessoa · pessoa_tag · profissional · profissional_servico · servico · local
 serie · vaga · sessao · participacao · excecao_calendario
 funcionamento · pendencia_dispensada · acesso_suporte · log_configuracao
+onboarding (progresso do tutorial, por pessoa e por conta)
 view pessoa_resumo · função usuarios_da_conta (security definer)
 balde privado foto-profissional
 ```
