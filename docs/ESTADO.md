@@ -266,6 +266,25 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   que não é dado de conta precisa de `enable row level security` **e**
   `revoke all ... from anon, authenticated` explícitos. `service_role` passa
   por cima de RLS e continua alcançando.
+- **O Brevo põe "Cancelar assinatura" em e-mail transacional, e não dá para
+  desligar sozinho.** O cabeçalho `List-Unsubscribe` é obrigatório em tudo que
+  sai por SMTP ou API — a documentação deles diz que campanha e transacional não
+  se distinguem no fluxo, então o cabeçalho vai em todos. O caminho oficial é
+  **abrir chamado no suporte do Brevo** pedindo a troca por `List-Help`, que não
+  vira botão clicável. Enquanto isso: a assinante que clicar ali para de receber
+  convite e redefinição de senha, e não vai ligar uma coisa à outra.
+  O alívio é que o bloqueio de transacional é **por remetente**, não pela conta
+  inteira. Quando alguém disser "não recebi", olhe a lista antes do código:
+  `GET https://api.brevo.com/v3/smtp/blockedContacts`. Existe `DELETE` para
+  desbloquear, mas desbloquear quem pediu para sair é problema jurídico, não
+  técnico — use para diagnosticar, não para reverter.
+- **Os templates de e-mail moram no código, não dentro do Brevo.** A conta lá
+  tem **zero** templates de propósito: o HTML sai de `src/core/email/` no campo
+  `htmlContent` a cada envio, e o Brevo é só o carteiro. É o que deixa o texto
+  versionado, revisável em diff e coberto por teste, e é o que permite a lista
+  "o que você vai poder fazer" mudar conforme o papel sem virar três templates
+  para manter em sincronia. Se um dia alguém que não programa precisar editar
+  copy, aí sim vale migrar — e o custo é ganhar uma segunda fonte de verdade.
 - **`api.supabase.com` devolve 403 `error code: 1010` para cliente HTTP que não
   se parece com navegador ou curl.** É Cloudflare, não Supabase: a mensagem não
   cita token nem permissão, e manda procurar no lugar errado — o `urllib` do
