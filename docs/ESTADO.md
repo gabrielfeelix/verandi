@@ -140,6 +140,27 @@ inventá-la seria pior do que deixá-la faltando.
   **filtro por local**. O método está em [`VESTIR.md`](VESTIR.md); as capturas
   saem de `scripts/tira-prototipo.mjs` e `scripts/tira-produto.mjs`.
 
+### E-mail — o que está de pé, e o que falta
+
+De pé: domínio `verandi.mail.4yu.com.br` autenticado no Brevo (DKIM assinando),
+convite saindo pela API com template no código, e senha e troca de e-mail saindo
+pelo Auth do Supabase via relay SMTP do Brevo, em português.
+
+**Falta o webhook de eventos, e é o que mais importa.** Hoje o Brevo não avisa
+nada de volta, então **bounce é invisível**: a dona convida `maria@gmial.com`
+com o erro de digitação, a tela diz "Convite enviado", o e-mail volta e ninguém
+fica sabendo — até virar chamado para a 4YU. Com `POST /v3/webhooks` apontando
+para uma rota nossa, `hard_bounce`/`blocked`/`spam` viram estado na tela: "o
+convite voltou, confira o endereço". É a mesma régua do resto do produto — a
+tela diz o que aconteceu, não o que se tentou fazer. **Depende do deploy**,
+porque webhook precisa de URL pública.
+
+Não vale agora, e é decisão: **automação no Brevo** (não há cliente nem sincronia
+do nosso banco para lá — esteira sem nada para processar envelhece e depois
+ninguém confia nela), **atributo de contato** (há um contato) e **IP dedicado**
+(sem volume constante, IP dedicado entrega pior, porque a reputação nunca
+aquece).
+
 ### Marco 2 — o bot conversa com a agenda
 
 API v1, eventos de saída (outbox + webhook + Resend), notificações, confirmação
