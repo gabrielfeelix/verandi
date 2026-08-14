@@ -191,6 +191,20 @@ o dump num projeto novo, `drop schema app_autofluxos cascade` lá,
 `drop schema app_verandi cascade` no velho. Sobra apagar de `auth.users` quem
 não tem vínculo — os dois projetos herdam todos os usuários.
 
+**Já está aplicado em produção** (projeto `autofluxos`, ref `xxxynoshwirupkdzwxbj`):
+21 objetos em `app_verandi`, 4 funções, 39 políticas, e as 12 tabelas do
+AutoFluxos em `public` intocadas. Migration nova vai por
+`node scripts/aplica-em-producao.mjs` — **não** por `supabase db push`, que
+compararia a pasta local com a `schema_migrations` compartilhada e passaria a
+reclamar das versões do outro produto. O controle mora em
+`app_verandi.migrations_aplicadas`. Desfazer tudo:
+`supabase/desfazer-verandi.sql`.
+
+Falta um passo que não tem API e **só pode ser dado depois** que o schema
+existe: painel → Integrations → Data API → Settings → **Exposed schemas** →
+`app_verandi`. Marcar antes derruba o cache do PostgREST, que é o mesmo dos dois
+produtos, e tira a API do AutoFluxos do ar.
+
 ## Dívidas técnicas anotadas
 
 - **Gerar os tipos do banco** (`supabase gen types typescript --local`) para
@@ -244,6 +258,11 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
 
 ## Armadilhas que já custaram tempo
 
+- **`api.supabase.com` devolve 403 `error code: 1010` para cliente HTTP que não
+  se parece com navegador ou curl.** É Cloudflare, não Supabase: a mensagem não
+  cita token nem permissão, e manda procurar no lugar errado — o `urllib` do
+  Python apanhou disso, e o mesmo pedido no `curl` passou. Mande um
+  `User-Agent` explícito.
 - **Cliente do Supabase novo precisa de `db: { schema: ESQUEMA }`.** São nove
   pontos de criação em quatro lugares que ninguém junta na cabeça: `src/server`,
   `scripts/*.mjs`, `tests/setup` e **`e2e/`**. Esquecer um não quebra o build nem
