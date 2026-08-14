@@ -278,6 +278,16 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   `GET https://api.brevo.com/v3/smtp/blockedContacts`. Existe `DELETE` para
   desbloquear, mas desbloquear quem pediu para sair é problema jurídico, não
   técnico — use para diagnosticar, não para reverter.
+- **Lista do Brevo é marketing; transacional não passa por lista.** Convite e
+  senha vão por API para um endereço só. Se alguém propuser "uma lista com os
+  usuários para mandar senha", é confusão entre os dois mundos — e enche a base
+  de contato de gente que nunca consentiu com a 4YU.
+  As listas que existem (pasta `Verandi`): **4** Donos de conta · **5**
+  Interessados · **6** Onboarding em aberto. Nenhuma inclui equipe da conta
+  (recepção, profissional) nem quem é atendido, e isso é decisão, não
+  esquecimento: o e-mail dessa gente foi coletado pelo cliente, não por nós, e
+  usá-lo para falar do nosso produto é problema de consentimento antes de ser
+  de bom gosto.
 - **Os templates de e-mail moram no código, não dentro do Brevo.** A conta lá
   tem **zero** templates de propósito: o HTML sai de `src/core/email/` no campo
   `htmlContent` a cada envio, e o Brevo é só o carteiro. É o que deixa o texto
