@@ -27,9 +27,30 @@ describe('roteiro dos primeiros passos', () => {
   })
 
   it('o profissional recebe o essencial, e só', () => {
+    // ela não navega o sistema: opera a sessão que está na frente dela
     const passos = roteiroDe('profissional', PADRAO)
-    expect(passos).toHaveLength(1)
-    expect(passos[0].href).toBe('/hoje')
+    expect(passos.every((p) => p.href === '/hoje')).toBe(true)
+    expect(passos.length).toBeLessThan(roteiroDe('recepcao', PADRAO).length)
+  })
+
+  it('a visita começa pela tela e passa pelo menu antes dos destinos', () => {
+    const passos = roteiroDe('dono', PADRAO)
+    expect(passos[0].alvo).toBe('tela')
+    // o menu vem cedo: sem ele a pessoa aprende telas soltas e não descobre
+    // que existem as outras
+    const primeiroDoMenu = passos.findIndex((p) => p.alvo.startsWith('rail-'))
+    expect(primeiroDoMenu).toBeLessThan(4)
+    expect(passos.filter((p) => p.alvo.startsWith('rail-')).length)
+      .toBeGreaterThanOrEqual(6)
+  })
+
+  it('todo passo de item do menu leva ao destino no passo seguinte', () => {
+    const passos = roteiroDe('dono', PADRAO)
+    for (const [n, p] of passos.entries()) {
+      if (!p.alvo.startsWith('rail-') || n + 1 >= passos.length) continue
+      const destino = `/${p.alvo.replace('rail-', '')}`
+      expect(passos[n + 1].href).toBe(destino)
+    }
   })
 
   it('o suporte da 4YU não tem roteiro: não é cliente', () => {
@@ -49,9 +70,32 @@ describe('roteiro dos primeiros passos', () => {
   it('o texto fala a língua da conta, e nunca a palavra fixa', () => {
     const texto = roteiroDe('dono', PILATES).map((p) => p.texto).join(' ')
     expect(texto).toContain('modalidade')
-    expect(texto).toContain('turma fixa')
-    expect(texto).not.toContain('serviço')
+    expect(texto).toContain('turmas fixas')
     expect(texto).not.toMatch(/horário fixo/)
+  })
+
+  it('nenhum artigo cola na palavra do vocabulário', () => {
+    /*
+     * O gênero é da palavra e a palavra é do cliente: "um serviço" vira "um
+     * modalidade", "os horários fixos" vira "os turmas fixas". Quem escreve o
+     * texto não pode saber qual palavra vai cair ali, então artigo antes dela
+     * é erro de português esperando o primeiro cliente que não seja estúdio.
+     */
+    const palavras = ['aluno', 'alunos', 'turma fixa', 'turmas fixas',
+                      'aula', 'aulas', 'modalidade', 'modalidades']
+    const artigos = ['o', 'a', 'os', 'as', 'um', 'uma', 'uns', 'umas',
+                     'do', 'da', 'dos', 'das', 'no', 'na', 'nos', 'nas',
+                     'ao', 'à', 'pelo', 'pela']
+
+    for (const papel of ['dono', 'recepcao', 'profissional'] as const) {
+      const texto = roteiroDe(papel, PILATES)
+        .map((p) => `${p.titulo} ${p.texto}`).join(' ').toLowerCase()
+      for (const artigo of artigos) {
+        for (const palavra of palavras) {
+          expect(texto).not.toContain(` ${artigo} ${palavra}`)
+        }
+      }
+    }
   })
 })
 

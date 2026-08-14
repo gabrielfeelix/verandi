@@ -39,8 +39,11 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
    uma rota com a casca do login, e uma segunda tela igual à de entrar faz a
    pessoa achar que o login não funcionou. O último cartão pergunta como o
    negócio chama as coisas e escreve o vocabulário de uma vez; depois vêm os
-   apontamentos, por papel, sobre as telas de verdade. Migration `0042`, já em
-   produção. Detalhe em [`planos/05-onboarding.md`](planos/05-onboarding.md).
+   apontamentos: uma visita guiada de quinze passos, com a tela inteira escura e
+   só o alvo aceso, navegando sozinha pelo menu e por cada destino. Migration
+   `0042`, já em produção. Detalhe em
+   [`planos/05-onboarding.md`](planos/05-onboarding.md), e os prompts para gerar
+   a arte definitiva em [`ARTE-ONBOARDING.md`](ARTE-ONBOARDING.md).
 8. **Duas listas novas de trabalho**, do Gabriel olhando o produto e a
    concorrência: [`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md)
    (movimento da marca na espera, ilustração onde não há dado) e
@@ -111,7 +114,7 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **269 passaram** |
+| `npm test` | **272 passaram** |
 | `npm run test:e2e` | **106 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
 | tabelas em `app_verandi` · em `public` | **22 · 0** (as 12 do AutoFluxos seguem intactas) |

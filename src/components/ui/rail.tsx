@@ -14,6 +14,8 @@ export type ItemRail = {
   icone: NomeIcone
   /** número em laranja; `0` não desenha nada, porque zero não é pendência */
   badge?: number
+  /** âncora do balão do onboarding; sumir daqui não quebra a navegação */
+  guia?: string
 }
 
 const CHAVE = 'verandi:rail-aberto'
@@ -109,6 +111,7 @@ export function Rail({
               key={i.href}
               href={i.href}
               title={i.rotulo}
+              data-guia={i.guia}
               aria-current={ativo ? 'page' : undefined}
               className={`relative flex items-center rounded-media transition-colors duration-150 active:scale-[.96] ${
                 aberto

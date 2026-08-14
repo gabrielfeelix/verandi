@@ -69,23 +69,24 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   const operacional = conta.papel === 'dono' || conta.papel === 'recepcao'
 
   const itens: ItemRail[] = [
-    { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', icone: 'hoje' },
+    { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', icone: 'hoje', guia: 'rail-hoje' },
     ...(operacional
       ? ([
-          { href: '/semana', rotulo: 'Grade da semana', curto: 'Semana', icone: 'semana' },
-          { href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', icone: 'pendencias' },
+          { href: '/semana', rotulo: 'Grade da semana', curto: 'Semana', icone: 'semana', guia: 'rail-semana' },
+          { href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', icone: 'pendencias', guia: 'rail-pendencias' },
           {
             href: '/pessoas',
             rotulo: rotulos.pessoa.plural,
             curto: rotulos.pessoa.plural,
             icone: 'pessoas',
+            guia: 'rail-pessoas',
           },
-          { href: '/vaga', rotulo: 'Buscar vaga', curto: 'Vaga', icone: 'vaga' },
-          { href: '/grade', rotulo: 'Grade fixa', curto: 'Fixa', icone: 'grade' },
+          { href: '/vaga', rotulo: 'Buscar vaga', curto: 'Vaga', icone: 'vaga', guia: 'rail-vaga' },
+          { href: '/grade', rotulo: 'Grade fixa', curto: 'Fixa', icone: 'grade', guia: 'rail-grade' },
         ] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'dono' || conta.papel === 'suporte'
-      ? ([{ href: '/config', rotulo: 'Configuração', curto: 'Config', icone: 'config' }] satisfies ItemRail[])
+      ? ([{ href: '/config', rotulo: 'Configuração', curto: 'Config', icone: 'config', guia: 'rail-config' }] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'suporte'
       ? ([{ href: '/contas-4yu', rotulo: 'Contas (4YU)', curto: '4YU', icone: 'conta' }] satisfies ItemRail[])
@@ -114,7 +115,10 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           sair={<Sair />}
         />
 
-        <main className="min-w-0 flex-1 p-4 pb-24 md:p-6 md:pb-6">
+        {/* `data-guia="tela"` é o alvo de reserva do onboarding: quando o
+            elemento apontado não existe naquela conta, o balão aponta a área de
+            trabalho inteira em vez de apontar o vazio */}
+        <main data-guia="tela" className="min-w-0 flex-1 p-4 pb-24 md:p-6 md:pb-6">
           {/* A conta ativa aparece em toda tela de propósito: operar na conta
               errada é o erro mais caro que este sistema permite, e é silencioso.
               No rail ela está sempre no topo; em celular, aqui. */}

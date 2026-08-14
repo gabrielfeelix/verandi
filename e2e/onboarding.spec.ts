@@ -67,22 +67,30 @@ test('pular é definitivo: ninguém é perguntado duas vezes', async ({ page }) 
     .toHaveCount(0)
 })
 
-test('os apontamentos levam à tela certa e terminam', async ({ page }) => {
+test('a visita guiada leva a pessoa pelas telas, e para quando pedem', async ({ page }) => {
   const c = await primeiraVez()
   await entrar(page, c.email)
   await page.getByRole('button', { name: 'Pular' }).click()
 
-  // o primeiro passo do dono é a configuração, e ele não sequestra a navegação
-  await expect(page.getByText('Passo 1 de 4')).toBeVisible()
-  await page.getByRole('button', { name: 'Ir para a tela' }).click()
-  await expect(page).toHaveURL(/\/config/)
+  // a visita começa na tela de trabalho, e é ela que navega
+  await expect(page.getByText('Passo 1 de 15')).toBeVisible()
+  await expect(page).toHaveURL(/\/hoje/)
+  await expect(page.getByRole('heading', { name: 'Esta é a sua tela de trabalho' }))
+    .toBeVisible()
 
-  await page.getByRole('button', { name: 'Continuar' }).click()
-  await expect(page).toHaveURL(/\/grade/)
-  await expect(page.getByText('Passo 2 de 4')).toBeVisible()
+  // passa pelo menu antes de sair de /hoje, e só então muda de tela
+  for (let n = 0; n < 4; n++) {
+    await page.getByRole('button', { name: 'Próxima' }).click()
+  }
+  await expect(page).toHaveURL(/\/semana/)
+  await expect(page.getByText('Passo 5 de 15')).toBeVisible()
+
+  // dá para voltar sem perder o lugar
+  await page.getByRole('button', { name: 'Voltar' }).click()
+  await expect(page.getByText('Passo 4 de 15')).toBeVisible()
 
   await page.getByRole('button', { name: 'Pular' }).click()
-  await expect(page.getByText(/Passo \d de 4/)).toHaveCount(0)
+  await expect(page.getByText(/Passo \d+ de 15/)).toHaveCount(0)
 
   await expect.poll(async () => {
     const { data } = await admin.from('onboarding')
@@ -100,8 +108,8 @@ test('quem só opera não é ensinado a mexer na configuração', async ({ page 
   await expect(page.getByText('1 de 4')).toBeVisible()
 
   await page.getByRole('button', { name: 'Pular' }).click()
-  await expect(page.getByText('Passo 1 de 4')).toBeVisible()
-  await expect(page.getByText('É aqui que o dia acontece')).toBeVisible()
+  // a visita dela é mais curta, e nenhum passo leva à configuração
+  await expect(page.getByText('Passo 1 de 11')).toBeVisible()
 })
 
 test('conta que já opera não recebe apontamento de conta nova', async ({ page }) => {

@@ -33,10 +33,28 @@ ilustrações de `public/acesso/`, apontadas de um registro só, em
 nenhuma tela lê nome de arquivo. As definitivas entram em `public/onboarding/`,
 com a `descricao` mudando junto, que é o que o leitor de tela ouve.
 
-**Os apontamentos não sequestram a navegação.** Quando o passo é de outra tela,
-o guia encolhe num cartão de canto que diz onde é e oferece ir. Ele também só
-aparece enquanto a conta não tem grade nem gente: apontar "monte o primeiro
-horário" para quem já montou é o tutorial falando de um problema resolvido.
+**Os apontamentos viraram uma visita guiada de verdade**, com quinze passos
+para o dono e onze para a recepção. A primeira versão escurecia pouco e mostrava
+três passos soltos; agora **a tela inteira escurece e só o alvo fica aceso**,
+com contorno menta, e o balão branco fica por fora do escuro. O escuro é uma
+sombra de 9999px em volta do recorte, e não um filtro na página: filtro
+escureceria o alvo junto, que foi o defeito da primeira tentativa.
+
+A ordem segue como alguém aprende: a tela de trabalho, **o menu**, e então cada
+destino, o item primeiro e o que há dentro em seguida. O menu vem cedo de
+propósito; sem ele a pessoa aprende telas soltas e não descobre que existem as
+outras. O guia navega sozinho entre os passos, porque é uma visita, e tem
+"Voltar" e "Pular" em todos eles.
+
+Ele só aparece enquanto a conta não tem grade nem gente: apontar "monte o
+primeiro horário" para quem já montou é o tutorial falando de um problema
+resolvido.
+
+**Artigo nunca cola na palavra do vocabulário.** "Cadastre um serviço" vira
+"cadastre um modalidade"; "os horários fixos" vira "os turmas fixas"; "a ficha da
+pessoa" vira "a ficha da aluno". O gênero é da palavra e a palavra é do cliente,
+então onde o artigo seria inevitável a frase muda. Há teste guardando isso, e ele
+falha com a lista de palavras de um estúdio de pilates.
 
 **A tabela é `(usuario_id, conta_id, roteiro)`**, e não `(usuario_id, roteiro)`
 como o plano sugeria: o roteiro depende do papel, e o papel é por conta. A mesma

@@ -7,20 +7,25 @@ import { marcarPasso, concluir, pular } from '@/server/onboarding/acoes'
 import type { Passo } from '@/core/onboarding/roteiro'
 
 /** o balão nunca encosta na borda da janela, nem no elemento que aponta */
-const FOLGA = 12
-const LARGURA = 320
+const FOLGA = 14
+const LARGURA = 330
+const ALTURA_BALAO = 208
 
 type Caixa = { top: number; left: number; width: number; height: number }
 
 /**
- * Os apontamentos: um balão de cada vez, em cima da tela de verdade.
+ * A visita guiada: **a tela inteira escurece, e só o que está sendo apontado
+ * fica aceso.**
  *
- * Sobre a tela real, e não numa simulação, porque o objetivo é a pessoa
- * reconhecer o lugar depois. Uma simulação ensina a usar a simulação.
+ * O escuro é uma sombra gigante em volta do recorte, e não quatro retângulos
+ * nem um `filter` na página: assim o elemento apontado continua com a cor
+ * original, sem nada por cima dele, e o balão fica branco por fora do escuro.
+ * Foi por isso que a primeira versão parecia sem graça, ela escurecia o alvo
+ * junto.
  *
- * O guia **não navega sozinho**. Quando o passo é de outra tela, ele encolhe
- * num cartão de canto que diz onde é e oferece ir; sequestrar a navegação de
- * quem está no meio de uma tarefa é pior do que um passo a mais.
+ * O guia **navega sozinho** entre os passos, porque é uma visita: ele mostra o
+ * menu, clica no item, mostra o que tem dentro, e segue. O que ele não faz é
+ * prender: "Pular" está em todos os passos e é definitivo.
  */
 export function Guia({ passos, passoInicial }: { passos: Passo[]; passoInicial: number }) {
   const [i, setI] = useState(Math.min(passoInicial, Math.max(0, passos.length - 1)))
@@ -36,23 +41,33 @@ export function Guia({ passos, passoInicial }: { passos: Passo[]; passoInicial: 
    * A posição do alvo muda com rolagem, com o tamanho da janela e com o dado
    * que chega depois. Medir uma vez na montagem deixa o balão apontando o vazio
    * na primeira rolagem, então a medida é refeita nos três eventos.
+   *
+   * Sem o elemento do passo, o alvo é a área de trabalho inteira: melhor
+   * apontar a tela do que apontar o nada.
    */
   const medir = useCallback(() => {
     if (!passo || !naTela) return setCaixa(null)
     const alvo = document.querySelector(`[data-guia="${passo.alvo}"]`)
+      ?? document.querySelector('[data-guia="tela"]')
     if (!alvo) return setCaixa(null)
     const r = alvo.getBoundingClientRect()
-    setCaixa({ top: r.top, left: r.left, width: r.width, height: r.height })
+    // a área de trabalho é mais alta que a janela; o recorte para na dobra,
+    // senão o escuro vira uma moldura fina em volta de tudo
+    const altura = Math.min(r.height, window.innerHeight - r.top - FOLGA * 2)
+    setCaixa({ top: r.top, left: r.left, width: r.width, height: Math.max(64, altura) })
   }, [passo, naTela])
+
+  // o passo manda na navegação: é ele quem leva a pessoa até a tela
+  useEffect(() => {
+    if (fora || !passo || naTela) return
+    router.push(passo.href)
+  }, [fora, passo, naTela, router])
 
   useEffect(() => {
     if (fora) return
-    // a primeira medida vai depois da pintura, e não no corpo do efeito: medir
-    // antes de o navegador desenhar dá retângulo de tamanho zero, e medir
-    // dentro do efeito é render em cascata
     const quadro = requestAnimationFrame(medir)
-    // a segunda cobre o conteúdo que só chega depois (dado, fonte, imagem)
-    const atrasada = setTimeout(medir, 400)
+    // a segunda medida cobre o que só chega depois (dado, fonte, imagem)
+    const atrasada = setTimeout(medir, 350)
     window.addEventListener('scroll', medir, true)
     window.addEventListener('resize', medir)
     return () => {
@@ -79,82 +94,109 @@ export function Guia({ passos, passoInicial }: { passos: Passo[]; passoInicial: 
     const proximo = i + 1
     setI(proximo)
     void marcarPasso('primeiros-passos', proximo)
-    if (passos[proximo].href !== pathname) router.push(passos[proximo].href)
   }
 
-  const conteudo = (
-    <>
-      <p className="font-mono text-[10.5px] tracking-[.12em] text-tinta-fraca uppercase">
-        Passo {i + 1} de {passos.length}
-      </p>
-      <h2 className="pt-1.5 font-titulo text-[17px] leading-[1.2] font-semibold">
-        {passo.titulo}
-      </h2>
-      <p className="pt-1.5 text-[12.5px] leading-[1.55] text-tinta-media">
-        {naTela ? passo.texto : 'Este passo mora em outra tela.'}
-      </p>
-      <div className="flex items-center gap-2 pt-3.5">
-        <Botao miudo tom="fantasma" onClick={sair} className="mr-auto">
-          Pular
-        </Botao>
-        {naTela ? (
-          <Botao miudo onClick={seguir}>
-            {i + 1 >= passos.length ? 'Terminar' : 'Continuar'}
-          </Botao>
-        ) : (
-          <Botao miudo onClick={() => router.push(passo.href)}>
-            Ir para a tela
-          </Botao>
-        )}
-      </div>
-    </>
-  )
-
-  // fora da tela do passo, ou sem o alvo montado: cartão de canto, sem apagar
-  // nada da página. Um vidro escuro sobre uma tela que não é a do passo só
-  // atrapalharia quem está trabalhando
-  if (!naTela || !caixa) {
-    return (
-      <aside className="fixed right-4 bottom-24 z-50 w-[min(92vw,320px)] rounded-cartao border border-linha bg-superficie p-4 shadow-modal md:bottom-6">
-        {conteudo}
-      </aside>
-    )
+  function voltar() {
+    if (i === 0) return
+    const anterior = i - 1
+    setI(anterior)
+    void marcarPasso('primeiros-passos', anterior)
   }
 
-  // cabe embaixo do alvo? senão vai por cima dele
-  const abaixo = caixa.top + caixa.height + FOLGA + 210 < window.innerHeight
-  const topo = abaixo
-    ? caixa.top + caixa.height + FOLGA
-    : Math.max(FOLGA, caixa.top - 210 - FOLGA)
-  const esquerda = Math.min(
-    Math.max(FOLGA, caixa.left),
-    Math.max(FOLGA, window.innerWidth - LARGURA - FOLGA),
-  )
+  /*
+   * Sem caixa (trocando de tela, ou alvo ainda não montado) o escuro continua,
+   * e o balão vai para o meio. O que não pode acontecer é a tela clarear entre
+   * um passo e outro: pisca, e parece que a visita acabou.
+   */
+  const centro = !caixa
+  const abaixo = caixa
+    ? caixa.top + caixa.height + FOLGA + ALTURA_BALAO < window.innerHeight
+    : false
+  const topo = caixa
+    ? (abaixo
+        ? caixa.top + caixa.height + FOLGA
+        : Math.max(FOLGA, caixa.top - ALTURA_BALAO - FOLGA))
+    : 0
+  const esquerda = caixa
+    ? Math.min(
+        Math.max(FOLGA, caixa.left),
+        Math.max(FOLGA, window.innerWidth - LARGURA - FOLGA),
+      )
+    : 0
 
   return (
     <>
       {/*
-        * O apagado é uma sombra gigante em volta do recorte, e não quatro
-        * retângulos: assim o alvo continua nítido, sem nada por cima dele, e o
-        * `pointer-events-none` deixa a tela continuar clicável — o passo é para
-        * ser feito, não assistido.
+        * `pointer-events-none` de propósito: a pessoa continua podendo usar a
+        * tela durante a visita. O passo é para ser feito, não assistido.
         */}
       <div
         aria-hidden
-        className="pointer-events-none fixed z-40 rounded-media transition-[top,left,width,height] duration-200"
-        style={{
-          top: caixa.top - 6,
-          left: caixa.left - 6,
-          width: caixa.width + 12,
-          height: caixa.height + 12,
-          boxShadow: '0 0 0 9999px rgba(18,33,28,.5)',
-        }}
+        className="pointer-events-none fixed z-40 rounded-media transition-[top,left,width,height] duration-300 ease-out"
+        style={
+          caixa
+            ? {
+                top: caixa.top - 8,
+                left: caixa.left - 8,
+                width: caixa.width + 16,
+                height: caixa.height + 16,
+                boxShadow: '0 0 0 9999px rgba(11,20,17,.72)',
+                outline: '2px solid rgba(42,195,163,.55)',
+                outlineOffset: 0,
+              }
+            : {
+                top: '50%', left: '50%', width: 0, height: 0,
+                boxShadow: '0 0 0 9999px rgba(11,20,17,.72)',
+              }
+        }
       />
+
       <aside
+        aria-live="polite"
         className="fixed z-50 rounded-cartao border border-linha bg-superficie p-4 shadow-modal"
-        style={{ top: topo, left: esquerda, width: `min(92vw, ${LARGURA}px)` }}
+        style={
+          centro
+            ? {
+                top: '50%', left: '50%',
+                transform: 'translate(-50%,-50%)',
+                width: `min(92vw, ${LARGURA}px)`,
+              }
+            : { top: topo, left: esquerda, width: `min(92vw, ${LARGURA}px)` }
+        }
       >
-        {conteudo}
+        <p className="font-mono text-[10.5px] tracking-[.12em] text-tinta-fraca uppercase">
+          Passo {i + 1} de {passos.length}
+        </p>
+        <h2 className="pt-1.5 font-titulo text-[17px] leading-[1.2] font-semibold">
+          {passo.titulo}
+        </h2>
+        <p className="pt-1.5 text-[12.5px] leading-[1.55] text-tinta-media">
+          {passo.texto}
+        </p>
+
+        {/* os pontos dizem quanto falta sem obrigar a contar */}
+        <div aria-hidden className="flex gap-1 pt-3.5">
+          {passos.map((p, n) => (
+            <span
+              key={`${p.href}-${p.alvo}`}
+              className={`h-[3px] flex-1 rounded-sm transition-colors duration-200 ${
+                n <= i ? 'bg-escuro' : 'bg-linha'
+              }`}
+            />
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 pt-3">
+          <Botao miudo tom="fantasma" onClick={sair}>Pular</Botao>
+          {i > 0 ? (
+            <Botao miudo tom="secundario" onClick={voltar} className="ml-auto">
+              Voltar
+            </Botao>
+          ) : null}
+          <Botao miudo onClick={seguir} className={i > 0 ? '' : 'ml-auto'}>
+            {i + 1 >= passos.length ? 'Terminar' : 'Próxima'}
+          </Botao>
+        </div>
       </aside>
     </>
   )
