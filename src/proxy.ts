@@ -28,7 +28,18 @@ export async function proxy(req: NextRequest) {
     req.nextUrl.pathname.startsWith('/entrar') ||
     req.nextUrl.pathname.startsWith('/convite') ||
     // a amostra dos primitivos não lê dado de conta nenhuma: é design system
-    req.nextUrl.pathname.startsWith('/amostra')
+    req.nextUrl.pathname.startsWith('/amostra') ||
+    /*
+     * `/api` não passa por aqui porque quem chama não é navegador e não tem
+     * sessão: é o webhook do Brevo, e amanhã a API do AutoFluxos. Redirecionar
+     * para `/entrar` devolvia 307 a um robô que não sabe seguir login — o
+     * evento se perdia calado.
+     *
+     * **Cada rota sob `/api` autentica a si mesma.** Esta linha tira a rede de
+     * proteção do middleware; rota nova ali sem conferir credencial é rota
+     * aberta ao mundo.
+     */
+    req.nextUrl.pathname.startsWith('/api/')
 
   if (!user && !publica) {
     return NextResponse.redirect(new URL('/entrar', req.url))
