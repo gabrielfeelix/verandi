@@ -23,20 +23,9 @@ export default async function Contas4YU() {
 
   return (
     <ProvedorDeAviso>
-      <div className="flex flex-col gap-4">
-        <header>
-          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
-            Contas
-          </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
-            Painel da 4YU · {contas.length}{' '}
-            {contas.length === 1 ? 'conta' : 'contas'} · sinais de vida antes da
-            reclamação
-          </p>
-        </header>
-
-        <PainelContas contas={contas} acessos={acessos} />
-      </div>
+      {/* o cabeçalho mora no painel: os dois botões dele abrem coisas que são
+          estado do cliente */}
+      <PainelContas contas={contas} acessos={acessos} />
     </ProvedorDeAviso>
   )
 }

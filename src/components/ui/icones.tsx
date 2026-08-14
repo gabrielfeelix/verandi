@@ -143,6 +143,20 @@ const TRACOS = {
     </>
   ),
   fechar: <path d="M5.8 5.8l8.4 8.4M14.2 5.8l-8.4 8.4" />,
+  /*
+   * Cancelar o horário inteiro.
+   *
+   * O protótipo desenha `⌫` como texto. Não dá: o glifo não existe nas três
+   * fontes do produto, e o navegador substitui por um desenho de 8px que fica
+   * ilegível dentro de um botão de 44px — foi exatamente o que apareceu na
+   * tela. Círculo cortado é o sinal universal de "cancelado" e é um traço só.
+   */
+  proibido: (
+    <>
+      <circle cx="10" cy="10" r="6.8" />
+      <path d="M5.2 5.2l9.6 9.6" />
+    </>
+  ),
 } as const
 
 export function Icone({

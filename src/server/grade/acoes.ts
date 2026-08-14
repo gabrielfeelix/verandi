@@ -386,3 +386,40 @@ export async function encerrarSerie(
   revalidatePath('/hoje')
   return { ok: true, sessoesCanceladas: orfas.length }
 }
+
+/**
+ * Quem tem vaga fixa nesta série, agora.
+ *
+ * É a pergunta que sempre antecede encerrar ou mudar horário — "quem vou
+ * atrapalhar?" — e antes dela só havia o número. Nome é o que permite avisar;
+ * `4 vagas` não permite.
+ *
+ * Sob demanda, e não junto da lista: setenta séries × cinco nomes é uma
+ * carga que a tela de configuração não precisa pagar toda vez que abre.
+ */
+export async function quemOcupa(serieId: string): Promise<
+  Array<{ pessoaId: string; nome: string; desde: string }>
+> {
+  const conta = await exigirConta()
+  const db = await clienteServidor()
+  const hoje = hojeEm(conta.fuso)
+
+  const { data, error } = await db
+    .from('vaga')
+    .select('pessoa_id, inicio, fim, pessoa:pessoa_id(nome)')
+    .eq('conta_id', conta.contaId)
+    .eq('serie_id', serieId)
+    .or(`fim.is.null,fim.gte.${hoje}`)
+    .returns<Array<{
+      pessoa_id: string
+      inicio: string
+      fim: string | null
+      pessoa: { nome: string } | null
+    }>>()
+  if (error) throw error
+
+  return (data ?? [])
+    .filter((v) => v.pessoa !== null)
+    .map((v) => ({ pessoaId: v.pessoa_id, nome: v.pessoa!.nome, desde: v.inicio }))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+}

@@ -7,7 +7,7 @@ import { cartao, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarPadroes } from '@/server/config/acoes'
-import type { Padroes } from '@/server/config/consultas'
+import type { Padroes, UltimaAlteracao } from '@/server/config/consultas'
 
 /**
  * A seção Padrões: os números que o resto do sistema assume quando ninguém diz
@@ -17,7 +17,12 @@ import type { Padroes } from '@/server/config/consultas'
  * protótipo. Um formulário de campos numerados obrigaria a pessoa a adivinhar o
  * que cada número faz.
  */
-export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
+export function SecaoPadroes({
+  padroes, ultima,
+}: {
+  padroes: Padroes
+  ultima: UltimaAlteracao | null
+}) {
   const [v, setV] = useState(padroes)
   const [novoHorario, setNovoHorario] = useState('')
   const [erro, setErro] = useState<string | null>(null)
@@ -195,8 +200,17 @@ export function SecaoPadroes({ padroes }: { padroes: Padroes }) {
       {erro ? <div className="pt-3"><Nota tom="alerta">{erro}</Nota></div> : null}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-linha-fina pt-4">
+        {/* "Tudo salvo" responde à máquina; numa conta com quatro pessoas com
+            acesso, a pergunta é quem mudou o padrão */}
         <span className="text-[12.5px] text-tinta-media">
           {sujo ? 'Há mudanças não salvas.' : 'Tudo salvo.'}
+          {!sujo && ultima ? (
+            <>
+              {' · última alteração em '}
+              {ultima.quando.slice(8, 10)}/{ultima.quando.slice(5, 7)}
+              {ultima.quem ? ` por ${ultima.quem}` : ''}
+            </>
+          ) : null}
         </span>
         <div className="flex gap-2">
           <Botao

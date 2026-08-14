@@ -3,8 +3,9 @@ import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { sessoesDoIntervalo } from '@/server/agenda/consultas'
 import { diaDaSemanaDe, somarDias } from '@/core/agenda/datas'
-import { hojeEm } from '@/server/agenda/fuso'
+import { agoraMs, hojeEm, localDe } from '@/server/agenda/fuso'
 import { GradeSemana } from '@/components/grade/grade-semana'
+import { BotaoImprimir } from '@/components/ui/imprimir'
 import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
@@ -30,6 +31,26 @@ function segundaDe(data: string): string {
 
 function curta(data: string) {
   return `${data.slice(8)}/${data.slice(5, 7)}`
+}
+
+const MESES = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+]
+
+/**
+ * "10 – 16 de agosto", e "28 de setembro – 4 de outubro" quando a semana vira
+ * o mês. Dizer o mês duas vezes na mesma faixa é ruído; omiti-lo na virada
+ * seria erro.
+ */
+function faixaDaSemana(de: string, ate: string) {
+  const mesDe = Number(de.slice(5, 7)) - 1
+  const mesAte = Number(ate.slice(5, 7)) - 1
+  const diaDe = Number(de.slice(8, 10))
+  const diaAte = Number(ate.slice(8, 10))
+  return mesDe === mesAte
+    ? `${diaDe} – ${diaAte} de ${MESES[mesAte]}`
+    : `${diaDe} de ${MESES[mesDe]} – ${diaAte} de ${MESES[mesAte]}`
 }
 
 export default async function Semana({ searchParams }: { searchParams: Busca }) {
@@ -64,6 +85,16 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     ...(p.profissional ? { profissionalId: p.profissional } : {}),
     ...(p.local ? { localId: p.local } : {}),
   })
+
+  // dia sem linha em `funcionamento` é dia fechado: é o que separa o sábado
+  // vazio do sábado que a casa não abre
+  const { data: aberturas } = await db
+    .from('funcionamento').select('dia_semana').eq('conta_id', conta.contaId)
+    .returns<{ dia_semana: number }[]>()
+  const abertos = new Set((aberturas ?? []).map((a) => a.dia_semana))
+  const fechados = new Set(
+    abertos.size === 0 ? [] : [0, 1, 2, 3, 4, 5, 6].filter((d) => !abertos.has(d)),
+  )
 
   const { data: excecoes } = await db
     .from('excecao_calendario').select('data, descricao, tipo')
@@ -114,14 +145,14 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           <p className="pt-[3px] text-[13.5px] text-tinta-media">
             {ehDia
               ? `${DIAS_CURTOS[diaDaSemanaDe(diaFoco)]} ${curta(diaFoco)}`
-              : `${curta(segunda)} a ${curta(sabado)}`}
+              : faixaDaSemana(segunda, dias[6])}
             {' · '}
             {sessoes.length} {rotulos.sessao.plural.toLowerCase()}
             {vagas.total > 0 ? ` · ${porcento}% das vagas ocupadas` : ''}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div data-imprimir="fora" className="flex flex-wrap items-center gap-2.5">
           <Abas
             rotuloDoGrupo="Como ver a agenda"
             ativo={ehDia ? 'dia' : 'semana'}
@@ -157,12 +188,14 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               <Icone nome="depois" />
             </Link>
           </div>
+
+          {!ehDia ? <BotaoImprimir /> : null}
         </div>
       </header>
 
       {/* Filtro por pessoa é o mais usado — a pergunta frequente é "como está a
           semana da Marina". O de local só aparece quando há mais de um lugar. */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div data-imprimir="fora" className="flex flex-wrap items-center gap-1.5">
         <Chip href={q({ profissional: undefined })} ativo={!p.profissional}>
           {`Todos os ${rotulos.profissional.plural.toLowerCase()}`}
         </Chip>
@@ -235,17 +268,20 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         </>
       ) : (
         <>
-          <div className="hidden md:block">
+          <div data-imprimir="inteiro" className="hidden md:block print:block">
             <GradeSemana
               sessoes={sessoes}
               dias={dias}
               feriados={feriados}
               hoje={hoje}
+              fechados={fechados}
+              agora={dias.includes(hoje) ? localDe(new Date(agoraMs()).toISOString(), fuso).hora : null}
+              rotuloSessoes={rotulos.sessao.plural.toLowerCase()}
             />
           </div>
 
           {/* Em celular sete colunas não cabem: vira um dia por vez. */}
-          <div className="md:hidden">
+          <div data-imprimir="fora" className="md:hidden">
             <nav className="mb-3 flex flex-wrap gap-1.5" aria-label="Dias da semana">
               {dias.map((d) => (
                 <Link
@@ -296,10 +332,11 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
 
       <div className="flex flex-wrap items-center gap-4 text-[12px] text-tinta-media">
         {[
-          ['bg-superficie-suave border-linha-suave', 'horário normal'],
-          ['bg-alerta-superficie border-alerta-linha', 'acima da capacidade'],
-          ['bg-superficie-mais-suave border-linha', 'cancelado'],
-          ['bg-atencao-fundo border-atencao-fundo', 'feriado ou fechado'],
+          ['bg-superficie border-linha-suave', 'Com vaga'],
+          ['bg-alerta-superficie border-alerta-linha', 'Lotada'],
+          ['bg-superficie-mais-suave border-linha', 'Cancelada'],
+          ['bg-superficie-tenue border-linha-fina', 'Horário vazio'],
+          ['bg-neutro-fundo border-linha', 'Fechado'],
         ].map(([cor, rotulo]) => (
           <span key={rotulo} className="inline-flex items-center gap-2">
             <span aria-hidden className={`size-2.5 rounded-[3px] border ${cor}`} />

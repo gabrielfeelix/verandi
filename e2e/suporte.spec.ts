@@ -57,7 +57,7 @@ test('entrar como suporte mostra a faixa que não some, e registra', async ({ pa
 
   await page.getByRole('listitem')
     .filter({ hasText: nome })
-    .getByRole('button', { name: 'Entrar como suporte' })
+    .getByRole('button', { name: 'Entrar', exact: true })
     .click()
 
   await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
@@ -82,7 +82,7 @@ test('sair do suporte encerra o registro e devolve a conta', async ({ page }) =>
   await page.goto('/contas-4yu')
   await page.getByRole('listitem')
     .filter({ hasText: nome })
-    .getByRole('button', { name: 'Entrar como suporte' })
+    .getByRole('button', { name: 'Entrar', exact: true })
     .click()
   await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
 
@@ -110,7 +110,7 @@ test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
   await page.goto('/contas-4yu')
   await page.getByRole('listitem')
     .filter({ hasText: nome })
-    .getByRole('button', { name: 'Entrar como suporte' })
+    .getByRole('button', { name: 'Entrar', exact: true })
     .click()
   await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
 
@@ -151,10 +151,12 @@ test('suspender tira o acesso sem apagar dado', async ({ page }) => {
 
   await entrar(page, s.email)
   await page.goto('/contas-4yu')
+  // suspender é ação de menu: não se suspende conta de cliente sem procurar
   await page.getByRole('listitem')
     .filter({ hasText: nome })
-    .getByRole('button', { name: 'Suspender' })
+    .getByRole('button', { name: `Ações de ${nome}` })
     .click()
+  await page.getByRole('menuitem', { name: 'Suspender conta' }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('conta').select('ativo').eq('id', cliente.contaId).single()
@@ -175,13 +177,17 @@ test('o log de acesso da 4YU mostra o que ficou em aberto', async ({ page }) => 
   await page.goto('/contas-4yu')
   await page.getByRole('listitem')
     .filter({ hasText: nome })
-    .getByRole('button', { name: 'Entrar como suporte' })
+    .getByRole('button', { name: 'Entrar', exact: true })
     .click()
   await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
 
   await page.goto('/contas-4yu')
+
+  // o log é modal: ele conta o que a 4YU fez, e não é o que se lê todo dia
+  await page.getByRole('button', { name: 'Log de suporte' }).click()
+  const log = page.getByRole('dialog')
   await expect(
-    page.getByRole('listitem').filter({ hasText: nome })
+    log.getByRole('listitem').filter({ hasText: nome })
       .filter({ hasText: 'em aberto' }).first(),
   ).toBeVisible()
 })

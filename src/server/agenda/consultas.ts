@@ -1,7 +1,7 @@
 import { calcularOcupacao, type Ocupacao, type StatusParticipacao } from '@/core/agenda/ocupacao'
 import { estadoDaChamada, type EstadoChamada } from '@/core/agenda/chamada'
 import type { Db } from '../supabase'
-import { instante, localDe } from './fuso'
+import { hojeEm, instante, localDe } from './fuso'
 import { materializarJanela } from './materializar'
 
 export type OrigemParticipacao =
@@ -45,9 +45,31 @@ export type ParticipacaoDetalhe = {
   status: StatusParticipacao
   reposicaoDeId: string | null
   observacao: string | null
+  /**
+   * A segunda linha da pessoa na chamada: **por que ela está aqui**.
+   *
+   * "vaga fixa desde março", "repõe a falta de 05/06 · Solo 07:00", "encaixe
+   * feito por Recepção · hoje, 08:12". Sem ela, quatro nomes numa lista são
+   * quatro nomes iguais — e a diferença entre quem tem lugar e quem entrou
+   * hoje muda o que se faz quando falta.
+   *
+   * É frase montada de dado que existe (`vaga.inicio`, `reposicao_de_id`,
+   * `registrado_em`); quando não há dado, é `null` e a linha não aparece.
+   */
+  detalhe: string | null
 }
 
-export type SessaoDetalhe = SessaoResumo & { participacoes: ParticipacaoDetalhe[] }
+/** Uma linha do "Histórico da turma": quem entrou, como, e quando. */
+export type EventoDaTurma = {
+  texto: string
+  quando: string
+  tom: 'positivo' | 'atencao' | 'alerta' | 'info' | 'neutro'
+}
+
+export type SessaoDetalhe = SessaoResumo & {
+  participacoes: ParticipacaoDetalhe[]
+  historico: EventoDaTurma[]
+}
 
 const CAMPOS_RESUMO = `
   id, inicio, duracao_min, capacidade, status, motivo_cancelamento,
@@ -149,27 +171,75 @@ export async function sessoesDoIntervalo(
 // TypeScript não consegue estreitar
 type LinhaDetalhe = Omit<LinhaResumo, 'participacao'> & {
   conta_id: string
+  serie_id: string | null
+  criado_em: string
+  serie: { dia_semana: number; hora_inicio: string } | null
   participacao: Array<{
     id: string
     status: StatusParticipacao
     origem: OrigemParticipacao
     reposicao_de_id: string | null
     observacao: string | null
+    registrado_em: string
+    registrado_por_origem: OrigemRegistro
     pessoa: { id: string; nome: string; telefone: string | null } | null
   }>
+}
+
+type OrigemRegistro = 'profissional' | 'recepcao' | 'bot' | 'sistema' | 'importacao'
+
+const QUEM_REGISTROU: Record<OrigemRegistro, string | null> = {
+  profissional: 'pelo profissional',
+  recepcao: 'pela recepção',
+  bot: 'pelo atendimento automático',
+  importacao: 'na importação',
+  // o padrão da coluna. "por Sistema" não informa nada e ainda soa como culpa
+  // de ninguém — melhor calar e deixar só a data.
+  sistema: null,
+}
+
+const DIAS_CURTOS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
+const MESES_CURTOS = [
+  'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+  'jul', 'ago', 'set', 'out', 'nov', 'dez',
+]
+const MESES_LONGOS = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+]
+
+/** "hoje, 08:12" · "ontem, 17:40" · "05 ago, 00:00" — relativo ao dia da conta. */
+function quandoRelativo(iso: string, fuso: string, hoje: string): string {
+  const { data, hora } = localDe(iso, fuso)
+  if (data === hoje) return `hoje, ${hora}`
+
+  const ontem = new Date(`${hoje}T12:00:00Z`)
+  ontem.setUTCDate(ontem.getUTCDate() - 1)
+  if (data === ontem.toISOString().slice(0, 10)) return `ontem, ${hora}`
+
+  const [, m, d] = data.split('-')
+  return `${d} ${MESES_CURTOS[Number(m) - 1]}, ${hora}`
+}
+
+/** "05/06" — a data curta que a planilha escrevia à mão no `REP 05/6`. */
+function diaEMes(data: string): string {
+  const [, m, d] = data.split('-')
+  return `${d}/${m}`
 }
 
 export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDetalhe | null> {
   const { data, error } = await db
     .from('sessao')
     .select(`
-      id, conta_id, inicio, duracao_min, capacidade, status, motivo_cancelamento,
-      profissional_id, local_id,
+      id, conta_id, serie_id, criado_em, inicio, duracao_min, capacidade,
+      status, motivo_cancelamento, profissional_id, local_id,
       servico:servico_id(nome),
       profissional:profissional_id(nome, cor),
       local:local_id(nome),
+      serie:serie_id(dia_semana, hora_inicio),
       participacao(
         id, status, origem, reposicao_de_id, observacao,
+        registrado_em, registrado_por_origem,
         pessoa:pessoa_id(id, nome, telefone)
       )
     `)
@@ -208,6 +278,80 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
     fuso,
   )
 
+  /*
+   * Desde quando cada pessoa tem lugar fixo aqui.
+   *
+   * A vaga é da série, não da sessão: é por isso que a busca vai pela
+   * `serie_id` da sessão e não pela sessão em si. Sessão avulsa não tem série,
+   * e aí ninguém tem vaga fixa — o que é verdade, não falta de dado.
+   */
+  const desdeQuando = new Map<string, string>()
+  if (data.serie_id) {
+    const { data: vagas } = await db
+      .from('vaga')
+      .select('pessoa_id, inicio')
+      .eq('serie_id', data.serie_id)
+      .returns<{ pessoa_id: string; inicio: string }[]>()
+    for (const v of vagas ?? []) {
+      const anterior = desdeQuando.get(v.pessoa_id)
+      // quem saiu e voltou tem duas vagas; a que interessa é a primeira
+      if (!anterior || v.inicio < anterior) desdeQuando.set(v.pessoa_id, v.inicio)
+    }
+  }
+
+  /* Qual falta cada reposição está pagando. */
+  const reposicaoDe = new Map<string, { data: string; hora: string; servico: string }>()
+  const idsRepostos = data.participacao
+    .map((p) => p.reposicao_de_id)
+    .filter((x): x is string => x !== null)
+  if (idsRepostos.length) {
+    const { data: origens } = await db
+      .from('participacao')
+      .select('id, sessao:sessao_id(inicio, servico:servico_id(nome))')
+      .in('id', idsRepostos)
+      .returns<{
+        id: string
+        sessao: { inicio: string; servico: { nome: string } | null } | null
+      }[]>()
+    for (const o of origens ?? []) {
+      if (!o.sessao) continue
+      const { data: d, hora } = localDe(o.sessao.inicio, fuso)
+      reposicaoDe.set(o.id, { data: d, hora, servico: o.sessao.servico?.nome ?? '—' })
+    }
+  }
+
+  const hoje = hojeEm(fuso)
+  const anoDaSessao = resumo.data.slice(0, 4)
+
+  function detalheDe(p: LinhaDetalhe['participacao'][number]): string | null {
+    const quando = quandoRelativo(p.registrado_em, fuso, hoje)
+    const quem = QUEM_REGISTROU[p.registrado_por_origem]
+
+    if (p.origem === 'recorrente') {
+      const desde = desdeQuando.get(p.pessoa!.id)
+      if (!desde) return null
+      const [ano, mes] = desde.split('-')
+      const nomeDoMes = MESES_LONGOS[Number(mes) - 1]
+      return ano === anoDaSessao
+        ? `vaga fixa desde ${nomeDoMes}`
+        : `vaga fixa desde ${nomeDoMes} de ${ano}`
+    }
+
+    if (p.origem === 'reposicao') {
+      const falta = p.reposicao_de_id ? reposicaoDe.get(p.reposicao_de_id) : undefined
+      return falta
+        ? `repõe a falta de ${diaEMes(falta.data)} · ${falta.servico} ${falta.hora}`
+        : `reposição · sem a falta apontada`
+    }
+
+    const verbo = p.origem === 'encaixe'
+      ? 'encaixe feito'
+      : p.origem === 'reserva'
+        ? 'reserva feita'
+        : 'marcado avulso'
+    return quem ? `${verbo} ${quem} · ${quando}` : `${verbo} ${quando}`
+  }
+
   const participacoes: ParticipacaoDetalhe[] = data.participacao
     .filter((p) => p.pessoa !== null)
     .map((p) => ({
@@ -220,6 +364,7 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
       status: p.status,
       reposicaoDeId: p.reposicao_de_id,
       observacao: p.observacao,
+      detalhe: [detalheDe(p), p.observacao].filter(Boolean).join(' · ') || null,
     }))
     // quem está na vaga fixa em cima, encaixe embaixo — é como a planilha
     // resolve por posição, e a leitura de relance depende disso
@@ -228,7 +373,50 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
       return a.origem === 'recorrente' ? -1 : b.origem === 'recorrente' ? 1 : 0
     })
 
-  return { ...resumo, participacoes }
+  /*
+   * O histórico da turma, montado do que o banco já guarda.
+   *
+   * Não é log de auditoria — mudança de presença não deixa rastro datado hoje.
+   * É a pergunta que a chamada faz de verdade: **quem não estava aqui na
+   * semana passada, e por quê**. Vaga fixa fica de fora porque toda a turma
+   * entrou no mesmo instante em que a sessão foi materializada; quatro linhas
+   * iguais não são histórico, são ruído.
+   */
+  const TOM_ORIGEM = {
+    encaixe: 'alerta', reposicao: 'atencao', avulso: 'info',
+    reserva: 'neutro', recorrente: 'positivo',
+  } as const
+
+  const historico: EventoDaTurma[] = data.participacao
+    .filter((p) => p.pessoa !== null && p.origem !== 'recorrente')
+    .sort((a, b) => (a.registrado_em < b.registrado_em ? 1 : -1))
+    .map((p) => {
+      const falta = p.reposicao_de_id ? reposicaoDe.get(p.reposicao_de_id) : undefined
+      const quem = QUEM_REGISTROU[p.registrado_por_origem]
+      const como = p.origem === 'reposicao'
+        ? `entrou como reposição${falta ? ` de ${diaEMes(falta.data)}` : ''}`
+        : p.origem === 'encaixe'
+          ? 'entrou de encaixe'
+          : p.origem === 'reserva'
+            ? 'entrou como reserva'
+            : 'entrou como avulso'
+      return {
+        texto: `${p.pessoa!.nome} ${como}${quem ? ` ${quem}` : ''}`,
+        quando: quandoRelativo(p.registrado_em, fuso, hoje),
+        tom: TOM_ORIGEM[p.origem],
+      }
+    })
+
+  historico.push({
+    texto: data.serie
+      ? `Turma criada pela série ${DIAS_CURTOS[data.serie.dia_semana]} ${
+          data.serie.hora_inicio.slice(0, 5)}`
+      : 'Turma criada avulsa',
+    quando: quandoRelativo(data.criado_em, fuso, hoje),
+    tom: 'positivo',
+  })
+
+  return { ...resumo, participacoes, historico }
 }
 
 export type FaltaEmAberto = {

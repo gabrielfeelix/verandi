@@ -351,3 +351,30 @@ select:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Impressão: a grade da semana pregada na parede da recepção.
+ *
+ * O que sai do papel é tudo que não é a grade — trilho, filtros, botões. Não é
+ * economia de tinta: uma folha com a barra de navegação impressa é uma folha
+ * que a pessoa precisa dobrar antes de pendurar. `[data-imprimir="fora"]`
+ * marca o que fica na tela e some no papel.
+ */
+@media print {
+  [data-imprimir='fora'] {
+    display: none !important;
+  }
+
+  /* a grade rola na tela e não pode rolar no papel: o corte esconderia
+     justamente os horários da noite */
+  [data-imprimir='inteiro'] {
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: #fff;
+  }
+}

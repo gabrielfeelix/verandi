@@ -230,7 +230,7 @@ export function Vazio({
  * saber que a lista acabou.
  */
 export function Paginacao({
-  pagina, total, porPagina, aoIr, hrefDe,
+  pagina, total, porPagina, aoIr, hrefDe, nota,
 }: {
   pagina: number
   total: number
@@ -239,6 +239,14 @@ export function Paginacao({
   aoIr?: (p: number) => void
   /** para lista que pagina pela URL — a página vira endereço e o voltar funciona */
   hrefDe?: (p: number) => string
+  /**
+   * A ressalva que explica o que a contagem não diz.
+   *
+   * "1–8 de 28" e, ao lado, "pessoa inativa não some, fica fora do padrão":
+   * solta embaixo do cartão, essa frase virava rodapé que ninguém lê; grudada
+   * no número, ela responde a pergunta no momento em que ela aparece.
+   */
+  nota?: string
 }) {
   const paginas = Math.max(1, Math.ceil(total / porPagina))
   const primeiro = total === 0 ? 0 : (pagina - 1) * porPagina + 1
@@ -248,6 +256,7 @@ export function Paginacao({
     <div className="flex flex-wrap items-center justify-between gap-3">
       <span className="text-[12px] text-tinta-fraca">
         {primeiro}–{ultimo} de {total}
+        {nota ? <> · {nota}</> : null}
       </span>
       <div className="flex items-center gap-2">
         <span className="text-[12px] text-tinta-fraca">

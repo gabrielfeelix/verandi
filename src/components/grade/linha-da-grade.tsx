@@ -2,16 +2,21 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
-  previewEdicao, editarSerie, duplicarSerie, encerrarSerie,
+  previewEdicao, editarSerie, duplicarSerie, encerrarSerie, quemOcupa,
   type MudancaSerie, type Preview,
 } from '@/server/grade/acoes'
 import type { Colisao } from '@/core/agenda/serie'
 import type { CatalogoGrade, SerieLinha } from '@/server/grade/consultas'
+import { mesCurto } from '@/core/agenda/mes-curto'
+import { BotaoIcone } from '@/components/ui/botao'
+import { Avatar } from '@/components/ui/pecas'
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
-type Modo = null | 'editar' | 'duplicar' | 'encerrar'
+type Modo = null | 'editar' | 'duplicar' | 'encerrar' | 'ocupa'
+type Ocupante = { pessoaId: string; nome: string; desde: string }
 
 export function LinhaDaGrade({
   serie, catalogo, rotuloVaga, rotuloPessoa, podeEscrever,
@@ -32,6 +37,7 @@ export function LinhaDaGrade({
   const [colisoes, setColisoes] = useState<Colisao[]>([])
   const [diasDuplicar, setDiasDuplicar] = useState<number[]>([])
   const [vagasNoCaminho, setVagasNoCaminho] = useState<number | null>(null)
+  const [ocupantes, setOcupantes] = useState<Ocupante[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
 
   // data local do navegador: `toISOString` é UTC e já daria amanhã às 21h
@@ -39,7 +45,8 @@ export function LinhaDaGrade({
 
   function fechar() {
     setModo(null); setPreview(null); setMudanca(null)
-    setColisoes([]); setDiasDuplicar([]); setVagasNoCaminho(null); setErro(null)
+    setColisoes([]); setDiasDuplicar([]); setVagasNoCaminho(null)
+    setOcupantes(null); setErro(null)
   }
 
   function comErro(fn: () => Promise<void>) {
@@ -68,10 +75,9 @@ export function LinhaDaGrade({
             {[
               serie.profissional,
               serie.local,
-              `${serie.duracaoMin} min`,
               serie.encerrada
-                ? `encerrada em ${serie.vigenciaFim}`
-                : `desde ${serie.vigenciaInicio}`,
+                ? `${mesCurto(serie.vigenciaInicio)} – ${mesCurto(serie.vigenciaFim!)}`
+                : `desde ${mesCurto(serie.vigenciaInicio)}`,
             ].filter(Boolean).join(' · ')}
           </span>
         </span>
@@ -89,31 +95,77 @@ export function LinhaDaGrade({
         </span>
 
         {podeEscrever && !serie.encerrada ? (
-          <span className="flex shrink-0 gap-1.5">
+          <span className="flex shrink-0 items-center gap-2">
+            {/*
+              * "Quem ocupa" é texto e as outras três são ícone de propósito: ela
+              * é a única que só lê. Encerrar e editar mudam a grade de todo
+              * mundo, e ficam do tamanho de um alvo deliberado.
+              */}
             <button
               type="button"
-              onClick={() => setModo('editar')}
-              className="min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+              disabled={pendente}
+              onClick={() => comErro(async () => {
+                setModo('ocupa')
+                setOcupantes(await quemOcupa(serie.id))
+              })}
+              className="min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
             >
-              Editar
+              Quem ocupa
             </button>
-            <button
-              type="button"
-              onClick={() => setModo('duplicar')}
-              className="min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
-            >
-              Duplicar
-            </button>
-            <button
-              type="button"
-              onClick={() => setModo('encerrar')}
-              className="min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
-            >
-              Encerrar
-            </button>
+            <span className="flex gap-1.5">
+              <BotaoIcone icone="lapis" titulo="Editar" onClick={() => setModo('editar')} />
+              <BotaoIcone icone="lista" titulo="Duplicar" onClick={() => setModo('duplicar')} />
+              <BotaoIcone
+                icone="fechar" titulo="Encerrar" perigo
+                onClick={() => setModo('encerrar')}
+                className="border-alerta-linha-forte bg-alerta-superficie text-alerta"
+              />
+            </span>
           </span>
         ) : null}
+
+        {podeEscrever && serie.encerrada ? (
+          <button
+            type="button"
+            onClick={() => setModo('duplicar')}
+            className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+          >
+            Duplicar
+          </button>
+        ) : null}
       </div>
+
+      {modo === 'ocupa' ? (
+        <div className="flex flex-col gap-2.5 border-t border-linha-fina bg-superficie-suave px-4.5 py-3.5">
+          {ocupantes === null ? (
+            <p className="text-[12.5px] text-tinta-media">carregando…</p>
+          ) : ocupantes.length === 0 ? (
+            <p className="text-[12.5px] text-tinta-media">
+              Ninguém tem vaga fixa aqui. Encerrar não avisa ninguém.
+            </p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {ocupantes.map((o) => (
+                <li key={o.pessoaId}>
+                  <Link
+                    href={`/pessoas/${o.pessoaId}`}
+                    className="flex items-center gap-2 rounded-peca border border-linha-suave bg-superficie py-1.5 pr-3 pl-1.5 text-[12.5px] hover:border-marca"
+                  >
+                    <Avatar nome={o.nome} tamanho={24} decorativo />
+                    {o.nome}
+                    <span className="font-mono text-[11px] text-tinta-fraca">
+                      {mesCurto(o.desde)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button type="button" className="w-fit text-[12.5px] underline" onClick={fechar}>
+            Fechar
+          </button>
+        </div>
+      ) : null}
 
       {modo === 'editar' ? (
         <form

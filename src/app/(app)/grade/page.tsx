@@ -4,6 +4,7 @@ import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { listarSeries, catalogoDaGrade } from '@/server/grade/consultas'
 import { EditorSerie } from '@/components/grade/editor-serie'
 import { LinhaDaGrade } from '@/components/grade/linha-da-grade'
+import { CapacidadeDaSemana } from '@/components/grade/capacidade-semana'
 import { cartao, Vazio } from '@/components/ui/pecas'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
@@ -69,6 +70,8 @@ export default async function Grade() {
         </span>
       </p>
 
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="flex flex-col gap-3.5">
       {/* Vazio é estado de projeto, não acidente: conta nova não tem série
           nenhuma, e a tela precisa dizer qual é o próximo passo. */}
       {vigentes.length === 0 ? (
@@ -92,8 +95,8 @@ export default async function Grade() {
                   ? rotulos.serie.singular
                   : rotulos.serie.plural).toLowerCase()}
                 {' · '}
-                {g.linhas.reduce((n, s) => n + s.ocupadas, 0)}/
-                {g.linhas.reduce((n, s) => n + s.capacidade, 0)} ocupadas
+                {g.linhas.reduce((n, s) => n + s.capacidade, 0)}{' '}
+                {rotulos.vaga.plural.toLowerCase()}
               </span>
             </div>
             <ul aria-label={g.nome}>
@@ -112,7 +115,9 @@ export default async function Grade() {
       {encerradas.length > 0 ? (
         <section className={`overflow-hidden ${cartao}`}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
-            <h2 className="text-[13px] font-medium">Encerradas</h2>
+            <h2 className="text-[13px] font-medium">
+              {rotulos.serie.plural} encerradas
+            </h2>
             <span className="text-[12px] text-tinta-media">
               continuam existindo no histórico
             </span>
@@ -128,6 +133,25 @@ export default async function Grade() {
           </ul>
         </section>
       ) : null}
+        </div>
+
+        <div className="flex flex-col gap-3.5">
+          <CapacidadeDaSemana
+            series={vigentes}
+            rotuloSeries={rotulos.serie.plural.toLowerCase()}
+          />
+
+          {/* As duas ações que assustam, explicadas antes de serem clicadas. */}
+          <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
+            <p className="text-[12.5px] leading-relaxed text-tinta-media">
+              Encerrar {rotulos.serie.singular.toLowerCase()} avisa quantas
+              pessoas ocupam vaga nela antes de confirmar. Duplicar existe porque
+              montar {vigentes.length} {rotulos.serie.plural.toLowerCase()} à mão
+              é o pior momento da implantação.
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
   )
 }

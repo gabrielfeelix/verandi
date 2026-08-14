@@ -27,7 +27,8 @@ test('a chamada não feita aparece e leva direto para a sessão', async ({ page 
   await page.goto('/pendencias')
 
   await expect(page.getByRole('heading', { name: 'Chamadas não feitas' })).toBeVisible()
-  await page.getByRole('link', { name: 'Resolver' }).first().click()
+  // o botão diz o que vai fazer, não "Resolver"
+  await page.getByRole('link', { name: 'Marcar chamada' }).first().click()
   await expect(page).toHaveURL(new RegExp(`/sessao/${c.sessaoId}`))
 })
 
@@ -35,7 +36,8 @@ test('registrar a chamada tira a pendência sem passo extra', async ({ page }) =
   const c = await contaComPendencia()
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
-  await page.getByRole('button', { name: /Marcar todos presentes/ }).click()
+  // são dois: o do cabeçalho e o da barra colada no rodapé
+  await page.getByRole('button', { name: 'Marcar todos presentes' }).first().click()
 
   // esperar a escrita antes de navegar: a ação roda numa transição, e sair da
   // página no meio dela testa o estado anterior

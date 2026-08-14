@@ -134,7 +134,12 @@ test('funcionamento fecha um dia e o dia fechado some da lista de horários', as
   await page.goto('/config?s=funcionamento')
 
   await expect(page.getByLabel('Domingo abre')).toBeVisible()
-  await page.getByRole('button', { name: 'Aberto' }).first().click()
+
+  // é interruptor, não etiqueta: `role=switch` prova que o estado é anunciado
+  const abrirDomingo = page.getByRole('switch', { name: 'Abrir domingo' })
+  await expect(abrirDomingo).toHaveAttribute('aria-checked', 'true')
+  await abrirDomingo.click()
+  await expect(abrirDomingo).toHaveAttribute('aria-checked', 'false')
   await page.getByRole('button', { name: 'Salvar funcionamento' }).click()
 
   await expect.poll(async () => {

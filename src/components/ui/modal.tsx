@@ -34,8 +34,12 @@ export function Modal({
   tom?: Tinta
   titulo: string
   sub?: string
-  primario: string
-  aoConfirmar: () => void
+  /**
+   * A ação que confirma. Opcional porque nem todo modal confirma alguma coisa:
+   * o de encaixe aplica no toque do nome e só precisa de um "Fechar".
+   */
+  primario?: string
+  aoConfirmar?: () => void
   secundario?: string
   aoFechar: () => void
   perigo?: boolean
@@ -88,13 +92,15 @@ export function Modal({
           <Botao tom="secundario" onClick={aoFechar} className="flex-1">
             {secundario}
           </Botao>
-          <Botao
-            tom={perigo ? 'perigo' : 'primario'}
-            onClick={aoConfirmar}
-            disabled={pendente}
-          >
-            {primario}
-          </Botao>
+          {primario && aoConfirmar ? (
+            <Botao
+              tom={perigo ? 'perigo' : 'primario'}
+              onClick={aoConfirmar}
+              disabled={pendente}
+            >
+              {primario}
+            </Botao>
+          ) : null}
         </footer>
       </div>
     </dialog>

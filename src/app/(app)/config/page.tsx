@@ -4,7 +4,7 @@ import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { PADRAO, type ChaveVocabulario } from '@/core/vocabulario/padrao'
 import {
-  carregarPadroes, carregarFuncionamento, listarDatasFechadas,
+  carregarPadroes, carregarFuncionamento, listarDatasFechadas, ultimaAlteracao,
   listarLocais, listarServicos,
 } from '@/server/config/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
@@ -128,7 +128,10 @@ export default async function Config({
         ) : null}
 
         {secao === 'padroes' ? (
-          <SecaoPadroes padroes={await carregarPadroes(db, conta.contaId)} />
+          <SecaoPadroes
+            padroes={await carregarPadroes(db, conta.contaId)}
+            ultima={await ultimaAlteracao(db, conta.contaId, 'conta')}
+          />
         ) : null}
 
         {secao === 'vocabulario' ? (

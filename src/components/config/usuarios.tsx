@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Avatar, Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
 import { BotaoLinha, FaixaFormulario, LinhaConfig, PainelConfig } from './casca'
+import { Menu } from '@/components/ui/menu'
 import { useAviso } from '@/components/ui/desfazer'
 import {
   convidar, revogarConvite, mudarPapel, removerUsuario, gerarLinkDeSenha,
@@ -154,42 +155,47 @@ export function SecaoUsuarios({
                   {NOME_PAPEL[u.papel] ?? u.papel}
                 </Etiqueta>
 
+                {/*
+                  * As ações moram no menu, e não na linha.
+                  *
+                  * Um `<select>` de papel mais dois botões por usuário fazem
+                  * cada linha ter noventa pixels e a lista de nove pessoas
+                  * ocupar uma tela inteira — e nenhuma dessas três ações é
+                  * feita mais de uma vez por pessoa na vida da conta.
+                  */}
                 {u.usuarioId === meuId ? (
                   <Etiqueta tinta="neutro">você</Etiqueta>
                 ) : (
-                  <span className="flex flex-wrap items-center gap-2">
-                    <select
-                      aria-label={`Papel de ${u.email}`}
-                      defaultValue={u.papel}
-                      className={`${entrada} min-h-9 py-0 text-[12.5px]`}
-                      onChange={(e) => comErro(
-                        () => mudarPapel(u.usuarioId, e.target.value as PapelConvidavel),
-                        'Papel atualizado',
-                      )}
-                    >
-                      {PAPEIS_CONVIDAVEIS.map((p) => (
-                        <option key={p} value={p}>{NOME_PAPEL[p]}</option>
-                      ))}
-                    </select>
-                    <BotaoLinha
-                      disabled={pendente}
-                      onClick={() => comErro(async () => {
-                        const r = await gerarLinkDeSenha(u.usuarioId)
-                        setLink({ url: urlDe(r.token), para: u.email })
-                      })}
-                    >
-                      Redefinir senha
-                    </BotaoLinha>
-                    <BotaoLinha
-                      disabled={pendente}
-                      onClick={() => comErro(
-                        () => removerUsuario(u.usuarioId),
-                        'Acesso removido',
-                      )}
-                    >
-                      Remover acesso
-                    </BotaoLinha>
-                  </span>
+                  <Menu
+                    titulo={`Ações de ${u.email}`}
+                    itens={[
+                      ...PAPEIS_CONVIDAVEIS
+                        .filter((p) => p !== u.papel)
+                        .map((p) => ({
+                          rotulo: `Tornar ${NOME_PAPEL[p].toLowerCase()}`,
+                          aoEscolher: () => comErro(
+                            () => mudarPapel(u.usuarioId, p),
+                            'Papel atualizado',
+                          ),
+                        })),
+                      {
+                        rotulo: 'Redefinir senha',
+                        icone: 'chave' as const,
+                        aoEscolher: () => comErro(async () => {
+                          const r = await gerarLinkDeSenha(u.usuarioId)
+                          setLink({ url: urlDe(r.token), para: u.email })
+                        }),
+                      },
+                      {
+                        rotulo: 'Remover acesso',
+                        perigo: true,
+                        aoEscolher: () => comErro(
+                          () => removerUsuario(u.usuarioId),
+                          'Acesso removido',
+                        ),
+                      },
+                    ]}
+                  />
                 )}
             </LinhaConfig>
           ))}

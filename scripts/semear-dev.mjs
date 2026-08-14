@@ -139,6 +139,22 @@ async function main() {
   })
   await db.from('vaga').insert(unicas)
 
+  /*
+   * Horário de funcionamento: segunda a sábado, domingo fechado.
+   *
+   * Sem estas linhas a conta de desenvolvimento diz que o estúdio nunca abre —
+   * e a grade da semana não consegue distinguir "domingo fechado" de "domingo
+   * que ninguém montou", que é justamente o que ela precisa mostrar.
+   */
+  await db.from('funcionamento').insert([
+    { conta_id: contaId, dia_semana: 1, abre: '06:30', fecha: '20:00' },
+    { conta_id: contaId, dia_semana: 2, abre: '06:30', fecha: '20:00' },
+    { conta_id: contaId, dia_semana: 3, abre: '06:30', fecha: '20:00' },
+    { conta_id: contaId, dia_semana: 4, abre: '06:30', fecha: '20:00' },
+    { conta_id: contaId, dia_semana: 5, abre: '06:30', fecha: '19:00' },
+    { conta_id: contaId, dia_semana: 6, abre: '07:00', fecha: '11:00' },
+  ])
+
   await db.from('excecao_calendario').insert({
     conta_id: contaId, data: '2026-09-07', tipo: 'feriado', descricao: 'Independência',
   })

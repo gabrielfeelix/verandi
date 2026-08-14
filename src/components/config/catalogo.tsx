@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Botao } from '@/components/ui/botao'
+import { Botao, BotaoIcone } from '@/components/ui/botao'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import {
   BotaoLinha, Dado, Estado, FaixaFormulario, LinhaConfig, PainelConfig, Recolhivel,
@@ -253,11 +253,6 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
     <PainelConfig
       titulo="Locais"
       sub="Sala, cadeira, consultório, domicílio. A capacidade é o limite físico — avisa, não bloqueia"
-      acao={
-        <Botao miudo onClick={() => { setNovo(true); setEditando(null) }}>
-          Novo local
-        </Botao>
-      }
     >
       {novo ? (
         <FaixaFormulario>
@@ -296,24 +291,68 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
         </p>
       ) : null}
 
-      {ativos.map((l) => (
-        <div key={l.id}>
-          {editando === l.id ? (
-            <FaixaFormulario>{formularioLocal(l)}</FaixaFormulario>
-          ) : (
-            <LinhaConfig
-              nome={l.nome}
-              detalhe={l.emUso > 0 ? `${l.emUso} na grade` : 'sem horário fixo ainda'}
+      {/*
+        * Local é chip, e não linha de lista.
+        *
+        * São três ou quatro nomes curtos — "Sala 1", "Domicílio". Uma linha
+        * inteira para cada um faz a seção parecer tão pesada quanto Serviços,
+        * que tem duração, capacidade e estado por item. Aqui o que existe é
+        * nome e quantas séries usam.
+        */}
+      {ativos.length > 0 ? (
+        <div className="flex flex-wrap gap-2 px-5 py-4">
+          {ativos.map((l) => (
+            <span
+              key={l.id}
+              className="inline-flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie py-1.5 pr-1.5 pl-3 text-[13.5px] font-medium"
             >
-              {l.capacidade ? <Dado>cabe {l.capacidade}</Dado> : null}
-              <Estado ativo />
-              <BotaoLinha onClick={() => { setEditando(l.id); setNovo(false) }}>
-                Editar
-              </BotaoLinha>
-            </LinhaConfig>
-          )}
+              {l.nome}
+              <span className="font-mono text-[11.5px] font-normal text-tinta-fraca">
+                {l.emUso > 0 ? `${l.emUso} na grade` : 'sem uso'}
+              </span>
+              {l.capacidade ? (
+                <span className="font-mono text-[11.5px] font-normal text-tinta-fraca">
+                  cabe {l.capacidade}
+                </span>
+              ) : null}
+              <BotaoIcone
+                icone="lapis"
+                titulo={`Editar ${l.nome}`}
+                onClick={() => { setEditando(l.id); setNovo(false) }}
+              />
+              <BotaoIcone
+                icone="fechar"
+                titulo={`Desativar ${l.nome}`}
+                perigo
+                disabled={pendente}
+                onClick={() => salvar(
+                  async () => {
+                    await salvarLocal({
+                      id: l.id, nome: l.nome, capacidade: l.capacidade, ativo: false,
+                    })
+                  },
+                  'Local desativado',
+                )}
+              />
+            </span>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => { setNovo(true); setEditando(null) }}
+            className="inline-flex min-h-11 cursor-pointer items-center rounded-padrao border border-dashed border-linha-tracejada px-3.5 text-[13px] whitespace-nowrap text-marca hover:bg-superficie-suave"
+          >
+            + Novo local
+          </button>
         </div>
-      ))}
+      ) : null}
+
+      {/* editar um chip abre o formulário embaixo da fileira, não dentro dele */}
+      {editando && ativos.some((l) => l.id === editando) ? (
+        <FaixaFormulario>
+          {formularioLocal(ativos.find((l) => l.id === editando)!)}
+        </FaixaFormulario>
+      ) : null}
 
       {inativos.length > 0 ? (
         <Recolhivel

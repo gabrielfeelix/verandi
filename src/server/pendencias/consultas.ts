@@ -1,5 +1,5 @@
 import type { Db } from '../supabase'
-import { hojeEm, localDe } from '../agenda/fuso'
+import { hojeEm, instante, localDe } from '../agenda/fuso'
 import { estadoDaChamada } from '@/core/agenda/chamada'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 
@@ -270,4 +270,28 @@ async function cadastrosIncompletos(
       diasEmAberto: null,
       href: `/pessoas/${p.id}`,
     }))
+}
+
+/**
+ * Quantas pendências saíram da lista hoje.
+ *
+ * Uma tela cujo objetivo é zerar precisa mostrar o progresso, senão ela só
+ * mostra dívida: dezesseis itens ontem e dezesseis hoje parecem a mesma coisa
+ * mesmo quando quatro foram resolvidos e quatro novos nasceram.
+ *
+ * Conta o que foi **dispensado** hoje — é o único ato que fica gravado. A
+ * chamada feita hoje sai da lista sozinha, e contá-la exigiria um log de
+ * resolução que ainda não existe.
+ */
+export async function esvaziadasHoje(
+  db: Db, contaId: string, fuso: string,
+): Promise<number> {
+  const hoje = hojeEm(fuso)
+  const { count } = await db
+    .from('pendencia_dispensada')
+    .select('id', { count: 'exact', head: true })
+    .eq('conta_id', contaId)
+    .gte('dispensado_em', instante(hoje, '00:00', fuso))
+    .lte('dispensado_em', instante(hoje, '23:59', fuso))
+  return count ?? 0
 }

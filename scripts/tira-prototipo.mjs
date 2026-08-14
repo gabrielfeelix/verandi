@@ -31,7 +31,14 @@ const semAcento = (s) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
 const nav = await chromium.launch()
-const pag = await nav.newPage({ viewport: { width: 1440, height: 1000 } })
+// `locale` importa: sem ele o Chromium roda em en-US e `input[type=time]`
+// aparece como "06:30 AM" na captura — um formato que a conta brasileira nunca
+// vai ver, e uma diferença falsa na comparação com o protótipo
+const pag = await nav.newPage({
+  viewport: { width: 1440, height: 1000 },
+  locale: 'pt-BR',
+  timezoneId: 'America/Sao_Paulo',
+})
 await pag.goto(arquivo, { waitUntil: 'networkidle' })
 await pag.waitForTimeout(2500)
 
@@ -60,7 +67,7 @@ for (const tela of TELAS) {
  */
 const PORDENTRO = [
   ['ALUNOS', 'ficha', 'Ruth Salgado'],
-  ['HOJE', 'sessao', 'Pilates Solo'],
+  ['HOJE', 'sessao', 'Abrir turma'],
 ]
 
 for (const [deOnde, alvo, oQueClicar] of PORDENTRO) {

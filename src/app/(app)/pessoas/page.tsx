@@ -1,41 +1,62 @@
 import Link from 'next/link'
 import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
-import { listarPessoas, POR_PAGINA, type FiltroPessoa } from '@/server/pessoas/consultas'
+import {
+  contarPessoas, listarPessoas, POR_PAGINA, type FiltroPessoa,
+} from '@/server/pessoas/consultas'
+import { telefoneMascarado } from '@/core/pessoas/telefone'
+import { situacaoDe, DIAS_CURTOS } from '@/core/pessoas/situacao'
 import { NovaPessoa } from '@/components/pessoas/nova-pessoa'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { cartao, Chip, Paginacao, Vazio } from '@/components/ui/pecas'
+import { TINTA } from '@/components/ui/tintas'
 
 const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   { valor: 'sem_telefone',     rotulo: 'Sem telefone' },
   { valor: 'sem_horario_fixo', rotulo: 'Sem horário fixo' },
   { valor: 'plano_vencendo',   rotulo: 'Plano vencendo' },
-  { valor: 'faltou_duas',      rotulo: 'Faltou 2+ vezes' },
-  { valor: 'inativa',          rotulo: 'Inativas' },
+  { valor: 'faltou_duas',      rotulo: 'Faltou nas últimas duas' },
+  { valor: 'inativa',          rotulo: 'Inativa' },
 ]
 
-type Busca = Promise<{ q?: string; f?: string | string[]; p?: string }>
+/*
+ * Sem gênero e sem interpolar o rótulo da conta.
+ *
+ * O vocabulário é escolhido por quem usa, e há rótulo masculino e feminino
+ * entre as escolhas possíveis — juntar o rótulo com "inativa" produz frases
+ * que só aparecem depois de a conta trocar a palavra, muito longe daqui.
+ */
+const NOTA_INATIVA = 'quem está inativo não some, fica fora do padrão'
+
+type Busca = Promise<{ q?: string; f?: string | string[]; t?: string; p?: string }>
 
 function quando(iso: string | null) {
   if (!iso) return 'nunca veio'
   const dias = Math.floor((Date.parse(new Date().toDateString()) - Date.parse(iso)) / 864e5)
   if (dias <= 0) return 'hoje'
   if (dias === 1) return 'ontem'
-  if (dias < 30) return `há ${dias} dias`
-  return `${iso.slice(8)}/${iso.slice(5, 7)}`
+  if (dias < 30) return `${dias} dias`
+  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
 }
 
 export default async function Pessoas({ searchParams }: { searchParams: Busca }) {
-  const { q, f, p: pag } = await searchParams
+  const { q, f, t: tag, p: pag } = await searchParams
   const conta = await exigirConta()
   const db = await clienteServidor()
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
 
   const filtros = (Array.isArray(f) ? f : f ? [f] : []) as FiltroPessoa[]
   const pagina = Math.max(1, Number(pag) || 1)
-  const { linhas: pessoas, total } = await listarPessoas(db, conta.contaId, {
-    busca: q, filtros, fuso: conta.fuso, pagina,
-  })
+
+  const [{ linhas: pessoas, total }, contagem] = await Promise.all([
+    listarPessoas(db, conta.contaId, {
+      busca: q, filtros, tag, fuso: conta.fuso, pagina,
+    }),
+    contarPessoas(db, conta.contaId, { busca: q, fuso: conta.fuso }),
+  ])
+
+  const cadastrados = contagem.ativos + contagem.inativos
+  const semFiltro = filtros.length === 0 && !tag
 
   /*
    * O contador do topo conta a busca inteira, não a página: com paginação, "24
@@ -46,8 +67,10 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
     const base = new URLSearchParams()
     if (q) base.set('q', q)
     for (const x of filtros) base.append('f', x)
+    if (tag) base.set('t', tag)
     mudanca(base)
-    return `/pessoas?${base}`
+    const s = base.toString()
+    return s ? `/pessoas?${s}` : '/pessoas'
   }
 
   // trocar de filtro sempre volta para a página 1: a página 4 do filtro
@@ -59,7 +82,11 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
       if (!filtros.includes(valor)) b.append('f', valor)
     })
 
+  const alternarTag = (nome: string) =>
+    endereco((b) => { if (tag === nome) b.delete('t'); else b.set('t', nome) })
+
   const daPagina = (n: number) => endereco((b) => { if (n > 1) b.set('p', String(n)) })
+  const exportar = endereco(() => {}).replace('/pessoas', '/pessoas/exportar')
 
   return (
     <div className="flex flex-col gap-4">
@@ -68,65 +95,89 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             {rotulos.pessoa.plural}
           </h1>
+          {/* três números, não um: "28 cadastrados" sozinho esconde que três
+              pessoas pararam — e é justamente quem parou que se quer achar */}
           <p className="pt-[3px] text-[13.5px] text-tinta-media">
-            {total} {total === 1 ? 'cadastrado' : 'cadastrados'}
-            {filtros.length > 0 || q ? ' com este filtro' : ''}
+            {cadastrados} {cadastrados === 1 ? 'cadastrado' : 'cadastrados'}
+            {' · '}{contagem.ativos} {contagem.ativos === 1 ? 'ativo' : 'ativos'}
+            {' · '}{contagem.inativos} {contagem.inativos === 1 ? 'inativo' : 'inativos'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <form className="flex items-center gap-2">
+          <form className="relative flex items-center">
             {filtros.map((x) => (
               <input key={x} type="hidden" name="f" value={x} />
             ))}
+            {tag ? <input type="hidden" name="t" value={tag} /> : null}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-3.5 font-mono text-[13px] text-tinta-fraca"
+            >
+              ⌕
+            </span>
             <input
               id="q" name="q" defaultValue={q ?? ''} aria-label="Buscar"
               placeholder="Nome, telefone ou identificador"
-              className="min-h-11 min-w-[230px] rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] placeholder:text-tinta-fraca"
+              className="min-h-11 min-w-[248px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[13px] placeholder:text-tinta-fraca"
             />
-            <button
-              type="submit"
-              className="min-h-11 rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] hover:bg-superficie-suave"
-            >
+            {/* a busca acontece com Enter; o botão existe para quem navega por
+                teclado saber que existe uma, e para leitor de tela anunciá-la */}
+            <button type="submit" className="sr-only focus:not-sr-only focus:ml-2">
               Buscar
             </button>
           </form>
+
+          <a
+            href={exportar}
+            download
+            className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
+          >
+            Exportar
+          </a>
 
           <NovaPessoa rotuloPessoa={rotulos.pessoa.singular} />
         </div>
       </header>
 
       {/* Os filtros são o motivo desta tela existir: a planilha já dá a lista,
-          o que ela não dá é "quem está sumindo" e "quem eu não consigo avisar". */}
+          o que ela não dá é "quem está sumindo" e "quem eu não consigo avisar".
+          O número em cada chip é o que faz reparar sem precisar clicar. */}
       <div className="flex flex-wrap gap-1.5">
+        <Chip href={endereco((b) => { b.delete('f'); b.delete('t') })} ativo={semFiltro}>
+          Todos <Contador ativo={semFiltro}>{contagem.ativos}</Contador>
+        </Chip>
+
         {FILTROS.map((x) => {
           const ativo = filtros.includes(x.valor)
           return (
             <Chip key={x.valor} href={alternar(x.valor)} ativo={ativo}>
-              {x.rotulo}
+              {x.rotulo} <Contador ativo={ativo}>{contagem.porFiltro[x.valor]}</Contador>
             </Chip>
           )
         })}
-        {filtros.length > 0 || q ? (
-          <Link
-            href="/pessoas"
-            className="inline-flex min-h-9 items-center px-2 text-[12.5px] text-marca underline"
-          >
-            limpar
-          </Link>
-        ) : null}
+
+        {/* as etiquetas são da conta, não do código: "gestante" aqui é escolha
+            do estúdio, e outra conta terá outras */}
+        {contagem.etiquetas.map((e) => (
+          <Chip key={e.tag} href={alternarTag(e.tag)} ativo={tag === e.tag}>
+            <span className="capitalize">{e.tag}</span>{' '}
+            <Contador ativo={tag === e.tag}>{e.n}</Contador>
+          </Chip>
+        ))}
       </div>
 
       <section className={`overflow-hidden ${cartao}`}>
         <div className="hidden grid-cols-[minmax(0,1fr)_132px_108px_116px_128px] gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid">
-          {['Nome', 'Telefone', 'Horário fixo', 'Última presença', 'Situação'].map((c) => (
-            <span
-              key={c}
-              className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase"
-            >
-              {c}
-            </span>
-          ))}
+          {['Nome', 'Telefone', rotulos.serie.singular, 'Última presença', 'Situação']
+            .map((c) => (
+              <span
+                key={c}
+                className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase"
+              >
+                {c}
+              </span>
+            ))}
         </div>
 
         {pessoas.length === 0 ? (
@@ -139,13 +190,8 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <ul aria-label={rotulos.pessoa.plural}>
             {pessoas.map((p) => {
               const [fundo, frente] = paresDe(p.nome)
-              const situacao = !p.ativo
-                ? { rotulo: 'Inativa', cor: 'bg-neutro-fundo text-tinta-media' }
-                : p.faltasRecentes >= 2
-                  ? { rotulo: 'Sumindo', cor: 'bg-alerta-fundo text-alerta' }
-                  : p.reposicoesAbertas > 0
-                    ? { rotulo: 'Tem crédito', cor: 'bg-atencao-fundo text-atencao' }
-                    : { rotulo: 'Em dia', cor: 'bg-positivo-fundo text-positivo' }
+              const situacao = situacaoDe(p)
+              const fone = telefoneMascarado(p.telefone)
 
               return (
                 <li key={p.id}>
@@ -162,34 +208,48 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         {iniciaisDe(p.nome)}
                       </span>
                       <span className="flex min-w-0 flex-col leading-[1.35]">
-                        <span className="truncate text-[14px] font-medium">{p.nome}</span>
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="truncate text-[14px] font-medium">{p.nome}</span>
+                          {p.tags.map((x) => (
+                            <span
+                              key={x}
+                              className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] uppercase ${TINTA.atencao}`}
+                            >
+                              {x}
+                            </span>
+                          ))}
+                        </span>
                         <span className="truncate text-[11.5px] text-tinta-media">
-                          {p.identificadorExterno ?? 'sem identificador'}
+                          {p.identificadorExterno
+                            ? `id ${p.identificadorExterno}`
+                            : 'sem identificador'}
                         </span>
                       </span>
                     </span>
 
                     <span
+                      title={fone ? undefined : 'sem telefone cadastrado'}
                       className={`font-mono text-[12.5px] ${
-                        p.telefone ? 'text-tinta-media' : 'text-alerta'
+                        fone ? 'text-tinta-media' : 'text-alerta'
                       }`}
                     >
-                      {p.telefone ?? 'sem telefone'}
+                      {fone ?? '—'}
+                      {fone ? null : <span className="sr-only">sem telefone</span>}
                     </span>
 
                     <span
                       className={`hidden text-[13px] md:block ${
-                        p.vagasAtivas === 0 ? 'text-tinta-fraca' : 'text-tinta-media'
+                        p.horarioFixo ? 'text-tinta-media' : 'text-tinta-fraca'
                       }`}
                     >
-                      {p.vagasAtivas === 0
-                        ? 'sem horário fixo'
-                        : `${p.vagasAtivas} ${
-                            (p.vagasAtivas === 1
-                              ? rotulos.vaga.singular
-                              : rotulos.vaga.plural
-                            ).toLowerCase()
-                          }`}
+                      {p.horarioFixo ? (
+                        <>
+                          {DIAS_CURTOS[p.horarioFixo.diaSemana]} {p.horarioFixo.hora}
+                          {p.vagasAtivas > 1 ? (
+                            <span className="text-tinta-fraca"> +{p.vagasAtivas - 1}</span>
+                          ) : null}
+                        </>
+                      ) : '—'}
                     </span>
 
                     <span className="hidden text-[13px] text-tinta-media md:block">
@@ -197,7 +257,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                     </span>
 
                     <span
-                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${situacao.cor}`}
+                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${TINTA[situacao.tinta]}`}
                     >
                       <span aria-hidden className="size-1.5 rounded-full bg-current" />
                       {situacao.rotulo}
@@ -216,15 +276,20 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
               total={total}
               porPagina={POR_PAGINA}
               hrefDe={daPagina}
+              nota={NOTA_INATIVA}
             />
           </div>
         ) : null}
       </section>
-
-      <p className="text-[12px] text-tinta-fraca">
-        Quem está inativo não some, fica fora do padrão — o histórico de março
-        depende de quem parou em março.
-      </p>
     </div>
+  )
+}
+
+/** O número dentro do chip: mesma linha, peso menor, nunca disputa o rótulo. */
+function Contador({ ativo, children }: { ativo: boolean; children: React.ReactNode }) {
+  return (
+    <span className={`font-mono text-[11.5px] ${ativo ? 'opacity-70' : 'text-tinta-fraca'}`}>
+      {children}
+    </span>
   )
 }

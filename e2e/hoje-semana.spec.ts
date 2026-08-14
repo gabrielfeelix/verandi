@@ -45,7 +45,7 @@ test('a grade da semana materializa sozinha e mostra a ocupação', async ({ pag
   // o h1 é "Grade da semana", como no protótipo; a faixa de datas está na
   // linha de baixo, junto da contagem
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Grade da semana')
-  await expect(page.getByText('03/08 a 09/08')).toBeVisible()
+  await expect(page.getByText('3 – 9 de agosto')).toBeVisible()
 
   const grade = page.getByRole('region', { name: 'Grade da semana' })
   await expect(grade.getByText('07:00')).toBeVisible()

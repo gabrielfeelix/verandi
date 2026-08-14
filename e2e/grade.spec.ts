@@ -110,8 +110,16 @@ test('a grade mostra ocupação e separa as encerradas', async ({ page }) => {
 
   // o resumo do dia também diz "2/4 ocupadas"; a etiqueta da linha é a exata
   await expect(page.getByText('2/4', { exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Encerradas' })).toBeVisible()
-  await expect(page.getByText(`encerrada em ${ontem}`)).toBeVisible()
+  await expect(page.getByRole('heading', { name: /encerrad/i })).toBeVisible()
+
+  // a vigência é lida como época, não como dia: "mar/26 – ago/26"
+  const mes = (d: string) =>
+    ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+     'jul', 'ago', 'set', 'out', 'nov', 'dez'][Number(d.slice(5, 7)) - 1]
+      + '/' + d.slice(2, 4)
+  await expect(
+    page.getByText(`${mes(anteontem)} – ${mes(ontem)}`),
+  ).toBeVisible()
 })
 
 test('recepção lê a grade e não pode montar', async ({ page }) => {

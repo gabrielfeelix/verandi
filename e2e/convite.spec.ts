@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { admin, contaDeTeste, entrar, usuarioDe, SENHA } from './apoio'
 
 async function contaDono() {
@@ -121,7 +121,8 @@ test('redefinir senha gera link, e a senha nova passa a valer', async ({ page })
 
   await entrar(page, c.email)
   await page.goto('/config?s=usuarios')
-  await page.getByRole('button', { name: 'Redefinir senha' }).click()
+  await abrirMenuDe(page, outro.email)
+  await page.getByRole('menuitem', { name: 'Redefinir senha' }).click()
 
   const link = await page.getByLabel('Link do convite').inputValue()
 
@@ -150,7 +151,8 @@ test('redefinir senha não muda o papel de ninguém', async ({ page }) => {
 
   await entrar(page, c.email)
   await page.goto('/config?s=usuarios')
-  await page.getByRole('button', { name: 'Redefinir senha' }).click()
+  await abrirMenuDe(page, outro.email)
+  await page.getByRole('menuitem', { name: 'Redefinir senha' }).click()
   const link = await page.getByLabel('Link do convite').inputValue()
 
   await page.context().clearCookies()
@@ -184,7 +186,8 @@ test('remover acesso não apaga o que a pessoa registrou', async ({ page }) => {
 
   await entrar(page, c.email)
   await page.goto('/config?s=usuarios')
-  await page.getByRole('button', { name: 'Remover acesso' }).click()
+  await abrirMenuDe(page, outro.email)
+  await page.getByRole('menuitem', { name: 'Remover acesso' }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('usuario_conta')
@@ -206,7 +209,8 @@ test('a conta não fica sem dono', async ({ page }) => {
   await page.goto('/config?s=usuarios')
 
   // rebaixar o outro dono deixaria um só; remover esse último é que é recusado
-  await page.getByLabel(`Papel de ${c.email}`).selectOption('recepcao')
+  await abrirMenuDe(page, c.email)
+  await page.getByRole('menuitem', { name: 'Tornar recepção' }).click()
   await expect.poll(async () => {
     const { data } = await admin.from('usuario_conta')
       .select('papel').eq('conta_id', c.contaId).eq('usuario_id', c.usuarioId).single()
@@ -214,10 +218,21 @@ test('a conta não fica sem dono', async ({ page }) => {
   }).toBe('recepcao')
 
   await page.reload()
-  await page.getByLabel(`Papel de ${c.email}`).selectOption('dono')
+  await abrirMenuDe(page, c.email)
+  await page.getByRole('menuitem', { name: 'Tornar dono' }).click()
   await expect.poll(async () => {
     const { data } = await admin.from('usuario_conta')
       .select('papel').eq('conta_id', c.contaId).eq('usuario_id', c.usuarioId).single()
     return data?.papel
   }).toBe('dono')
 })
+
+/**
+ * As ações de um usuário moram no menu de três pontinhos da linha dele.
+ *
+ * Abrir pelo nome acessível — e não pela posição — é o que faz o teste
+ * continuar valendo quando a lista muda de ordem.
+ */
+async function abrirMenuDe(page: Page, email: string) {
+  await page.getByRole('button', { name: `Ações de ${email}` }).click()
+}

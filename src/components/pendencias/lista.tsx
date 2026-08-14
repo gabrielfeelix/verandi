@@ -9,14 +9,9 @@ import { Modal } from '@/components/ui/modal'
 import { useAviso } from '@/components/ui/desfazer'
 import { dispensarPendencia } from '@/server/pendencias/acoes'
 import type { GrupoPendencia, Pendencia } from '@/server/pendencias/consultas'
+import { ACAO_GRUPO, TINTA_GRUPO } from './tintas'
 
-/** A tinta de cada grupo, a mesma do cartão de Hoje. */
-const TINTA_GRUPO: Record<string, string> = {
-  chamada_nao_feita: 'bg-alerta-fundo text-alerta',
-  reposicao_aberta: 'bg-atencao-fundo text-atencao',
-  reserva_esperando: 'bg-info-fundo text-info',
-  cadastro_incompleto: 'bg-neutro-fundo text-tinta-media',
-}
+const MOSTRA = 3
 
 const MOTIVOS = [
   'Já resolvido fora do sistema',
@@ -36,6 +31,7 @@ function idade(dias: number | null) {
 
 export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
   const [dispensando, setDispensando] = useState<Pendencia | null>(null)
+  const [abertos, setAbertos] = useState<string[]>([])
   const [motivo, setMotivo] = useState(MOTIVOS[0])
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
@@ -53,7 +49,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3.5">
       {grupos.map((g) => (
         <section
           key={g.tipo}
@@ -62,21 +58,25 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
           {/* cada grupo tem a sua tinta: quatro contagens laranja lado a lado
               não hierarquizam nada */}
           <div
-            className={`flex items-center gap-3 border-b border-linha-fina px-4.5 py-3.5 ${
+            className={`flex items-center gap-4 px-4.5 py-4 ${
               TINTA_GRUPO[g.tipo] ?? 'bg-superficie-suave text-tinta-media'
             }`}
           >
-            <span className="flex size-8 items-center justify-center rounded-peca bg-superficie/70 text-[14px] font-semibold">
+            {/* o número é o tamanho do problema: 30px, não 14 */}
+            <span className="font-titulo text-[30px] leading-none font-bold tracking-[-.03em]">
               {g.itens.length}
             </span>
-            <span className="flex flex-col leading-[1.3]">
-              <h2 className="text-[14px] font-medium">{g.titulo}</h2>
+            <span aria-hidden className="w-px self-stretch bg-current opacity-[.22]" />
+            <span className="flex min-w-0 flex-col gap-[3px] leading-[1.25]">
+              <h2 className="font-titulo text-[18px] font-semibold tracking-[-.01em]">
+                {g.titulo}
+              </h2>
               <span className="text-[11.5px] opacity-75">{g.sub}</span>
             </span>
           </div>
 
           <ul>
-            {g.itens.map((p) => {
+            {(abertos.includes(g.tipo) ? g.itens : g.itens.slice(0, MOSTRA)).map((p) => {
               const i = idade(p.diasEmAberto)
               const [fundo, frente] = paresDe(p.titulo)
               return (
@@ -110,9 +110,9 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
                   <span className="flex items-center gap-1.5">
                     <Link
                       href={p.href}
-                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[12.5px] font-medium text-tinta-clara hover:bg-escuro-hover"
+                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[12.5px] font-medium whitespace-nowrap text-tinta-clara hover:bg-escuro-hover"
                     >
-                      Resolver
+                      {ACAO_GRUPO[p.tipo] ?? 'Resolver'}
                     </Link>
                     <button
                       type="button"
@@ -126,6 +126,19 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
               )
             })}
           </ul>
+
+          {g.itens.length > MOSTRA ? (
+            <button
+              type="button"
+              onClick={() => setAbertos((a) =>
+                a.includes(g.tipo) ? a.filter((x) => x !== g.tipo) : [...a, g.tipo])}
+              className="w-full cursor-pointer bg-superficie-tenue px-4.5 py-3 text-left text-[12.5px] font-medium text-marca hover:bg-superficie-mais-suave"
+            >
+              {abertos.includes(g.tipo)
+                ? 'Mostrar só as primeiras ↑'
+                : `Ver as outras ${g.itens.length - MOSTRA} ↓`}
+            </button>
+          ) : null}
         </section>
       ))}
 

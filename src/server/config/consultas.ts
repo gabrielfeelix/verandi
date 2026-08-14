@@ -1,4 +1,5 @@
 import type { Db } from '../supabase'
+import type { EntidadeConfig } from '../log'
 
 /**
  * O que a tela de Configuração precisa ler. Uma consulta por seção, porque a
@@ -177,4 +178,40 @@ export type ItemVocabulario = {
   plural: string
   /** o que o produto chama internamente, para a tela explicar o que se edita */
   padraoSingular: string
+}
+
+export type UltimaAlteracao = { quando: string; quem: string | null }
+
+/**
+ * Quem mexeu por último nesta parte da configuração, e quando.
+ *
+ * "Tudo salvo" sozinho responde à máquina; numa conta com quatro pessoas com
+ * acesso, a pergunta real é **quem mudou o padrão**. Sai de `log_configuracao`,
+ * que já grava toda edição — não é coluna nova nem estado duplicado.
+ *
+ * O nome vem do e-mail de acesso: é o único identificador que existe para
+ * usuário do sistema, e é o mesmo que a seção Usuários mostra.
+ */
+export async function ultimaAlteracao(
+  db: Db, contaId: string, entidade: EntidadeConfig,
+): Promise<UltimaAlteracao | null> {
+  const { data } = await db
+    .from('log_configuracao')
+    .select('em, por_usuario_id')
+    .eq('conta_id', contaId)
+    .eq('entidade', entidade)
+    .order('em', { ascending: false })
+    .limit(1)
+    .maybeSingle<{ em: string; por_usuario_id: string | null }>()
+
+  if (!data) return null
+
+  let quem: string | null = null
+  if (data.por_usuario_id) {
+    const { data: usuarios } = await db.rpc('usuarios_da_conta', { p_conta: contaId })
+    const lista = (usuarios ?? []) as unknown as { usuario_id: string; email: string }[]
+    quem = lista.find((u) => u.usuario_id === data.por_usuario_id)?.email ?? null
+  }
+
+  return { quando: data.em, quem }
 }

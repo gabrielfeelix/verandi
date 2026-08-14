@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { cartao, Campo, Nota, entrada } from '@/components/ui/pecas'
+import { Interruptor } from '@/components/ui/interruptor'
 import { useAviso } from '@/components/ui/desfazer'
 import {
   salvarFuncionamento, salvarDataFechada, removerDataFechada,
@@ -11,6 +12,16 @@ import {
 import type { DataFechada, DiaFuncionamento } from '@/server/config/consultas'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+
+/*
+ * A semana começa na segunda e termina no domingo.
+ *
+ * O banco guarda `dia_semana` no padrão do Postgres, com domingo em 0. A tela
+ * não: quem confere horário de funcionamento lê a semana de trabalho, e o
+ * domingo é a exceção que fica no fim — como na grade da semana, dois cliques
+ * ao lado.
+ */
+const ORDEM = [1, 2, 3, 4, 5, 6, 0]
 
 /**
  * Quando o negócio abre, e os dias em que não abre.
@@ -67,7 +78,9 @@ export function SecaoFuncionamento({
       </p>
 
       <div className="flex flex-col gap-[7px]">
-        {estado.map((d) => (
+        {ORDEM.map((dia) => estado.find((d) => d.diaSemana === dia))
+          .filter((d) => d !== undefined)
+          .map((d) => (
           <div
             key={d.diaSemana}
             className={`flex flex-wrap items-center gap-3.5 rounded-padrao border border-linha-fina px-3.5 py-2.5 ${
@@ -96,17 +109,13 @@ export function SecaoFuncionamento({
               </span>
             )}
 
-            <button
-              type="button"
-              onClick={() => alterna(d.diaSemana)}
-              className={`rounded-peca px-2.5 py-1 text-[11.5px] font-medium ${
-                d.abre
-                  ? 'bg-positivo-fundo text-positivo'
-                  : 'bg-neutro-fundo text-tinta-media'
-              }`}
-            >
-              {d.abre ? 'Aberto' : 'Fechado'}
-            </button>
+            <Interruptor
+              ligado={d.abre !== null}
+              rotulo={`Abrir ${DIAS[d.diaSemana].toLowerCase()}`}
+              textoLigado="Aberto"
+              textoDesligado="Fechado"
+              aoMudar={() => alterna(d.diaSemana)}
+            />
           </div>
         ))}
       </div>

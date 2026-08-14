@@ -44,13 +44,46 @@ test('mostra ocupação, origem e quem está sem telefone', async ({ page }) => 
   await expect(page.getByText('Fixo').first()).toBeVisible()
 })
 
+test('cada linha diz por que a pessoa está ali, e o histórico conta como a turma ficou assim', async ({ page }) => {
+  const c = await cenario()
+
+  // a série que criou a turma, e a vaga fixa da Helena nela
+  const { data: serie } = await admin.from('serie').insert({
+    conta_id: c.contaId, servico_id: c.servicoId, profissional_id: c.profissionalId,
+    dia_semana: 3, hora_inicio: '10:00', duracao_min: 60, capacidade: 4,
+    vigencia_inicio: '2026-01-01',
+  }).select().single()
+  await admin.from('sessao').update({ serie_id: serie!.id }).eq('id', c.sessaoId)
+  await admin.from('vaga').insert({
+    conta_id: c.contaId, serie_id: serie!.id, pessoa_id: c.pessoas[0].id,
+    inicio: '2026-03-02',
+  })
+
+  // a Beatriz entrou de encaixe, pela recepção
+  await admin.from('participacao')
+    .update({ origem: 'encaixe', registrado_por_origem: 'recepcao' })
+    .eq('sessao_id', c.sessaoId).eq('pessoa_id', c.pessoas[2].id)
+
+  await entrar(page, c.email)
+  await page.goto(`/sessao/${c.sessaoId}`)
+
+  await expect(
+    page.getByRole('listitem').filter({ hasText: 'Helena Moraes' }),
+  ).toContainText('vaga fixa desde março')
+
+  const historico = page.getByRole('list').filter({ hasText: 'Turma criada' })
+  await expect(historico).toContainText('Beatriz Nogueira entrou de encaixe pela recepção')
+  await expect(historico).toContainText('Turma criada pela série quarta 10:00')
+})
+
 test('um toque marca todo mundo presente e a chamada fecha', async ({ page }) => {
   const c = await cenario()
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await page.getByRole('button', { name: /Marcar todos presentes \(3\)/ }).click()
-  await expect(page.getByRole('button', { name: /Marcar todos presentes/ })).toBeHidden()
+  // são dois: o do cabeçalho e o da barra que fica colada no rodapé
+  await page.getByRole('button', { name: 'Marcar todos presentes' }).first().click()
+  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
 
   // a UI é otimista: o botão some antes de a escrita chegar ao banco.
   // conferir o banco sem poll testaria a animação, não o registro.
@@ -70,8 +103,8 @@ test('marcar a exceção primeiro e depois "todos vieram" preserva a falta', asy
   await linhaBeatriz.getByRole('button', { name: 'Faltou' }).click()
   await expect(page.getByRole('status')).toContainText('Beatriz Nogueira')
 
-  await page.getByRole('button', { name: /Marcar todos presentes \(2\)/ }).click()
-  await expect(page.getByRole('button', { name: /Marcar todos presentes/ })).toBeHidden()
+  await page.getByRole('button', { name: 'Marcar todos presentes' }).first().click()
+  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
 
   await expect.poll(async () => {
     const { data } = await admin.from('participacao')
@@ -112,7 +145,7 @@ test('sessão cancelada mostra o motivo e não deixa registrar', async ({ page }
 
   // a frase agora nomeia a entidade da conta: "Aula cancelada", "Sessão cancelada"
   await expect(page.getByText(/cancelada — Professora doente/)).toBeVisible()
-  await expect(page.getByRole('button', { name: /Marcar todos presentes/ })).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
 })
 
 test('a tela usa o rótulo da conta, não a palavra do código', async ({ page }) => {

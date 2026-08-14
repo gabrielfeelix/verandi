@@ -21,12 +21,18 @@ function diaDe(dataIso: string) {
  * degradação, é a forma correta no tamanho pequeno.
  */
 export function GradeSemana({
-  sessoes, dias, feriados, hoje,
+  sessoes, dias, feriados, hoje, fechados, agora, rotuloSessoes,
 }: {
   sessoes: SessaoResumo[]
   dias: string[]
   feriados: Record<string, string>
   hoje: string
+  /** dias da semana (0–6) em que a conta não abre */
+  fechados: ReadonlySet<number>
+  /** hora local da conta, "HH:MM", ou null quando a semana não é a de hoje */
+  agora: string | null
+  /** o rótulo da conta no plural: "aulas", "sessões", "atendimentos" */
+  rotuloSessoes: string
 }) {
   const horas = [...new Set(sessoes.map((s) => s.hora))].sort()
 
@@ -35,6 +41,22 @@ export function GradeSemana({
     const k = `${s.data}|${s.hora}`
     porCelula.set(k, [...(porCelula.get(k) ?? []), s])
   }
+
+  const quantasNoDia = new Map<string, number>()
+  for (const s of sessoes) {
+    quantasNoDia.set(s.data, (quantasNoDia.get(s.data) ?? 0) + 1)
+  }
+
+  /*
+   * A célula que está acontecendo agora.
+   *
+   * É a última hora que já começou no dia de hoje — não a mais próxima do
+   * relógio. Às 09:40, a turma das 09:00 é a que está na sala; apontar para a
+   * das 10:00 mandaria a recepção para a turma errada.
+   */
+  const horaAgora = agora
+    ? horas.filter((h) => h <= agora).at(-1) ?? null
+    : null
 
   if (horas.length === 0) {
     return (
@@ -70,30 +92,60 @@ export function GradeSemana({
       <div className="grid min-w-[920px] grid-cols-[58px_repeat(7,minmax(0,1fr))] gap-1.5">
         <div className="sticky top-0 z-3 bg-superficie" />
 
+        {/*
+          * O cabeçalho do dia carrega três coisas: qual dia é, quanto tem, e se
+          * a casa abre. "12 turmas" embaixo do número é o que responde "onde
+          * está o buraco da semana?" sem contar cartão por cartão — e "fechado"
+          * é a diferença entre um sábado vazio e um sábado que ninguém montou.
+          */}
         {dias.map((d) => {
           const feriado = feriados[d]
           const ehHoje = d === hoje
+          const fechado = fechados.has(diaDe(d))
+          const quantas = quantasNoDia.get(d) ?? 0
+
+          const nota = feriado
+            ?? (ehHoje ? 'hoje' : fechado && quantas === 0 ? 'fechado' : '')
+
           return (
             <div
               key={d}
               className={`sticky top-0 z-3 flex flex-col items-center gap-0.5 rounded-peca px-1 pt-1.5 pb-2.5 shadow-[0_6px_0_#fff] ${
-                feriado ? 'bg-atencao-fundo' : ehHoje ? 'bg-[#EAF4F0]' : 'bg-superficie'
+                ehHoje
+                  ? 'bg-escuro'
+                  : feriado
+                    ? 'bg-atencao-fundo'
+                    : fechado
+                      ? 'bg-neutro-fundo'
+                      : 'bg-superficie-suave'
               }`}
             >
               <span
                 className={`text-[11px] font-semibold tracking-[.08em] uppercase ${
-                  feriado ? 'text-atencao' : ehHoje ? 'text-marca' : 'text-tinta-media'
+                  ehHoje
+                    ? 'text-menta'
+                    : feriado
+                      ? 'text-atencao'
+                      : fechado
+                        ? 'text-tinta-fraca'
+                        : 'text-tinta-media'
                 }`}
               >
                 {DIAS[diaDe(d)]}
               </span>
               <span
-                className={`font-mono text-[15px] ${ehHoje ? 'text-marca' : 'text-tinta'}`}
+                className={`font-mono text-[15px] ${
+                  ehHoje ? 'text-tinta-clara' : fechado ? 'text-tinta-fraca' : 'text-tinta'
+                }`}
               >
                 {d.slice(8)}
               </span>
-              <span className="truncate text-[10px] text-tinta-media">
-                {feriado ?? (ehHoje ? 'hoje' : '')}
+              <span
+                className={`truncate text-[10px] ${
+                  ehHoje ? 'text-tinta-clara/70' : 'text-tinta-fraca'
+                }`}
+              >
+                {nota || (quantas > 0 ? `${quantas} ${rotuloSessoes}` : '')}
               </span>
             </div>
           )
@@ -111,6 +163,7 @@ export function GradeSemana({
               // linha estique e quebre a leitura da semana inteira
               const visiveis = celula.slice(0, 2)
               const sobra = celula.length - visiveis.length
+              const ehAgora = d === hoje && hora === horaAgora
 
               if (celula.length === 0) {
                 return (
@@ -123,14 +176,47 @@ export function GradeSemana({
                 )
               }
 
+              /*
+               * Duas turmas no mesmo horário não são erro: são dois
+               * profissionais, ou duas salas. A etiqueta diz **qual dos dois**,
+               * porque as consequências são diferentes — sala repetida no mesmo
+               * horário é conflito, professor diferente não é.
+               */
+              const salas = new Set(celula.map((s) => s.local ?? '—'))
+              const paralelo = celula.length < 2
+                ? null
+                : salas.size > 1
+                  ? `${salas.size} salas`
+                  : `${celula.length} ${rotuloSessoes}`
+
               return (
                 <div
                   key={d}
-                  className="flex min-h-14 flex-col gap-1.5 rounded-padrao border border-linha-suave bg-superficie p-1"
+                  className={`flex min-h-14 flex-col gap-1.5 rounded-padrao border p-1 ${
+                    ehAgora
+                      ? 'border-menta bg-superficie'
+                      : 'border-linha-suave bg-superficie'
+                  }`}
                 >
                   {visiveis.map((s) => (
                     <CelulaTurma key={s.id} sessao={s} />
                   ))}
+
+                  {paralelo || ehAgora ? (
+                    <span className="flex flex-wrap items-center gap-1">
+                      {ehAgora ? (
+                        <span className="rounded-minima bg-positivo-fundo px-1.5 py-0.5 text-[9.5px] font-semibold tracking-[.06em] text-marca uppercase">
+                          agora
+                        </span>
+                      ) : null}
+                      {paralelo ? (
+                        <span className="rounded-minima bg-neutro-fundo px-1.5 py-0.5 text-[9.5px] font-semibold tracking-[.06em] text-tinta-media uppercase">
+                          {paralelo}
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : null}
+
                   {sobra > 0 ? (
                     <Link
                       href={`/semana?de=${dias[0]}&dia=${d}`}
