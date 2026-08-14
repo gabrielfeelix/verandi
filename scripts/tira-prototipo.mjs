@@ -53,5 +53,24 @@ for (const tela of TELAS) {
   }
 }
 
+/*
+ * Ficha e Sessão não estão no trilho: chega-se nelas clicando numa pessoa e numa
+ * turma. Sem elas faltam justamente as duas telas mais densas do produto — e a
+ * ficha é a que mais divergiu.
+ */
+const PORDENTRO = [
+  ['ALUNOS', 'ficha', 'Ruth Salgado'],
+  ['HOJE', 'sessao', 'Pilates Solo'],
+]
+
+for (const [deOnde, alvo, oQueClicar] of PORDENTRO) {
+  await pag.locator(`text=${deOnde}`).first().click({ force: true })
+  await pag.waitForTimeout(1000)
+  await pag.locator(`text=${oQueClicar}`).first().click({ force: true })
+  await pag.waitForTimeout(1400)
+  await pag.screenshot({ path: `${saida}/${alvo}.png`, fullPage: true })
+  console.log('ok', alvo)
+}
+
 await nav.close()
 console.log('\ncapturas em', saida)

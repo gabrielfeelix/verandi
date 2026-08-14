@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { editarPessoa } from '@/server/pessoas/acoes'
+import { Botao } from '@/components/ui/botao'
 
 type Pessoa = {
   id: string
@@ -15,18 +16,21 @@ type Pessoa = {
   ativo: boolean
 }
 
-export function EditarPessoa({ pessoa }: { pessoa: Pessoa }) {
+export function EditarPessoa({
+  pessoa, className = '',
+}: {
+  pessoa: Pessoa
+  /** para o par de botões da ficha dividir a largura por igual */
+  className?: string
+}) {
   const [aberto, setAberto] = useState(false)
   const [pendente, iniciar] = useTransition()
 
   if (!aberto) {
     return (
-      <button
-        type="button" onClick={() => setAberto(true)}
-        className="min-h-10 rounded-padrao border border-linha bg-superficie px-3.5 text-[12.5px] hover:bg-superficie-suave"
-      >
+      <Botao tom="secundario" onClick={() => setAberto(true)} className={className}>
         Editar dados
-      </button>
+      </Botao>
     )
   }
 

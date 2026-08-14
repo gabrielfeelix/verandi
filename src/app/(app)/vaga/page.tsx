@@ -5,22 +5,37 @@ import { horariosLivres } from '@/server/agenda/disponibilidade'
 import { somarDias, diaDaSemanaDe } from '@/core/agenda/datas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { AvatarProf } from '@/components/hoje/pecas'
-import { cartao, Chip, Vazio } from '@/components/ui/pecas'
+import { cartao, Chip, Rotulo, Vazio } from '@/components/ui/pecas'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 
 type Busca = Promise<{
-  de?: string; ate?: string; servico?: string; profissional?: string; local?: string
+  dias?: string
+  turno?: string
+  servico?: string
+  profissional?: string
+  local?: string
+  lotados?: string
 }>
 
-const DIAS = [
-  'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira',
-  'Quinta-feira', 'Sexta-feira', 'Sábado',
+const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+const MESES = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ]
 
-function porDia(sessoes: SessaoResumo[]) {
-  const mapa = new Map<string, SessaoResumo[]>()
-  for (const s of sessoes) mapa.set(s.data, [...(mapa.get(s.data) ?? []), s])
-  return [...mapa.entries()].sort(([a], [b]) => (a < b ? -1 : 1))
+/** Uma linha de resultado: livre ou lotada, na mesma lista. */
+type Linha = SessaoResumo & { lotada: boolean }
+
+function porDia(linhas: Linha[]) {
+  const mapa = new Map<string, Linha[]>()
+  for (const s of linhas) mapa.set(s.data, [...(mapa.get(s.data) ?? []), s])
+  return [...mapa.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([data, itens]) => [data, itens.sort((a, b) => a.hora.localeCompare(b.hora))] as const)
+}
+
+function porExtenso(data: string) {
+  return `${DIAS[diaDaSemanaDe(data)]}, ${Number(data.slice(8))} de ${MESES[Number(data.slice(5, 7)) - 1]}`
 }
 
 export default async function BuscarVaga({ searchParams }: { searchParams: Busca }) {
@@ -29,38 +44,72 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
   const db = await clienteServidor()
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
 
-  const hoje = hojeEm(conta.fuso)
-  const de = p.de ?? hoje
-  const ate = p.ate ?? somarDias(de, 13)
+  /*
+   * Sete dias por padrão, e não catorze.
+   *
+   * "Quando tem horário?" é uma pergunta de balcão, com a pessoa esperando do
+   * outro lado: a resposta útil cabe numa tela. Catorze dias faziam uma página
+   * de nove mil pixels em que ninguém rolava até o fim.
+   */
+  const janela = p.dias === '15' ? 15 : 7
+  const turno = p.turno === 'manha' || p.turno === 'noite' ? p.turno : null
+  const comLotados = p.lotados === 'sim'
 
-  const [{ data: servicos }, { data: profissionais }] = await Promise.all([
+  const hoje = hojeEm(conta.fuso)
+  const ate = somarDias(hoje, janela - 1)
+
+  const [{ data: servicos }, { data: profissionais }, { data: locais }] = await Promise.all([
     db.from('servico').select('id, nome').eq('conta_id', conta.contaId)
       .eq('ativo', true).order('nome').returns<{ id: string; nome: string }[]>(),
     db.from('profissional').select('id, nome, cor').eq('conta_id', conta.contaId)
       .eq('ativo', true).order('nome')
       .returns<{ id: string; nome: string; cor: string | null }[]>(),
+    db.from('local').select('id, nome').eq('conta_id', conta.contaId)
+      .eq('ativo', true).order('nome').returns<{ id: string; nome: string }[]>(),
   ])
 
   const { livres, cheios } = await horariosLivres(db, conta.contaId, {
-    de, ate, servicoId: p.servico, profissionalId: p.profissional,
+    de: hoje, ate, servicoId: p.servico, profissionalId: p.profissional,
   })
 
+  // local e turno o servidor não filtra: são recortes da mesma resposta
+  const cabe = (s: SessaoResumo) => {
+    if (p.local && s.localId !== p.local) return false
+    if (turno === 'manha' && s.hora >= '12:00') return false
+    if (turno === 'noite' && s.hora < '18:00') return false
+    return true
+  }
+
+  const doDia: Linha[] = [
+    ...livres.filter(cabe).map((s) => ({ ...s, lotada: false })),
+    ...(comLotados ? cheios.filter(cabe).map((s) => ({ ...s, lotada: true })) : []),
+  ]
+
+  const nLivres = doDia.filter((s) => !s.lotada).length
+  const nLotados = doDia.filter((s) => s.lotada).length
+  const vagasTotais = doDia
+    .filter((s) => !s.lotada)
+    .reduce((n, s) => n + s.ocupacao.livres, 0)
+
   const q = (extra: Record<string, string | undefined>) => {
-    const base: Record<string, string> = { de, ate }
+    const base: Record<string, string> = {}
+    if (p.dias) base.dias = p.dias
+    if (turno) base.turno = turno
     if (p.servico) base.servico = p.servico
     if (p.profissional) base.profissional = p.profissional
+    if (p.local) base.local = p.local
+    if (comLotados) base.lotados = 'sim'
     for (const [k, v] of Object.entries(extra)) {
       if (v === undefined) delete base[k]
       else base[k] = v
     }
-    return `/vaga?${new URLSearchParams(base)}`
+    const busca = new URLSearchParams(base).toString()
+    return busca ? `/vaga?${busca}` : '/vaga'
   }
-
-  const vagasTotais = livres.reduce((n, s) => n + s.ocupacao.livres, 0)
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-2">
+      <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Buscar vaga
@@ -69,46 +118,14 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
             &quot;Quando tem horário?&quot; — a mesma resposta que o robô dá pela API
           </p>
         </div>
-        <span className="pb-1 text-[12px] text-tinta-media">
-          {livres.length} horários com vaga · {vagasTotais} vagas livres ·{' '}
-          {cheios.length} cheios
+        <span className="pb-1 text-[12px] text-tinta-fraca">
+          {nLivres} {nLivres === 1 ? 'horário' : 'horários'} · {vagasTotais} vagas
+          {comLotados ? ` · inclui ${nLotados} lotados` : ''}
         </span>
       </header>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[268px_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 lg:grid-cols-[288px_minmax(0,1fr)]">
         <section className={`flex flex-col gap-4 ${cartao} p-4`}>
-          <div className="flex flex-col gap-2">
-            <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
-              Período
-            </span>
-            <form className="flex flex-col gap-2">
-              {p.servico ? <input type="hidden" name="servico" value={p.servico} /> : null}
-              {p.profissional ? (
-                <input type="hidden" name="profissional" value={p.profissional} />
-              ) : null}
-              <span className="flex items-center gap-2">
-                <label htmlFor="de" className="w-8 text-[12.5px] text-tinta-media">De</label>
-                <input
-                  id="de" name="de" type="date" defaultValue={de}
-                  className="min-h-10 flex-1 rounded-padrao border border-linha bg-superficie px-2.5 font-mono text-[12.5px]"
-                />
-              </span>
-              <span className="flex items-center gap-2">
-                <label htmlFor="ate" className="w-8 text-[12.5px] text-tinta-media">Até</label>
-                <input
-                  id="ate" name="ate" type="date" defaultValue={ate}
-                  className="min-h-10 flex-1 rounded-padrao border border-linha bg-superficie px-2.5 font-mono text-[12.5px]"
-                />
-              </span>
-              <button
-                type="submit"
-                className="min-h-10 rounded-padrao border border-linha bg-superficie-suave text-[12.5px] font-medium hover:bg-[#EDF3F0]"
-              >
-                Aplicar período
-              </button>
-            </form>
-          </div>
-
           <Grupo rotulo={rotulos.servico.singular}>
             <Chip href={q({ servico: undefined })} ativo={!p.servico}>Todos</Chip>
             {(servicos ?? []).map((s) => (
@@ -124,133 +141,165 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
 
           <Grupo rotulo={rotulos.profissional.singular}>
             <Chip href={q({ profissional: undefined })} ativo={!p.profissional}>
-              Todos
+              Qualquer
             </Chip>
             {(profissionais ?? []).map((x) => (
               <Chip
                 key={x.id}
                 href={q({ profissional: p.profissional === x.id ? undefined : x.id })}
                 ativo={p.profissional === x.id}
+                ponto={x.cor ?? '#8B9691'}
               >
-                <span
-                  aria-hidden
-                  className="size-[7px] rounded-full"
-                  style={{ background: x.cor ?? '#8B9691' }}
-                />
                 {x.nome}
               </Chip>
             ))}
           </Grupo>
 
-          <p className="rounded-media bg-superficie-suave px-3 py-2.5 text-[11.5px] leading-relaxed text-tinta-media">
-            Horário cheio não aparece como resultado, e isso não é
-            configurável. Ele fica na lista separada, embaixo — é a mesma
-            resposta que o robô recebe pela API.
-          </p>
+          {(locais ?? []).length > 1 ? (
+            <Grupo rotulo={rotulos.local.plural}>
+              <Chip href={q({ local: undefined })} ativo={!p.local}>Todos</Chip>
+              {(locais ?? []).map((l) => (
+                <Chip
+                  key={l.id}
+                  href={q({ local: p.local === l.id ? undefined : l.id })}
+                  ativo={p.local === l.id}
+                >
+                  {l.nome}
+                </Chip>
+              ))}
+            </Grupo>
+          ) : null}
+
+          <Grupo rotulo="Faixa de dias">
+            <Chip href={q({ dias: undefined })} ativo={janela === 7}>Próximos 7 dias</Chip>
+            <Chip href={q({ dias: '15' })} ativo={janela === 15}>Próximos 15</Chip>
+            <Chip href={q({ turno: turno === 'manha' ? undefined : 'manha' })} ativo={turno === 'manha'}>
+              Manhã
+            </Chip>
+            <Chip href={q({ turno: turno === 'noite' ? undefined : 'noite' })} ativo={turno === 'noite'}>
+              Noite
+            </Chip>
+          </Grupo>
+
+          {/*
+           * O lotado não some da busca: ele entra na mesma lista, marcado, com
+           * "Encaixar" no lugar de "Marcar". Numa lista à parte lá embaixo,
+           * ninguém rolava — e a recepção prometia vaga sem ver o quase-cheio.
+           */}
+          <Link
+            href={q({ lotados: comLotados ? undefined : 'sim' })}
+            aria-pressed={comLotados}
+            className="flex items-center justify-between gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3 py-3 transition-colors duration-150 hover:bg-superficie-mais-suave"
+          >
+            <span className="flex flex-col leading-[1.35]">
+              <span className="text-[13px] font-medium">Incluir lotados</span>
+              <span className="text-[11.5px] text-tinta-fraca">para encaixe</span>
+            </span>
+            <span
+              aria-hidden
+              className={`relative h-[26px] w-11 shrink-0 rounded-full transition-colors duration-200 ${
+                comLotados ? 'bg-marca' : 'bg-linha-tracejada'
+              }`}
+            >
+              <span
+                className="absolute top-[3px] size-5 rounded-full bg-superficie shadow-[0_1px_3px_rgba(0,0,0,.2)] transition-[left] duration-200"
+                style={{ left: comLotados ? 21 : 3 }}
+              />
+            </span>
+          </Link>
         </section>
 
-        <div className="flex flex-col gap-3.5">
-          {livres.length === 0 ? (
+        <div className="flex min-w-0 flex-col gap-3.5">
+          {doDia.length === 0 ? (
             <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie">
               <Vazio
                 icone="vaga"
                 titulo="Nenhum horário livre neste período"
-                texto="Com esses filtros não sobra vaga. Amplie o período, tire um filtro, ou veja os cheios abaixo — abrir vaga num deles é decisão de quem dá a aula."
+                texto={
+                  comLotados
+                    ? 'Com esses filtros não sobra nada, nem lotado. Amplie a faixa de dias ou tire um filtro.'
+                    : 'Com esses filtros não sobra vaga. Ligue "incluir lotados" para ver o quase-cheio, amplie a faixa de dias, ou tire um filtro.'
+                }
               />
             </section>
           ) : (
-            porDia(livres).map(([data, doDia]) => (
-              <section
-                key={data}
-                className={`overflow-hidden ${cartao}`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
-                  <h2 className="text-[13px] font-medium">
-                    {DIAS[diaDaSemanaDe(data)]}, {data.slice(8)}/{data.slice(5, 7)}
-                  </h2>
-                  <span className="text-[12px] text-tinta-media">
-                    {doDia.length} horários ·{' '}
-                    {doDia.reduce((n, s) => n + s.ocupacao.livres, 0)} vagas
-                  </span>
-                </div>
+            porDia(doDia).map(([data, itens]) => {
+              const livresNoDia = itens.filter((s) => !s.lotada).length
+              const lotadosNoDia = itens.length - livresNoDia
+              return (
+                <section key={data} className={`overflow-hidden ${cartao}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-[18px] py-3">
+                    <h2 className="font-titulo text-[13.5px] font-semibold">
+                      {porExtenso(data)}
+                    </h2>
+                    <span className="text-[12px] text-tinta-fraca">
+                      {livresNoDia} {livresNoDia === 1 ? 'livre' : 'livres'}
+                      {lotadosNoDia > 0
+                        ? ` · ${lotadosNoDia} ${lotadosNoDia === 1 ? 'lotado' : 'lotados'}`
+                        : ''}
+                    </span>
+                  </div>
 
-                <ul aria-label={`Horários com vaga em ${data}`}>
-                  {doDia.map((s) => (
-                    <li key={s.id}>
-                      <Link
-                        href={`/sessao/${s.id}#encaixar`}
-                        className="flex flex-wrap items-center gap-3.5 border-b border-linha-fina px-4.5 py-3 last:border-b-0 hover:bg-superficie-tenue"
-                      >
-                        <span className="font-mono text-[15px]">{s.hora}</span>
-                        {s.profissional ? (
-                          <AvatarProf
-                            nome={s.profissional}
-                            cor={s.corProfissional}
-                            tamanho={28}
-                          />
-                        ) : null}
-                        <span className="flex min-w-0 flex-1 flex-col leading-[1.35]">
-                          <span className="truncate text-[14px] font-medium">
-                            {s.servico}
+                  <ul aria-label={`Horários em ${data}`}>
+                    {itens.map((s) => (
+                      <li key={s.id}>
+                        <Link
+                          href={`/sessao/${s.id}#encaixar`}
+                          className={`grid grid-cols-[74px_30px_minmax(0,1fr)_auto_auto] items-center gap-3.5 border-b border-linha-fina px-[18px] py-3 last:border-b-0 transition-colors duration-150 ${
+                            s.lotada
+                              ? 'bg-alerta-superficie hover:bg-alerta-fundo'
+                              : 'hover:bg-superficie-tenue'
+                          }`}
+                        >
+                          <span className="font-mono text-[15px]">{s.hora}</span>
+                          <span>
+                            {s.profissional ? (
+                              <AvatarProf
+                                nome={s.profissional}
+                                cor={s.corProfissional}
+                                tamanho={28}
+                              />
+                            ) : null}
                           </span>
-                          <span className="truncate text-[12px] text-tinta-media">
-                            {[s.profissional, s.local].filter(Boolean).join(' · ')}
+                          <span className="flex min-w-0 flex-col leading-[1.35]">
+                            <span className="truncate text-[14px] font-medium">
+                              {s.servico}
+                            </span>
+                            <span className="truncate text-[12px] text-tinta-fraca">
+                              {[s.profissional, s.local].filter(Boolean).join(' · ')}
+                            </span>
                           </span>
-                        </span>
-                        <span className="rounded-peca bg-positivo-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-positivo">
-                          {s.ocupacao.livres}{' '}
-                          {s.ocupacao.livres === 1 ? 'vaga' : 'vagas'}
-                        </span>
-                        <span className="rounded-padrao border border-linha bg-superficie px-3 py-2 text-[12.5px] font-medium">
-                          Marcar
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))
+                          <span
+                            className={`rounded-peca px-2.5 py-1 font-mono text-[12px] ${
+                              s.lotada
+                                ? 'bg-alerta-fundo text-alerta'
+                                : 'bg-positivo-fundo text-positivo'
+                            }`}
+                          >
+                            {s.lotada
+                              ? `${s.ocupacao.ocupadas}/${s.ocupacao.capacidade} lotada`
+                              : `${s.ocupacao.livres} vaga(s)`}
+                          </span>
+                          <span
+                            className={`rounded-peca px-3.5 py-2 text-[12.5px] font-medium whitespace-nowrap ${
+                              s.lotada
+                                ? 'border border-alerta-linha bg-superficie text-alerta'
+                                : 'bg-escuro text-tinta-clara'
+                            }`}
+                          >
+                            {s.lotada ? 'Encaixar' : 'Marcar'}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )
+            })
           )}
 
-          {/* cheio vem separado e rotulado: misturar com o livre é o que faz a
-              recepção prometer vaga que não existe. A única coisa que dá para
-              fazer a partir daqui é ir na sessão e aumentar a capacidade. */}
-          {cheios.length > 0 ? (
-            <section className={`overflow-hidden ${cartao}`}>
-              <div className="border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
-                <h2 className="text-[13px] font-medium">Cheios ({cheios.length})</h2>
-                <p className="pt-0.5 text-[12px] text-tinta-media">
-                  Não são resultado de busca. Para abrir vaga, aumente a
-                  capacidade do dia na tela do horário — decisão de quem dá a
-                  aula, não de quem atende o telefone.
-                </p>
-              </div>
-              <ul aria-label="Horários cheios">
-                {cheios.map((s) => (
-                  <li key={s.id}>
-                    <Link
-                      href={`/sessao/${s.id}`}
-                      className="flex flex-wrap items-center gap-3.5 border-b border-linha-fina px-4.5 py-2.5 last:border-b-0 hover:bg-superficie-tenue"
-                    >
-                      <span className="font-mono text-[12.5px] text-tinta-media">
-                        {s.data.slice(8)}/{s.data.slice(5, 7)} {s.hora}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-[13px]">
-                        {s.servico}
-                        {s.profissional ? ` · ${s.profissional}` : ''}
-                      </span>
-                      <span className="rounded-peca bg-alerta-fundo px-2 py-1 font-mono text-[11.5px] text-alerta">
-                        {s.ocupacao.ocupadas}/{s.ocupacao.capacidade}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          <p className="text-[12px] text-tinta-media">
-            Livre e cheio são respostas diferentes, e as duas resolvem: sem
+          <p className="text-[12px] text-tinta-fraca">
+            Livre e lotado são respostas diferentes, e as duas resolvem: sem
             vaga, a recepção quer ver o quase-cheio.
           </p>
         </div>
@@ -262,9 +311,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
 function Grupo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
-        {rotulo}
-      </span>
+      <Rotulo>{rotulo}</Rotulo>
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   )

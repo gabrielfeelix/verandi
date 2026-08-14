@@ -191,7 +191,13 @@ test('a busca de vaga não oferece horário cheio, mesmo com encaixe permitido',
   await entrar(page, c.email)
   await page.goto('/vaga')
 
-  // a recepção pode abrir exceção olhando para a pessoa; a busca não decide nada
-  await expect(page.getByRole('heading', { name: /Cheios/ })).toBeVisible()
-  await expect(page.getByLabel('Horários cheios')).toContainText('1/1')
+  // por padrão o lotado não é resultado de busca: quem pergunta "quando tem
+  // horário?" quer horário, não quase-horário
+  await expect(page.getByText('lotada')).toHaveCount(0)
+
+  // pedindo para incluir, ele entra na mesma lista — marcado, e com "Encaixar"
+  // no lugar de "Marcar", porque as duas ações não são a mesma coisa
+  await page.getByRole('link', { name: /Incluir lotados/ }).click()
+  await expect(page.getByText('1/1 lotada')).toBeVisible()
+  await expect(page.getByText('Encaixar').first()).toBeVisible()
 })

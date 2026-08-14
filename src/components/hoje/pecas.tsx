@@ -122,7 +122,10 @@ export function PilhaPessoas({
   apagado?: boolean
 }) {
   return (
-    <span className="flex items-center" style={{ opacity: apagado ? 0.55 : 1 }}>
+    /* o `pr` compensa o `marginRight` negativo do último avatar: sem ele a
+       pilha fica 9px mais estreita que o conteúdo e o primeiro rosto aparece
+       cortado pela coluna ao lado */
+    <span className="flex items-center pr-[9px]" style={{ opacity: apagado ? 0.55 : 1 }}>
       {pessoas.slice(0, 5).map((p, i) => {
         const [fundo, frente] = paresDe(p.nome)
         return (

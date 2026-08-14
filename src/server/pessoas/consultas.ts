@@ -131,6 +131,8 @@ export type Ficha = {
     email: string | null
     nascimento: string | null
     observacao: string | null
+    /** desde quando existe: é o denominador de "veio 92% das vezes" */
+    criadoEm: string
   }
   tags: string[]
   vagas: VagaDaPessoa[]
@@ -146,7 +148,7 @@ export async function fichaDaPessoa(
     .from('pessoa_resumo').select('*')
     .eq('id', pessoaId).eq('conta_id', contaId)
     .maybeSingle<LinhaResumo & { email: string | null; nascimento: string | null;
-                                 observacao: string | null }>()
+                                 observacao: string | null; criado_em: string }>()
   if (!p) return null
 
   const { data: contaRow } = await db
@@ -213,7 +215,7 @@ export async function fichaDaPessoa(
 
   return {
     pessoa: { ...paraLinha(p), email: p.email, nascimento: p.nascimento,
-              observacao: p.observacao },
+              observacao: p.observacao, criadoEm: p.criado_em },
     tags: (tags ?? []).map((t) => t.tag),
     vagas: (vagas ?? []).filter((v) => v.serie !== null).map((v) => ({
       id: v.id,

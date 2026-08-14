@@ -27,13 +27,14 @@ const ROTAS = [
   ['vaga', '/vaga'],
   ['fixa', '/grade'],
   ['config', '/config'],
-  ['config-servicos', '/config?secao=servicos'],
-  ['config-equipe', '/config?secao=profissionais'],
-  ['config-locais', '/config?secao=locais'],
-  ['config-padroes', '/config?secao=padroes'],
-  ['config-vocabulario', '/config?secao=vocabulario'],
-  ['config-funcionamento', '/config?secao=funcionamento'],
-  ['config-usuarios', '/config?secao=usuarios'],
+  ['config-servicos', '/config?s=servicos'],
+  ['config-equipe', '/config?s=equipe'],
+  ['config-locais', '/config?s=locais'],
+  ['config-padroes', '/config?s=padroes'],
+  ['config-vocabulario', '/config?s=vocabulario'],
+  ['config-funcionamento', '/config?s=funcionamento'],
+  ['config-usuarios', '/config?s=usuarios'],
+  ['contas-4yu', '/contas-4yu'],
 ]
 
 const nav = await chromium.launch()

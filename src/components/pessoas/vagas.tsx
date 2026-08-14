@@ -66,6 +66,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
       ) : null}
 
       <form
+        id="nova-matricula"
         className="flex flex-wrap items-end gap-2"
         action={(f) => {
           const serieId = String(f.get('serie') ?? '')

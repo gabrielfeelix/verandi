@@ -77,8 +77,15 @@ test('horário do mesmo profissional avisa a colisão e deixa seguir', async ({ 
 
 test('a grade mostra ocupação e separa as encerradas', async ({ page }) => {
   const c = await contaSemGrade()
-  const ontem = new Date(Date.now() - 864e5).toISOString().slice(0, 10)
-  const anteontem = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10)
+  /*
+   * Dois e três dias atrás, não um e dois.
+   *
+   * `toISOString()` dá a data em UTC; a conta vive em America/Sao_Paulo. Entre
+   * 21h e meia-noite as duas discordam, e "ontem em UTC" é hoje na conta — a
+   * série encerrada voltava a ser vigente e o teste falhava só à noite.
+   */
+  const ontem = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10)
+  const anteontem = new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10)
 
   const { data: viva } = await admin.from('serie').insert({
     conta_id: c.contaId, servico_id: c.servicoId, profissional_id: c.profissionalId,
