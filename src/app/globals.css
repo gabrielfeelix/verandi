@@ -378,3 +378,16 @@ select:focus-visible {
     background: #fff;
   }
 }
+
+/* Espera curta: o ponto que respira enquanto a próxima tela não chega. */
+@keyframes vd-pulsa {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}

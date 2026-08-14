@@ -8,6 +8,7 @@ import { agoraMs, hojeEm, horaEm, quantoFalta } from '@/server/agenda/fuso'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Abas } from '@/components/ui/abas'
 import { Icone } from '@/components/ui/icones'
+import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
 import { ProximaTurma } from '@/components/hoje/proxima-turma'
 import {
   Bloco, CartaoNumero, FaixaPeriodo, LinhaAgenda, AvatarProf,
@@ -149,28 +150,14 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               Buscar {rotulos.pessoa.singular.toLowerCase()} ou horário
             </span>
 
-            <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
-              <Link
-                href={link(somarDias(dia, -1))}
-                aria-label="Dia anterior"
-                className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
-              >
-                <Icone nome="antes" />
-              </Link>
-              <Link
-                href={link(hoje)}
-                className="px-3 py-2.5 text-[13px] font-medium whitespace-nowrap hover:bg-superficie-mais-suave"
-              >
-                {ehHoje ? 'Hoje' : dia.slice(8) + '/' + dia.slice(5, 7)}
-              </Link>
-              <Link
-                href={link(somarDias(dia, 1))}
-                aria-label="Próximo dia"
-                className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
-              >
-                <Icone nome="depois" />
-              </Link>
-            </div>
+            <NavegadorPeriodo
+              antes={{ href: link(somarDias(dia, -1)), rotulo: 'Dia anterior' }}
+              meio={{
+                href: link(hoje),
+                texto: ehHoje ? 'Hoje' : dia.slice(8) + '/' + dia.slice(5, 7),
+              }}
+              depois={{ href: link(somarDias(dia, 1)), rotulo: 'Próximo dia' }}
+            />
 
             {podeVerTodos ? (
               <Abas

@@ -6,6 +6,7 @@ import { diaDaSemanaDe, somarDias } from '@/core/agenda/datas'
 import { agoraMs, hojeEm, localDe } from '@/server/agenda/fuso'
 import { GradeSemana } from '@/components/grade/grade-semana'
 import { BotaoImprimir } from '@/components/ui/imprimir'
+import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
 import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
@@ -162,32 +163,24 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             ]}
           />
 
-          <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
-            <Link
-              href={ehDia
+          <NavegadorPeriodo
+            antes={{
+              href: ehDia
                 ? q({ dia: somarDias(diaFoco, -1) })
-                : q({ de: somarDias(segunda, -7) })}
-              aria-label={ehDia ? 'Dia anterior' : 'Semana anterior'}
-              className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
-            >
-              <Icone nome="antes" />
-            </Link>
-            <Link
-              href={ehDia ? q({ dia: hoje }) : q({ de: segundaDe(hoje) })}
-              className="flex min-h-11 items-center px-3 text-[13px] font-medium whitespace-nowrap hover:bg-superficie-mais-suave"
-            >
-              {ehDia ? 'Hoje' : 'Esta semana'}
-            </Link>
-            <Link
-              href={ehDia
+                : q({ de: somarDias(segunda, -7) }),
+              rotulo: ehDia ? 'Dia anterior' : 'Semana anterior',
+            }}
+            meio={{
+              href: ehDia ? q({ dia: hoje }) : q({ de: segundaDe(hoje) }),
+              texto: ehDia ? 'Hoje' : 'Esta semana',
+            }}
+            depois={{
+              href: ehDia
                 ? q({ dia: somarDias(diaFoco, 1) })
-                : q({ de: somarDias(segunda, 7) })}
-              aria-label={ehDia ? 'Próximo dia' : 'Próxima semana'}
-              className="flex min-h-11 items-center px-3 text-tinta-media hover:bg-superficie-mais-suave"
-            >
-              <Icone nome="depois" />
-            </Link>
-          </div>
+                : q({ de: somarDias(segunda, 7) }),
+              rotulo: ehDia ? 'Próximo dia' : 'Próxima semana',
+            }}
+          />
 
           {!ehDia ? <BotaoImprimir /> : null}
         </div>
