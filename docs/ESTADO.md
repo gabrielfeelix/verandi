@@ -84,6 +84,12 @@ série, ocupação, encaixe, estado da chamada, vocabulário, destino por papel,
 manutenção de série (linhas em lote, colisão, alcance da edição, sessões órfãs),
 estado de convite, papéis concedíveis.
 
+**Vestir as telas** — em andamento. Ficha, Vaga e Hoje já foram comparadas com o
+protótipo e corrigidas; faltam Sessão, Alunos, Semana, Grade fixa, Pendências,
+Configuração e Contas 4YU. O método, o que falta e as armadilhas estão em
+[`planos/04-vestir-telas.md`](planos/04-vestir-telas.md) — **leia antes de mexer
+em tela**.
+
 **Design system** — `docs/DESIGN.md` é o contrato; `/amostra` mostra as nove
 peças em todas as variações. `Design system Verandi-att/DESIGN-SYSTEM.md` é a
 especificação de interface: onde a tela divergir dele, é a tela que muda. O
