@@ -12,6 +12,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { readFileSync } from 'node:fs'
 import { montaConvite } from '../src/core/email/convite'
 import { nomeDeRemetente } from '../src/core/email/remetente'
+import { montaRecuperacao, montaTrocaDeEmail } from '../src/core/email/senha'
 
 const EXEMPLO = {
   nomeDaConta: 'Estúdio Lótus',
@@ -26,6 +27,14 @@ const email = montaConvite(EXEMPLO)
 mkdirSync('.previa', { recursive: true })
 writeFileSync('.previa/convite.html', email.html)
 writeFileSync('.previa/convite.txt', email.texto)
+
+// os do Auth vão junto: eles saem da mesma casca, e é olhando lado a lado que
+// se percebe quando um dos dois começou a divergir
+const rec = montaRecuperacao()
+writeFileSync('.previa/senha.html', rec.html)
+const tro = montaTrocaDeEmail()
+writeFileSync('.previa/troca-de-email.html', tro.html)
+console.log(`também escritos: .previa/senha.html · .previa/troca-de-email.html`)
 
 const kb = (email.html.length / 1024).toFixed(1)
 console.log(`assunto:    ${email.assunto}`)
