@@ -258,6 +258,14 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
 
 ## Armadilhas que já custaram tempo
 
+- **O `alter default privileges` da `0030` é cinto e é faca.** Ele concede a
+  `authenticated` tudo que nascer em `app_verandi` depois — inclusive tabela
+  criada fora de migration. Foi assim que a `migrations_aplicadas` nasceu sem
+  RLS e com `delete` liberado para qualquer usuário logado de qualquer cliente:
+  bastava apagar uma linha para o aplicador rodar a migration de novo. Tabela
+  que não é dado de conta precisa de `enable row level security` **e**
+  `revoke all ... from anon, authenticated` explícitos. `service_role` passa
+  por cima de RLS e continua alcançando.
 - **`api.supabase.com` devolve 403 `error code: 1010` para cliente HTTP que não
   se parece com navegador ou curl.** É Cloudflare, não Supabase: a mensagem não
   cita token nem permissão, e manda procurar no lugar errado — o `urllib` do

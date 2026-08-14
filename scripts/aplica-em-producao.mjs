@@ -82,13 +82,24 @@ for (const arquivo of pendentes) {
     console.error('\nAs anteriores continuam aplicadas. Corrija e rode de novo.')
     process.exit(1)
   }
-  // a tabela de controle só pode existir depois que a 0030 cria o schema
+  // A tabela de controle só pode existir depois que a 0030 cria o schema.
+  //
+  // Ela não é dado de conta nenhuma, e por isso não ganha política: ganha RLS
+  // ligada e sem política, mais a revogação explícita. O `alter default
+  // privileges` da 0030 concede a `authenticated` tudo que nasce no schema — e
+  // aqui isso daria a qualquer usuário logado, de qualquer cliente, o poder de
+  // APAGAR linha do controle. O aplicador então rodaria migration de novo.
+  // `service_role` e `postgres` passam por cima de RLS, que é o que este
+  // script usa.
   await sql(`
     create table if not exists app_verandi.migrations_aplicadas (
       versao      text primary key,
       nome        text not null,
       aplicada_em timestamptz not null default now()
     )`)
+  await sql('alter table app_verandi.migrations_aplicadas enable row level security')
+  await sql(`
+    revoke all on app_verandi.migrations_aplicadas from anon, authenticated`)
   await sql(
     `insert into app_verandi.migrations_aplicadas (versao, nome)
      values ('${versao}', '${resto.join('_')}') on conflict (versao) do nothing`,
