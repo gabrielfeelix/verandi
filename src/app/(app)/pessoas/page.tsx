@@ -136,7 +136,9 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
             Exportar
           </a>
 
-          <NovaPessoa rotuloPessoa={rotulos.pessoa.singular} />
+          <div data-guia="pessoas-novo">
+            <NovaPessoa rotuloPessoa={rotulos.pessoa.singular} />
+          </div>
         </div>
       </header>
 

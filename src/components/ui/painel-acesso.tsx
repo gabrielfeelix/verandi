@@ -1,6 +1,14 @@
 import type { ReactNode } from 'react'
 import { ACESSO, type TelaAcesso } from './arte-acesso'
 
+/** A arte de um painel: arquivo, descrição e a geometria dela na moldura. */
+export type ArtePainel = {
+  arquivo: string
+  descricao: string
+  largura: string
+  topo: string
+}
+
 /**
  * O cartão duplo das telas de acesso: promessa do produto de um lado, o
  * formulário do outro.
@@ -17,7 +25,25 @@ export function PainelAcesso({
   children: ReactNode
 }) {
   const { titulo, texto, arte } = ACESSO[tela]
+  return <CascaAcesso titulo={titulo} texto={texto} arte={arte}>{children}</CascaAcesso>
+}
 
+/**
+ * A mesma casca, com o texto e a arte vindos de fora.
+ *
+ * Existe porque as boas-vindas do onboarding são a mesma composição, com o
+ * conteúdo mudando a cada cartão: sem isto, ou o onboarding copiava cem linhas
+ * de marcação, ou a tabela `arte-acesso.ts` viraria depósito de coisa que não é
+ * tela de acesso.
+ */
+export function CascaAcesso({
+  titulo, texto, arte, children,
+}: {
+  titulo: string
+  texto: string
+  arte: ArtePainel
+  children: ReactNode
+}) {
   return (
     <main className="flex min-h-dvh items-center justify-center p-4 md:p-7">
       {/*

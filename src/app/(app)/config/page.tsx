@@ -108,8 +108,12 @@ export default async function Config({
 
           <div className="flex min-w-0 flex-col gap-3.5">
 
+        {/* `data-guia` é a âncora do balão do onboarding, e nada além disso:
+            ele só é lido pelo guia, e sumir daqui não quebra a tela. */}
         {secao === 'servicos' ? (
-          <SecaoServicos servicos={await listarServicos(db, conta.contaId)} />
+          <div data-guia="config-servicos">
+            <SecaoServicos servicos={await listarServicos(db, conta.contaId)} />
+          </div>
         ) : null}
 
         {secao === 'equipe' ? (

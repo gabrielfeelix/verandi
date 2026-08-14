@@ -1,5 +1,7 @@
 import { cache } from 'react'
-import { PADRAO, type ChaveVocabulario, type Vocabulario } from '@/core/vocabulario/padrao'
+import {
+  PADRAO, type ChaveVocabulario, type Rotulos, type Vocabulario,
+} from '@/core/vocabulario/padrao'
 import { rotulo } from '@/core/vocabulario/rotulo'
 import type { Db } from './supabase'
 
@@ -28,8 +30,11 @@ export const carregarVocabulario = cache(
 /**
  * Os rótulos já resolvidos, prontos para descer como props para componentes
  * burros. Nenhum componente deve importar `PADRAO` direto.
+ *
+ * O tipo mora no `core/` porque o roteiro do onboarding também precisa dele, e
+ * o `core/` não pode importar nada daqui.
  */
-export type Rotulos = Record<ChaveVocabulario, { singular: string; plural: string }>
+export type { Rotulos }
 
 export function resolverRotulos(voc: Vocabulario): Rotulos {
   const saida = {} as Rotulos

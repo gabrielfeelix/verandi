@@ -9,9 +9,10 @@
  * (`docs/planos/06-cadastro-e-organizacoes.md`), este script vira ferramenta de
  * suporte, para quando alguém precisa de uma conta na mão.
  *
- * Cria também o mínimo para a conta não abrir vazia: vocabulário, um serviço,
- * um local e o funcionamento da semana. Conta sem nada disso não deixa criar
- * horário nenhum, e a primeira tela vira um beco.
+ * Cria também o mínimo para a conta não abrir vazia: um serviço, um local e o
+ * funcionamento da semana. Conta sem nada disso não deixa criar horário nenhum,
+ * e a primeira tela vira um beco. O vocabulário fica de fora de propósito: quem
+ * escolhe as palavras é a dona, no onboarding.
  */
 import { createClient } from '@supabase/supabase-js'
 
@@ -50,24 +51,17 @@ const conta = ou(
 console.log(`conta   ${conta.id}  ${nome} (${slug})`)
 
 /*
- * O vocabulário é o que faz a mesma tela servir pilates e barbearia. Sem ele a
- * conta cai no padrão neutro, que é correto e soa estranho para quem vive de
- * "aluno" e "turma".
+ * O vocabulário **não** é escrito aqui, e isso mudou em 14/08/2026.
+ *
+ * Antes este script gravava "Aluno", "Turma" e "Modalidade" em toda conta que
+ * criava, o que é decidir que todo cliente da 4YU dá aula de pilates. Agora
+ * quem escolhe é a dona, no primeiro passo do onboarding, e a conta chega aqui
+ * falando as palavras neutras do sistema, que já cobrem todas as telas.
+ *
+ * Se alguém precisar de uma conta já com o vocabulário certo, o caminho é
+ * Configuração, Vocabulário, com a pessoa junto, não uma tabela fixa dentro de
+ * um script de bastidor.
  */
-const VOCAB = [
-  // `conta` não entra: a chave não existe no `check` da tabela, porque o nome
-  // do negócio já é o nome dele, não um rótulo traduzível
-  ['pessoa', 'Aluno', 'Alunos'],
-  ['profissional', 'Professor', 'Professores'],
-  ['servico', 'Modalidade', 'Modalidades'],
-  ['local', 'Sala', 'Salas'],
-  ['serie', 'Turma', 'Turmas'],
-  ['sessao', 'Aula', 'Aulas'],
-  ['vaga', 'Matrícula', 'Matrículas'],
-]
-ou(await db.from('vocabulario').insert(
-  VOCAB.map(([chave, singular, plural]) => ({ conta_id: conta.id, chave, singular, plural })),
-), 'vocabulário')
 
 ou(await db.from('servico').insert([
   { conta_id: conta.id, nome: 'Pilates solo', duracao_min: 50, capacidade_padrao: 4 },
@@ -86,7 +80,7 @@ ou(await db.from('funcionamento').insert([
   { conta_id: conta.id, dia_semana: 6, abre: '08:00', fecha: '12:00' },
 ]), 'funcionamento')
 
-console.log('base    vocabulário, 3 modalidades, 2 salas, funcionamento da semana')
+console.log('base    3 serviços, 2 salas, funcionamento da semana')
 
 /*
  * Usuário existente é reaproveitado: a mesma pessoa pode ser dona de dois

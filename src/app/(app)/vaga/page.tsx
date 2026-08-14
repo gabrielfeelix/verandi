@@ -125,7 +125,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
       </header>
 
       <div className="grid items-start gap-4 lg:grid-cols-[288px_minmax(0,1fr)]">
-        <section className={`flex flex-col gap-4 ${cartao} p-4`}>
+        <section data-guia="vaga-busca" className={`flex flex-col gap-4 ${cartao} p-4`}>
           <Grupo rotulo={rotulos.servico.singular}>
             <Chip href={q({ servico: undefined })} ativo={!p.servico}>Todos</Chip>
             {(servicos ?? []).map((s) => (

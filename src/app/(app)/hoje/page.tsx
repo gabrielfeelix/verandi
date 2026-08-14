@@ -204,13 +204,15 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_316px]">
           <div className="flex flex-col gap-3.5">
             {proxima ? (
-              <ProximaTurma
-                sessao={proxima}
-                rotulo={rotulos.sessao.singular}
-                rotuloPessoa={rotulos.pessoa.singular}
-                faltam={quantoFalta(proxima.inicio, agora)}
-                podeRegistrar={conta.papel !== 'suporte'}
-              />
+              <div data-guia="hoje-proxima">
+                <ProximaTurma
+                  sessao={proxima}
+                  rotulo={rotulos.sessao.singular}
+                  rotuloPessoa={rotulos.pessoa.singular}
+                  faltam={quantoFalta(proxima.inicio, agora)}
+                  podeRegistrar={conta.papel !== 'suporte'}
+                />
+              </div>
             ) : null}
 
             {!proxima && sessoes.length > 0 ? (

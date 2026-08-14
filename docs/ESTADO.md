@@ -37,20 +37,21 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
 
 ## O próximo passo, em ordem
 
-1. **Cadastre-se.** Existe login e "esqueci a senha", mas quem descobre o
-   produto não tem porta: só a 4YU cria conta, por script. A análise, a decisão
-   proposta (quem se cadastra vira dono; entrar em negócio que já existe é
-   sempre por convite) e o que já funciona sem migration estão em
-   [`planos/06-cadastro-e-organizacoes.md`](planos/06-cadastro-e-organizacoes.md).
-2. **Onboarding.** É o que falta para a primeira meia hora de quem chega não
-   ser uma tela vazia. O plano inteiro, com o que precisa de migration e onde
-   olhar o design, está em [`planos/05-onboarding.md`](planos/05-onboarding.md).
-   Ele emenda no cadastro: as perguntas se dividem entre os dois.
-3. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+1. **Terminar de conferir o onboarding**, que foi construído em 14/08 e está com
+   a suíte inteira por rodar. O que existe está em
+   [`planos/05-onboarding.md`](planos/05-onboarding.md).
+2. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
    e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
    dói no banco de desenvolvimento.
+3. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
+   enquanto a sessão é resolvida, e ilustração onde ainda não há dado. É
+   acabamento com razão de existir, e a razão está em
+   [`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md).
 4. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
    Nada disso exige tabela nova.
+5. **Cadastre-se**, por último, por decisão do Gabriel: a análise está pronta em
+   [`planos/06-cadastro-e-organizacoes.md`](planos/06-cadastro-e-organizacoes.md),
+   e a decisão de quem se cadastra sozinho ainda não foi tomada.
 
 ## Como mexer nisto sem quebrar produção
 

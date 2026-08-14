@@ -1,7 +1,62 @@
 # Onboarding: ensinar o sistema sem manual
 
-Escrito em 14/08/2026, depois de a Verandi entrar no ar. É o próximo trabalho
-de produto, e ainda **não começou**. Leia o [ESTADO.md](../ESTADO.md) antes.
+Escrito em 14/08/2026, depois de a Verandi entrar no ar. **Construído no mesmo
+dia**; o que segue é o plano original, com o que a construção decidiu no fim.
+
+---
+
+## O que ficou de pé, e as decisões que a construção tomou
+
+**O onboarding acontece dentro do sistema, não antes dele.** A primeira versão
+era uma rota `/comecar` com a casca das telas de acesso, e estava errada: quem
+acabou de digitar a senha via uma segunda tela com a mesma cara do login e
+concluía que o login não tinha funcionado. Agora o produto abre inteiro, com o
+nome do negócio no trilho e a agenda no lugar, e as boas-vindas vêm por cima, no
+mesmo `<Modal>` de todo o resto, com fundo escurecido e rolagem travada.
+
+**A pergunta do tipo de negócio veio para cá**, porque o cadastro público foi
+adiado (ver [plano 06](06-cadastro-e-organizacoes.md)). Ela é o **último**
+cartão, não o primeiro: perguntar "que tipo de negócio é o seu" para quem ainda
+não sabe o que o sistema faz é pedir decisão sem contexto. As quatro
+predefinições e as palavras que cada uma escreve estão em
+`src/core/vocabulario/predefinicoes.ts`, e cada cartão mostra três palavras de
+amostra antes de ser escolhido.
+
+**O `cria-conta.mjs` parou de escrever vocabulário.** Ele gravava "Aluno",
+"Turma" e "Modalidade" em toda conta que criava, o que é decidir que todo
+cliente da 4YU dá aula de pilates. Agora a conta chega neutra e quem escolhe é a
+dona.
+
+**A arte das boas-vindas é provisória e trocável.** Hoje são as quatro
+ilustrações de `public/acesso/`, apontadas de um registro só, em
+`src/core/onboarding/boas-vindas.ts`: trocar o caminho lá troca a arte, e
+nenhuma tela lê nome de arquivo. As definitivas entram em `public/onboarding/`,
+com a `descricao` mudando junto, que é o que o leitor de tela ouve.
+
+**Os apontamentos não sequestram a navegação.** Quando o passo é de outra tela,
+o guia encolhe num cartão de canto que diz onde é e oferece ir. Ele também só
+aparece enquanto a conta não tem grade nem gente: apontar "monte o primeiro
+horário" para quem já montou é o tutorial falando de um problema resolvido.
+
+**A tabela é `(usuario_id, conta_id, roteiro)`**, e não `(usuario_id, roteiro)`
+como o plano sugeria: o roteiro depende do papel, e o papel é por conta. A mesma
+pessoa é dona de um estúdio e professora em outro, e ver o roteiro de dono não a
+ensina a operar o segundo. `conta_id` também é o que deixa a RLS ser a mesma de
+todas as outras tabelas.
+
+**Progresso de tutorial é da pessoa, e de mais ninguém.** Nem o dono lê o da
+recepção: saber quem pulou não ajuda a operar nada, e viraria placar de quem
+aprendeu o sistema.
+
+Um efeito colateral que vale saber: **toda conta de teste nova cai no
+onboarding**. Por isso `e2e/apoio.ts` marca os dois roteiros como pulados por
+padrão, e quem testa o onboarding passa `{ pularOnboarding: false }`.
+
+---
+
+## O plano original, como foi escrito
+
+Leia o [ESTADO.md](../ESTADO.md) antes.
 
 ## O problema, em uma frase
 

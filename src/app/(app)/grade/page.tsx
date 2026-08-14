@@ -50,7 +50,9 @@ export default async function Grade() {
         </div>
 
         {podeEscrever ? (
-          <EditorSerie catalogo={catalogo} rotuloSerie={rotulos.serie.singular} />
+          <div data-guia="grade-criar">
+            <EditorSerie catalogo={catalogo} rotuloSerie={rotulos.serie.singular} />
+          </div>
         ) : null}
       </header>
 

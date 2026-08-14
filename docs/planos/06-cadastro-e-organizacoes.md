@@ -3,6 +3,24 @@
 Escrito em 14/08/2026 a partir de perguntas do Gabriel. **Nada disto foi
 construído.** É análise e decisão proposta, para o handoff confirmar ou mudar.
 
+> **Adiado por decisão do Gabriel, em 14/08/2026.** O cadastro público é
+> importante e continua no roteiro, mas fica **por último**: a decisão de quem
+> se cadastra sozinho e como se entra em negócio que já existe ainda não está
+> tomada, e construir a porta antes de saber para onde ela dá é o jeito mais
+> caro de decidir.
+>
+> **Uma coisa já ficou decidida**, e vale para quando isto for construído: a
+> conta só nasce **depois** que a pessoa clica no link do e-mail. Grava-se um
+> pedido pendente com token, e só no clique nascem usuário, conta e vínculo de
+> dono. O banco é compartilhado com o AutoFluxos e tem cota de usuário do plano
+> gratuito, então erro de digitação, conta de teste e robô não podem virar linha
+> em produção.
+>
+> Consequência imediata para o [plano 05](05-onboarding.md): a pergunta **"que
+> tipo de negócio"**, que este plano colocava no cadastro, passa a ser o
+> primeiro passo do onboarding. Ela precisa acontecer antes de qualquer tela do
+> produto, porque muda todos os rótulos, e hoje quem cria conta é a 4YU.
+
 ## O buraco, em uma frase
 
 Existe login e existe "esqueci a senha", mas **não existe "cadastre-se"**. Hoje

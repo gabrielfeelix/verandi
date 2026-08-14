@@ -55,7 +55,9 @@ export default async function Pendencias() {
         </header>
 
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <ListaPendencias grupos={grupos} />
+          <div data-guia="pendencias-lista">
+            <ListaPendencias grupos={grupos} />
+          </div>
 
           <div className="flex flex-col gap-3.5">
             {total > 0 ? (

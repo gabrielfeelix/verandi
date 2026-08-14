@@ -70,7 +70,15 @@ export async function contaInterna(): Promise<string> {
   return c.id as string
 }
 
-export async function usuarioDe(contaId: string, papel: string, marca: string) {
+export async function usuarioDe(
+  contaId: string, papel: string, marca: string,
+  /**
+   * O onboarding entra na frente de tudo: sem isto, toda tela deste teste
+   * começaria em `/comecar`. Quem testa o onboarding passa `false` e vê a
+   * primeira entrada de verdade.
+   */
+  opcoes: { pularOnboarding?: boolean } = {},
+) {
   const email = `${papel}-${marca}@teste.local`
   const { data, error } = await admin.auth.admin.createUser({
     email, password: SENHA, email_confirm: true,
@@ -81,6 +89,15 @@ export async function usuarioDe(contaId: string, papel: string, marca: string) {
   const vinculo = await admin.from('usuario_conta')
     .insert({ usuario_id: data.user.id, conta_id: contaId, papel })
   if (vinculo.error) throw new Error(`vincular ${email}: ${vinculo.error.message}`)
+
+  if (opcoes.pularOnboarding !== false) {
+    const agora = new Date().toISOString()
+    await admin.from('onboarding').insert(
+      (['boas-vindas', 'primeiros-passos'] as const).map((roteiro) => ({
+        conta_id: contaId, usuario_id: data.user!.id, roteiro, pulado_em: agora,
+      })),
+    )
+  }
 
   return { email, usuarioId: data.user.id as string }
 }
