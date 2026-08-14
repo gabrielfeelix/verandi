@@ -39,10 +39,15 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
    ser uma tela vazia. O plano inteiro, com o que precisa de migration e onde
    olhar o design, está em [`planos/05-onboarding.md`](planos/05-onboarding.md).
    Ele emenda no cadastro: as perguntas se dividem entre os dois.
-3. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+3. **Três acertos de interface** apontados olhando o produto no ar: o trilho
+   tem que nascer aberto, o login demora sem avisar, e há formulário embutido
+   onde o protótipo desenha modal (Grade e três telas de Configuração). O
+   detalhe de cada um está em
+   [`planos/07-acertos-de-interface.md`](planos/07-acertos-de-interface.md).
+4. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
    e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
    dói no banco de desenvolvimento.
-4. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
+5. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
    Nada disso exige tabela nova.
 
 ## Como mexer nisto sem quebrar produção
