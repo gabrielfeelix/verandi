@@ -3,7 +3,7 @@
  *
  * É operação de instalação, não tela: o produto não tem como criar o primeiro
  * suporte sozinho — para ver `/contas-4yu` é preciso já ser suporte. A conta
- * interna vem da migration `0010`; aqui entra só o usuário e o vínculo.
+ * interna vem da migration `0040`; aqui entra só o usuário e o vínculo.
  *
  *   node scripts/bootstrap-suporte.mjs alguem@4yu.com.br [senha]
  */
@@ -20,14 +20,17 @@ const env = Object.fromEntries(
   readFileSync('.env.local', 'utf8').trim().split('\n')
     .map((l) => l.split(/=(.*)/s).slice(0, 2)),
 )
+// repetido em vez de importado: `.mjs` não lê o `esquema.ts`. Se mudar aqui,
+// mude em `src/server/esquema.ts` também.
 const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+  db: { schema: 'app_verandi' },
   auth: { persistSession: false, autoRefreshToken: false },
 })
 
 const { data: conta } = await db.from('conta')
   .select('id, nome').eq('interna', true).maybeSingle()
 if (!conta) {
-  console.error('não há conta interna: rode as migrations antes (0010)')
+  console.error('não há conta interna: rode as migrations antes (0040)')
   process.exit(1)
 }
 

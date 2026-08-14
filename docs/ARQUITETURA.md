@@ -216,6 +216,13 @@ pessoa sem telefone é normal — 30% não têm.
 
 `conta_id` em toda tabela de domínio, **RLS ligada com política desde o dia um**.
 
+Isso isola **cliente de cliente**. Há um segundo isolamento, de outra natureza e
+que não se confunde com este: a Verandi inteira mora no schema **`app_verandi`**,
+porque enquanto não há faturamento o projeto Supabase é dividido com o
+AutoFluxos. Schema separa **produto de produto**; RLS separa **conta de conta**.
+Nenhum dos dois substitui o outro, e o motivo de cada um está escrito em
+`migrations/0030_vr_schema_app_verandi.sql`.
+
 Aqui a Verandi diverge do AutoFluxos de propósito: lá a RLS está ligada e sem
 política nenhuma, porque não há login e todo acesso passa pelo servidor. Aqui há
 login desde o começo, então a política vem junto. Acrescentar isolamento depois
@@ -241,7 +248,7 @@ mesma professora atender dois estúdios.
 | `suporte` | acesso da 4YU, para configurar e diagnosticar; toda ação fica registrada |
 
 O papel `suporte` mora numa **conta interna** — a conta da própria 4YU
-(`conta.interna`, uma só, criada pela migration `0010`). Ela não aparece em
+(`conta.interna`, uma só, criada pela migration `0040`). Ela não aparece em
 `/contas-4yu` e ninguém entra nela como suporte. Duas coisas dependem disso: o
 primeiro suporte só nasce assim (`usuario_conta.conta_id` é `not null`, e criar
 conta exige já ser suporte — banco novo travava antes do primeiro clique), e

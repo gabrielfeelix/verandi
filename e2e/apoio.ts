@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'node:fs'
 import type { Page } from '@playwright/test'
+import { ESQUEMA } from '../src/server/esquema'
 
 const env = Object.fromEntries(
   readFileSync('.env.local', 'utf8').trim().split('\n')
@@ -8,6 +9,7 @@ const env = Object.fromEntries(
 ) as Record<string, string>
 
 export const admin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+  db: { schema: ESQUEMA },
   auth: { persistSession: false, autoRefreshToken: false },
 })
 

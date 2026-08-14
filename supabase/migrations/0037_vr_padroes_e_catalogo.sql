@@ -1,3 +1,8 @@
+-- Tudo aqui nasce em `app_verandi`. `public` fica fora do caminho de
+-- propósito: é onde o AutoFluxos mora, e nome sem schema não pode cair lá por
+-- acidente. Ver 0030.
+set search_path = app_verandi, extensions;
+
 /*
  * Os padrões da conta e o que faltava no catálogo.
  *
@@ -71,5 +76,5 @@ alter table excecao_calendario
   add column acao text not null default 'cancelar_avisar'
     check (acao in ('cancelar_avisar', 'so_marcar'));
 
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant all on all tables in schema public to service_role;
+grant select, insert, update, delete on all tables in schema app_verandi to authenticated;
+grant all on all tables in schema app_verandi to service_role;

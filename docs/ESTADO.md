@@ -38,7 +38,7 @@ entre "cada peça funciona" e "a primeira instalação existe":
 - **O primeiro suporte não nascia.** `usuario_conta.conta_id` é `not null`,
   `ehSuporte` exige a linha e criar conta exige ser suporte: banco novo travava
   antes do primeiro clique, e só o seed furava. Agora existe a **conta interna**
-  (migration `0010`), e o primeiro usuário entra por
+  (migration `0040`), e o primeiro usuário entra por
   `node scripts/bootstrap-suporte.mjs <e-mail>`.
 - **Sair do suporte apagava o suporte.** O vínculo temporário e o vínculo que
   diz "é da 4YU" eram a mesma linha: entrar e sair da conta que hospedava o
@@ -55,8 +55,9 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **209 passaram** |
-| `npm run test:e2e` | **89 passaram** |
+| `npm test` | **218 passaram** |
+| `npm run test:e2e` | **94 passaram** |
+| tabelas em `app_verandi` · em `public` | **20 · 0** |
 | Tarefa 10, jornada inteira em banco virgem | 13 passos, terminou em "Chamada feita" |
 | `core/` sem import de banco, Next ou rede | limpo |
 | nenhuma tela com "Aluno"/"Turma"/"Paciente"/"Professor" fixo | limpo |
@@ -66,8 +67,9 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco** — dez migrations, RLS com política em todas as tabelas, provada por
-teste.
+**Banco** — onze migrations (`0030_vr_`–`0040_vr_`), RLS com política em todas as
+tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
+`public`** — o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
 ```
 conta (com os padrões da operação; `interna` marca a conta da própria 4YU)
@@ -84,9 +86,10 @@ série, ocupação, encaixe, estado da chamada, vocabulário, destino por papel,
 manutenção de série (linhas em lote, colisão, alcance da edição, sessões órfãs),
 estado de convite, papéis concedíveis.
 
-**Vestir as telas** — em andamento. Ficha, Vaga e Hoje já foram comparadas com o
-protótipo e corrigidas; faltam Sessão, Alunos, Semana, Grade fixa, Pendências,
-Configuração e Contas 4YU. O método, o que falta e as armadilhas estão em
+**Vestir as telas** — fechado. As doze telas foram comparadas com o protótipo e
+corrigidas. O que ficou de fora são seis blocos do protótipo que dependem de dado
+que ainda não existe (busca guardada, log por pessoa, SMTP, hora do aviso, plano
+da conta, integrações) — a lista, o método e as armadilhas estão em
 [`planos/04-vestir-telas.md`](planos/04-vestir-telas.md) — **leia antes de mexer
 em tela**.
 
@@ -172,8 +175,21 @@ a 4YU com a chave de serviço na mão.
 
 ## Decisão pendente, de gente
 
-**Onde o Supabase de produção vai morar.** A organização `4YU Systems` está no
-teto do plano gratuito. Não bloqueia nada até o deploy.
+**Onde o Supabase de produção vai morar — resolvido por ora: dividido com o
+AutoFluxos.** O plano gratuito dá **dois projetos por conta**, não por
+organização (criar org nova não ajuda — verificado), e `radar-ofertas` e
+`autofluxos` já ocupam os dois. Então a Verandi mora no schema `app_verandi`
+dentro do projeto do AutoFluxos.
+
+O que isso custa, escrito para ninguém se assustar depois: **não há backup** no
+plano gratuito, e restaurar é do banco inteiro — acidente num produto leva o
+outro junto. É aceitável enquanto não há cliente pagante e deixa de ser no dia
+que houver.
+
+A saída já está desenhada e é barata, porque schema separa de verdade: restaura
+o dump num projeto novo, `drop schema app_autofluxos cascade` lá,
+`drop schema app_verandi cascade` no velho. Sobra apagar de `auth.users` quem
+não tem vínculo — os dois projetos herdam todos os usuários.
 
 ## Dívidas técnicas anotadas
 
@@ -213,7 +229,7 @@ node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
 npm run dev
 ```
 
-Instalação nova, sem seed: a migration `0010` cria a conta interna, e
+Instalação nova, sem seed: a migration `0040` cria a conta interna, e
 `node scripts/bootstrap-suporte.mjs <e-mail>` faz o primeiro usuário da 4YU. É
 por aí que a tela de contas passa a existir.
 
@@ -228,6 +244,13 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
 
 ## Armadilhas que já custaram tempo
 
+- **Cliente do Supabase novo precisa de `db: { schema: ESQUEMA }`.** São nove
+  pontos de criação em quatro lugares que ninguém junta na cabeça: `src/server`,
+  `scripts/*.mjs`, `tests/setup` e **`e2e/`**. Esquecer um não quebra o build nem
+  o `tsc` — quebra em execução com `Could not find the table 'public.conta' in
+  the schema cache`. Foi o `e2e/apoio.ts` que ficou para trás na primeira
+  passada. O nome vem de `src/server/esquema.ts`; nos `.mjs` é repetido à mão,
+  porque `.mjs` não importa `.ts`.
 - **`GRANT` é camada separada de RLS.** Se o erro for `42501`, olhe o `grant`
   antes da política. Toda migration termina com o bloco de grants.
 - **Insert em lote pelo PostgREST normaliza as linhas e não aplica o default da

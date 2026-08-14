@@ -1,6 +1,22 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
+import { ESQUEMA } from './esquema'
 
-export type Db = SupabaseClient
+/*
+ * `Db` sai do que `createClient` devolve, em vez de ser escrito à mão.
+ *
+ * `SupabaseClient` sem parâmetro assume o schema `public`, e a Verandi vive em
+ * `app_verandi` — escrito à mão, todo lugar que recebe um cliente passava a
+ * recusá-lo por tipo. Inferir também sobrevive à próxima versão do
+ * supabase-js mudar a quantidade de genéricos, que já mudou antes.
+ */
+function criaCliente(url: string, chave: string) {
+  return createClient(url, chave, {
+    db: { schema: ESQUEMA },
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+export type Db = ReturnType<typeof criaCliente>
 
 /**
  * Cliente com a chave de serviço: ignora RLS. Só para trabalho de servidor que
@@ -14,7 +30,5 @@ export function clienteAdmin(): Db {
   if (!url || !chave) {
     throw new Error('SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias')
   }
-  return createClient(url, chave, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
+  return criaCliente(url, chave)
 }

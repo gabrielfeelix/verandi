@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import type { Papel } from '@/core/acesso/destino'
+import { ESQUEMA } from './esquema'
 
 export async function clienteServidor() {
   const jar = await cookies()
@@ -9,6 +10,7 @@ export async function clienteServidor() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      db: { schema: ESQUEMA },
       cookies: {
         getAll: () => jar.getAll(),
         setAll: (cs) => {

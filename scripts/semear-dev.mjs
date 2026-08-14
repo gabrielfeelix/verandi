@@ -13,7 +13,10 @@ const env = Object.fromEntries(
   readFileSync('.env.local', 'utf8').trim().split('\n')
     .map((l) => l.split(/=(.*)/s).slice(0, 2)),
 )
+// repetido em vez de importado: `.mjs` não lê o `esquema.ts`. Se mudar aqui,
+// mude em `src/server/esquema.ts` também.
 const db = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+  db: { schema: 'app_verandi' },
   auth: { persistSession: false, autoRefreshToken: false },
 })
 

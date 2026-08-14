@@ -10,9 +10,13 @@ enabled = true
 port = 56421
 # Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
 # endpoints. `public` and `graphql_public` schemas are included by default.
-schemas = ["public", "graphql_public"]
+# `app_verandi` é onde a Verandi mora — ver migration 0030. No Supabase
+# hospedado o equivalente é API settings -> Exposed schemas, que é manual e não
+# tem API. Faltando lá, a tela responde "The schema must be one of the
+# following: public, storage".
+schemas = ["app_verandi", "public", "graphql_public"]
 # Extra schemas to add to the search_path of every request.
-extra_search_path = ["public", "extensions"]
+extra_search_path = ["app_verandi", "public", "extensions"]
 # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
 # for accidental or malicious requests.
 max_rows = 1000

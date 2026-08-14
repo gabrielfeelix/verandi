@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { ESQUEMA } from '@/server/esquema'
 
 export async function proxy(req: NextRequest) {
   const res = NextResponse.next({ request: req })
@@ -8,6 +9,10 @@ export async function proxy(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      // aqui só se lê `auth`, que é schema do próprio Supabase — mas deixar o
+      // cliente apontado para `public` é convite a uma consulta futura cair no
+      // banco do AutoFluxos sem ninguém notar.
+      db: { schema: ESQUEMA },
       cookies: {
         getAll: () => req.cookies.getAll(),
         setAll: (cs) =>

@@ -1,3 +1,8 @@
+-- Tudo aqui nasce em `app_verandi`. `public` fica fora do caminho de
+-- propósito: é onde o AutoFluxos mora, e nome sem schema não pode cair lá por
+-- acidente. Ver 0030.
+set search_path = app_verandi, extensions;
+
 /*
  * A equipe: contato, foto e quais serviços cada um atende.
  *
@@ -31,11 +36,11 @@ create index profissional_servico_conta_ix on profissional_servico (conta_id);
 alter table profissional_servico enable row level security;
 
 create policy profissional_servico_le on profissional_servico for select
-  using (conta_id in (select public.contas_do_usuario()));
+  using (conta_id in (select app_verandi.contas_do_usuario()));
 
 create policy profissional_servico_escreve on profissional_servico for all
-  using (public.tem_papel(conta_id, array['dono','suporte']::papel[]))
-  with check (public.tem_papel(conta_id, array['dono','suporte']::papel[]));
+  using (app_verandi.tem_papel(conta_id, array['dono','suporte']::papel[]))
+  with check (app_verandi.tem_papel(conta_id, array['dono','suporte']::papel[]));
 
 -- ---------------------------------------------------------------------------
 -- Foto
@@ -62,29 +67,29 @@ on conflict (id) do nothing;
 create policy foto_profissional_le on storage.objects for select
   using (
     bucket_id = 'foto-profissional'
-    and ((storage.foldername(name))[1])::uuid in (select public.contas_do_usuario())
+    and ((storage.foldername(name))[1])::uuid in (select app_verandi.contas_do_usuario())
   );
 
 create policy foto_profissional_escreve on storage.objects for insert
   with check (
     bucket_id = 'foto-profissional'
-    and public.tem_papel(((storage.foldername(name))[1])::uuid,
+    and app_verandi.tem_papel(((storage.foldername(name))[1])::uuid,
                          array['dono','suporte']::papel[])
   );
 
 create policy foto_profissional_atualiza on storage.objects for update
   using (
     bucket_id = 'foto-profissional'
-    and public.tem_papel(((storage.foldername(name))[1])::uuid,
+    and app_verandi.tem_papel(((storage.foldername(name))[1])::uuid,
                          array['dono','suporte']::papel[])
   );
 
 create policy foto_profissional_apaga on storage.objects for delete
   using (
     bucket_id = 'foto-profissional'
-    and public.tem_papel(((storage.foldername(name))[1])::uuid,
+    and app_verandi.tem_papel(((storage.foldername(name))[1])::uuid,
                          array['dono','suporte']::papel[])
   );
 
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant all on all tables in schema public to service_role;
+grant select, insert, update, delete on all tables in schema app_verandi to authenticated;
+grant all on all tables in schema app_verandi to service_role;

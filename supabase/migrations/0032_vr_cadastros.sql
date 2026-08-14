@@ -1,3 +1,8 @@
+-- Tudo aqui nasce em `app_verandi`. `public` fica fora do caminho de
+-- propósito: é onde o AutoFluxos mora, e nome sem schema não pode cair lá por
+-- acidente. Ver 0030.
+set search_path = app_verandi, extensions;
+
 create table pessoa (
   id                    uuid primary key default gen_random_uuid(),
   conta_id              uuid not null references conta (id) on delete cascade,
@@ -58,15 +63,15 @@ begin
   loop
     execute format('alter table %I enable row level security', t);
     execute format(
-      'create policy %I_le on %I for select using (conta_id in (select public.contas_do_usuario()))',
+      'create policy %I_le on %I for select using (conta_id in (select app_verandi.contas_do_usuario()))',
       t, t);
     execute format(
       'create policy %I_escreve on %I for all
-         using (public.tem_papel(conta_id, array[''dono'',''recepcao'',''suporte'']::papel[]))
-         with check (public.tem_papel(conta_id, array[''dono'',''recepcao'',''suporte'']::papel[]))',
+         using (app_verandi.tem_papel(conta_id, array[''dono'',''recepcao'',''suporte'']::papel[]))
+         with check (app_verandi.tem_papel(conta_id, array[''dono'',''recepcao'',''suporte'']::papel[]))',
       t, t);
   end loop;
 end $$;
 
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant all on all tables in schema public to service_role;
+grant select, insert, update, delete on all tables in schema app_verandi to authenticated;
+grant all on all tables in schema app_verandi to service_role;

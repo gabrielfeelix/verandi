@@ -1,22 +1,27 @@
-create extension if not exists unaccent;
+-- Tudo aqui nasce em `app_verandi`. `public` fica fora do caminho de
+-- propósito: é onde o AutoFluxos mora, e nome sem schema não pode cair lá por
+-- acidente. Ver 0030.
+set search_path = app_verandi, extensions;
+
+create extension if not exists unaccent with schema extensions;
 
 -- `unaccent()` de um argumento é STABLE, e coluna gerada exige IMMUTABLE.
 -- A forma de dois argumentos fixa o dicionário, o que torna o resultado
 -- determinístico de verdade — é o motivo de dar para marcar immutable aqui.
-create or replace function public.sem_acento(t text)
+create or replace function app_verandi.sem_acento(t text)
 returns text
 language sql
 immutable
 strict
 parallel safe
-set search_path = public, extensions
+set search_path = app_verandi, extensions
 as $$ select lower(unaccent('unaccent', t)) $$;
 
 -- Coluna gerada em vez de função no filtro: o PostgREST não chama função em
 -- `where`, e no dado real a mesma pessoa aparece escrita de formas diferentes
 -- entre meses. Buscar "emilia" tem que achar "Emília".
 alter table pessoa
-  add column nome_busca text generated always as (public.sem_acento(nome)) stored;
+  add column nome_busca text generated always as (app_verandi.sem_acento(nome)) stored;
 
 create index pessoa_nome_busca_ix on pessoa (conta_id, nome_busca text_pattern_ops);
 
@@ -66,4 +71,4 @@ select
 from pessoa p;
 
 grant select on pessoa_resumo to authenticated, service_role;
-grant execute on function public.sem_acento(text) to authenticated, service_role;
+grant execute on function app_verandi.sem_acento(text) to authenticated, service_role;

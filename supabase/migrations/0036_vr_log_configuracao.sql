@@ -1,3 +1,8 @@
+-- Tudo aqui nasce em `app_verandi`. `public` fica fora do caminho de
+-- propósito: é onde o AutoFluxos mora, e nome sem schema não pode cair lá por
+-- acidente. Ver 0030.
+set search_path = app_verandi, extensions;
+
 /*
  * Quem mexeu na configuração.
  *
@@ -29,15 +34,15 @@ create index log_configuracao_conta_ix on log_configuracao (conta_id, em desc);
 alter table log_configuracao enable row level security;
 
 create policy log_configuracao_le on log_configuracao for select
-  using (conta_id in (select public.contas_do_usuario()));
+  using (conta_id in (select app_verandi.contas_do_usuario()));
 
 /*
  * Só insert, e só no próprio nome. Não existe política de update nem de delete:
  * log que o autor reescreve não é log — é rascunho.
  */
 create policy log_configuracao_escreve on log_configuracao for insert
-  with check (public.tem_papel(conta_id, array['dono','recepcao','suporte']::papel[])
+  with check (app_verandi.tem_papel(conta_id, array['dono','recepcao','suporte']::papel[])
               and por_usuario_id = auth.uid());
 
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant all on all tables in schema public to service_role;
+grant select, insert, update, delete on all tables in schema app_verandi to authenticated;
+grant all on all tables in schema app_verandi to service_role;

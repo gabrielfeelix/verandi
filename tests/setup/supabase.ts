@@ -1,5 +1,7 @@
 import { execSync } from 'node:child_process'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
+import { ESQUEMA } from '../../src/server/esquema'
+import type { Db } from '../../src/server/supabase'
 
 /** Lê as chaves do Supabase local em vez de fixá-las: a CLI pode mudá-las. */
 function ambiente(): Record<string, string> {
@@ -17,8 +19,9 @@ export const URL = env.API_URL ?? 'http://127.0.0.1:56421'
 export const CHAVE_ANON = env.ANON_KEY
 export const CHAVE_ADMIN = env.SERVICE_ROLE_KEY
 
-export function admin(): SupabaseClient {
+export function admin(): Db {
   return createClient(URL, CHAVE_ADMIN, {
+    db: { schema: ESQUEMA },
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }
@@ -34,6 +37,7 @@ export async function comoUsuario(email: string, senha = 'senha-de-teste-123') {
   if (error) throw error
 
   const cliente = createClient(URL, CHAVE_ANON, {
+    db: { schema: ESQUEMA },
     auth: { persistSession: false, autoRefreshToken: false },
   })
   const { error: erroLogin } = await cliente.auth.signInWithPassword({
