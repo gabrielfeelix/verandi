@@ -73,7 +73,7 @@ export function PainelAcesso({
               `<img>` e não `next/image` de propósito: a arte já sai pronta de
               `scripts/otimiza-arte.mjs` no tamanho e formato finais. O `Image`
               acrescentaria uma ida ao otimizador em tempo de execução para
-              refazer o que já está feito — e é justamente esta imagem que não
+              refazer o que já está feito, e é justamente esta imagem que não
               pode chegar atrasada.
             */}
             {/* eslint-disable-next-line @next/next/no-img-element */}

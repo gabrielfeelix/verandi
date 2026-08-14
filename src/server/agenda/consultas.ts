@@ -108,7 +108,7 @@ function paraResumo(l: LinhaResumo, fuso: string): SessaoResumo {
     data,
     hora,
     duracaoMin: l.duracao_min,
-    servico: l.servico?.nome ?? '—',
+    servico: l.servico?.nome ?? 'sem registro',
     profissionalId: l.profissional_id,
     profissional: l.profissional?.nome ?? null,
     corProfissional: l.profissional?.cor ?? null,
@@ -316,7 +316,7 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
     for (const o of origens ?? []) {
       if (!o.sessao) continue
       const { data: d, hora } = localDe(o.sessao.inicio, fuso)
-      reposicaoDe.set(o.id, { data: d, hora, servico: o.sessao.servico?.nome ?? '—' })
+      reposicaoDe.set(o.id, { data: d, hora, servico: o.sessao.servico?.nome ?? 'sem registro' })
     }
   }
 
@@ -464,7 +464,7 @@ export async function faltasEmAberto(
     .map((p) => ({
       participacaoId: p.id,
       data: p.sessao!.inicio.slice(0, 10),
-      servico: p.sessao!.servico?.nome ?? '—',
+      servico: p.sessao!.servico?.nome ?? 'sem registro',
       status: p.status,
     }))
 }

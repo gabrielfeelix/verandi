@@ -33,7 +33,7 @@ test('o foco de teclado é visível', async ({ page }) => {
   expect(contorno).not.toBe('none')
 })
 
-test('o texto continua selecionável — o produto não é a demonstração', async ({ page }) => {
+test('o texto continua selecionável, o produto não é a demonstração', async ({ page }) => {
   const selecao = await page.evaluate(() => getComputedStyle(document.body).userSelect)
   expect(selecao).not.toBe('none')
 })
@@ -82,7 +82,7 @@ test('o avatar de uma pessoa é sempre a mesma cor', async ({ page }) => {
 
 /*
  * As três coisas que passaram por tsc, eslint e 209 testes verdes e mesmo assim
- * chegaram tortas na tela. Nenhuma delas quebra em teste de comportamento — só
+ * chegaram tortas na tela. Nenhuma delas quebra em teste de comportamento, só
  * aparece no olho, e por isso são medidas aqui.
  */
 test('o token de raio vira raio de verdade', async ({ page }) => {

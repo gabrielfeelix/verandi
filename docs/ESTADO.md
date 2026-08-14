@@ -140,6 +140,37 @@ inventá-la seria pior do que deixá-la faltando.
   **filtro por local**. O método está em [`VESTIR.md`](VESTIR.md); as capturas
   saem de `scripts/tira-prototipo.mjs` e `scripts/tira-produto.mjs`.
 
+### Acesso, e por que o "esqueci a senha" é nosso
+
+Existem seis telas de acesso, e todas usam a mesma casca e a arte de
+`ui/arte-acesso.ts`: `/entrar`, `/esqueci`, `/enviado`, `/convite/[token]` (que
+serve tanto para aceitar convite quanto para criar senha nova), `/contas` e o
+painel de troca de conta.
+
+**O `recover` do Supabase Auth não é usado, e não pode ser.** O rastreio de
+clique do Brevo reescreve todo link e não dá para desligar (eles dizem que não
+pretendem permitir). O token do Supabase é consumido no GET, então o rastreador
+abre o link antes da pessoa e ela recebe `otp_expired`. Foi assim que descobrimos:
+o link chegou como `sendibt2.com/tr/cl/...` e morreu antes do primeiro clique.
+
+O nosso token só é consumido no POST que grava a senha, então robô que abre a
+página não quebra nada. `/esqueci` cria uma linha `tipo: 'senha'` em `convite`,
+válida por 30 minutos, e manda o e-mail pela API do Brevo.
+
+Três decisões que estão no código e não se deduzem sozinhas: a resposta é a
+mesma para e-mail que existe e para inventado (senão o formulário público vira
+lista de quem trabalha no estúdio); só há **um pedido em aberto por e-mail**
+(senão vira máquina de encher caixa alheia e queimar a cota do Brevo); e o
+caminho antigo continua vivo em Configuração, Usuários, porque quem não recebe
+e-mail ainda precisa ser atendido.
+
+### Texto do produto não leva travessão
+
+Nem e-mail, nem tela, nem rótulo. Travessão é marca de texto gerado por máquina,
+e num produto que vende confiança para dono de estúdio isso derruba a
+credibilidade antes de a pessoa ler o conteúdo. Onde a frase pedia travessão,
+virou vírgula, ponto ou dois-pontos. Há teste guardando os e-mails.
+
 ### E-mail — o que está de pé, e o que falta
 
 De pé: domínio `verandi.mail.4yu.com.br` autenticado no Brevo (DKIM assinando),
@@ -309,6 +340,15 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   esquecimento: o e-mail dessa gente foi coletado pelo cliente, não por nós, e
   usá-lo para falar do nosso produto é problema de consentimento antes de ser
   de bom gosto.
+- **Os quatro modelos na tela do Brevo são cópia, e nascem desativados.**
+  `scripts/espelha-no-brevo.ts` os manda para lá só para dar para olhar o visual
+  sem abrir o projeto; nada em produção envia usando eles. Editar por lá não
+  muda e-mail nenhum, e é justamente por isso que ficam desativados e com
+  `[cópia, editar no código]` no nome. Rode o script de novo depois de mexer em
+  `src/core/email/`, senão a cópia envelhece. O `{{ .ConfirmationURL }}` vira um
+  endereço de exemplo na cópia: é sintaxe do Supabase, e o Brevo tenta
+  interpretar `{{ }}` com a linguagem dele e recusa o modelo com erro de parser
+  numa linha que não diz nada.
 - **Os templates de e-mail moram no código, não dentro do Brevo.** A conta lá
   tem **zero** templates de propósito: o HTML sai de `src/core/email/` no campo
   `htmlContent` a cada envio, e o Brevo é só o carteiro. É o que deixa o texto

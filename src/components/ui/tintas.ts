@@ -66,7 +66,7 @@ export const GLIFO_PRESENCA = {
   falta: '×',
   falta_avisada: '!',
   licenca: '~',
-  cancelada: '—',
+  cancelada: 'sem registro',
 } as const
 
 /**

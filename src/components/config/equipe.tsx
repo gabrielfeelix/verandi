@@ -65,7 +65,7 @@ export function SecaoEquipe({
     p.servicoIds.forEach((id) => f.append('servicos', id))
     comErro(
       async () => { await salvarProfissional(f) },
-      `${p.nome} desativado — o histórico continua com o nome dele`,
+      `${p.nome} desativado, o histórico continua com o nome dele`,
     )
   }
 

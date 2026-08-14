@@ -121,7 +121,7 @@ export function PainelContas({
         {convite ? (
           <div className="m-4 flex flex-col gap-2 rounded-media border border-linha p-3">
             <span className="text-[12.5px] font-medium">
-              Convite do dono ({convite.para}) — copie agora
+              Convite do dono ({convite.para}), copie agora
             </span>
             <input readOnly value={convite.url} aria-label="Link do convite"
               className={`${entrada} font-mono text-[12px]`}
@@ -236,7 +236,7 @@ export function PainelContas({
       </section>
 
       {/* Entrar na conta de um cliente é o acesso mais forte do sistema, e a
-          tela diz isso — depois da lista, onde ele fecha a leitura em vez de
+          tela diz isso, depois da lista, onde ele fecha a leitura em vez de
           atrasá-la todo dia. */}
       <p className="flex items-start gap-2.5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[13px] leading-relaxed text-[#7A5E1E]">
         <span

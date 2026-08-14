@@ -151,7 +151,7 @@ export function colisoesDe(
         diaSemana: dia,
         horaInicio: nova.horaInicio,
         tipo,
-        ocupadoPor: (tipo === 'profissional' ? e.nomeProfissional : e.nomeLocal) ?? '—',
+        ocupadoPor: (tipo === 'profissional' ? e.nomeProfissional : e.nomeLocal) ?? 'sem registro',
         serieId: e.id,
       })
     }

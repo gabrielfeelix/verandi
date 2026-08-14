@@ -100,7 +100,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Intervalo entre sessões"
-          detalhe="a folga que separa uma da próxima — é ela que sugere o horário seguinte"
+          detalhe="a folga que separa uma da próxima, é ela que sugere o horário seguinte"
         >
           <Contador
             rotulo="Intervalo entre sessões"
@@ -129,7 +129,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Encaixe acima da capacidade"
-          detalhe="vale para quem está na recepção. A busca de vaga e o robô continuam sem enxergar horário cheio — 5/4 é sempre alguém decidindo"
+          detalhe="vale para quem está na recepção. A busca de vaga e o robô continuam sem enxergar horário cheio, 5/4 é sempre alguém decidindo"
         >
           <Opcoes
             rotulo="Encaixe acima da capacidade"
@@ -193,7 +193,7 @@ export function SecaoPadroes({
 
       <p className="mt-4 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[12.5px] leading-relaxed text-[#3E7A6C]">
         Mudar um padrão não mexe em nada que já existe. Vale só para o que for
-        criado daqui em diante — cada serviço ainda pode ter a sua própria
+        criado daqui em diante, cada serviço ainda pode ter a sua própria
         capacidade.
       </p>
 

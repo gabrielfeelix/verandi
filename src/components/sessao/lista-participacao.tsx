@@ -20,7 +20,7 @@ const STATUS: Array<{
 }> = [
   { valor: 'presente',      curto: 'Veio',    titulo: 'Presente',                              glifo: '✓' },
   { valor: 'falta',         curto: 'Faltou',  titulo: 'Faltou sem avisar',                     glifo: '×' },
-  { valor: 'falta_avisada', curto: 'Avisou',  titulo: 'Avisou que não vem — libera a vaga',    glifo: '!' },
+  { valor: 'falta_avisada', curto: 'Avisou',  titulo: 'Avisou que não vem, libera a vaga',    glifo: '!' },
   { valor: 'licenca',       curto: 'Licença', titulo: 'Afastado, mantém o horário',            glifo: '~' },
 ]
 
@@ -169,7 +169,7 @@ export function ListaParticipacao({
             <Vazio
               icone="pessoas"
               titulo="Ninguém marcado ainda"
-              texto={`Não é erro de carregamento — é uma ${rotuloSessao.toLowerCase()} vazia.`}
+              texto={`Não é erro de carregamento, é uma ${rotuloSessao.toLowerCase()} vazia.`}
             />
           </li>
         ) : null}
@@ -190,8 +190,8 @@ export function ListaParticipacao({
           <span className="flex flex-col">
             <span className="text-[14px] font-medium text-marca">
               {livres > 0
-                ? `${livres} vaga${livres > 1 ? 's' : ''} livre${livres > 1 ? 's' : ''} — encaixar alguém`
-                : 'Sem vaga livre — encaixar assim mesmo'}
+                ? `${livres} vaga${livres > 1 ? 's' : ''} livre${livres > 1 ? 's' : ''}, encaixar alguém`
+                : 'Sem vaga livre, encaixar assim mesmo'}
             </span>
             <span className="text-[12px] text-tinta-media">
               buscar {rotuloPessoa.toLowerCase()} que já existe ou cadastrar na hora

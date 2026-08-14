@@ -21,7 +21,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
     <div className="flex flex-col gap-3">
       {ativas.length === 0 ? (
         <p className="text-[12.5px] text-tinta-media">
-          Sem horário fixo. Quem só vem de vez em quando é normal — a vaga
+          Sem horário fixo. Quem só vem de vez em quando é normal, a vaga
           recorrente é para quem ocupa o mesmo horário toda semana.
         </p>
       ) : (
@@ -59,7 +59,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
           </summary>
           <ul className="mt-2 flex flex-col gap-1 text-[12.5px] text-tinta-media">
             {encerradas.map((v) => (
-              <li key={v.id}>{v.rotulo} — de {v.desde} até {v.ate}</li>
+              <li key={v.id}>{v.rotulo}, de {v.desde} até {v.ate}</li>
             ))}
           </ul>
         </details>

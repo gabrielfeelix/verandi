@@ -155,7 +155,7 @@ export async function listarAcessosDeSuporte(limite = 30): Promise<AcessoSuporte
 
   return (data ?? []).map((a) => ({
     id: a.id,
-    contaNome: a.conta?.nome ?? '—',
+    contaNome: a.conta?.nome ?? 'sem registro',
     usuarioId: a.usuario_id,
     iniciadoEm: a.iniciado_em,
     encerradoEm: a.encerrado_em,

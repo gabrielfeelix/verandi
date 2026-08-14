@@ -90,7 +90,7 @@ export async function listarSeries(
     horaInicio: semSegundos(l.hora_inicio),
     duracaoMin: l.duracao_min,
     servicoId: l.servico_id,
-    servico: l.servico?.nome ?? '—',
+    servico: l.servico?.nome ?? 'sem registro',
     profissionalId: l.profissional_id,
     profissional: l.profissional?.nome ?? null,
     localId: l.local_id,

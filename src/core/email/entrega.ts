@@ -69,10 +69,10 @@ export function recadoDaEntrega(estado: EstadoDeEntrega): string {
     case 'entregue':
       return 'e-mail entregue'
     case 'voltou':
-      return 'o e-mail voltou — confira o endereço'
+      return 'o e-mail voltou, confira o endereço'
     case 'spam':
-      return 'caiu como spam — mande o link direto'
+      return 'caiu como spam, mande o link direto'
     case 'bloqueado':
-      return 'esse endereço está bloqueado — mande o link direto'
+      return 'esse endereço está bloqueado, mande o link direto'
   }
 }

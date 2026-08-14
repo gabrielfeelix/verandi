@@ -43,7 +43,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
     return (
       <Nota tom="positivo">
         Nada pendente. Chamada em dia, nenhuma reposição esperando, e ninguém na
-        fila — é assim que esta tela deve ficar na maior parte do tempo.
+        fila, é assim que esta tela deve ficar na maior parte do tempo.
       </Nota>
     )
   }
@@ -146,7 +146,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
         aberto={dispensando !== null}
         glifo="×"
         titulo="Dispensar pendência"
-        sub={dispensando ? `${dispensando.titulo} — sai da lista e não volta` : ''}
+        sub={dispensando ? `${dispensando.titulo}, sai da lista e não volta` : ''}
         primario="Dispensar"
         pendente={pendente}
         aoFechar={() => setDispensando(null)}
@@ -174,7 +174,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
           </select>
         </label>
         <Nota tom="neutro">
-          Pendência que nunca zera vira ruído — por isso dispensar existe, com
+          Pendência que nunca zera vira ruído, por isso dispensar existe, com
           motivo e com o nome de quem dispensou.
         </Nota>
       </Modal>

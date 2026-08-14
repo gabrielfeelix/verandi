@@ -109,7 +109,7 @@ test('Hoje destaca a chamada pendente e anda entre os dias', async ({ page }) =>
   await entrar(page, email)
   await page.goto('/hoje?dia=2026-08-03')
 
-  // o cartão do topo é quem diz isso agora — ver a revisão de interface
+  // o cartão do topo é quem diz isso agora, ver a revisão de interface
   await expect(
     page.getByRole('group', { name: /Chamadas pendentes: 1/ }),
   ).toBeVisible()

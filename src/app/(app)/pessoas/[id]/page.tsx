@@ -116,7 +116,7 @@ export default async function Pessoa({
 
   const opcoesSerie = (series ?? []).map((s) => ({
     id: s.id,
-    rotulo: `${DIAS[s.dia_semana]} ${String(s.hora_inicio).slice(0, 5)} · ${s.servico?.nome ?? '—'}`,
+    rotulo: `${DIAS[s.dia_semana]} ${String(s.hora_inicio).slice(0, 5)} · ${s.servico?.nome ?? 'sem registro'}`,
   }))
 
   const p = ficha.pessoa
@@ -139,7 +139,7 @@ export default async function Pessoa({
     ['Telefone', p.telefone ?? 'sem telefone', !p.telefone],
     ['E-mail', p.email ?? 'sem e-mail'],
     ['Identificador', p.identificadorExterno ?? 'sem identificador', !p.identificadorExterno],
-    ['Nascimento', p.nascimento ? curta(p.nascimento) : '—'],
+    ['Nascimento', p.nascimento ? curta(p.nascimento) : 'sem registro'],
     [`${rotulos.pessoa.singular} desde`, mesAno(p.criadoEm.slice(0, 10))],
   ]
 
@@ -184,7 +184,7 @@ export default async function Pessoa({
                 </span>
               ))}
               {!p.ativo ? (
-                <Etiqueta tinta="neutro">Inativa — continua no histórico</Etiqueta>
+                <Etiqueta tinta="neutro">Inativa, continua no histórico</Etiqueta>
               ) : null}
             </div>
 
@@ -272,7 +272,7 @@ export default async function Pessoa({
                     {rotulos.vaga.plural}
                   </h2>
                   <span className="text-[12px] text-tinta-fraca">
-                    a {rotulos.vaga.singular.toLowerCase()} tem vigência — encerrar
+                    a {rotulos.vaga.singular.toLowerCase()} tem vigência, encerrar
                     não apaga o passado
                   </span>
                 </div>
@@ -364,7 +364,7 @@ export default async function Pessoa({
                 <Vazio
                   icone="hoje"
                   titulo="Ainda não há histórico"
-                  texto="Quem acabou de ser cadastrado começa assim — não é falha de carregamento."
+                  texto="Quem acabou de ser cadastrado começa assim. Não é falha de carregamento."
                 />
               ) : (
                 <ul className="flex flex-col">
@@ -487,7 +487,7 @@ export default async function Pessoa({
                 </span>
                 {ficha.tags.length === 0 ? (
                   <span className="text-[12.5px] text-tinta-fraca">
-                    nenhuma — marcação é o que a equipe precisa lembrar antes da aula
+                    nenhuma, marcação é o que a equipe precisa lembrar antes da aula
                   </span>
                 ) : (
                   ficha.tags.map((t) => <Etiqueta key={t} tinta="atencao">{t}</Etiqueta>)
@@ -539,7 +539,7 @@ export default async function Pessoa({
             ) : (
               <p className="text-[12px] leading-[1.5] text-tinta-fraca">
                 Sem telefone não dá para avisar de cancelamento nem cobrar
-                reposição — é o campo que mais falta e mais custa.
+                reposição, é o campo que mais falta e mais custa.
               </p>
             )}
           </section>
@@ -568,7 +568,7 @@ export default async function Pessoa({
             <p className="pb-3 text-[13px] leading-[1.5] text-tinta-media">
               {p.vencimentoPlano
                 ? `Vence em ${curta(p.vencimentoPlano)}`
-                : 'Sem data de vencimento. A agenda guarda só até quando o plano vale — valor e cobrança são de outro sistema.'}
+                : 'Sem data de vencimento. A agenda guarda só até quando o plano vale, valor e cobrança são de outro sistema.'}
             </p>
             <RegistrarRenovacao pessoaId={p.id} vencimento={p.vencimentoPlano} />
           </section>
@@ -579,7 +579,7 @@ export default async function Pessoa({
             </div>
             <dl className="flex flex-col gap-2.5">
               {([
-                ['Presença', frequencia === null ? '—' : `${frequencia}%`,
+                ['Presença', frequencia === null ? 'sem registro' : `${frequencia}%`,
                  frequencia !== null && frequencia >= 80 ? 'text-positivo' : 'text-tinta'],
                 ['Faltas nos últimos 30 dias', String(p.faltasRecentes),
                  p.faltasRecentes > 1 ? 'text-alerta' : 'text-tinta'],

@@ -111,7 +111,7 @@ test('o dono não pode conceder o papel de suporte da 4YU', async ({ page }) => 
   await page.goto('/config?s=usuarios')
   await page.getByRole('button', { name: 'Convidar' }).click()
 
-  // não está na tela — e a ação recusa mesmo se alguém forçar
+  // não está na tela, e a ação recusa mesmo se alguém forçar
   await expect(page.getByLabel('Papel')).not.toContainText('Suporte')
 })
 
@@ -230,7 +230,7 @@ test('a conta não fica sem dono', async ({ page }) => {
 /**
  * As ações de um usuário moram no menu de três pontinhos da linha dele.
  *
- * Abrir pelo nome acessível — e não pela posição — é o que faz o teste
+ * Abrir pelo nome acessível, e não pela posição, é o que faz o teste
  * continuar valendo quando a lista muda de ordem.
  */
 async function abrirMenuDe(page: Page, email: string) {

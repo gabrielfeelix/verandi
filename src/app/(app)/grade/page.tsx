@@ -79,7 +79,7 @@ export default async function Grade() {
           <Vazio
             icone="grade"
             titulo="A grade está vazia"
-            texto={`Conta nova começa assim — não é falha de carregamento. Criar ${rotulos.serie.singular.toLowerCase()} é dizer que horários existem, e é o que faz ${rotulos.sessao.plural.toLowerCase()} aparecerem em Hoje e na Semana.`}
+            texto={`Conta nova começa assim. Não é falha de carregamento. Criar ${rotulos.serie.singular.toLowerCase()} é dizer que horários existem, e é o que faz ${rotulos.sessao.plural.toLowerCase()} aparecerem em Hoje e na Semana.`}
           />
         </section>
       ) : (

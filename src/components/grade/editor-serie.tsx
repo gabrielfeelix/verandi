@@ -141,7 +141,7 @@ export function EditorSerie({
         <div className="flex flex-col gap-1">
           <label htmlFor="profissionalId">Profissional</label>
           <select id="profissionalId" name="profissionalId" className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-            <option value="">— sem definir —</option>
+            <option value="">, sem definir ,</option>
             {catalogo.profissionais.map((p) => (
               <option key={p.id} value={p.id}>{p.nome}</option>
             ))}
@@ -151,7 +151,7 @@ export function EditorSerie({
         <div className="flex flex-col gap-1">
           <label htmlFor="localId">Local</label>
           <select id="localId" name="localId" className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-            <option value="">— sem definir —</option>
+            <option value="">, sem definir ,</option>
             {catalogo.locais.map((l) => (
               <option key={l.id} value={l.id}>{l.nome}</option>
             ))}
@@ -184,7 +184,7 @@ export function EditorSerie({
           <ul className="list-inside list-disc">
             {colisoes.map((c, i) => (
               <li key={`${c.serieId}-${i}`}>
-                {DIAS[c.diaSemana]} às {c.horaInicio} — {c.ocupadoPor} já ocupa
+                {DIAS[c.diaSemana]} às {c.horaInicio}, {c.ocupadoPor} já ocupa
                 {c.tipo === 'profissional' ? ' esse horário' : ' esse local'}
               </li>
             ))}

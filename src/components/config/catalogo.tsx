@@ -144,7 +144,7 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
 
       {servicos.length === 0 && !novo ? (
         <p className="px-5 py-6 text-[13px] text-tinta-media">
-          Nenhum serviço ainda. É o primeiro cadastro da conta — sem serviço não
+          Nenhum serviço ainda. É o primeiro cadastro da conta, sem serviço não
           dá para montar a grade.
         </p>
       ) : null}
@@ -252,7 +252,7 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
   return (
     <PainelConfig
       titulo="Locais"
-      sub="Sala, cadeira, consultório, domicílio. A capacidade é o limite físico — avisa, não bloqueia"
+      sub="Sala, cadeira, consultório, domicílio. A capacidade é o limite físico, avisa, não bloqueia"
     >
       {novo ? (
         <FaixaFormulario>
@@ -286,7 +286,7 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
 
       {locais.length === 0 && !novo ? (
         <p className="px-5 py-6 text-[13px] text-tinta-media">
-          Nenhum local ainda. Horário fixo funciona sem local — cadastre quando
+          Nenhum local ainda. Horário fixo funciona sem local, cadastre quando
           houver mais de um lugar para separar.
         </p>
       ) : null}

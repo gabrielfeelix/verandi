@@ -74,3 +74,12 @@ describe('apelido de quem convidou', () => {
     expect(apelidoDe('123@x.com')).toBe('123@x.com')
   })
 })
+
+describe('nada de travessão no que o usuário lê', () => {
+  it('convite não usa travessão em lugar nenhum', () => {
+    const e = montaConvite(base)
+    expect(e.assunto).not.toContain('—')
+    expect(e.texto).not.toContain('—')
+    expect(e.html).not.toContain('—')
+  })
+})

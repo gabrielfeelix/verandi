@@ -112,7 +112,7 @@ test('vocabulário mostra o efeito antes de salvar, e muda a navegação depois'
 
   await page.getByRole('button', { name: 'Salvar vocabulário' }).click()
 
-  // o que se prova é que a navegação lê o vocabulário da conta — recarregar
+  // o que se prova é que a navegação lê o vocabulário da conta, recarregar
   // tira da conta o tempo de propagação do cache, que não é o assunto do teste
   await expect.poll(async () => {
     const { data } = await admin.from('vocabulario')
@@ -172,7 +172,7 @@ test('marcar feriado cancela os horários daquele dia, com motivo', async ({ pag
     const { data } = await admin.from('sessao')
       .select('status, motivo_cancelamento').eq('id', sessao!.id).single()
     return data
-  }).toEqual({ status: 'cancelada', motivo_cancelamento: 'Dia marcado como feriado — Natal' })
+  }).toEqual({ status: 'cancelada', motivo_cancelamento: 'Dia marcado como feriado, Natal' })
 })
 
 test('"só marcar como fechado" não cancela nada', async ({ page }) => {
@@ -191,7 +191,7 @@ test('"só marcar como fechado" não cancela nada', async ({ page }) => {
   await page.getByLabel('O que fazer com os horários do dia').selectOption('so_marcar')
   await page.getByRole('button', { name: 'Marcar data' }).click()
 
-  // a etiqueta mostra dia/mês, como no protótipo — o ano só apareceria para
+  // a etiqueta mostra dia/mês, como no protótipo, o ano só apareceria para
   // ocupar espaço numa lista que é sempre de datas próximas
   await expect(page.getByText('15/11')).toBeVisible()
   const { data } = await admin.from('sessao').select('status').eq('id', sessao!.id).single()
@@ -249,7 +249,7 @@ test('cadastrar profissional com cor e serviços que atende', async ({ page }) =
   }).toEqual({ cor: '#4A5C8C', email: 'sofia@estudio.local', servicos: 1 })
 })
 
-test('profissional sem login é normal — nome na grade não precisa de acesso', async ({ page }) => {
+test('profissional sem login é normal, nome na grade não precisa de acesso', async ({ page }) => {
   const c = await contaDono()
   await entrar(page, c.email)
   await page.goto('/config?s=equipe')

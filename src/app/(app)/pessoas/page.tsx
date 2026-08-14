@@ -96,7 +96,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
             {rotulos.pessoa.plural}
           </h1>
           {/* três números, não um: "28 cadastrados" sozinho esconde que três
-              pessoas pararam — e é justamente quem parou que se quer achar */}
+              pessoas pararam, e é justamente quem parou que se quer achar */}
           <p className="pt-[3px] text-[13.5px] text-tinta-media">
             {cadastrados} {cadastrados === 1 ? 'cadastrado' : 'cadastrados'}
             {' · '}{contagem.ativos} {contagem.ativos === 1 ? 'ativo' : 'ativos'}
@@ -184,7 +184,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <Vazio
             icone="pessoas"
             titulo="Ninguém com esses filtros"
-            texto="Conta nova começa assim — o primeiro cadastro entra pelo botão acima, com o nome apenas."
+            texto="Conta nova começa assim. O primeiro cadastro entra pelo botão acima, com o nome apenas."
           />
         ) : (
           <ul aria-label={rotulos.pessoa.plural}>
@@ -233,7 +233,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         fone ? 'text-tinta-media' : 'text-alerta'
                       }`}
                     >
-                      {fone ?? '—'}
+                      {fone ?? 'sem registro'}
                       {fone ? null : <span className="sr-only">sem telefone</span>}
                     </span>
 
@@ -249,7 +249,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                             <span className="text-tinta-fraca"> +{p.vagasAtivas - 1}</span>
                           ) : null}
                         </>
-                      ) : '—'}
+                      ) : 'sem registro'}
                     </span>
 
                     <span className="hidden text-[13px] text-tinta-media md:block">

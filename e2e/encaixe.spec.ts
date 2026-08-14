@@ -28,7 +28,7 @@ async function cenarioCheio() {
 /**
  * O encaixe mora num modal, aberto do cabeçalho.
  *
- * O botão da lista e o da barra do rodapé abrem o mesmo — usar sempre o do
+ * O botão da lista e o da barra do rodapé abrem o mesmo, usar sempre o do
  * cabeçalho evita que o teste dependa de qual deles está na tela.
  */
 async function abrirEncaixe(page: Page) {
@@ -45,7 +45,7 @@ test('horário cheio recusa o encaixe e aponta a saída', async ({ page }) => {
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const modal = await abrirEncaixe(page)
-  await expect(modal.getByText('2/2 — cheio')).toBeVisible()
+  await expect(modal.getByText('2/2, cheio')).toBeVisible()
 
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
@@ -73,7 +73,7 @@ test('aumentar a capacidade do dia abre a vaga, e a série não muda', async ({ 
   const modal = await abrirEncaixe(page)
   await modal.getByLabel('Capacidade só deste dia').fill('3')
   await modal.getByRole('button', { name: 'Salvar' }).click()
-  await expect(modal.getByText('2/3 — 1 livre(s)')).toBeVisible()
+  await expect(modal.getByText('2/3, 1 livre(s)')).toBeVisible()
 
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
@@ -99,7 +99,7 @@ test('quem avisou que não vem devolve a vaga', async ({ page }) => {
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const modal = await abrirEncaixe(page)
-  await expect(modal.getByText('1/2 — 1 livre(s)')).toBeVisible()
+  await expect(modal.getByText('1/2, 1 livre(s)')).toBeVisible()
 
   await modal.getByRole('button', { name: 'Reposição', exact: true }).click()
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
@@ -142,7 +142,7 @@ test('cancelar o horário avisa quantas pessoas serão afetadas', async ({ page 
   await confirmacao.getByLabel('Motivo').fill('Sala interditada')
   await confirmacao.getByRole('button', { name: 'Cancelar turma' }).click()
 
-  await expect(page.getByText(/cancelada — Sala interditada/)).toBeVisible()
+  await expect(page.getByText(/cancelada, Sala interditada/)).toBeVisible()
 })
 
 test('com encaixe acima permitido, a tela pede confirmação e registra a exceção', async ({ page }) => {
@@ -153,7 +153,7 @@ test('com encaixe acima permitido, a tela pede confirmação e registra a exceç
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const modal = await abrirEncaixe(page)
-  await expect(modal.getByText('2/2 — cheio')).toBeVisible()
+  await expect(modal.getByText('2/2, cheio')).toBeVisible()
 
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
@@ -213,7 +213,7 @@ test('a busca de vaga não oferece horário cheio, mesmo com encaixe permitido',
   // horário?" quer horário, não quase-horário
   await expect(page.getByText('lotada')).toHaveCount(0)
 
-  // pedindo para incluir, ele entra na mesma lista — marcado, e com "Encaixar"
+  // pedindo para incluir, ele entra na mesma lista, marcado, e com "Encaixar"
   // no lugar de "Marcar", porque as duas ações não são a mesma coisa
   await page.getByRole('link', { name: /Incluir lotados/ }).click()
   await expect(page.getByText('1/1 lotada')).toBeVisible()

@@ -425,6 +425,6 @@ async function exigirOutroDono(
   const donos = (data ?? []).filter((u) => u.papel === 'dono')
   const ehDono = donos.some((u) => u.usuario_id === usuarioId)
   if (ehDono && donos.length <= 1) {
-    throw new Error('esta conta ficaria sem dono — promova outra pessoa antes')
+    throw new Error('esta conta ficaria sem dono, promova outra pessoa antes')
   }
 }

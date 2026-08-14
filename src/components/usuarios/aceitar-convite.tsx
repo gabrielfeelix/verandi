@@ -8,7 +8,7 @@ import { aceitarConvite } from '@/server/usuarios/acoes'
 
 const RECUSA: Record<string, string> = {
   expirado: 'Este convite passou do prazo.',
-  ja_aceito: 'Este convite já foi usado — é só entrar.',
+  ja_aceito: 'Este convite já foi usado, é só entrar.',
   revogado: 'Este convite foi cancelado.',
   inexistente: 'Não encontramos este convite.',
 }

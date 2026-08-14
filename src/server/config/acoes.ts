@@ -266,7 +266,7 @@ export async function salvarDataFechada(e: {
     const { data: alvo, error } = await db.from('sessao')
       .update({
         status: 'cancelada',
-        motivo_cancelamento: `Dia marcado como ${e.tipo}${linha.descricao ? ` — ${linha.descricao}` : ''}`,
+        motivo_cancelamento: `Dia marcado como ${e.tipo}${linha.descricao ? `, ${linha.descricao}` : ''}`,
       })
       .eq('conta_id', conta.contaId)
       .eq('status', 'prevista')

@@ -173,7 +173,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
 
                 {cancelada ? (
                   <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">
-                    {rotulos.sessao.singular} cancelada — {sessao.motivoCancelamento}.
+                    {rotulos.sessao.singular} cancelada, {sessao.motivoCancelamento}.
                     O que já foi registrado continua no histórico.
                   </p>
                 ) : null}
@@ -215,7 +215,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
               <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
                 <p className="text-[12.5px] leading-relaxed text-tinta-media">
                   O registro aplica na hora e sincroniza depois. Sem sinal nada se
-                  perde — o aviso aparece e a chamada continua.
+                  perde, o aviso aparece e a chamada continua.
                 </p>
               </section>
             </div>

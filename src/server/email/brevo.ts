@@ -39,7 +39,7 @@ export async function envia(envio: Envio): Promise<boolean> {
   if (!chave) {
     // Local e CI não mandam e-mail, e isso não é erro: é o esperado. Avisar em
     // silêncio esconderia o caso em que a chave sumiu da produção.
-    console.warn('[email] BREVO_API_KEY ausente — nada foi enviado para', envio.para)
+    console.warn('[email] BREVO_API_KEY ausente, nada foi enviado para', envio.para)
     return false
   }
 

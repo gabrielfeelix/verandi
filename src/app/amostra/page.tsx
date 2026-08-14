@@ -78,7 +78,7 @@ function Conteudo() {
           </span>
         </div>
         <p className="mt-3 text-[11.5px] text-tinta-media">
-          Altura mínima de 44px, menos no miúdo — a tela de Sessão é usada em pé,
+          Altura mínima de 44px, menos no miúdo, a tela de Sessão é usada em pé,
           com a mão ocupada.
         </p>
       </Cartao>
@@ -170,7 +170,7 @@ function Conteudo() {
           ]}
         />
         <p className="mt-3 text-[11.5px] text-tinta-media">
-          O ativo não clareia no hover — clarear faz parecer que desligou.
+          O ativo não clareia no hover, clarear faz parecer que desligou.
         </p>
       </Cartao>
 
@@ -213,7 +213,7 @@ function Conteudo() {
             Uma série por dia marcado, todas iguais e editáveis depois.
           </Nota>
           <Nota tom="atencao">
-            As pessoas da série original não são copiadas — a vaga nova nasce vazia.
+            As pessoas da série original não são copiadas, a vaga nova nasce vazia.
           </Nota>
           <Nota tom="alerta">
             As sessões que já aconteceram continuam no histórico. As futuras deixam
@@ -247,7 +247,7 @@ function Conteudo() {
         <Vazio
           icone="hoje"
           titulo="Nada marcado nesta quinta"
-          texto="Dia sem aula é informação, não falha — por isso a tela não fala em erro nem manda tentar de novo."
+          texto="Dia sem aula é informação, não falha, por isso a tela não fala em erro nem manda tentar de novo."
           acao={<Botao tom="secundario">Ver a semana</Botao>}
         />
       </Cartao>
@@ -284,7 +284,7 @@ function Conteudo() {
           <input id="m-srv" className={entrada} defaultValue="Pilates Solo" />
         </Campo>
         <Nota tom="positivo">
-          A vigência começa hoje — sessões anteriores não são criadas nem
+          A vigência começa hoje, sessões anteriores não são criadas nem
           reescritas.
         </Nota>
       </Modal>

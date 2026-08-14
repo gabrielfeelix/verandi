@@ -265,7 +265,7 @@ async function cadastrosIncompletos(
       referenciaId: p.id,
       titulo: p.nome,
       detalhe: !p.telefone
-        ? 'sem telefone — não dá para avisar'
+        ? 'sem telefone, não dá para avisar'
         : 'sem identificador',
       diasEmAberto: null,
       href: `/pessoas/${p.id}`,

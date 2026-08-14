@@ -37,7 +37,7 @@ export function SessaoLinha({
         </span>
 
         {cancelada ? (
-          <span className="ml-auto text-sm">Cancelado — {sessao.motivoCancelamento}</span>
+          <span className="ml-auto text-sm">Cancelado, {sessao.motivoCancelamento}</span>
         ) : (
           // a informação que mais vale nesta lista: é a chamada que se esquece
           <span

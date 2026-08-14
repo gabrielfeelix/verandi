@@ -159,7 +159,7 @@ export function SecaoUsuarios({
               </div>
               <Nota tom="atencao">
                 Este link não aparece de novo. Se perder, revogue o convite e
-                crie outro — o e-mail que já saiu continua valendo.
+                crie outro, o e-mail que já saiu continua valendo.
               </Nota>
             </div>
           ) : null}
@@ -234,7 +234,7 @@ export function SecaoUsuarios({
           <p className="px-5 py-3.5 text-[12px] text-tinta-media">
             Remover não apaga nada do que a pessoa registrou: a presença marcada
             por ela continua marcada por ela. Se for profissional, o nome segue
-            na grade — o que acaba é o acesso.
+            na grade, o que acaba é o acesso.
           </p>
         </div>
       </PainelConfig>

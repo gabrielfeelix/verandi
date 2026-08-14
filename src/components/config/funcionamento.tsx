@@ -121,7 +121,7 @@ export function SecaoFuncionamento({
       </div>
 
       <p className="mt-3.5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
-        Fechar um dia não apaga os horários fixos que já existem nele — eles
+        Fechar um dia não apaga os horários fixos que já existem nele, eles
         continuam na grade, e a agenda daquele dia passa a dizer que o negócio
         não abre.
       </p>

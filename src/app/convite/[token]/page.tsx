@@ -3,10 +3,10 @@ import { AceitarConvite } from '@/components/usuarios/aceitar-convite'
 import { PainelAcesso } from '@/components/ui/painel-acesso'
 
 const PAPEL: Record<string, string> = {
-  dono: 'dono da conta — mexe em tudo, inclusive configuração e usuários',
-  recepcao: 'recepção — marca, remarca e cadastra, sem mexer na configuração',
-  profissional: 'profissional — a sua agenda e as suas pessoas',
-  suporte: 'suporte da 4YU — acesso registrado em toda ação',
+  dono: 'dono da conta: mexe em tudo, inclusive configuração e usuários',
+  recepcao: 'recepção: marca, remarca e cadastra, sem mexer na configuração',
+  profissional: 'profissional, a sua agenda e as suas pessoas',
+  suporte: 'suporte da 4YU, acesso registrado em toda ação',
 }
 
 const RECUSA: Record<string, string> = {
@@ -48,9 +48,9 @@ export default async function Convite({
           {r.tipo === 'acesso' ? (
             <p className="mb-5 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-3 text-[12.5px] leading-relaxed text-tinta-media">
               <span className="font-medium text-tinta">
-                Como {PAPEL[r.papel]?.split(' — ')[0] ?? r.papel}
+                Como {PAPEL[r.papel]?.split(', ')[0] ?? r.papel}
               </span>
-              {PAPEL[r.papel] ? ` — ${PAPEL[r.papel].split(' — ')[1]}` : ''}
+              {PAPEL[r.papel] ? `, ${PAPEL[r.papel].split(', ')[1]}` : ''}
             </p>
           ) : (
             <p className="mb-5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">

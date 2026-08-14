@@ -69,7 +69,7 @@ const OQUE_VOCE_FAZ: Record<string, [string, string][]> = {
   ],
   profissional: [
     ['Ver as suas turmas do dia', 'Quem está marcado, e quem avisou que não vem.'],
-    ['Registrar presença e falta', 'Fica guardado — ninguém precisa lembrar depois.'],
+    ['Registrar presença e falta', 'Fica guardado. Ninguém precisa lembrar depois.'],
     ['Saber quem está repondo', 'A reposição aparece ligada à falta que a gerou.'],
   ],
 }
@@ -109,7 +109,7 @@ export function montaConvite(d: DadosDoConvite): {
     '',
     `O convite vale por ${d.diasAteExpirar} dias.`,
     '',
-    'Se você não esperava este e-mail, pode ignorar — nada acontece enquanto',
+    'Se você não esperava este e-mail, pode ignorar. Nada acontece enquanto',
     'você não criar a senha.',
     '',
     'Um abraço,',
@@ -122,7 +122,7 @@ export function montaConvite(d: DadosDoConvite): {
       Oi! ${escapa(convite)}
     </p>
     <p style="margin:0 0 6px;font-family:'DM Sans',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:${COR.apoio}">
-      Seu acesso é de <strong style="color:${COR.texto};font-weight:600">${escapa(papel)}</strong>. Falta só criar sua senha — leva menos de um minuto.
+      Seu acesso é de <strong style="color:${COR.texto};font-weight:600">${escapa(papel)}</strong>. Falta só criar sua senha, e leva menos de um minuto.
     </p>
     ${
       d.quemConvidou
@@ -151,7 +151,7 @@ export function montaConvite(d: DadosDoConvite): {
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td style="padding:10px 0 0">
       ${destaque(
         'Bom saber',
-        `O convite vale por ${d.diasAteExpirar} dias. Se você não esperava este e-mail, pode ignorar — nada acontece enquanto você não criar a senha.`,
+        `O convite vale por ${d.diasAteExpirar} dias. Se você não esperava este e-mail, pode ignorar. Nada acontece enquanto você não criar a senha.`,
       )}
     </td></tr></table>`
 

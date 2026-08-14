@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { admin, contaDeTeste, criarPessoas, entrar, usuarioDe } from './apoio'
 
-/** Uma conta com catálogo pronto e grade vazia — o começo de todo cliente. */
+/** Uma conta com catálogo pronto e grade vazia, o começo de todo cliente. */
 async function contaSemGrade() {
   const base = await contaDeTeste()
   const { email } = await usuarioDe(base.contaId, 'dono', base.marca)
@@ -81,7 +81,7 @@ test('a grade mostra ocupação e separa as encerradas', async ({ page }) => {
    * Dois e três dias atrás, não um e dois.
    *
    * `toISOString()` dá a data em UTC; a conta vive em America/Sao_Paulo. Entre
-   * 21h e meia-noite as duas discordam, e "ontem em UTC" é hoje na conta — a
+   * 21h e meia-noite as duas discordam, e "ontem em UTC" é hoje na conta, a
    * série encerrada voltava a ser vigente e o teste falhava só à noite.
    */
   const ontem = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10)
@@ -199,7 +199,7 @@ test('editar mostra o que muda antes de salvar, e o passado não entra na conta'
 
   // as duas sessões futuras conhecidas mudam de capacidade; entrar como dono
   // cai em /semana, que materializa a semana corrente, então a contagem total
-  // de sessões da série não é fixa — o que se afirma são estas duas
+  // de sessões da série não é fixa, o que se afirma são estas duas
   await expect.poll(async () => {
     const { data } = await admin.from('sessao')
       .select('capacidade').in('id', c.sessoes.map((s) => s.id)).order('inicio')

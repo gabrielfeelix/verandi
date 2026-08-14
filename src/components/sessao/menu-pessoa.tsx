@@ -110,7 +110,7 @@ export function MenuPessoa({
             placeholder="chegou atrasada, saiu mais cedo…"
           />
           <p className="text-[11.5px] text-tinta-media">
-            Fica visível para quem abrir esta {'sessão'} — inclusive a recepção.
+            Fica visível para quem abrir esta {'sessão'}, inclusive a recepção.
           </p>
           <div className="flex gap-2">
             <Botao
@@ -180,7 +180,7 @@ export function MenuPessoa({
                 fechar()
                 aoAgir(
                   () => apontarReposicao(participacao.id, null),
-                  'Reposição desfeita — a falta volta a contar como crédito',
+                  'Reposição desfeita, a falta volta a contar como crédito',
                 )
               }}
             >

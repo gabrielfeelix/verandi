@@ -193,7 +193,7 @@ export function LinhaAgenda({
   const nota = [
     sessao.local,
     cancelada
-      ? `cancelada — ${sessao.motivoCancelamento ?? 'sem motivo'}`
+      ? `cancelada, ${sessao.motivoCancelamento ?? 'sem motivo'}`
       : agora
         ? 'próxima'
         : passou && sessao.chamada === 'feita'

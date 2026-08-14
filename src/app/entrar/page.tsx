@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import Link from 'next/link'
 import { PainelAcesso } from '@/components/ui/painel-acesso'
 import { Botao } from '@/components/ui/botao'
 import { Rotulo, entrada } from '@/components/ui/pecas'
@@ -69,12 +70,16 @@ export default function Entrar() {
         </Botao>
       </form>
 
-      {/* O protótipo oferece "esqueci a senha" e "receber link por e-mail". Os
-          dois dependem de SMTP, que é marco 2. Enquanto não existe, o caminho
-          honesto é dizer quem redefine — e não um link que não vai chegar. */}
+      {/* O link por e-mail passou a existir, mas o caminho pela pessoa continua
+          e não é redundância: domínio de envio novo cai em spam, e quem opera um
+          estúdio resolve pelo WhatsApp em dez segundos. */}
       <p className="pt-4 text-center text-[12.5px] leading-[1.5] text-tinta-fraca">
-        Esqueceu a senha? Quem convidou você redefine — o estúdio, em
-        Configuração&nbsp;→&nbsp;Usuários; a 4YU, para quem é dono da conta.
+        <Link href="/esqueci" className="font-medium text-marca hover:text-marca-forte">
+          Esqueci a senha
+        </Link>
+        <br />
+        Quem convidou você também consegue gerar o link na hora, em
+        Configuração,&nbsp;Usuários.
       </p>
     </PainelAcesso>
   )

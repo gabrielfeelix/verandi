@@ -82,7 +82,7 @@ export function ModalEncaixe({
       largura="lista"
       titulo={`Encaixar ${rotuloPessoa.toLowerCase()}`}
       sub={`${ondeQuando} · ${ocupacao.ocupadas}/${ocupacao.capacidade}${
-        ocupacao.lotada ? ' — cheio' : ` — ${ocupacao.livres} livre(s)`}`}
+        ocupacao.lotada ? ', cheio' : `, ${ocupacao.livres} livre(s)`}`}
       secundario="Fechar"
       aoFechar={() => { setAviso(null); setExcedente(null); fecharEncaixe() }}
     >
@@ -140,7 +140,7 @@ export function ModalEncaixe({
       </div>
 
       {/* Passa da capacidade: a tela conta o que vai acontecer e pede o segundo
-          toque. 5/4 é decisão de quem está no balcão, com nome e registro —
+          toque. 5/4 é decisão de quem está no balcão, com nome e registro ,
           nunca o sistema deixando passar. */}
       {excedente ? (
         <div className="flex flex-col gap-2 rounded-media border border-alerta-linha bg-alerta-superficie p-3">

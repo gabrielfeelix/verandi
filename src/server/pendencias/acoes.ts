@@ -22,7 +22,7 @@ export async function dispensarPendencia(entrada: {
   }
 
   const motivo = entrada.motivo.trim()
-  if (!motivo) throw new Error('diga o motivo — é o que faz o registro valer alguma coisa')
+  if (!motivo) throw new Error('diga o motivo, é o que faz o registro valer alguma coisa')
 
   const db = await clienteServidor()
   const { data: { user } } = await db.auth.getUser()

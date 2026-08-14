@@ -256,7 +256,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                   }))
             }
             chaveDe={(s) => (porLocal ? s.localId : s.profissionalId)}
-            vazio={`Nada marcado neste dia. Pode ser feriado ou dia fechado na configuração de funcionamento — não é falha de carregamento.`}
+            vazio={`Nada marcado neste dia. Pode ser feriado ou dia fechado na configuração de funcionamento, não é falha de carregamento.`}
           />
         </>
       ) : (

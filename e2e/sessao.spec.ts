@@ -144,7 +144,7 @@ test('sessão cancelada mostra o motivo e não deixa registrar', async ({ page }
   await page.goto(`/sessao/${c.sessaoId}`)
 
   // a frase agora nomeia a entidade da conta: "Aula cancelada", "Sessão cancelada"
-  await expect(page.getByText(/cancelada — Professora doente/)).toBeVisible()
+  await expect(page.getByText(/cancelada, Professora doente/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
 })
 

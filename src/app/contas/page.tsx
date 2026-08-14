@@ -73,7 +73,7 @@ export default async function Contas() {
       </ul>
 
       <p className="pt-4 text-[12px] leading-relaxed text-tinta-media">
-        A conta ativa fica visível em todas as telas depois — operar na conta
+        A conta ativa fica visível em todas as telas depois. Operar na conta
         errada é o erro mais caro, e é silencioso.
       </p>
     </PainelAcesso>

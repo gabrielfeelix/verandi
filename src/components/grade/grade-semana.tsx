@@ -71,7 +71,7 @@ export function GradeSemana({
           Nenhum horário nesta semana
         </span>
         <span className="max-w-[380px] text-[13px] leading-relaxed text-tinta-media">
-          Conta nova começa assim. A grade nasce em Grade fixa — é lá que se diz
+          Conta nova começa assim. A grade nasce em Grade fixa, é lá que se diz
           o que se repete toda semana. Não é falha de carregamento.
         </span>
         <Link
@@ -182,7 +182,7 @@ export function GradeSemana({
                * porque as consequências são diferentes — sala repetida no mesmo
                * horário é conflito, professor diferente não é.
                */
-              const salas = new Set(celula.map((s) => s.local ?? '—'))
+              const salas = new Set(celula.map((s) => s.local ?? 'sem registro'))
               const paralelo = celula.length < 2
                 ? null
                 : salas.size > 1

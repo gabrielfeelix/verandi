@@ -27,6 +27,9 @@ export async function proxy(req: NextRequest) {
   const publica =
     req.nextUrl.pathname.startsWith('/entrar') ||
     req.nextUrl.pathname.startsWith('/convite') ||
+    // pedir senha nova é para quem está do lado de fora, por definição
+    req.nextUrl.pathname.startsWith('/esqueci') ||
+    req.nextUrl.pathname.startsWith('/enviado') ||
     // a amostra dos primitivos não lê dado de conta nenhuma: é design system
     req.nextUrl.pathname.startsWith('/amostra') ||
     /*

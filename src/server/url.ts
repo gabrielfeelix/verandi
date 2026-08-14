@@ -12,7 +12,7 @@ export function urlDoApp(): string {
   const url = process.env.APP_URL
   if (url) return url.replace(/\/+$/, '')
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('APP_URL é obrigatória em produção — o link do e-mail sai dela')
+    throw new Error('APP_URL é obrigatória em produção, o link do e-mail sai dela')
   }
   return 'http://localhost:3000'
 }

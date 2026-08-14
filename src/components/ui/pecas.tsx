@@ -75,7 +75,7 @@ export function Ocupacao({ usadas, capacidade }: { usadas: number; capacidade: n
       }`}
     >
       {usadas}/{capacidade}
-      {cheia ? <span className="sr-only"> — acima da capacidade</span> : null}
+      {cheia ? <span className="sr-only">, acima da capacidade</span> : null}
     </span>
   )
 }

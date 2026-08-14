@@ -140,7 +140,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
           <div className="flex items-center gap-2.5">
             {/* A busca global do protótipo ainda não existe no sistema. O espaço
-                fica reservado, desabilitado e dizendo o porquê — inventar a
+                fica reservado, desabilitado e dizendo o porquê, inventar a
                 funcionalidade aqui seria pior do que deixá-la faltando. */}
             <span
               title="A busca geral entra no próximo marco"
@@ -390,7 +390,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               <p className="text-[12.5px] leading-relaxed text-tinta-media">
                 {rotulos.sessao.singular} lotada não é bloqueio:{' '}
                 <strong className="font-semibold text-tinta">5/4</strong> aparece em
-                laranja e o encaixe segue permitido — quem decide é quem está na
+                laranja e o encaixe segue permitido, quem decide é quem está na
                 recepção, com nome e registro.
               </p>
             </section>

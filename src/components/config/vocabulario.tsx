@@ -47,7 +47,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
     <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[19px] font-semibold">Vocabulário</h2>
       <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
-        Como este negócio chama cada coisa. Muda o texto de todas as telas — e só
+        Como este negócio chama cada coisa. Muda o texto de todas as telas, e só
         o texto: nada nos dados é reescrito.
       </p>
 
@@ -80,7 +80,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
       {/* A prévia é o que faz a seção fazer sentido antes de salvar */}
       <div className="mt-4 rounded-grande border border-positivo-linha bg-positivo-superficie p-4">
         <p className="pb-2.5 text-[10.5px] font-semibold tracking-[.1em] text-[#3E7A6C] uppercase">
-          Onde isso aparece — antes de salvar
+          Onde isso aparece, antes de salvar
         </p>
         <ul className="flex flex-col gap-1.5">
           {[

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { admin, contaDeTeste, contaInterna, entrar, usuarioDe } from './apoio'
 
-/** Alguém com papel de suporte na conta interna — é assim que a 4YU existe. */
+/** Alguém com papel de suporte na conta interna, é assim que a 4YU existe. */
 async function comoSuporte() {
   const marca = `${Date.now()}-sup`
   const contaId = await contaInterna()

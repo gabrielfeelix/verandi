@@ -48,7 +48,7 @@ export function ModalCancelar({
         <strong className="font-medium text-tinta">
           {quantasPessoas} pessoa(s) serão avisadas.
         </strong>{' '}
-        O horário continua na agenda, riscado e com o motivo escrito — quem tem
+        O horário continua na agenda, riscado e com o motivo escrito, quem tem
         vaga fixa neste horário ganha crédito de reposição.
       </p>
 
