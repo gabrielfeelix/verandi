@@ -1,5 +1,6 @@
 -- Desfaz por inteiro a instalação da Verandi no banco do AutoFluxos.
--- Tudo que as migrations 0030–0040 criam está listado aqui. É seguro rodar
+-- Tudo que as migrations 0030–0042 criam fora de app_verandi está listado aqui.
+-- O restante vai embora com o schema. É seguro rodar
 -- mais de uma vez.
 
 drop policy if exists foto_profissional_le        on storage.objects;

@@ -7,3 +7,22 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Banco de produção compartilhado — obrigatório
+
+Verandi e AutoFluxos são produtos diferentes no **mesmo projeto Supabase de
+produção**. Antes de qualquer trabalho que toque banco, migration, Auth, RLS,
+Storage, extensão, função/view SQL ou Data API, leia por inteiro
+`docs/BANCO-COMPARTILHADO.md` e confira o estado dos dois repositórios.
+
+- Verandi mora em `app_verandi`; AutoFluxos mora em `public`.
+- Nunca crie, consulte ou altere objeto de `public` a partir deste produto.
+- Todo cliente Supabase da Verandi declara `db: { schema: ESQUEMA }`.
+- Migration começa com `set search_path = app_verandi, extensions` e usa o
+  próximo nome `NNNN_vr_...` disponível no diretório.
+- Produção usa apenas `node scripts/aplica-em-producao.mjs`; nunca
+  `supabase db push` ou `supabase db reset`.
+- Auth, `auth.users`, Storage, extensões, Data API, cotas e backup são globais ao
+  projeto. Uma alteração neles exige avaliar os dois produtos.
+- A `service_role` ignora RLS e não isola um produto do outro.
+- Não aplique nada em produção sem autorização explícita do usuário.

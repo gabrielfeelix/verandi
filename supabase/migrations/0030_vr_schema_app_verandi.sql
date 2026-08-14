@@ -8,9 +8,15 @@
  * tabelas, as suas funções e as suas políticas, sem tabela compartilhada e sem
  * coluna dizendo "de quem é esta linha".
  *
- * O dia da separação é `drop schema app_verandi cascade` no projeto do
- * AutoFluxos e `drop schema app_autofluxos cascade` no projeto novo. Por isso
- * nada da Verandi pode ficar em `public`: o que ficar lá não vai junto.
+ * A Verandi pode ser removida deste projeto com
+ * `drop schema app_verandi cascade`, mais a limpeza explícita de Auth e
+ * Storage. O caminho inverso ainda não é um simples
+ * `drop schema app_autofluxos`: hoje o AutoFluxos mora em `public` e esse schema
+ * não existe. Separá-lo exige primeiro migrar seus objetos para um schema
+ * próprio ou extrair explicitamente o conjunto de objetos de `public`.
+ *
+ * Por isso nada da Verandi pode ficar em `public`: o que ficar lá não acompanha
+ * `app_verandi` numa separação e ainda se mistura com o AutoFluxos.
  *
  * O que NÃO se separa por schema: `auth.users` é um só por projeto. Não vaza
  * dado (a RLS filtra por `usuario_conta`), mas na separação os dois projetos

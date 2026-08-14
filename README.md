@@ -4,6 +4,12 @@ SaaS de agendamento multi-inquilino, da [4YU](https://4yu.com.br). Serve qualque
 negócio que marque horário — estúdio, clínica, salão, personal, professor
 particular — com **vaga recorrente** e **horário avulso** no mesmo modelo.
 
+> **Banco de produção compartilhado:** Verandi e AutoFluxos usam o mesmo projeto
+> Supabase. A Verandi mora em `app_verandi`; o AutoFluxos, em `public`. Antes de
+> mexer em migration, Auth, RLS, Storage, extensão ou Data API, leia
+> [docs/BANCO-COMPARTILHADO.md](docs/BANCO-COMPARTILHADO.md). Em produção,
+> **nunca use `supabase db push` ou `supabase db reset`**.
+
 Não é o sistema de um cliente. O primeiro cliente é a evidência, não o alvo, e a
 régua que decide tudo é:
 
@@ -47,6 +53,7 @@ ocupação, decidir se o encaixe cabe — é onde os bugs difíceis moram.
 | Arquivo | O quê |
 |---|---|
 | [docs/ESTADO.md](docs/ESTADO.md) | **comece por aqui** — onde paramos e o que fazer em seguida |
+| [docs/BANCO-COMPARTILHADO.md](docs/BANCO-COMPARTILHADO.md) | **obrigatório antes de tocar Supabase** — schemas, migrations e recursos globais |
 | [docs/ARQUITETURA.md](docs/ARQUITETURA.md) | vocabulário, entidades e as decisões que não dá para tomar duas vezes |
 | [docs/TELAS.md](docs/TELAS.md) | o que cada tela faz — **o visual quem decide é o protótipo** |
 | [docs/DESIGN.md](docs/DESIGN.md) | tokens, primitivos e as regras que o protótipo aplica sem dizer |

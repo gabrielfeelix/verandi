@@ -5,6 +5,11 @@ dá para tomar duas vezes. As telas estão em [TELAS.md](TELAS.md); a ordem de
 construção em [PLANO.md](PLANO.md); o briefing original em
 [../handoff](../handoff).
 
+> **Infraestrutura de produção:** desde 14/ago/2026, Verandi e AutoFluxos usam o
+> mesmo projeto Supabase. Verandi mora em `app_verandi`; AutoFluxos mora em
+> `public`. Leia [BANCO-COMPARTILHADO.md](BANCO-COMPARTILHADO.md) antes de
+> qualquer decisão sobre banco, Auth, Storage, RLS, extensão ou Data API.
+
 ## O princípio, e o teste que ele dá
 
 A Verandi é um SaaS de agendamento multi-inquilino. Não é o sistema do MGM
