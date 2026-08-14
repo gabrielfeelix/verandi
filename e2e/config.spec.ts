@@ -16,7 +16,7 @@ test('cadastrar serviço e ele aparecer na grade', async ({ page }) => {
   await page.getByLabel('Nome').fill('Fáscia avançada')
   await page.getByLabel('Duração (min)').fill('40')
   await page.getByLabel('Capacidade padrão').fill('3')
-  await page.getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('button', { name: 'Criar serviço' }).click()
 
   await expect(page.getByText('Fáscia avançada')).toBeVisible()
 
@@ -58,7 +58,7 @@ test('local guarda capacidade, e sem capacidade também vale', async ({ page }) 
   await page.getByRole('button', { name: 'Novo local' }).click()
   await page.getByLabel('Nome').fill('Sala 2')
   await page.getByLabel('Capacidade').fill('6')
-  await page.getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('button', { name: 'Criar local' }).click()
 
   await expect(page.getByText('cabe 6')).toBeVisible()
 })
@@ -214,7 +214,7 @@ test('mexer na configuração registra quem fez', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Novo local' }).click()
   await page.getByLabel('Nome').fill('Domicílio')
-  await page.getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('button', { name: 'Criar local' }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('log_configuracao')
@@ -233,7 +233,7 @@ test('cadastrar profissional com cor e serviços que atende', async ({ page }) =
   await page.getByLabel('E-mail').fill('sofia@estudio.local')
   await page.getByRole('button', { name: 'Azul' }).click()
   await page.getByRole('button', { name: 'Pilates solo' }).click()
-  await page.getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
   await expect(page.getByText('Sofia Andrade')).toBeVisible()
 

@@ -11,6 +11,26 @@ export default function Entrar() {
   const [estado, acao, pendente] = useActionState<EstadoEntrar, FormData>(entrar, null)
   const [verSenha, setVerSenha] = useState(false)
 
+  /*
+   * O `pendente` do `useActionState` volta a `false` quando a ação termina, e a
+   * navegação só começa depois disso: o botão voltava a "Entrar" com a tela
+   * ainda parada, e quem está esperando clica de novo. Este estado só é desfeito
+   * quando a ação volta com erro; no caminho feliz ele fica ligado até a próxima
+   * tela pintar.
+   */
+  const [enviando, setEnviando] = useState(false)
+  const [ultimaResposta, setUltimaResposta] = useState(estado)
+  /*
+   * Ajuste durante o render, e não num efeito: cada volta da ação devolve um
+   * objeto novo, então basta comparar a identidade para saber que ela respondeu
+   * (o que só acontece quando deu erro, porque o sucesso redireciona).
+   */
+  if (estado !== ultimaResposta) {
+    setUltimaResposta(estado)
+    setEnviando(false)
+  }
+  const carregando = pendente || enviando
+
   return (
     <PainelAcesso tela="entrar">
       <h1 className="font-titulo text-[27px] font-semibold tracking-[-.02em]">
@@ -20,7 +40,11 @@ export default function Entrar() {
         Entre com o e-mail que recebeu o convite do estúdio.
       </p>
 
-      <form action={acao} className="flex flex-col gap-3">
+      <form
+        action={acao}
+        onSubmit={() => setEnviando(true)}
+        className="flex flex-col gap-3"
+      >
         <div className="flex flex-col gap-1.5">
           <label htmlFor="email">
             <Rotulo>E-mail</Rotulo>
@@ -63,10 +87,10 @@ export default function Entrar() {
 
         <Botao
           type="submit"
-          disabled={pendente}
+          disabled={carregando}
           className="mt-2 min-h-13 w-full rounded-media text-[14.5px] font-semibold"
         >
-          {pendente ? 'Entrando…' : 'Entrar'}
+          {carregando ? 'Entrando…' : 'Entrar'}
         </Botao>
       </form>
 

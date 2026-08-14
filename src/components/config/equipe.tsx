@@ -3,8 +3,9 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
-import { BotaoLinha, FaixaFormulario, LinhaConfig, PainelConfig } from './casca'
+import { ModalFormulario } from '@/components/ui/modal'
+import { Avatar, Campo, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
+import { BotaoLinha, LinhaConfig, PainelConfig } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { CORES_PROFISSIONAL } from '@/components/ui/tintas'
 import { salvarProfissional, removerFoto } from '@/server/config/acoes'
@@ -70,6 +71,10 @@ export function SecaoEquipe({
   }
 
   const nomeDoServico = new Map(servicos.map((s) => [s.id, s.nome]))
+  /** quem está em edição; `null` com o modal aberto quer dizer cadastro novo */
+  const emEdicao = aberto && aberto !== 'novo'
+    ? equipe.find((p) => p.id === aberto) ?? null
+    : null
 
   return (
     <PainelConfig
@@ -81,23 +86,7 @@ export function SecaoEquipe({
         </Botao>
       }
     >
-      {aberto === 'novo' ? (
-        <FaixaFormulario>
-          <Formulario
-            servicos={servicos}
-            pendente={pendente}
-            erro={erro}
-            aoCancelar={() => setAberto(null)}
-            aoSalvar={(f) => comErro(
-              async () => { await salvarProfissional(f) },
-              'Profissional criado',
-              () => setAberto(null),
-            )}
-          />
-        </FaixaFormulario>
-      ) : null}
-
-      {equipe.length === 0 && aberto !== 'novo' ? (
+      {equipe.length === 0 ? (
         <p className="px-5 py-6 text-[13px] text-tinta-media">
           Ninguém cadastrado ainda. Horário fixo funciona sem{' '}
           {rotuloProfissional.toLowerCase()} definido, mas a grade fica mais
@@ -106,28 +95,8 @@ export function SecaoEquipe({
       ) : null}
 
       {equipe.map((p) => (
-        <div key={p.id}>
-          {aberto === p.id ? (
-            <FaixaFormulario>
-              <Formulario
-                profissional={p}
-                servicos={servicos}
-                pendente={pendente}
-                erro={erro}
-                aoCancelar={() => setAberto(null)}
-                aoSalvar={(f) => comErro(
-                  async () => { await salvarProfissional(f) },
-                  'Profissional atualizado',
-                  () => setAberto(null),
-                )}
-                aoRemoverFoto={() => comErro(
-                  () => removerFoto(p.id),
-                  'Foto removida',
-                )}
-              />
-            </FaixaFormulario>
-          ) : (
-            <LinhaConfig
+        <LinhaConfig
+          key={p.id}
               apagado={!p.ativo}
               antes={
                 <Avatar
@@ -180,32 +149,64 @@ export function SecaoEquipe({
                 )}
               </span>
             </LinhaConfig>
-          )}
-        </div>
       ))}
+
+      {aberto ? (
+        <ModalFormulario
+          aberto
+          key={aberto}
+          glifo={emEdicao ? '✎' : '+'}
+          titulo={
+            emEdicao
+              ? `Editar ${rotuloProfissional.toLowerCase()}`
+              : `Novo ${rotuloProfissional.toLowerCase()}`
+          }
+          sub={
+            emEdicao
+              ? `${emEdicao.nome} · aparece na grade e na chamada`
+              : 'Pode existir só como nome na grade, sem acesso ao sistema.'
+          }
+          primario={emEdicao ? 'Salvar' : 'Criar'}
+          pendente={pendente}
+          aoFechar={() => setAberto(null)}
+          aoEnviar={(f) => comErro(
+            async () => { await salvarProfissional(f) },
+            emEdicao ? 'Profissional atualizado' : 'Profissional criado',
+            () => setAberto(null),
+          )}
+        >
+          <Formulario
+            profissional={emEdicao ?? undefined}
+            servicos={servicos}
+            erro={erro}
+            aoRemoverFoto={emEdicao ? () => comErro(
+              () => removerFoto(emEdicao.id),
+              'Foto removida',
+            ) : undefined}
+          />
+        </ModalFormulario>
+      ) : null}
     </PainelConfig>
   )
 }
 
+/**
+ * Os campos do profissional. Sem `<form>` próprio: quem envia é o
+ * `<ModalFormulario>` em volta, e o botão dele é o `submit`.
+ */
 function Formulario({
-  profissional, servicos, aoSalvar, aoCancelar, aoRemoverFoto, pendente, erro,
+  profissional, servicos, aoRemoverFoto, erro,
 }: {
   profissional?: ProfissionalLinha
   servicos: ServicoOpcao[]
-  aoSalvar: (f: FormData) => void
-  aoCancelar: () => void
   aoRemoverFoto?: () => void
-  pendente: boolean
   erro: string | null
 }) {
   const [cor, setCor] = useState(profissional?.cor ?? CORES_PROFISSIONAL[0].valor)
   const [escolhidos, setEscolhidos] = useState<string[]>(profissional?.servicoIds ?? [])
 
   return (
-    <form
-      action={aoSalvar}
-      className="flex flex-col gap-4 rounded-padrao bg-superficie-suave p-3"
-    >
+    <>
       {profissional ? <input type="hidden" name="id" value={profissional.id} /> : null}
       <input type="hidden" name="cor" value={cor} />
       {escolhidos.map((s) => (
@@ -228,7 +229,7 @@ function Formulario({
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[12.5px] font-medium">Cor na grade</span>
+        <Rotulo>Cor na grade</Rotulo>
         <div className="flex flex-wrap gap-2">
           {CORES_PROFISSIONAL.map((c) => (
             <Chip key={c.valor} ativo={cor === c.valor} ponto={c.valor}
@@ -240,7 +241,7 @@ function Formulario({
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[12.5px] font-medium">Serviços que atende</span>
+        <Rotulo>Serviços que atende</Rotulo>
         <p className="text-[11.5px] text-tinta-media">
           Sem nenhum marcado, atende todos.
         </p>
@@ -274,11 +275,12 @@ function Formulario({
             </Botao>
           </>
         ) : null}
-        <label className="flex items-center gap-2 pb-3 text-[12.5px]">
-          <input type="checkbox" name="ativo" defaultChecked={profissional?.ativo ?? true} />
-          Ativo
-        </label>
       </div>
+
+      <label className="flex items-center gap-2 text-[12.5px]">
+        <input type="checkbox" name="ativo" defaultChecked={profissional?.ativo ?? true} />
+        Ativo
+      </label>
 
       <Nota tom="atencao">
         Desativar tira das escolhas novas e mantém no passado: a sessão de ontem
@@ -286,11 +288,6 @@ function Formulario({
       </Nota>
 
       {erro ? <Nota tom="alerta">{erro}</Nota> : null}
-
-      <div className="flex gap-2">
-        <Botao type="submit" miudo disabled={pendente}>Salvar</Botao>
-        <Botao type="button" tom="fantasma" miudo onClick={aoCancelar}>Cancelar</Botao>
-      </div>
-    </form>
+    </>
   )
 }

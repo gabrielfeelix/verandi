@@ -40,6 +40,26 @@ async function limpar() {
   }
 }
 
+/**
+ * Acha um usuário pelo e-mail, virando as páginas.
+ *
+ * `listUsers()` sem argumento devolve **só os 50 primeiros**. Como o banco de
+ * desenvolvimento não é limpo entre execuções, os usuários que os testes deixam
+ * para trás empurram `dono@dev.local` para fora da primeira página: o semeador
+ * achava que ele não existia, tentava criar de novo, e o `createUser` devolvia
+ * `user: null` com "already registered" — o seed morria em
+ * `Cannot read properties of null`, sem citar e-mail nenhum.
+ */
+async function acharUsuario(email) {
+  for (let pagina = 1; pagina <= 40; pagina++) {
+    const { data } = await db.auth.admin.listUsers({ page: pagina, perPage: 200 })
+    const achado = data.users.find((u) => u.email === email)
+    if (achado) return achado
+    if (data.users.length < 200) return null
+  }
+  return null
+}
+
 async function main() {
   await limpar()
 
@@ -172,8 +192,7 @@ async function main() {
   for (const [n, papel] of [['prof', 'profissional'], ['dono', 'dono'],
                             ['recepcao', 'recepcao'], ['suporte', 'suporte']]) {
     const email = `${n}@dev.local`
-    const { data: existente } = await db.auth.admin.listUsers()
-    const achado = existente.users.find((u) => u.email === email)
+    const achado = await acharUsuario(email)
     const id = achado?.id ??
       (await db.auth.admin.createUser({ email, password: SENHA, email_confirm: true }))
         .data.user.id
@@ -185,8 +204,7 @@ async function main() {
   }
 
   // liga a professora Marina ao usuário `prof@dev.local`, para a tela Hoje
-  const { data: u } = await db.auth.admin.listUsers()
-  const prof = u.users.find((x) => x.email === 'prof@dev.local')
+  const prof = await acharUsuario('prof@dev.local')
   await db.from('profissional').update({ usuario_id: prof.id }).eq('id', profs[0].id)
 
   console.log(`conta ${contaId}`)

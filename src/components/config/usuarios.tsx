@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Avatar, Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
-import { BotaoLinha, FaixaFormulario, LinhaConfig, PainelConfig } from './casca'
+import { ModalFormulario } from '@/components/ui/modal'
+import { BotaoLinha, LinhaConfig, PainelConfig } from './casca'
 import { Menu } from '@/components/ui/menu'
 import { useAviso } from '@/components/ui/desfazer'
 import {
@@ -82,10 +83,14 @@ export function SecaoUsuarios({
       >
         <div className="flex flex-col">
           {convidando ? (
-            <FaixaFormulario>
-            <form
-              className="flex flex-col gap-3"
-              action={(f) => comErro(async () => {
+            <ModalFormulario
+              aberto
+              titulo="Convidar usuário"
+              sub="O convite mostra a conta e o papel antes de ser aceito."
+              primario="Enviar convite"
+              pendente={pendente}
+              aoFechar={() => setConvidando(false)}
+              aoEnviar={(f) => comErro(async () => {
                 const r = await convidar({
                   email: String(f.get('email') ?? ''),
                   papel: String(f.get('papel') ?? 'profissional') as PapelConvidavel,
@@ -99,32 +104,24 @@ export function SecaoUsuarios({
                 setConvidando(false)
               })}
             >
-              <div className="flex flex-wrap items-start gap-3">
-                <Campo rotulo="E-mail" htmlFor="cv-email">
-                  <input id="cv-email" name="email" type="email" required
-                    className={entrada} autoFocus />
-                </Campo>
-                <Campo rotulo="Papel" htmlFor="cv-papel">
-                  <select id="cv-papel" name="papel" className={entrada}
-                    defaultValue="profissional">
-                    {PAPEIS_CONVIDAVEIS.map((p) => (
-                      <option key={p} value={p}>{NOME_PAPEL[p]}</option>
-                    ))}
-                  </select>
-                </Campo>
-              </div>
+              <Campo rotulo="E-mail" htmlFor="cv-email">
+                <input id="cv-email" name="email" type="email" required
+                  className={entrada} autoFocus />
+              </Campo>
+              <Campo rotulo="Papel" htmlFor="cv-papel">
+                <select id="cv-papel" name="papel" className={entrada}
+                  defaultValue="profissional">
+                  {PAPEIS_CONVIDAVEIS.map((p) => (
+                    <option key={p} value={p}>{NOME_PAPEL[p]}</option>
+                  ))}
+                </select>
+              </Campo>
               <Nota tom="positivo">
                 O convite vale por 7 dias. Mandamos por e-mail, e o link
-                aparece aqui caso você prefira enviar por outro caminho.
+                aparece na tela caso você prefira enviar por outro caminho.
               </Nota>
-              <div className="flex gap-2">
-                <Botao type="submit" miudo disabled={pendente}>Enviar convite</Botao>
-                <Botao type="button" tom="fantasma" miudo onClick={() => setConvidando(false)}>
-                  Cancelar
-                </Botao>
-              </div>
-            </form>
-            </FaixaFormulario>
+              {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+            </ModalFormulario>
           ) : null}
 
           {link ? (
@@ -164,7 +161,9 @@ export function SecaoUsuarios({
             </div>
           ) : null}
 
-          {erro ? <div className="px-5 pb-3"><Nota tom="alerta">{erro}</Nota></div> : null}
+          {erro && !convidando ? (
+            <div className="px-5 pb-3"><Nota tom="alerta">{erro}</Nota></div>
+          ) : null}
 
           {usuarios.filter((u) => u.ativo).map((u) => (
             <LinhaConfig

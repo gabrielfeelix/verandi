@@ -27,6 +27,13 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
    tabela a tabela.
 5. **"Esqueci a senha" virou nosso**, porque o do Supabase é incompatível com o
    rastreio de clique do Brevo.
+6. **Os três acertos de interface foram feitos**: o trilho nasce aberto, o login
+   corta um salto e mantém o "Entrando…" até a próxima tela pintar, e criar e
+   editar item de lista virou modal em Serviços, Equipe, Locais, Usuários e
+   Grade. Junto veio uma correção que valia para os cinco modais que já
+   existiam: **a página rolava atrás do modal**, o que o DESIGN-SYSTEM 4.7
+   proíbe. O que ficou pendente e por quê está em
+   [`planos/07-acertos-de-interface.md`](planos/07-acertos-de-interface.md).
 
 ## O próximo passo, em ordem
 
@@ -39,15 +46,10 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
    ser uma tela vazia. O plano inteiro, com o que precisa de migration e onde
    olhar o design, está em [`planos/05-onboarding.md`](planos/05-onboarding.md).
    Ele emenda no cadastro: as perguntas se dividem entre os dois.
-3. **Três acertos de interface** apontados olhando o produto no ar: o trilho
-   tem que nascer aberto, o login demora sem avisar, e há formulário embutido
-   onde o protótipo desenha modal (Grade e três telas de Configuração). O
-   detalhe de cada um está em
-   [`planos/07-acertos-de-interface.md`](planos/07-acertos-de-interface.md).
-4. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+3. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
    e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
    dói no banco de desenvolvimento.
-5. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
+4. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
    Nada disso exige tabela nova.
 
 ## Como mexer nisto sem quebrar produção
@@ -456,6 +458,18 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   navegador buscam por papel e por texto: mudar "Todos vieram" para "Marcar
   todos presentes" quebra dez deles. Atualizar o teste é certo, desde que o
   commit diga qual texto mudou e por quê.
+- **`<dialog>` nativo não trava a rolagem da página.** Ele prende o foco e deixa
+  o resto inerte, o que engana: a roda do mouse fora do card continua rolando o
+  que está atrás, e o DESIGN-SYSTEM 4.7 proíbe isso em letras maiúsculas. Quem
+  trava é a casca do modal, com contador (dois modais abertos não se destravam)
+  e compensação da barra de rolagem (senão a página pula 15px ao abrir). Isso
+  não aparece em `tsc` nem em teste: mede-se com `window.scrollY` depois de um
+  `wheel`.
+- **`listUsers()` do Supabase devolve só os 50 primeiros.** O banco de
+  desenvolvimento não é limpo entre execuções, então `dono@dev.local` saiu da
+  primeira página e o semeador passou a morrer com `Cannot read properties of
+  null` — que era o `createUser` devolvendo `user: null` porque o e-mail já
+  existia. Quem procura usuário por e-mail precisa virar as páginas.
 - **O papel `suporte` mora na conta interna, nunca na de cliente.** O vínculo em
   conta de cliente é temporário e é apagado ao sair; se ele também respondesse
   por "é da 4YU", sair de uma conta tiraria o acesso a tudo. Foi assim que era.

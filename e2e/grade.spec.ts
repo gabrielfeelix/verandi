@@ -23,13 +23,13 @@ test('criar em três dias de uma vez cria três séries', async ({ page }) => {
 
   await page.getByRole('button', { name: /Criar/ }).click()
   for (const dia of ['seg', 'qua', 'sex']) {
-    await page.getByRole('checkbox', { name: dia, exact: true }).check()
+    await page.getByRole('button', { name: dia, exact: true }).click()
   }
   await page.getByLabel('Começa às').fill('07:00')
   await page.getByLabel('Capacidade').fill('4')
   await page.getByLabel('Serviço').selectOption({ label: 'Pilates solo' })
   await page.getByLabel('Profissional').selectOption({ label: 'Marina' })
-  await page.getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('button', { name: 'Criar 3 horários' }).click()
 
   await expect.poll(async () => {
     const { count } = await admin.from('serie')
@@ -53,11 +53,11 @@ test('horário do mesmo profissional avisa a colisão e deixa seguir', async ({ 
   await page.goto('/grade')
 
   await page.getByRole('button', { name: /Criar/ }).click()
-  await page.getByRole('checkbox', { name: 'seg', exact: true }).check()
+  await page.getByRole('button', { name: 'seg', exact: true }).click()
   await page.getByLabel('Começa às').fill('07:30')
   await page.getByLabel('Serviço').selectOption({ label: 'Pilates solo' })
   await page.getByLabel('Profissional').selectOption({ label: 'Marina' })
-  await page.getByRole('button', { name: 'Salvar' }).click()
+  await page.getByRole('button', { name: 'Criar horário', exact: true }).click()
 
   await expect(page.getByText('Esse horário já tem coisa marcada')).toBeVisible()
   await expect(page.getByText(/Marina já ocupa/)).toBeVisible()

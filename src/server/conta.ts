@@ -67,6 +67,29 @@ export async function contaAtiva(): Promise<ContaAtiva | null> {
   }
 }
 
+/**
+ * O papel com que o usuário começa a sessão, logo depois de entrar.
+ *
+ * Existe separado de `contaAtiva` porque quem acabou de autenticar já tem o
+ * `usuario_id` na mão: perguntar de novo ao servidor de auth é uma ida a mais
+ * numa ação que a pessoa está esperando de olho na tela. Sem cookie de conta
+ * escolhida ainda, o primeiro vínculo é o certo.
+ */
+export async function papelAoEntrar(
+  db: Awaited<ReturnType<typeof clienteServidor>>,
+  usuarioId: string,
+): Promise<Papel | null> {
+  const { data } = await db
+    .from('usuario_conta')
+    .select('papel')
+    .eq('usuario_id', usuarioId)
+    .eq('ativo', true)
+    .limit(1)
+    .returns<Array<{ papel: Papel }>>()
+
+  return data?.[0]?.papel ?? null
+}
+
 /** Como `contaAtiva`, mas para telas que não fazem sentido sem conta. */
 export async function exigirConta(): Promise<ContaAtiva> {
   const conta = await contaAtiva()

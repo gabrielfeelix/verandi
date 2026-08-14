@@ -34,11 +34,13 @@ function assinarRail(avisar: () => void) {
 }
 
 /**
- * Fechado é o padrão, como no protótipo: a tela de trabalho é densa, e o rótulo
- * curto embaixo do glifo já diz onde se clica. Quem abre, abre uma vez.
+ * Aberto é o padrão. Quem entra pela primeira vez precisa ler o nome das seções,
+ * não adivinhar sete glifos sem legenda; quem prefere denso fecha uma vez e o
+ * `localStorage` lembra. Por isso a ausência de preferência cai em aberto, e só
+ * o `'nao'` gravado fecha.
  */
 function lerRail() {
-  return window.localStorage.getItem(CHAVE) === 'sim'
+  return window.localStorage.getItem(CHAVE) !== 'nao'
 }
 
 function gravarRail(aberto: boolean) {
@@ -71,7 +73,7 @@ export function Rail({
 }) {
   const pathname = usePathname()
   // a preferência é do dispositivo, não da conta: mesma pessoa, telas diferentes
-  const aberto = useSyncExternalStore(assinarRail, lerRail, () => false)
+  const aberto = useSyncExternalStore(assinarRail, lerRail, () => true)
 
   return (
     // o `aside` acompanha a altura da página para o escuro não terminar no meio
