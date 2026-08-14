@@ -1,4 +1,4 @@
-# Vestir a Verandi — como deixar a tela **idêntica** ao protótipo
+# Vestir a Verandi, como deixar a tela **idêntica** ao protótipo
 
 Documento para quem vai executar. Leia inteiro antes de escrever a primeira
 linha. Ele existe porque eu (o agente anterior) errei exatamente aqui, e a
@@ -12,8 +12,8 @@ A lógica está pronta e testada: 209 testes de unidade e integração, 87 de
 navegador, nove migrations com RLS provada, quatro telas novas funcionando de
 ponta a ponta.
 
-**A interface está genérica.** Ela usa os tokens do design system — fontes
-certas, cores certas, peças certas — e mesmo assim **não parece o produto**. É
+**A interface está genérica.** Ela usa os tokens do design system, fontes
+certas, cores certas, peças certas, e mesmo assim **não parece o produto**. É
 formulário de borda cinza com fonte bonita.
 
 O que aconteceu: eu li o **código-fonte** do protótipo, extraí paleta,
@@ -40,7 +40,7 @@ referência, não é inspiração, não é "a direção geral". Leia-o inteiro a
 mexer em tela: ele traz os valores literais de cada componente, e é curto.
 
 O protótipo em `Design system Verandi-att/Verandi.dc.html` mostra as mesmas
-regras montadas, e serve para conferir composição — o que fica ao lado do quê,
+regras montadas, e serve para conferir composição, o que fica ao lado do quê,
 com que espaço. `Design system Verandi/` é a versão anterior dele, e só se
 consulta quando o novo não previu o caso.
 
@@ -52,7 +52,7 @@ consulta quando o novo não previu o caso.
   que dê para apontar.
 
 Pode e deve **pegar do próprio protótipo**: ele traz `style="..."` embutido em
-cada elemento, com os valores literais. Copiar dali é o caminho certo — mais
+cada elemento, com os valores literais. Copiar dali é o caminho certo, mais
 rápido e mais fiel do que reconstruir de memória.
 
 ---
@@ -80,7 +80,7 @@ serviço" "Design system Verandi-att/Verandi.dc.html"` leva direto ao botão, co
 estilo dele ao lado.
 
 O dicionário de dados de cada tela está em `renderVals()`. Os ajudantes úteis:
-`series()`, `padroes()`, `usuariosPagina()`, `baseP()`, `formDef()` — este
+`series()`, `padroes()`, `usuariosPagina()`, `baseP()`, `formDef()`, este
 último tem os 41 modais, cada um com título, subtítulo, campos e a nota.
 
 ### 3.3 O que os marcadores estranhos querem dizer
@@ -118,27 +118,27 @@ Isto aqui é o que separa "vestir" de "reescrever":
 
 **Nenhuma regra de negócio muda.** Você está trocando marcação e estilo. Se
 precisar mudar uma consulta ou uma ação de servidor para acomodar o visual,
-pare — provavelmente é o visual que foi mal entendido.
+pare, provavelmente é o visual que foi mal entendido.
 
 **Os 87 testes de navegador continuam passando.** Eles buscam por papel e por
 rótulo (`getByRole('button', { name: 'Salvar' })`, `getByLabel('Capacidade')`).
 Ou seja: **o nome acessível de cada controle é contrato**. Se o protótipo mostra
 um ícone onde nós tínhamos texto, o ícone precisa de `aria-label` com o mesmo
-nome — ou você atualiza o teste **de propósito**, dizendo no commit por quê.
+nome, ou você atualiza o teste **de propósito**, dizendo no commit por quê.
 
 Rodar `npm run test:e2e` depois de cada tela não é burocracia: é o que prova que
 você trocou a casca sem mexer no fluxo.
 
 **Os primitivos existem para isso.** `src/components/ui/` já tem Botão, Cartão,
 Chip, Etiqueta, Campo, Nota, Avatar, Esqueleto, Modal e Desfazer, e `/amostra`
-mostra todos. Se uma peça não bate com o protótipo, **conserte a peça** — não
+mostra todos. Se uma peça não bate com o protótipo, **conserte a peça**, não
 crie uma variação local. Peça consertada arruma todas as telas de uma vez.
 
 ---
 
 ## 6. A ordem, e por quê
 
-### Passo 1 — o shell. Faça este primeiro.
+### Passo 1, o shell. Faça este primeiro.
 
 Enquanto o shell não mudar, **nenhuma tela vai parecer o protótipo**, por melhor
 que esteja o conteúdo. Hoje é `<header>` com links crus, herdado do Plano 02.
@@ -178,18 +178,18 @@ Atenção a três coisas nossas, que o protótipo não sabe:
 
 1. **O trilho respeita papel.** `profissional` só vê Hoje; `recepcao` não vê
    Configuração; `4YU` só aparece para `suporte`. A regra está em
-   `src/app/(app)/layout.tsx` hoje — preserve-a.
+   `src/app/(app)/layout.tsx` hoje, preserve-a.
 2. **O rótulo de "Alunos" é o vocabulário da conta**, não texto fixo. Existe um
    teste que falha se "Aluno" aparecer escrito no `src/`.
 3. **A faixa de suporte** (vermelha, "você está dentro de X como suporte") tem de
    continuar visível em toda tela. No protótipo ela empurra o shell para baixo
-   com `margin-top` no trilho — repare no `shellPad`.
+   com `margin-top` no trilho, repare no `shellPad`.
 
 O protótipo também tem **busca global** no cabeçalho ("Buscar aluno ou horário").
 Ela não existe no nosso sistema: **deixe o espaço reservado e não invente
 funcionalidade**. Anote no `ESTADO.md` como pendente.
 
-### Passo 2 — `/config`, que vira a referência das outras
+### Passo 2, `/config`, que vira a referência das outras
 
 Compare com `config.png`, `servicos.png`, `equipe.png`, `padroes.png`,
 `usuarios.png`, `funcionamento.png`.
@@ -199,10 +199,10 @@ o sistema deixa de ser genérico e vira o sistema do estúdio".
 
 **Navegação de seções:** cartão branco **vertical à esquerda**, largura ~216px,
 um item por seção com glifo à esquerda; ativo é pílula escura ocupando a linha
-inteira. Hoje o nosso é chip horizontal no topo — está errado.
+inteira. Hoje o nosso é chip horizontal no topo, está errado.
 
 **Cartão de conteúdo:** título e subtítulo à esquerda, botão primário escuro à
-direita, e **linhas separadas por divisória** — não cartões soltos.
+direita, e **linhas separadas por divisória**, não cartões soltos.
 
 **Linha de serviço** (o exemplo que mostra o padrão de todas as listas):
 
@@ -214,38 +214,38 @@ Pilates Solo                          [cap. 4]  [Ativo]  [Editar]
 Nome em 14px médio; a segunda linha em 12.5px `#5D6B66`; `cap. 4` em DM Mono
 dentro de etiqueta neutra; `Ativo` em etiqueta verde; `Editar` é **botão
 contornado**, não link sublinhado. Hoje nós temos tudo numa linha só, com
-"Editar" como link — está errado.
+"Editar" como link, está errado.
 
 **Desativados ficam recolhidos** no fim: "2 serviços desativados ▾". Hoje nós
-misturamos com etiqueta "inativo" — está errado.
+misturamos com etiqueta "inativo", está errado.
 
 **Equipe:** avatar com iniciais e **anel na cor do profissional**, nome, e-mail
 embaixo, e a terceira linha com os serviços que ele atende. À direita, `Tem
 login` / `Sem usuário`, `Editar` e um `×`. Repare que o protótipo escreve "sem
-e-mail cadastrado" quando falta — vazio explicado, nunca vazio mudo.
+e-mail cadastrado" quando falta, vazio explicado, nunca vazio mudo.
 
 **Vocabulário:** cada entidade é **um campo só**, com singular e plural lado a
 lado dentro da mesma caixa, e o rótulo em versalete acima
 (`PESSOA ATENDIDA`, `PROFISSIONAL`, `SÉRIE`, `SESSÃO`, `SERVIÇO`). Embaixo, a
 prévia num cartão de fundo claro com o título
-`ONDE ISSO APARECE — ANTES DE SALVAR` e quatro linhas de exemplo. Botões
+`ONDE ISSO APARECE, ANTES DE SALVAR` e quatro linhas de exemplo. Botões
 `Salvar vocabulário` e `Descartar`.
 
 Diferença nossa, de propósito: temos **sete** entidades (as cinco do protótipo
 mais `local` e `vaga`). Mantenha a forma, acrescente as duas.
 
-O protótipo tem uma seção **Integrações** que nós não temos — token de API e
+O protótipo tem uma seção **Integrações** que nós não temos, token de API e
 webhook são marco 2. Não crie tela sem consumidor; deixe fora e siga.
 
-### Passo 3 — as outras que já existem
+### Passo 3, as outras que já existem
 
 `/grade`, `/pendencias`, `/contas-4yu`, `/convite/[token]`. Mesmo método:
 captura ao lado, item por item.
 
-### Passo 4 — as cinco do Plano 02
+### Passo 4, as cinco do Plano 02
 
 `/hoje`, `/semana`, `/sessao/[id]`, `/pessoas`, `/pessoas/[id]`, `/vaga`. São as
-mais antigas e as mais usadas. `/sessao` é **a tela do produto** — é onde o
+mais antigas e as mais usadas. `/sessao` é **a tela do produto**, é onde o
 esforço vale mais.
 
 Três coisas que o protótipo tem nelas e que o nosso modelo **já aguenta**, mas a
@@ -280,7 +280,7 @@ Não marque uma tela como feita sem estes cinco:
 de lá derruba o build, e o erro aponta para a rota, não para o arquivo. Já mordeu
 três vezes. Constante vai para `core/`.
 
-**A suíte de navegador roda contra build de produção**, não `next dev` — o
+**A suíte de navegador roda contra build de produção**, não `next dev`, o
 servidor de desenvolvimento cresce sem devolver e já derrubou o navegador por
 falta de memória. E, ao rodar `npm run dev` para olhar a tela, **derrube depois**:
 ele chega a 1,7 GB.
@@ -297,7 +297,7 @@ que não reescreve o passado, encaixe que registra quem decidiu, convite com tok
 que nunca encosta em claro no banco. **Nada disso aparece** enquanto a tela
 parecer rascunho.
 
-O protótipo já resolveu o desenho — densidade, hierarquia, o tom das mensagens,
+O protótipo já resolveu o desenho, densidade, hierarquia, o tom das mensagens,
 os estados vazios que explicam que não são erro. Ele não precisa ser
 reinterpretado. Precisa ser **executado com fidelidade**.
 

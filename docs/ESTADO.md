@@ -1,27 +1,53 @@
 # Onde paramos
 
 Arquivo de leitura obrigatória ao voltar ao projeto. É o único que pode estar
-desatualizado sem causar dano — desde que se saiba disso.
+desatualizado sem causar dano, desde que se saiba disso.
 
-**Última atualização:** 13/ago/2026 · **Plano 03 fechado: a Tarefa 10 foi feita
-de ponta a ponta em banco virgem, e os dois defeitos que ela achou estão
-corrigidos.**
+**Última atualização:** 14/ago/2026 · **A Verandi está no ar em
+`https://verandi.4yu.com.br`, mandando e-mail de verdade, com o acesso inteiro
+resolvido.**
 
 ---
 
 ## Em uma frase
 
-Uma conta nasce vazia, se configura inteira pela tela e opera a semana — com a
-cara do protótipo, e agora com a jornada inteira provada à mão num banco sem
-uma linha.
+Uma conta nasce vazia, se configura inteira pela tela e opera a semana, com a
+cara do protótipo, no ar, e com convite e senha chegando por e-mail.
+
+## O que aconteceu em 14/ago, em ordem
+
+1. **O banco foi para `app_verandi`.** O plano gratuito do Supabase dá dois
+   projetos por conta (não por organização), e os dois já estavam ocupados. A
+   Verandi passou a dividir o projeto do AutoFluxos, separada por schema.
+2. **Deploy.** Vercel ligada ao GitHub: push na `main` publica. Domínio
+   `verandi.4yu.com.br`.
+3. **E-mail.** Domínio `verandi.mail.4yu.com.br` autenticado no Brevo, convite
+   saindo, webhook avisando quando não chega.
+4. **Segurança.** Cadastro público fechado, senha mínima 8, RLS conferida
+   tabela a tabela.
+5. **"Esqueci a senha" virou nosso**, porque o do Supabase é incompatível com o
+   rastreio de clique do Brevo.
 
 ## O próximo passo, em ordem
 
-1. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+1. **Onboarding.** É o que falta para a primeira meia hora de quem chega não
+   ser uma tela vazia. O plano inteiro, com o que precisa de migration e onde
+   olhar o design, está em [`planos/05-onboarding.md`](planos/05-onboarding.md).
+2. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
    e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
    dói no banco de desenvolvimento.
-2. **Marco 2** — API v1 para o AutoFluxos, eventos de saída, e-mail, confirmação
-   por bot. Nada disso exige tabela nova.
+3. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
+   Nada disso exige tabela nova.
+
+## Como mexer nisto sem quebrar produção
+
+| O quê | Como |
+|---|---|
+| Segredo | `set -a && . ../.secrets/4yu.env && set +a`. **Nunca** dentro do repo: ele é público. `npm run segredos` confere. |
+| Migration nova | `node scripts/aplica-em-producao.mjs`. **Nunca** `supabase db push`. |
+| Deploy | `git push origin main` publica sozinho. |
+| Mexeu em e-mail | `npx tsx scripts/previa-email.ts voce@email.com` e olhe no cliente; depois `scripts/espelha-no-brevo.ts`. |
+| Antes de dizer que acabou | `npm test`, `npm run build`, `npm run test:e2e`, `npm run segredos`. |
 
 ## A Tarefa 10, e o que ela achou
 
@@ -32,7 +58,7 @@ dias em `/grade` → convida uma recepção → cadastra uma pessoa → cria a v
 ficha → registra a chamada em `/sessao/[id]`, que termina em **"Chamada feita"**.
 Treze passos, todos pela tela.
 
-Dois defeitos apareceram, e nenhum teste os pegava — os dois viviam no espaço
+Dois defeitos apareceram, e nenhum teste os pegava. Os dois viviam no espaço
 entre "cada peça funciona" e "a primeira instalação existe":
 
 - **O primeiro suporte não nascia.** `usuario_conta.conta_id` é `not null`,
@@ -47,7 +73,7 @@ entre "cada peça funciona" e "a primeira instalação existe":
   vínculo de lá.
 
 Um terceiro achado é atrito, não defeito, e ficou como está: o botão **"Entrar
-na conta"** do convite não entra — leva a `/entrar?novo=1`, com o texto trocado
+na conta"** do convite não entra, leva a `/entrar?novo=1`, com o texto trocado
 mas sem o e-mail preenchido.
 
 ## Verificado agora
@@ -55,9 +81,12 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **218 passaram** |
-| `npm run test:e2e` | **94 passaram** |
-| tabelas em `app_verandi` · em `public` | **20 · 0** |
+| `npm test` | **251 passaram** |
+| `npm run test:e2e` | **99 passaram** |
+| `npm run segredos` | nenhuma credencial de produção no repositório |
+| tabelas em `app_verandi` · em `public` | **21 · 0** (as 12 do AutoFluxos seguem intactas) |
+| RLS em produção | 20 de 20; `anon` não alcança nada |
+| `https://verandi.4yu.com.br` | 200, falando com o banco de produção |
 | Tarefa 10, jornada inteira em banco virgem | 13 passos, terminou em "Chamada feita" |
 | `core/` sem import de banco, Next ou rede | limpo |
 | nenhuma tela com "Aluno"/"Turma"/"Paciente"/"Professor" fixo | limpo |
@@ -67,9 +96,9 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco** — onze migrations (`0030_vr_`–`0040_vr_`), RLS com política em todas as
+**Banco:** doze migrations (`0030_vr_` a `0041_vr_`), RLS com política em todas as
 tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
-`public`** — o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
+`public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
 ```
 conta (com os padrões da operação; `interna` marca a conta da própria 4YU)
@@ -81,19 +110,19 @@ view pessoa_resumo · função usuarios_da_conta (security definer)
 balde privado foto-profissional
 ```
 
-**`core/`** — puro, testável sem subir nada. Aritmética de data, expansão de
+**`core/`**, puro, testável sem subir nada. Aritmética de data, expansão de
 série, ocupação, encaixe, estado da chamada, vocabulário, destino por papel,
 manutenção de série (linhas em lote, colisão, alcance da edição, sessões órfãs),
 estado de convite, papéis concedíveis.
 
-**Vestir as telas** — fechado. As doze telas foram comparadas com o protótipo e
+**Vestir as telas**, fechado. As doze telas foram comparadas com o protótipo e
 corrigidas. O que ficou de fora são seis blocos do protótipo que dependem de dado
 que ainda não existe (busca guardada, log por pessoa, SMTP, hora do aviso, plano
-da conta, integrações) — a lista, o método e as armadilhas estão em
-[`planos/04-vestir-telas.md`](planos/04-vestir-telas.md) — **leia antes de mexer
+da conta, integrações), a lista, o método e as armadilhas estão em
+[`planos/04-vestir-telas.md`](planos/04-vestir-telas.md), **leia antes de mexer
 em tela**.
 
-**Design system** — `docs/DESIGN.md` é o contrato; `/amostra` mostra as nove
+**Design system**, `docs/DESIGN.md` é o contrato; `/amostra` mostra as nove
 peças em todas as variações. `Design system Verandi-att/DESIGN-SYSTEM.md` é a
 especificação de interface: onde a tela divergir dele, é a tela que muda. O
 método de comparação está em [`VESTIR.md`](VESTIR.md), e as duas capturas saem
@@ -102,7 +131,7 @@ de `scripts/tira-prototipo.mjs` e `scripts/tira-produto.mjs`.
 **Três divergências do protótipo, de propósito**, cada uma escrita no commit que
 a criou: alvo de toque de 44px onde o protótipo desenha 34px (a Sessão é usada
 em pé); etiqueta de ocupação só fica laranja **acima** da capacidade, como o
-protótipo renderiza — turma cheia é estado normal do dia; e a busca global do
+protótipo renderiza, turma cheia é estado normal do dia; e a busca global do
 cabeçalho fica reservada e desabilitada, porque a funcionalidade não existe e
 inventá-la seria pior do que deixá-la faltando.
 
@@ -110,11 +139,12 @@ inventá-la seria pior do que deixá-la faltando.
 
 | Rota | O quê | Vestida? |
 |---|---|---|
-| `/entrar` | login, com destino por papel | sim |
+| `/entrar` | login, com destino por papel, e link para `/esqueci` | sim |
+| `/esqueci` · `/enviado` | pedir senha nova, sem sessão | sim |
 | `/contas` | trocar de conta | sim |
 | `/hoje` | agenda do dia, com a próxima turma em destaque | sim |
 | `/semana` | grade da semana **e o modo Dia por recurso** | sim |
-| `/sessao/[id]` | a tela do produto — chamada, encaixe, capacidade, menu por pessoa | sim |
+| `/sessao/[id]` | a tela do produto, chamada, encaixe, capacidade, menu por pessoa | sim |
 | `/pessoas` · `/pessoas/[id]` | lista, busca e ficha | sim |
 | `/vaga` | busca de horário livre | sim |
 | `/grade` | criar, editar, duplicar e encerrar horário fixo | sim |
@@ -122,13 +152,13 @@ inventá-la seria pior do que deixá-la faltando.
 | `/pendencias` | o inbox de quem opera | sim |
 | `/contas-4yu` | contas dos clientes, com sinais de vida | sim |
 | `/convite/[token]` | aceitar convite e definir senha | sim |
-| `/amostra` | os primitivos do design system | — |
+| `/amostra` | os primitivos do design system |, |
 
 ---
 
 ## O que falta
 
-### Plano 03 — fechado
+### Plano 03, fechado
 
 - **Tarefa 10: feita.** A jornada inteira pela tela, num banco virgem. O que ela
   achou está na seção lá em cima.
@@ -171,7 +201,7 @@ e num produto que vende confiança para dono de estúdio isso derruba a
 credibilidade antes de a pessoa ler o conteúdo. Onde a frase pedia travessão,
 virou vírgula, ponto ou dois-pontos. Há teste guardando os e-mails.
 
-### E-mail — o que está de pé, e o que falta
+### E-mail, o que está de pé, e o que falta
 
 De pé: domínio `verandi.mail.4yu.com.br` autenticado no Brevo (DKIM assinando),
 convite saindo pela API com template no código, e senha e troca de e-mail saindo
@@ -180,23 +210,23 @@ pelo Auth do Supabase via relay SMTP do Brevo, em português.
 **Falta o webhook de eventos, e é o que mais importa.** Hoje o Brevo não avisa
 nada de volta, então **bounce é invisível**: a dona convida `maria@gmial.com`
 com o erro de digitação, a tela diz "Convite enviado", o e-mail volta e ninguém
-fica sabendo — até virar chamado para a 4YU. Com `POST /v3/webhooks` apontando
+fica sabendo, até virar chamado para a 4YU. Com `POST /v3/webhooks` apontando
 para uma rota nossa, `hard_bounce`/`blocked`/`spam` viram estado na tela: "o
-convite voltou, confira o endereço". É a mesma régua do resto do produto — a
+convite voltou, confira o endereço". É a mesma régua do resto do produto, a
 tela diz o que aconteceu, não o que se tentou fazer. **Depende do deploy**,
 porque webhook precisa de URL pública.
 
 Não vale agora, e é decisão: **automação no Brevo** (não há cliente nem sincronia
-do nosso banco para lá — esteira sem nada para processar envelhece e depois
+do nosso banco para lá, esteira sem nada para processar envelhece e depois
 ninguém confia nela), **atributo de contato** (há um contato) e **IP dedicado**
 (sem volume constante, IP dedicado entrega pior, porque a reputação nunca
 aquece).
 
-### Marco 2 — o bot conversa com a agenda
+### Marco 2, o bot conversa com a agenda
 
 API v1, eventos de saída (outbox + webhook + Resend), notificações, confirmação
 por bot, lista de espera. Nada disso exige tabela nova. O e-mail entra aqui, e
-então convite e redefinição de senha ganham um segundo caminho — o token já
+então convite e redefinição de senha ganham um segundo caminho, o token já
 existe.
 
 ### Fora de escopo, e por quê
@@ -214,7 +244,7 @@ existe.
 
 **Encaixe acima da capacidade agora é permitido, com aviso, e configurável.**
 Caiu o princípio "ou a capacidade sobe, ou não cabe". Ficou a metade que
-importa: `temVagaParaOferecer` — busca de vaga e API do robô — continua
+importa: `temVagaParaOferecer`, busca de vaga e API do robô, continua
 recusando horário cheio, e isso não é configurável. A recepção decide olhando
 para quem está na frente dela; o robô não decide nada.
 
@@ -227,26 +257,26 @@ a 4YU com a chave de serviço na mão.
 
 ## Decisão pendente, de gente
 
-**Onde o Supabase de produção vai morar — resolvido por ora: dividido com o
+**Onde o Supabase de produção vai morar, resolvido por ora: dividido com o
 AutoFluxos.** O plano gratuito dá **dois projetos por conta**, não por
-organização (criar org nova não ajuda — verificado), e `radar-ofertas` e
+organização (criar org nova não ajuda, verificado), e `radar-ofertas` e
 `autofluxos` já ocupam os dois. Então a Verandi mora no schema `app_verandi`
 dentro do projeto do AutoFluxos.
 
 O que isso custa, escrito para ninguém se assustar depois: **não há backup** no
-plano gratuito, e restaurar é do banco inteiro — acidente num produto leva o
+plano gratuito, e restaurar é do banco inteiro, acidente num produto leva o
 outro junto. É aceitável enquanto não há cliente pagante e deixa de ser no dia
 que houver.
 
 A saída já está desenhada e é barata, porque schema separa de verdade: restaura
 o dump num projeto novo, `drop schema app_autofluxos cascade` lá,
 `drop schema app_verandi cascade` no velho. Sobra apagar de `auth.users` quem
-não tem vínculo — os dois projetos herdam todos os usuários.
+não tem vínculo, os dois projetos herdam todos os usuários.
 
 **Já está aplicado em produção** (projeto `autofluxos`, ref `xxxynoshwirupkdzwxbj`):
 21 objetos em `app_verandi`, 4 funções, 39 políticas, e as 12 tabelas do
 AutoFluxos em `public` intocadas. Migration nova vai por
-`node scripts/aplica-em-producao.mjs` — **não** por `supabase db push`, que
+`node scripts/aplica-em-producao.mjs`, **não** por `supabase db push`, que
 compararia a pasta local com a `schema_migrations` compartilhada e passaria a
 reclamar das versões do outro produto. O controle mora em
 `app_verandi.migrations_aplicadas`. Desfazer tudo:
@@ -262,7 +292,7 @@ produtos, e tira a API do AutoFluxos do ar.
 - **Gerar os tipos do banco** (`supabase gen types typescript --local`) para
   tirar os `.returns<T[]>()` e os `as unknown as` espalhados.
 - **`/contas-4yu` lista todas as contas sem paginação nem busca.** Com dezenas
-  de clientes vai bem; com centenas, não — e o banco de desenvolvimento já
+  de clientes vai bem; com centenas, não, e o banco de desenvolvimento já
   mostra o defeito, porque as contas que os testes deixam para trás passaram de
   mil linhas na tela.
 - **`PainelVaga` carrega todas as pessoas da conta** para a busca de encaixe.
@@ -272,7 +302,7 @@ produtos, e tira a API do AutoFluxos do ar.
   texto de 14px ou maior; ao vestir as telas do Plano 02, parte disso vira
   `#5D6B66`.
 - **Direito do titular do dado (LGPD).** Guardamos nome, telefone e observação de
-  gente que nunca consentiu conosco — quem coleta é o cliente. `delete` em
+  gente que nunca consentiu conosco, quem coleta é o cliente. `delete` em
   `pessoa` leva `participacao` por cascade e apagaria o histórico do negócio;
   provavelmente é anonimizar preservando a linha. Decidir antes do primeiro
   pedido.
@@ -290,7 +320,7 @@ Next **16.3.0** · React **19.2.8** · Tailwind **4** · TypeScript **5** · Vit
 ## Como subir
 
 ```bash
-npx supabase start           # local, no Docker — faixa 564xx
+npx supabase start           # local, no Docker, faixa 564xx
 node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
 npm run dev
 ```
@@ -301,7 +331,7 @@ por aí que a tela de contas passa a existir.
 
 Entrar com `dono@dev.local`, `prof@dev.local`, `recepcao@dev.local` ou
 `suporte@dev.local` (este último é o único jeito de ver `/contas-4yu`), senha
-`senha-de-teste-123`. **`supabase db reset` apaga o seed** — rode o semeador de
+`senha-de-teste-123`. **`supabase db reset` apaga o seed**, rode o semeador de
 novo depois.
 
 As faixas 543xx e 554xx já estão ocupadas na mesma máquina pelo `radar-ofertas`
@@ -311,7 +341,7 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
 ## Armadilhas que já custaram tempo
 
 - **O `alter default privileges` da `0030` é cinto e é faca.** Ele concede a
-  `authenticated` tudo que nascer em `app_verandi` depois — inclusive tabela
+  `authenticated` tudo que nascer em `app_verandi` depois, inclusive tabela
   criada fora de migration. Foi assim que a `migrations_aplicadas` nasceu sem
   RLS e com `delete` liberado para qualquer usuário logado de qualquer cliente:
   bastava apagar uma linha para o aplicador rodar a migration de novo. Tabela
@@ -320,7 +350,7 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   por cima de RLS e continua alcançando.
 - **O Brevo põe "Cancelar assinatura" em e-mail transacional, e não dá para
   desligar sozinho.** O cabeçalho `List-Unsubscribe` é obrigatório em tudo que
-  sai por SMTP ou API — a documentação deles diz que campanha e transacional não
+  sai por SMTP ou API, a documentação deles diz que campanha e transacional não
   se distinguem no fluxo, então o cabeçalho vai em todos. O caminho oficial é
   **abrir chamado no suporte do Brevo** pedindo a troca por `List-Help`, que não
   vira botão clicável. Enquanto isso: a assinante que clicar ali para de receber
@@ -329,10 +359,10 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   inteira. Quando alguém disser "não recebi", olhe a lista antes do código:
   `GET https://api.brevo.com/v3/smtp/blockedContacts`. Existe `DELETE` para
   desbloquear, mas desbloquear quem pediu para sair é problema jurídico, não
-  técnico — use para diagnosticar, não para reverter.
+  técnico, use para diagnosticar, não para reverter.
 - **Lista do Brevo é marketing; transacional não passa por lista.** Convite e
   senha vão por API para um endereço só. Se alguém propuser "uma lista com os
-  usuários para mandar senha", é confusão entre os dois mundos — e enche a base
+  usuários para mandar senha", é confusão entre os dois mundos, e enche a base
   de contato de gente que nunca consentiu com a 4YU.
   As listas que existem (pasta `Verandi`): **4** Donos de conta · **5**
   Interessados · **6** Onboarding em aberto. Nenhuma inclui equipe da conta
@@ -355,16 +385,16 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   versionado, revisável em diff e coberto por teste, e é o que permite a lista
   "o que você vai poder fazer" mudar conforme o papel sem virar três templates
   para manter em sincronia. Se um dia alguém que não programa precisar editar
-  copy, aí sim vale migrar — e o custo é ganhar uma segunda fonte de verdade.
+  copy, aí sim vale migrar, e o custo é ganhar uma segunda fonte de verdade.
 - **`api.supabase.com` devolve 403 `error code: 1010` para cliente HTTP que não
   se parece com navegador ou curl.** É Cloudflare, não Supabase: a mensagem não
-  cita token nem permissão, e manda procurar no lugar errado — o `urllib` do
+  cita token nem permissão, e manda procurar no lugar errado, o `urllib` do
   Python apanhou disso, e o mesmo pedido no `curl` passou. Mande um
   `User-Agent` explícito.
 - **Cliente do Supabase novo precisa de `db: { schema: ESQUEMA }`.** São nove
   pontos de criação em quatro lugares que ninguém junta na cabeça: `src/server`,
   `scripts/*.mjs`, `tests/setup` e **`e2e/`**. Esquecer um não quebra o build nem
-  o `tsc` — quebra em execução com `Could not find the table 'public.conta' in
+  o `tsc`, quebra em execução com `Could not find the table 'public.conta' in
   the schema cache`. Foi o `e2e/apoio.ts` que ficou para trás na primeira
   passada. O nome vem de `src/server/esquema.ts`; nos `.mjs` é repetido à mão,
   porque `.mjs` não importa `.ts`.
@@ -374,7 +404,7 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   coluna.** Omitir uma chave em uma linha quebra o lote inteiro com `23502`.
   Regra: todas as linhas carregam as mesmas chaves.
 - **Arquivo `'use server'` só exporta função async.** Constante ou função pura
-  exportada de lá quebra o build — e o erro aponta para a rota, não para o
+  exportada de lá quebra o build, e o erro aponta para a rota, não para o
   arquivo. Mordeu três vezes; o lugar delas é o `core/`.
 - **`security definer` sem `search_path` fixo** é escalada de privilégio à
   espera de acontecer.
@@ -395,7 +425,7 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
 - **O banco de teste não é limpo entre execuções.** Nome fixo em dado de teste
   vira seletor ambíguo na segunda rodada; use algo único.
 - **A suíte e2e roda contra build de produção.** O `next dev` recompila cada rota
-  e cresce sem devolver — passou de 1,7 GB numa suíte e derrubou o navegador por
+  e cresce sem devolver, passou de 1,7 GB numa suíte e derrubou o navegador por
   falta de memória. Em produção a mesma suíte caiu de 8,8 para 4,3 minutos.
 - **No Playwright, `getByRole('alert')` colide com o anunciador de rota do
   Next.** Use o texto. E `getByLabel` não casa com `placeholder`.
@@ -406,13 +436,13 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
   conseguiam apontar o campo. O contexto vem da ordem na linha, não da repetição.
 - **Vestir tela quebra teste de propósito, e isso é contrato.** Os testes de
   navegador buscam por papel e por texto: mudar "Todos vieram" para "Marcar
-  todos presentes" quebra dez deles. Atualizar o teste é certo — desde que o
+  todos presentes" quebra dez deles. Atualizar o teste é certo, desde que o
   commit diga qual texto mudou e por quê.
 - **O papel `suporte` mora na conta interna, nunca na de cliente.** O vínculo em
   conta de cliente é temporário e é apagado ao sair; se ele também respondesse
   por "é da 4YU", sair de uma conta tiraria o acesso a tudo. Foi assim que era.
 - **Plano escrito não quer dizer plano certo.** A Tarefa 10 estava escrita como
-  "entrar como `suporte@dev.local`" num banco sem seed — passo impossível, e
+  "entrar como `suporte@dev.local`" num banco sem seed, passo impossível, e
   ninguém tinha percebido porque a jornada nunca fora feita inteira.
 - **Ler o código do protótipo não substitui abrir a tela dele.** Foi o erro que
   originou o `VESTIR.md`: tokens certos, telas genéricas. Rode os dois

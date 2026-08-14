@@ -9,7 +9,6 @@
  * mesmo arquivo de três jeitos, e o Outlook usa o motor do Word.
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { readFileSync } from 'node:fs'
 import { montaConvite } from '../src/core/email/convite'
 import { nomeDeRemetente } from '../src/core/email/remetente'
 import { montaRecuperacao, montaTrocaDeEmail } from '../src/core/email/senha'
@@ -45,18 +44,19 @@ console.log('escrito em: .previa/convite.html')
 const destino = process.argv[2]
 if (!destino) process.exit(0)
 
-const chave =
-  process.env.BREVO_API_KEY ??
-  (() => {
-    try {
-      return readFileSync('.env', 'utf8').match(/^BREVO_API_KEY=(.*)$/m)?.[1]
-    } catch {
-      return undefined
-    }
-  })()
+/*
+ * Só do ambiente, nunca de arquivo do repositório.
+ *
+ * Havia um atalho aqui que lia `.env` da pasta do projeto. O repositório é
+ * público, e chave de produção dentro dele depende de o `.gitignore` estar
+ * certo para sempre: basta um `git add -f` distraído. O segredo mora em
+ * `4yu-apps/.secrets/`, fora de qualquer git, e é carregado por quem roda.
+ */
+const chave = process.env.BREVO_API_KEY
 
 if (!chave) {
-  console.error('\nsem BREVO_API_KEY — carregue o .secrets/4yu.env antes')
+  console.error('\nsem BREVO_API_KEY. Carregue os segredos antes:')
+  console.error('  set -a && . ../.secrets/4yu.env && set +a')
   process.exit(1)
 }
 

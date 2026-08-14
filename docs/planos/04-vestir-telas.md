@@ -7,7 +7,7 @@ a fonte de verdade. Os tokens e primitivos já estão aplicados no produto intei
 o que **falta é a comparação tela a tela com o protótipo**, que é onde as
 diferenças de layout aparecem.
 
-## O método — use este, não outro
+## O método, use este, não outro
 
 Ler o código do protótipo não substitui olhar a tela renderizada. Foi esse
 atalho que produziu telas "com os tokens certos" e nenhuma semelhança com o
@@ -30,7 +30,7 @@ leva direto ao trecho.
 
 **Escopo combinado com o Gabriel:** construir os blocos que faltam, não só
 rearranjar o que existe. Onde não houver dado no banco, dizer e deixar o bloco
-de fora — nunca inventar número.
+de fora, nunca inventar número.
 
 ## Feito
 
@@ -52,22 +52,22 @@ de fora — nunca inventar número.
 Não são esquecimento; falta dado. Se forem construídos, precisam de migration
 antes:
 
-- **"Últimas buscas"** na Vaga — precisa guardar busca por usuário.
-- **"Últimas ações"** na ficha — precisa de log por pessoa; o `src/server/log.ts`
+- **"Últimas buscas"** na Vaga, precisa guardar busca por usuário.
+- **"Últimas ações"** na ficha, precisa de log por pessoa; o `src/server/log.ts`
   hoje só cobre configuração.
-- **Telas de acesso `esqueci`, `enviado` e `nova senha`** — dependem de SMTP,
+- **Telas de acesso `esqueci`, `enviado` e `nova senha`**, dependem de SMTP,
   marco 2. A arte e os textos já estão prontos em
   `src/components/ui/arte-acesso.ts`, esperando.
-- **"Só com 3h de antecedência"** em Padrões — exige saber a que horas a pessoa
+- **"Só com 3h de antecedência"** em Padrões, exige saber a que horas a pessoa
   avisou; hoje só se sabe quando a recepção registrou.
-- **Plano da conta** em Contas 4YU (o "Padrão · criada em mar/24" do protótipo) —
+- **Plano da conta** em Contas 4YU (o "Padrão · criada em mar/24" do protótipo) ,
   não existe coluna de plano. A tela mostra o identificador e a data de criação.
-- **Seção Integrações** da configuração — não há nada para integrar ainda.
+- **Seção Integrações** da configuração, não há nada para integrar ainda.
 
 ## Armadilhas que já custaram caro
 
 1. **`rounded-[--radius-x]` não existe no Tailwind v4.** Vira
-   `border-radius: --radius-x` e o navegador descarta calado — o app rodou sem
+   `border-radius: --radius-x` e o navegador descarta calado, o app rodou sem
    canto arredondado nenhum e nada acusou. Token de `@theme` gera utilitário
    próprio: `rounded-cartao`, `shadow-modal`. Há quatro testes em
    `e2e/primitivos.spec.ts` que medem estilo computado e falham se voltar.
@@ -80,7 +80,7 @@ antes:
    e `node scripts/semear-dev.mjs` de novo antes de capturar. `db reset` falha
    com `LegacyDbSetupError` de vez em quando; rodar de novo resolve.
 5. **Constante importada de módulo `'use client'` para componente de servidor
-   chega vazia.** O React devolve uma referência de módulo, não o objeto — o
+   chega vazia.** O React devolve uma referência de módulo, não o objeto, o
    `tsc` passa, nada quebra, e o elemento some da tela. Foi o que apagou os
    pontos coloridos do "Resumo" de Pendências. Constante compartilhada entre
    servidor e cliente mora em módulo sem diretiva (`components/*/tintas.ts`).
@@ -89,7 +89,7 @@ antes:
    ilegível dentro de um botão de 44px. Ícone de ação é SVG do `ui/icones.tsx`;
    glifo só em decoração miúda.
 7. **`input[type=time]` segue o locale do navegador, não o `lang` do
-   documento.** As capturas rodavam em `en-US` e mostravam "06:30 AM" — uma
+   documento.** As capturas rodavam em `en-US` e mostravam "06:30 AM", uma
    diferença falsa contra o protótipo. Os dois scripts de captura fixam
    `locale: 'pt-BR'` e `timezoneId: 'America/Sao_Paulo'`.
 8. **`/contas-4yu` é do papel `suporte`.** Capturar essa tela logado como dono

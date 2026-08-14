@@ -1,8 +1,8 @@
-# Verandi — design system
+# Verandi, design system
 
 A fonte de verdade é **`Design system Verandi-att/DESIGN-SYSTEM.md`**. Ele
-descreve o sistema inteiro — cor, tipografia, espaço, os treze componentes,
-layout, motion, ícones e voz — em detalhe suficiente para construir uma tela
+descreve o sistema inteiro, cor, tipografia, espaço, os treze componentes,
+layout, motion, ícones e voz, em detalhe suficiente para construir uma tela
 nova sem abrir o protótipo. Onde a tela do produto divergir dele, é a tela que
 muda.
 
@@ -25,7 +25,7 @@ Duas coisas dele são de demonstração e **não entram no produto**:
 
 ## Cor
 
-Nomes por função, nunca por matiz — `--cor-tinta`, não `--cor-verde-escuro`. Cor
+Nomes por função, nunca por matiz, `--cor-tinta`, não `--cor-verde-escuro`. Cor
 com nome de cor é cor que ninguém troca depois.
 
 ### Base
@@ -54,7 +54,7 @@ com nome de cor é cor que ninguém troca depois.
 
 ### Tintas com significado
 
-Cada par é fundo + texto. **A cor nunca é o único portador do significado** —
+Cada par é fundo + texto. **A cor nunca é o único portador do significado** ,
 sempre acompanha texto ou glifo.
 
 | Significado | Fundo | Texto |
@@ -92,7 +92,7 @@ a mesma pessoa tem sempre a mesma cor, em qualquer tela.
 | Texto, rótulo, botão | **DM Sans** 400/500/600 |
 | Hora, contagem, identificador | **DM Mono** 400/500 |
 
-Escala real do protótipo, que é miúda de propósito — é uma tela de trabalho, e a
+Escala real do protótipo, que é miúda de propósito, é uma tela de trabalho, e a
 densidade é o ponto:
 
 ```
@@ -124,7 +124,7 @@ carrega significado, e uma escala fechada evita a próxima tela inventar 13px.
 
 ## Movimento
 
-Entrada de tela `eTela`, de linha `eRow`, de modal `ePop` — 12px de deslocamento,
+Entrada de tela `eTela`, de linha `eRow`, de modal `ePop`, 12px de deslocamento,
 opacidade de 0 a 1. Escalonamento de 34ms por linha em lista. Transições de
 interface em 80ms.
 
@@ -156,11 +156,11 @@ profissional lista o que acontece com sessões passadas, séries futuras e login
 Número sozinho ("4 pessoas") não dá para conferir; lista dá.
 
 **2. Toda nota explica a consequência, não a mecânica.** "As sessões que já
-aconteceram continuam no histórico. As futuras deixam de ser criadas" — não
+aconteceram continuam no histórico. As futuras deixam de ser criadas", não
 "vigência recebe data de fim". O usuário não tem o modelo de dados na cabeça, e
 não deveria precisar.
 
-**3. Vazio explica que não é erro.** "O estúdio não abre neste dia — está na
+**3. Vazio explica que não é erro.** "O estúdio não abre neste dia, está na
 configuração de funcionamento, **não é falha de carregamento**". Todo estado
 vazio diz o que fazer em seguida, e quando for consequência de configuração, diz
 qual.
@@ -169,7 +169,7 @@ qual.
 
 O protótipo é bonito e falha em três coisas que o produto não pode falhar:
 
-- **Contraste.** `#8B9691` sobre `#FFFFFF` dá 2,9:1 — abaixo do mínimo de 4,5:1
+- **Contraste.** `#8B9691` sobre `#FFFFFF` dá 2,9:1, abaixo do mínimo de 4,5:1
   para texto. Tinta fraca fica só em texto de 14px ou maior, ou sobe para
   `#5D6B66`.
 - **Alvo de toque.** Botões de 24px de altura na tela de Sessão, que é usada em

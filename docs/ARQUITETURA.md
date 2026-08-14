@@ -1,4 +1,4 @@
-# Verandi — arquitetura
+# Verandi, arquitetura
 
 O que o sistema é por dentro: o vocabulário, as entidades, e as decisões que não
 dá para tomar duas vezes. As telas estão em [TELAS.md](TELAS.md); a ordem de
@@ -15,7 +15,7 @@ Isso dá um teste objetivo para qualquer pedido que aparecer:
 
 > Isto é **agendamento**, ou é **este cliente**?
 
-Se for do cliente, vira linha de configuração — nunca coluna nova, nunca `if` no
+Se for do cliente, vira linha de configuração, nunca coluna nova, nunca `if` no
 código. É a mesma régua do [`ARQUITETURA.md` do
 AutoFluxos](../../autofluxos/docs/ARQUITETURA.md), e existe pelo mesmo motivo: no
 dia em que for preciso mexer no código para encaixar um cliente, o produto virou
@@ -23,7 +23,7 @@ consultoria com passo extra.
 
 O risco do outro lado é real e vale dizer em voz alta: **quem projeta genérico no
 abstrato costuma acertar ninguém.** O jeito de ter os dois é *derivar* o genérico
-de um caso real — construir olhando para a planilha do MGM e recusar com
+de um caso real, construir olhando para a planilha do MGM e recusar com
 disciplina qualquer coisa dela que tente entrar no `src/`.
 
 ## O vocabulário é neutro por dentro e traduzido na borda
@@ -38,9 +38,9 @@ Conhece isto:
 | `profissional` | quem atende | Professor | Profissional | Doutor |
 | `servico` | o que é feito | Pilates solo | Corte | Consulta |
 | `local` | onde acontece | Sala 1 | Cadeira 2 | Consultório A |
-| `serie` | a regra que se repete | Turma | — | — |
+| `serie` | a regra que se repete | Turma |, |, |
 | `sessao` | a ocorrência datada | Aula | Horário | Atendimento |
-| `vaga` | a reserva permanente numa série | Matrícula | — | — |
+| `vaga` | a reserva permanente numa série | Matrícula |, |, |
 | `participacao` | uma pessoa numa sessão | Presença | Agendamento | Consulta marcada |
 
 A tradução mora numa tabela `vocabulario` por conta e acontece **só na borda da
@@ -53,8 +53,8 @@ de nomenclatura. Nome de tabela é para sempre.
 
 ## A decisão central: série → sessão → participação
 
-As duas formas de agenda que o briefing identifica — vaga recorrente e horário
-avulso — **não são dois modelos**. São o mesmo modelo com uma peça opcional.
+As duas formas de agenda que o briefing identifica, vaga recorrente e horário
+avulso, **não são dois modelos**. São o mesmo modelo com uma peça opcional.
 
 ```
 serie ──gera──> sessao <──pendura── participacao ──> pessoa
@@ -68,7 +68,7 @@ serie ──gera──> sessao <──pendura── participacao ──> pessoa
 - **`sessao`** é a ocorrência datada: quarta, 12 de agosto, 10h00. Nasce de uma
   série ou nasce sozinha (avulso). É onde se cancela, se troca o profissional,
   se conta a ocupação.
-- **`vaga`** é a reserva permanente de uma pessoa numa série — a "matrícula".
+- **`vaga`** é a reserva permanente de uma pessoa numa série, a "matrícula".
   Tem vigência própria, porque em março a pessoa entra no horário das 7h e em
   agosto ela sai.
 - **`participacao`** é uma pessoa numa sessão específica. **É a única linha onde
@@ -76,7 +76,7 @@ serie ──gera──> sessao <──pendura── participacao ──> pessoa
 
 O ponto que faz o modelo fechar: quando a sessão nasce, as vagas ativas daquela
 série são copiadas para participações. A recorrência não é um tipo diferente de
-agendamento — é um agendamento que alguém não precisou digitar.
+agendamento, é um agendamento que alguém não precisou digitar.
 
 ### Origem e status, ou: por que a prosa da planilha some
 
@@ -102,7 +102,7 @@ Com isso, tudo que hoje é rabisco vira dado consultável:
 | `LIC` (17) | `status: licenca` |
 | `XX` / `X` (17) e `F EXP` (2) | **ninguém soube dizer o que são.** Ver abaixo. |
 | `REP 05/6` (6) | `origem: reposicao` + `reposicao_de_id` apontando para a falta |
-| `P ANT 19H` (5) | idem — presente em outro horário É reposição |
+| `P ANT 19H` (5) | idem, presente em outro horário É reposição |
 | `FULANO - RESERVA` | `origem: reserva` |
 | `(PERSONAL)`, `(Pers. Nath)` | `servico` + `profissional` |
 | `(Gestante)` | tag na pessoa |
@@ -114,11 +114,11 @@ existir de graça. Hoje esse controle mora na memória de quem escreveu.
 
 **A lição que generaliza, e que vale para toda feature futura:** se o estado não
 tiver campo, a pessoa escreve prosa, e o dado morre. Quando aparecer um estado
-novo, ele entra como opção — não como observação.
+novo, ele entra como opção, não como observação.
 
 E o `XX` prova a lição melhor que qualquer coluna que deu certo: **quem escreveu
 não soube dizer o que significa.** Dezessete ocorrências de uma marca sem sentido
-recuperável. Não é falha de quem operava — é o que acontece com todo mundo quando
+recuperável. Não é falha de quem operava, é o que acontece com todo mundo quando
 o sistema não oferece o estado e a pessoa improvisa. O produto não precisa
 decifrar isso; precisa impedir que aconteça de novo.
 
@@ -157,14 +157,14 @@ naquele dia. Por isso `sessao` carrega cópia de `servico_id`,
 `profissional_id`, `local_id` e `capacidade` em vez de só apontar para a série.
 
 Sem isso, trocar a Marina pela Sofia em setembro reescreveria quem deu aula em
-março — e a planilha de março passaria a mentir. É o mesmo motivo pelo qual o
+março, e a planilha de março passaria a mentir. É o mesmo motivo pelo qual o
 AutoFluxos congela `sessions.flow_version_id`.
 
 ## Capacidade é verdade: o que é oferecido nunca mente
 
 > **Revisto em 13/ago/2026.** Este capítulo dizia que não existia "encaixar mesmo
 > assim" em caso nenhum. Metade caiu por decisão de produto, e a metade que
-> importa ficou de pé — a explicação está logo abaixo e em
+> importa ficou de pé, a explicação está logo abaixo e em
 > `planos/03-configuracao.md`.
 
 Cinco vagas com cinco pessoas significa **indisponível para quem procura**: a
@@ -179,7 +179,7 @@ sempre alguém decidindo, com nome e registro.
 
 O que existe é **aumentar a capacidade daquela sessão**. O professor decide que
 naquela quarta cabem seis, muda a capacidade do dia, e aí a vaga passa a existir
-de verdade — para a tela, para a busca e para o bot, todos ao mesmo tempo.
+de verdade, para a tela, para a busca e para o bot, todos ao mesmo tempo.
 
 A diferença entre as duas coisas é o que faz o número não mentir:
 
@@ -194,7 +194,7 @@ mudar o limite de um dia específico não mexe na grade fixa nem no passado. A p
 já estava no modelo pelo outro motivo; ela serve os dois.
 
 **As 47 pessoas fora da grade não desaparecem por causa disso.** No dado real do
-MGM elas estão escritas à mão embaixo das vagas numeradas — reserva, reposição,
+MGM elas estão escritas à mão embaixo das vagas numeradas, reserva, reposição,
 personal, domicílio. Elas continuam existindo como participação com a origem
 certa; o que muda é que a sessão que as recebeu tinha capacidade maior, e isso
 fica registrado em vez de implícito. **O importador ajusta a capacidade da sessão
@@ -210,7 +210,7 @@ A única coisa que o banco recusa é a **mesma pessoa duas vezes na mesma sessã
 
 Fora capacidade, a régua continua sendo **descrever a realidade, não governar
 ela**: data no passado aceita registro, sessão cancelada aceita correção, e
-pessoa sem telefone é normal — 30% não têm.
+pessoa sem telefone é normal, 30% não têm.
 
 ## Multi-inquilino desde a primeira migration
 
@@ -226,7 +226,7 @@ Nenhum dos dois substitui o outro, e o motivo de cada um está escrito em
 Aqui a Verandi diverge do AutoFluxos de propósito: lá a RLS está ligada e sem
 política nenhuma, porque não há login e todo acesso passa pelo servidor. Aqui há
 login desde o começo, então a política vem junto. Acrescentar isolamento depois
-custa migração em toda tabela e revisão de toda consulta — e uma consulta
+custa migração em toda tabela e revisão de toda consulta, e uma consulta
 esquecida é vazamento entre clientes.
 
 ```
@@ -243,24 +243,24 @@ mesma professora atender dois estúdios.
 | Papel | Pode |
 |---|---|
 | `dono` | tudo na conta dele, inclusive configuração e usuários |
-| `recepcao` | marcar, remarcar, cancelar e cadastrar pessoa para todos — não mexe em configuração |
+| `recepcao` | marcar, remarcar, cancelar e cadastrar pessoa para todos, não mexe em configuração |
 | `profissional` | a agenda dele, as pessoas dele, registrar atendimento |
 | `suporte` | acesso da 4YU, para configurar e diagnosticar; toda ação fica registrada |
 
-O papel `suporte` mora numa **conta interna** — a conta da própria 4YU
+O papel `suporte` mora numa **conta interna**, a conta da própria 4YU
 (`conta.interna`, uma só, criada pela migration `0040`). Ela não aparece em
 `/contas-4yu` e ninguém entra nela como suporte. Duas coisas dependem disso: o
 primeiro suporte só nasce assim (`usuario_conta.conta_id` é `not null`, e criar
-conta exige já ser suporte — banco novo travava antes do primeiro clique), e
+conta exige já ser suporte, banco novo travava antes do primeiro clique), e
 sair do suporte apaga o vínculo temporário da conta de cliente sem tocar no que
 diz quem é da 4YU. Instalação nova: `node scripts/bootstrap-suporte.mjs <e-mail>`.
 
 O papel `recepcao` existe porque em salão e clínica quem marca não é quem atende.
-No pilates é a mesma pessoa — e é exatamente o tipo de diferença que tem que ser
+No pilates é a mesma pessoa, e é exatamente o tipo de diferença que tem que ser
 papel, não sistema diferente.
 
 **`profissional` é um papel, não um cadastro separado.** A tabela `profissional`
-existe e pode não ter usuário nenhum ligado a ela — a Sofia pode ser um nome na
+existe e pode não ter usuário nenhum ligado a ela, a Sofia pode ser um nome na
 grade antes de ter login. `profissional.usuario_id` é anulável de propósito.
 
 ## Notificação sai por evento, nunca por chamada direta
@@ -292,7 +292,7 @@ depende de rede, reenviar é reprocessar uma linha, e ganhar um terceiro canal
 
 ## A superfície de API para o AutoFluxos
 
-Token estático em cabeçalho, guardado como hash, escopo por conta — é o que o
+Token estático em cabeçalho, guardado como hash, escopo por conta, é o que o
 cofre do AutoFluxos consome hoje.
 
 ```
@@ -369,12 +369,12 @@ importacao_linha    importacao_id, linha, dado jsonb, resultado, motivo
 
 Detalhes que evitam bug caro:
 
-- **`UNIQUE (serie_id, inicio)`** — a materialização sob demanda depende dele.
-- **`UNIQUE (sessao_id, pessoa_id)`** — a única regra que o sistema impõe.
-- **`sessao` copia serviço, profissional, local e capacidade** — o passado não se
+- **`UNIQUE (serie_id, inicio)`**, a materialização sob demanda depende dele.
+- **`UNIQUE (sessao_id, pessoa_id)`**, a única regra que o sistema impõe.
+- **`sessao` copia serviço, profissional, local e capacidade**, o passado não se
   reescreve.
-- **`profissional.usuario_id` anulável** — nome na grade antes de ter login.
-- **`vaga.inicio` / `vaga.fim`** — a matrícula tem vigência; sem isso, quem saiu
+- **`profissional.usuario_id` anulável**, nome na grade antes de ter login.
+- **`vaga.inicio` / `vaga.fim`**, a matrícula tem vigência; sem isso, quem saiu
   em agosto some do histórico de março.
 
 ## Fuso, feriado e semana que não existe
@@ -385,7 +385,7 @@ horário de verão desde 2019, mas escrever certo agora custa zero e escrever
 errado custa uma madrugada em algum outubro.
 
 `excecao_calendario` cobre feriado e fechamento. A sessão de um dia marcado como
-feriado nasce `cancelada` com o motivo, em vez de não nascer — assim ela aparece
+feriado nasce `cancelada` com o motivo, em vez de não nascer, assim ela aparece
 na grade riscada, e ninguém pergunta "cadê a aula de quarta".
 
 ## Stack e estrutura
@@ -394,7 +394,7 @@ Next.js (App Router) + TypeScript + Supabase (Postgres, Auth, RLS) + Vercel +
 Tailwind. Igual ao AutoFluxos, de propósito: uma stack só para o grupo manter.
 
 Em desenvolvimento o Supabase roda **local, no Docker**, pela CLI. Isso resolve
-o teto de dois projetos ativos do plano gratuito — a organização `4YU Systems` já
+o teto de dois projetos ativos do plano gratuito, a organização `4YU Systems` já
 tem `radar-ofertas` e `autofluxos` ativos, com o `Otimiza Gestor` pausado. Só na
 hora do deploy é que se decide entre pausar um, abrir segunda organização, ou
 pagar Pro.
@@ -415,8 +415,8 @@ verandi/
 
 **`core/` não importa nada de `app/`, `server/` ou do banco.** A dependência anda
 numa direção só. É o padrão que já provou valer no AutoFluxos, e aqui ele vale
-mais ainda: a matemática de agenda — expandir recorrência, aplicar exceção,
-contar ocupação, decidir se o encaixe cabe — é onde os bugs difíceis moram, e é
+mais ainda: a matemática de agenda, expandir recorrência, aplicar exceção,
+contar ocupação, decidir se o encaixe cabe, é onde os bugs difíceis moram, e é
 exatamente o que dá para testar em milissegundos sem subir banco nenhum.
 
 **O frontend é descartável de propósito.** Componentes burros, dados vindo de
@@ -427,13 +427,13 @@ server actions. O protótipo visual entra trocando a casca, sem mexer no fluxo.
 Cada item é uma coisa boa que só atrapalha agora. Ficam anotados porque o modelo
 tem que **caber** neles, não porque serão construídos.
 
-- **Financeiro** — cobrança, mensalidade, boleto, conciliação. `pessoa` guarda
+- **Financeiro**, cobrança, mensalidade, boleto, conciliação. `pessoa` guarda
   vencimento de plano como *data*, para avisar; cobrar não.
 - **Contrato e assinatura digital.**
 - **Aplicativo da pessoa atendida.** O WhatsApp é o app dela. Isso derruba login
   público, recuperação de senha e tela de aluno.
-- **Conteúdo** — vídeo, trilha, feed, comunidade.
-- **Onboarding por ramo** — perguntar o segmento no cadastro e já entregar
+- **Conteúdo**, vídeo, trilha, feed, comunidade.
+- **Onboarding por ramo**, perguntar o segmento no cadastro e já entregar
   pré-configurado. O modelo comporta; não vale construir agora.
-- **Lista de espera com aviso automático** — `origem: reserva` já existe no
+- **Lista de espera com aviso automático**, `origem: reserva` já existe no
   modelo; o aviso automático é marco 2.
