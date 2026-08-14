@@ -1,4 +1,9 @@
-# Passagem de bastão, 14/ago/2026
+# Passagem de bastão, 14/ago/2026 (segunda sessão do dia)
+
+> **Banco compartilhado — leitura obrigatória:** antes de qualquer mudança em
+> Supabase, migration, Auth, RLS, Storage, extensão ou Data API, leia
+> [BANCO-COMPARTILHADO.md](BANCO-COMPARTILHADO.md). Verandi usa
+> `app_verandi`; AutoFluxos usa `public`; os recursos globais afetam os dois.
 
 Para o próximo agente. Este arquivo é o **atalho**: o que aconteceu nesta
 sessão, o que está pendente e por qual ponta pegar. Ele não substitui o
@@ -16,8 +21,9 @@ A Verandi está **no ar** em `https://verandi.4yu.com.br`, com banco de produç�
 no schema `app_verandi` (dividido com o AutoFluxos), e-mail saindo pelo Brevo e
 deploy automático a cada push na `main`.
 
-Conta de demonstração em produção: `contato@4yu.com.br` / `mgm-pilates-2026`,
-conta MGM Pilates.
+Conta de demonstração em produção: MGM Pilates, dona `contato@4yu.com.br`.
+A senha não fica em documentação nem no repositório; o acesso deve vir do cofre
+da equipe.
 
 Verificado no fim desta sessão: `npm run build` limpo, **272** testes de unidade,
 **106** de navegador, `npm run segredos` sem credencial no repositório, migration
@@ -66,18 +72,48 @@ recepção, navegando sozinha pelo menu e por cada destino.
 
 ---
 
+## O que a segunda sessão fez
+
+Cinco coisas, e uma delas não estava na lista porque ninguém sabia que existia.
+
+1. **A barra fixa da Sessão saiu em tela larga** (`md:hidden`). O protótipo
+   desenha as duas ao mesmo tempo, então a tela estava fiel e o defeito era do
+   protótipo: virou a quarta divergência de propósito. Medido: 1440 tem um
+   botão, 420 tem dois.
+2. **Funcionamento virou modal por dia**, e "Nova data fechada" também.
+3. **O defeito que estava escondido no Funcionamento.** Marcar feriado com
+   "cancelar e avisar" cancelava as sessões e **não dava crédito a ninguém**,
+   apesar de a migration `0037` dizer que dava. Agora a participação vira
+   `cancelada` e abre reposição em `/pendencias`. "O que dá crédito" virou
+   `statusComCredito()`, porque estava escrito à mão em quatro lugares.
+4. **Confirmação destrutiva ao desativar local e profissional**, com a contagem
+   de séries ativas e sessões futuras.
+5. **As duas decisões de modelo**, migration `0043`: anonimizar preservando a
+   linha, e observação com "visível para", padrão fechado.
+
+Verificado no fim: `npm run build` limpo, **272** de unidade, **114** de
+navegador, `npm run segredos` limpo.
+
+**Duas falhas de e2e nesta máquina são de concorrência, não de código**
+(`consultas.test.ts`, `suporte.spec.ts`, e mais duas em corrida cheia). Rodadas
+isoladas passam. A máquina fica com menos de 4 GB livres durante a suíte.
+
 ## O que fazer agora, em ordem
 
-### 1. A barra fixa da Sessão repete o cabeçalho
+### 1. Aplicar a `0043` em produção, quando o AutoFluxos estiver parado
 
-O menor e o mais visível, apontado pelo Gabriel com captura. Detalhe inteiro em
-[`planos/09-defeitos-apontados.md`](planos/09-defeitos-apontados.md).
+**Não foi aplicada de propósito.** Em 14/08 o Gabriel estava mexendo no
+AutoFluxos, que divide o mesmo projeto Supabase. Ela já está no banco local e
+coberta por teste.
 
-Resumo: em `/sessao/[id]`, "Marcar todos presentes" e "Encaixar" aparecem no
-cabeçalho **e** numa barra fixa no rodapé, com o estado da chamada repetido nos
-dois mais um terceiro no cartão "Resumo". A que sai é **a de baixo**. Antes de
-apagar, confira se ela não existe para o celular, onde o cabeçalho sai de vista
-ao rolar: se for isso, ela vira `md:hidden`, não some.
+```bash
+set -a && . ../.secrets/4yu.env && set +a
+node scripts/aplica-em-producao.mjs
+```
+
+Nunca `supabase db push`. A `0043` mexe em três coisas: duas colunas novas, o
+`check` do `log_configuracao`, e **recria a view `pessoa_resumo`** (coluna nova
+não entra em view sozinha, e a contagem de reposição estava desatualizada).
 
 ### 2. Gerar as ilustrações do onboarding
 
@@ -94,24 +130,23 @@ onde há espera de verdade, e ilustração nos estados vazios. As três decisõe
 travam isso estão escritas lá (quem desenha, quantas artes, peso). **Não comece
 sem falar com o Gabriel**, porque a primeira delas é dele.
 
-### 4. O que o plano 07 deixou de fora, de propósito
+### 4. Varrer o produto com a régua do vocabulário
 
-- **Funcionamento** continua com faixa embutida onde o protótipo desenha modal.
-  Não troquei porque a seção também tem "nova data fechada", que decide o que
-  fazer com as sessões daquele dia: é regra de negócio, não só forma, e entra
-  junto com quem for mexer em exceção de calendário.
-- **Desativar local e profissional acontece na hora**, sem a confirmação
-  destrutiva que o protótipo desenha, dizendo quantas séries e sessões dependem
-  do item. É defeito de confirmação, não de vestir.
+O onboarding tem teste; o resto não, e a segunda sessão provou que falta: um
+modal novo saiu com **"Turmas ativos"**, e o teste de vocabulário só pegou
+porque a palavra apareceu num comentário meu. A régua vale para **adjetivo**
+também, não só artigo. Um caso conhecido, ainda no ar: "`Vagas` ativas" em
+"Em números", na ficha da pessoa.
 
-### 5. Duas dívidas que são decisão de modelo, e valem antes do primeiro cliente
+O jeito que funcionou: o qualificador sai de perto da palavra do cliente e vai
+para outra coluna, ou a frase muda e deixa de nomear a coisa.
 
-- **LGPD, direito do titular.** `delete` em `pessoa` leva `participacao` por
-  cascade e apagaria o histórico do negócio. Provavelmente o certo é anonimizar
-  preservando a linha. Decidir antes do primeiro pedido, não depois.
-- **Observação de participação não separa quem enxerga.** "Lesão no ombro" é
-  dado de saúde; recepção ver tudo é problema jurídico, não de gosto. Vira
-  pré-requisito no primeiro cliente de saúde.
+### 5. A observação da ficha ainda não separa quem enxerga
+
+A de **participação** já separa. A de **pessoa** (`pessoa.observacao`, a faixa
+"Atenção na aula") continua visível para todo mundo, e é exatamente onde alguém
+escreve o mesmo tipo de frase. A decisão já está tomada e o padrão já existe:
+falta repetir para essa coluna.
 
 ### 6. As dívidas de higiene, quando der
 
@@ -159,7 +194,7 @@ lista de espera. Nada disso exige tabela nova.
 | Texto do produto | **Nada de travessão**. Vírgula, ponto ou dois-pontos. Há teste guardando os e-mails. |
 | Tela | Ler o código do protótipo não substitui abrir a tela dele. Rode os dois capturadores e compare em 1440×1000. [`VESTIR.md`](VESTIR.md). |
 | Antes de dizer que acabou | `npm test`, `npm run build`, `npm run test:e2e`, `npm run segredos`. |
-| Conta de teste em produção | `contato@4yu.com.br` / `mgm-pilates-2026` |
+| Conta de teste em produção | MGM Pilates · dona `contato@4yu.com.br`; senha no cofre da equipe |
 
 E uma que custou tempo nesta sessão: **toda conta de teste nova cai no
 onboarding**. Por isso `e2e/apoio.ts` marca os dois roteiros como pulados por

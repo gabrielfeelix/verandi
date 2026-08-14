@@ -45,7 +45,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
   const conta = await exigirConta()
   const db = await clienteServidor()
 
-  const sessao = await sessaoDetalhe(db, id)
+  const sessao = await sessaoDetalhe(db, id, conta.papel)
   if (!sessao) notFound()
 
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))

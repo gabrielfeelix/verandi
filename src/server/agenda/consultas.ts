@@ -1,5 +1,8 @@
-import { calcularOcupacao, type Ocupacao, type StatusParticipacao } from '@/core/agenda/ocupacao'
+import {
+  calcularOcupacao, statusComCredito, type Ocupacao, type StatusParticipacao,
+} from '@/core/agenda/ocupacao'
 import { estadoDaChamada, type EstadoChamada } from '@/core/agenda/chamada'
+import type { Papel } from '@/core/acesso/destino'
 import type { Db } from '../supabase'
 import { hojeEm, instante, localDe } from './fuso'
 import { materializarJanela } from './materializar'
@@ -44,7 +47,17 @@ export type ParticipacaoDetalhe = {
   origem: OrigemParticipacao
   status: StatusParticipacao
   reposicaoDeId: string | null
+  /**
+   * A observação, **se quem está lendo pode ler**.
+   *
+   * Vem `null` para a recepção quando foi escrita como restrita, e aí
+   * `observacaoRestrita` diz que existe texto que não é para esses olhos. Sem
+   * o segundo campo, o menu ofereceria "Escrever observação" e a próxima
+   * escrita apagaria o que o profissional anotou.
+   */
   observacao: string | null
+  observacaoVisivel: 'profissionais' | 'todos'
+  observacaoRestrita: boolean
   /**
    * A segunda linha da pessoa na chamada: **por que ela está aqui**.
    *
@@ -180,6 +193,7 @@ type LinhaDetalhe = Omit<LinhaResumo, 'participacao'> & {
     origem: OrigemParticipacao
     reposicao_de_id: string | null
     observacao: string | null
+    observacao_visivel: 'profissionais' | 'todos'
     registrado_em: string
     registrado_por_origem: OrigemRegistro
     pessoa: { id: string; nome: string; telefone: string | null } | null
@@ -227,7 +241,19 @@ function diaEMes(data: string): string {
   return `${d}/${m}`
 }
 
-export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDetalhe | null> {
+/**
+ * A sessão inteira, filtrada pelo papel de quem pede.
+ *
+ * `papel` não é enfeite: observação marcada como "só profissionais" não pode
+ * chegar à recepção, e a separação **não é RLS**. RLS é por linha; esconder uma
+ * coluna de um papel e não de outro seria privilégio de coluna, e privilégio no
+ * Postgres é por papel do banco — aqui todo usuário logado é o mesmo
+ * `authenticated`, e "recepção" é uma linha em `usuario_conta`. Quem filtra é
+ * este servidor, que é o único caminho até o dado. Está anotado no ESTADO.md.
+ */
+export async function sessaoDetalhe(
+  db: Db, sessaoId: string, papel: Papel,
+): Promise<SessaoDetalhe | null> {
   const { data, error } = await db
     .from('sessao')
     .select(`
@@ -238,7 +264,7 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
       local:local_id(nome),
       serie:serie_id(dia_semana, hora_inicio),
       participacao(
-        id, status, origem, reposicao_de_id, observacao,
+        id, status, origem, reposicao_de_id, observacao, observacao_visivel,
         registrado_em, registrado_por_origem,
         pessoa:pessoa_id(id, nome, telefone)
       )
@@ -352,6 +378,16 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
     return quem ? `${verbo} ${quem} · ${quando}` : `${verbo} ${quando}`
   }
 
+  /*
+   * Quem atende lê tudo; a recepção lê o que foi escrito para todos.
+   *
+   * Dono e suporte leem: o dono responde pelo negócio perante o titular do
+   * dado, e o suporte só entra na conta com o acesso registrado.
+   */
+  const leTudo = papel !== 'recepcao'
+  const podeLer = (p: { observacao_visivel: 'profissionais' | 'todos' }) =>
+    leTudo || p.observacao_visivel === 'todos'
+
   const participacoes: ParticipacaoDetalhe[] = data.participacao
     .filter((p) => p.pessoa !== null)
     .map((p) => ({
@@ -363,8 +399,11 @@ export async function sessaoDetalhe(db: Db, sessaoId: string): Promise<SessaoDet
       origem: p.origem,
       status: p.status,
       reposicaoDeId: p.reposicao_de_id,
-      observacao: p.observacao,
-      detalhe: [detalheDe(p), p.observacao].filter(Boolean).join(' · ') || null,
+      observacao: podeLer(p) ? p.observacao : null,
+      observacaoVisivel: p.observacao_visivel,
+      observacaoRestrita: !podeLer(p) && p.observacao !== null,
+      detalhe: [detalheDe(p), podeLer(p) ? p.observacao : null]
+        .filter(Boolean).join(' · ') || null,
     }))
     // quem está na vaga fixa em cima, encaixe embaixo — é como a planilha
     // resolve por posição, e a leitura de relance depende disso
@@ -441,7 +480,10 @@ export async function faltasEmAberto(
     .select('id, status, sessao:sessao_id(inicio, servico:servico_id(nome))')
     .eq('conta_id', contaId)
     .eq('pessoa_id', pessoaId)
-    .in('status', ['falta', 'falta_avisada'])
+    // a lista mais larga de propósito: aqui é quem repõe escolhendo o que está
+    // pagando, e Padrões decide o que vira cobrança em `/pendencias`, não o que
+    // pode ser apontado à mão
+    .in('status', statusComCredito(true))
     .returns<{
       id: string
       status: StatusParticipacao

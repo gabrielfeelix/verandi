@@ -3,8 +3,10 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
-import { ModalFormulario } from '@/components/ui/modal'
-import { Avatar, Campo, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
+import {
+  Avatar, Campo, Chip, ListaImpacto, Nota, Rotulo, entrada,
+} from '@/components/ui/pecas'
 import { BotaoLinha, LinhaConfig, PainelConfig } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { CORES_PROFISSIONAL } from '@/components/ui/tintas'
@@ -21,15 +23,20 @@ type ServicoOpcao = { id: string; nome: string }
  * se mostra quem já tem.
  */
 export function SecaoEquipe({
-  equipe, servicos, rotuloProfissional, rotuloPlural,
+  equipe, servicos, rotuloProfissional, rotuloPlural, rotuloSeries, rotuloSessoes,
 }: {
   equipe: ProfissionalLinha[]
   servicos: ServicoOpcao[]
   rotuloProfissional: string
   /** o título é o plural da conta: "Profissionais", "Professores", "Doutores" */
   rotuloPlural: string
+  /** plurais do vocabulário, para a lista de impacto da confirmação */
+  rotuloSeries: string
+  rotuloSessoes: string
 }) {
   const [aberto, setAberto] = useState<string | 'novo' | null>(null)
+  /** quem está prestes a ser desativado; `null` sem confirmação aberta */
+  const [aDesativar, setADesativar] = useState<ProfissionalLinha | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
@@ -56,7 +63,7 @@ export function SecaoEquipe({
    * `salvarProfissional` reescreve a linha com o que chega, e o que não chega
    * some.
    */
-  function desativar(p: ProfissionalLinha) {
+  function desativar(p: ProfissionalLinha, aoFim?: () => void) {
     const f = new FormData()
     f.set('id', p.id)
     f.set('nome', p.nome)
@@ -67,6 +74,7 @@ export function SecaoEquipe({
     comErro(
       async () => { await salvarProfissional(f) },
       `${p.nome} desativado, o histórico continua com o nome dele`,
+      aoFim,
     )
   }
 
@@ -137,7 +145,7 @@ export function SecaoEquipe({
                     title={`Desativar ${p.nome}`}
                     aria-label={`Desativar ${p.nome}`}
                     disabled={pendente}
-                    onClick={() => desativar(p)}
+                    onClick={() => setADesativar(p)}
                     className="px-0"
                   >
                     <span aria-hidden className="block w-8 text-center">×</span>
@@ -150,6 +158,51 @@ export function SecaoEquipe({
               </span>
             </LinhaConfig>
       ))}
+
+      {aDesativar ? (
+        <Modal
+          aberto
+          perigo
+          largura="lista"
+          titulo={`Desativar ${rotuloProfissional.toLowerCase()}?`}
+          sub={`${aDesativar.nome} sai das escolhas novas a partir de hoje.`}
+          primario="Desativar"
+          pendente={pendente}
+          aoFechar={() => setADesativar(null)}
+          aoConfirmar={() => desativar(aDesativar, () => setADesativar(null))}
+        >
+          <ListaImpacto
+            rotulo="O que acontece"
+            /* nem artigo nem adjetivo colado na palavra do cliente: onde o
+               plural da conta é feminino, "horários fixos ativos" sai com o
+               adjetivo no gênero errado. O que qualifica vai para a coluna da
+               direita, onde a frase não precisa concordar com nada. */
+            itens={[
+              {
+                titulo: `${rotuloSessoes} que já aconteceram`,
+                meta: 'mantêm o nome',
+              },
+              {
+                titulo: `${rotuloSeries} na grade`,
+                meta: `${aDesativar.emUso}, ficam sem quem atenda`,
+              },
+              {
+                titulo: `${rotuloSessoes} que já estão na agenda`,
+                meta: `${aDesativar.sessoesFuturas}, mantêm o nome`,
+              },
+              ...(aDesativar.temLogin
+                ? [{ titulo: 'Login', meta: 'continua valendo' }]
+                : []),
+            ]}
+          />
+          <Nota tom="alerta">
+            Desativar não apaga histórico. Para tirar da grade sem perder nada,
+            é isto que você quer. Quem tem login continua entrando: acesso se
+            tira em Usuários, que é outra pergunta.
+          </Nota>
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </Modal>
+      ) : null}
 
       {aberto ? (
         <ModalFormulario

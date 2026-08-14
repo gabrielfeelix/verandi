@@ -124,7 +124,64 @@ test('vocabulário mostra o efeito antes de salvar, e muda a navegação depois'
   await expect(page.getByRole('link', { name: 'Alunos' })).toBeVisible()
 })
 
-test('funcionamento fecha um dia e o dia fechado some da lista de horários', async ({ page }) => {
+test('desativar local pede confirmação e diz quantos dependem dele', async ({ page }) => {
+  const c = await contaDono()
+  await admin.from('serie').insert({
+    conta_id: c.contaId, servico_id: c.servicoId, profissional_id: c.profissionalId,
+    local_id: c.localId, dia_semana: 3, hora_inicio: '10:00', duracao_min: 50,
+    capacidade: 4, vigencia_inicio: '2026-01-01', ativo: true,
+  })
+
+  await entrar(page, c.email)
+  await page.goto('/config?s=locais')
+
+  await page.getByRole('button', { name: 'Desativar Sala 1' }).click()
+
+  // o número é o ponto do modal: confirmação sem ele é confirmação às cegas
+  await expect(page.getByText('Desativar Sala 1?')).toBeVisible()
+  await expect(page.getByText('Horários fixos na grade')).toBeVisible()
+  await expect(page.getByText('1, seguem apontando para cá')).toBeVisible()
+
+  // fechar sem confirmar não desativa nada
+  await page.getByRole('button', { name: 'Cancelar' }).click()
+  const antes = await admin.from('local').select('ativo').eq('id', c.localId).single()
+  expect(antes.data!.ativo).toBe(true)
+
+  await page.getByRole('button', { name: 'Desativar Sala 1' }).click()
+  await page.getByRole('button', { name: 'Desativar local' }).click()
+
+  await expect.poll(async () => {
+    const { data } = await admin.from('local').select('ativo').eq('id', c.localId).single()
+    return data?.ativo
+  }).toBe(false)
+})
+
+test('desativar profissional pede confirmação e não tira o login', async ({ page }) => {
+  const c = await contaDono()
+  await admin.from('serie').insert({
+    conta_id: c.contaId, servico_id: c.servicoId, profissional_id: c.profissionalId,
+    local_id: c.localId, dia_semana: 5, hora_inicio: '07:00', duracao_min: 50,
+    capacidade: 4, vigencia_inicio: '2026-01-01', ativo: true,
+  })
+
+  await entrar(page, c.email)
+  await page.goto('/config?s=equipe')
+
+  await page.getByRole('button', { name: 'Desativar Marina' }).click()
+  await expect(page.getByText('Desativar profissional?')).toBeVisible()
+  await expect(page.getByText('Marina sai das escolhas novas')).toBeVisible()
+  await expect(page.getByText('1, ficam sem quem atenda')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Desativar', exact: true }).click()
+
+  await expect.poll(async () => {
+    const { data } = await admin.from('profissional')
+      .select('ativo').eq('id', c.profissionalId).single()
+    return data?.ativo
+  }).toBe(false)
+})
+
+test('funcionamento fecha um dia pelo modal do dia', async ({ page }) => {
   const c = await contaDono()
   await admin.from('funcionamento').insert({
     conta_id: c.contaId, dia_semana: 0, abre: '08:00', fecha: '12:00',
@@ -133,14 +190,12 @@ test('funcionamento fecha um dia e o dia fechado some da lista de horários', as
   await entrar(page, c.email)
   await page.goto('/config?s=funcionamento')
 
-  await expect(page.getByLabel('Domingo abre')).toBeVisible()
+  // a lista mostra o horário, não os campos: quem edita abre um dia por vez
+  await expect(page.getByText('08:00 até 12:00')).toBeVisible()
 
-  // é interruptor, não etiqueta: `role=switch` prova que o estado é anunciado
-  const abrirDomingo = page.getByRole('switch', { name: 'Abrir domingo' })
-  await expect(abrirDomingo).toHaveAttribute('aria-checked', 'true')
-  await abrirDomingo.click()
-  await expect(abrirDomingo).toHaveAttribute('aria-checked', 'false')
-  await page.getByRole('button', { name: 'Salvar funcionamento' }).click()
+  await page.getByRole('button', { name: 'Editar horário de domingo' }).click()
+  await page.getByRole('button', { name: 'Fechado' }).click()
+  await page.getByRole('button', { name: 'Salvar horário' }).click()
 
   await expect.poll(async () => {
     const { count } = await admin.from('funcionamento')
@@ -148,6 +203,31 @@ test('funcionamento fecha um dia e o dia fechado some da lista de horários', as
       .eq('conta_id', c.contaId).eq('dia_semana', 0)
     return count
   }).toBe(0)
+})
+
+test('o modal de um dia não mexe nos outros seis', async ({ page }) => {
+  const c = await contaDono()
+  await admin.from('funcionamento').insert([
+    { conta_id: c.contaId, dia_semana: 2, abre: '08:00', fecha: '12:00' },
+    { conta_id: c.contaId, dia_semana: 4, abre: '09:00', fecha: '19:00' },
+  ])
+
+  await entrar(page, c.email)
+  await page.goto('/config?s=funcionamento')
+
+  await page.getByRole('button', { name: 'Editar horário de terça' }).click()
+  await page.getByLabel('Abre').fill('07:15')
+  await page.getByRole('button', { name: 'Salvar horário' }).click()
+
+  await expect.poll(async () => {
+    const { data } = await admin.from('funcionamento')
+      .select('dia_semana, abre, fecha').eq('conta_id', c.contaId)
+      .order('dia_semana')
+    return data
+  }).toEqual([
+    { dia_semana: 2, abre: '07:15:00', fecha: '12:00:00' },
+    { dia_semana: 4, abre: '09:00:00', fecha: '19:00:00' },
+  ])
 })
 
 test('marcar feriado cancela os horários daquele dia, com motivo', async ({ page }) => {
@@ -163,16 +243,54 @@ test('marcar feriado cancela os horários daquele dia, com motivo', async ({ pag
   await entrar(page, c.email)
   await page.goto('/config?s=funcionamento')
 
-  await page.getByRole('button', { name: 'Nova data' }).click()
+  await page.getByRole('button', { name: 'Nova data fechada' }).click()
   await page.getByLabel('Data').fill('2036-12-25')
   await page.getByLabel('Nome').fill('Natal')
-  await page.getByRole('button', { name: 'Marcar data' }).click()
+  await page.getByRole('button', { name: 'Adicionar data' }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('sessao')
       .select('status, motivo_cancelamento').eq('id', sessao!.id).single()
     return data
   }).toEqual({ status: 'cancelada', motivo_cancelamento: 'Dia marcado como feriado, Natal' })
+})
+
+test('dia fechado deixa quem tinha lugar com reposição em aberto', async ({ page }) => {
+  const c = await contaDono()
+
+  const { data: sessao } = await admin.from('sessao').insert({
+    conta_id: c.contaId, servico_id: c.servicoId, profissional_id: c.profissionalId,
+    local_id: c.localId, inicio: '2036-12-24T13:00:00Z', duracao_min: 60,
+    capacidade: 4, status: 'prevista', motivo_cancelamento: null,
+  }).select().single()
+
+  const { data: pessoa } = await admin.from('pessoa')
+    .insert({ conta_id: c.contaId, nome: `Bruna ${c.marca}` }).select().single()
+
+  const { data: participacao } = await admin.from('participacao').insert({
+    conta_id: c.contaId, sessao_id: sessao!.id, pessoa_id: pessoa!.id,
+    origem: 'recorrente', status: 'esperada',
+  }).select().single()
+
+  await entrar(page, c.email)
+  await page.goto('/config?s=funcionamento')
+
+  await page.getByRole('button', { name: 'Nova data fechada' }).click()
+  await page.getByLabel('Data').fill('2036-12-24')
+  await page.getByLabel('Nome').fill('Véspera')
+  await page.getByRole('button', { name: 'Adicionar data' }).click()
+
+  // quem perdeu o dia foi o negócio que fechou, não quem faltou: a
+  // participação vira `cancelada`, que é o que abre crédito de reposição
+  await expect.poll(async () => {
+    const { data } = await admin.from('participacao')
+      .select('status').eq('id', participacao!.id).single()
+    return data?.status
+  }).toBe('cancelada')
+
+  await page.goto('/pendencias')
+  await expect(page.getByText(`Bruna ${c.marca}`)).toBeVisible()
+  await expect(page.getByText('o negócio não abriu').first()).toBeVisible()
 })
 
 test('"só marcar como fechado" não cancela nada', async ({ page }) => {
@@ -186,10 +304,10 @@ test('"só marcar como fechado" não cancela nada', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/config?s=funcionamento')
 
-  await page.getByRole('button', { name: 'Nova data' }).click()
+  await page.getByRole('button', { name: 'Nova data fechada' }).click()
   await page.getByLabel('Data').fill('2036-11-15')
-  await page.getByLabel('O que fazer com os horários do dia').selectOption('so_marcar')
-  await page.getByRole('button', { name: 'Marcar data' }).click()
+  await page.getByRole('button', { name: 'Só marcar como fechado' }).click()
+  await page.getByRole('button', { name: 'Adicionar data' }).click()
 
   // a etiqueta mostra dia/mês, como no protótipo, o ano só apareceria para
   // ocupar espaço numa lista que é sempre de datas próximas

@@ -37,3 +37,14 @@ antes de decidir: `Design system Verandi-att/Verandi.dc.html`, tela `sessao`, e 
 captura de `scripts/tira-prototipo.mjs`.
 
 Arquivos: `src/app/(app)/sessao/[id]/`, `src/components/sessao/`.
+
+**Feito.** A barra ganhou `md:hidden`, em `src/components/sessao/chamada.tsx`.
+
+O que a investigação achou: **o protótipo desenha as duas ao mesmo tempo**
+(`Verandi.dc.html`, tela `sessao`, cabeçalho na linha 497 e barra na 604), então
+a tela estava fiel e o defeito é do protótipo. Fica sendo a **quarta divergência
+de propósito** do produto, e o motivo é o que o Gabriel apontou: em 1440 as duas
+aparecem na mesma dobra.
+
+Medido, não achado: em 1440×1000 a tela tem **um** "Marcar todos presentes"; em
+420×900, **dois**, e o de baixo é o único alcançável depois que a lista rola.

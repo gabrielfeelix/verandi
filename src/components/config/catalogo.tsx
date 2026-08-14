@@ -3,8 +3,8 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao, BotaoIcone } from '@/components/ui/botao'
-import { ModalFormulario } from '@/components/ui/modal'
-import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
+import { Campo, ListaImpacto, Nota, entrada } from '@/components/ui/pecas'
 import {
   BotaoLinha, Dado, Estado, LinhaConfig, PainelConfig, Recolhivel,
 } from './casca'
@@ -179,8 +179,17 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
   )
 }
 
-export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
+export function SecaoLocais({
+  locais, rotuloSeries, rotuloSessoes,
+}: {
+  locais: LocalLinha[]
+  /** plurais do vocabulário da conta, para a lista de impacto da confirmação */
+  rotuloSeries: string
+  rotuloSessoes: string
+}) {
   const [edicao, setEdicao] = useState<LocalLinha | 'novo' | null>(null)
+  /** o local que está prestes a ser desativado; `null` sem confirmação aberta */
+  const [aDesativar, setADesativar] = useState<LocalLinha | null>(null)
   const { pendente, erro, setErro, salvar } = useSalvar()
 
   const ativos = locais.filter((l) => l.ativo)
@@ -234,19 +243,15 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
                 titulo={`Editar ${l.nome}`}
                 onClick={() => setEdicao(l)}
               />
+              {/* desativar não acontece no clique: o protótipo desenha modal
+                  destrutivo aqui, e é onde a pessoa fica sabendo quantas
+                  séries e sessões dependem do que ela está tirando */}
               <BotaoIcone
                 icone="fechar"
                 titulo={`Desativar ${l.nome}`}
                 perigo
                 disabled={pendente}
-                onClick={() => salvar(
-                  async () => {
-                    await salvarLocal({
-                      id: l.id, nome: l.nome, capacidade: l.capacidade, ativo: false,
-                    })
-                  },
-                  'Local desativado',
-                )}
+                onClick={() => setADesativar(l)}
               />
             </span>
           ))}
@@ -284,6 +289,53 @@ export function SecaoLocais({ locais }: { locais: LocalLinha[] }) {
 
       {erro && !edicao ? (
         <div className="px-5 pb-4"><Nota tom="alerta">{erro}</Nota></div>
+      ) : null}
+
+      {aDesativar ? (
+        <Modal
+          aberto
+          perigo
+          largura="lista"
+          titulo={`Desativar ${aDesativar.nome}?`}
+          sub="O local sai das escolhas novas e continua no que já aconteceu."
+          primario="Desativar local"
+          pendente={pendente}
+          aoFechar={() => setADesativar(null)}
+          aoConfirmar={() => salvar(
+            async () => {
+              await salvarLocal({
+                id: aDesativar.id,
+                nome: aDesativar.nome,
+                capacidade: aDesativar.capacidade,
+                ativo: false,
+              })
+            },
+            'Local desativado',
+            () => setADesativar(null),
+          )}
+        >
+          <ListaImpacto
+            rotulo="Hoje ele é usado em"
+            /* o qualificador fica na coluna da direita, nunca colado na
+               palavra do cliente: "locais ativos" vira "salas ativos" */
+            itens={[
+              {
+                titulo: `${rotuloSeries} na grade`,
+                meta: `${aDesativar.emUso}, seguem apontando para cá`,
+              },
+              {
+                titulo: `${rotuloSessoes} que já estão na agenda`,
+                meta: `${aDesativar.sessoesFuturas}, seguem apontando para cá`,
+              },
+            ]}
+          />
+          <Nota tom="alerta">
+            Nada é apagado e nada muda de lugar: o que já existe continua
+            apontando para este local, e ele para de aparecer nas escolhas
+            novas. Para tirar de vez, troque o local em cada um antes.
+          </Nota>
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </Modal>
       ) : null}
 
       {edicao ? (

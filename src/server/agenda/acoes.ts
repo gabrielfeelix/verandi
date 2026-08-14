@@ -186,21 +186,46 @@ export async function removerParticipacao(participacaoId: string): Promise<void>
 /**
  * A observação de uma participação: "chegou atrasada", "lesão no ombro".
  *
- * Hoje ela é visível para todo mundo que abre a sessão. Está anotado como
- * dívida no `ESTADO.md`: no primeiro cliente de saúde isso vira pré-requisito,
- * porque "lesão no ombro" é dado de saúde e recepção ver tudo é problema de
- * LGPD, não de gosto.
+ * As duas frases moram na mesma caixa e são coisas diferentes: a segunda é dado
+ * de saúde, e recepção ler tudo é problema jurídico antes de ser de gosto. Por
+ * isso quem escreve escolhe quem lê, **na hora de escrever**, que é o momento
+ * em que a pessoa sabe o que está escrevendo.
+ *
+ * O padrão é `profissionais`, e fecha por decisão: quem anota entre uma turma e
+ * outra não vai lembrar de restringir depois, e o erro de deixar aberto é o que
+ * não tem volta.
  */
 export async function salvarObservacao(
   participacaoId: string,
   observacao: string,
+  visivel: 'profissionais' | 'todos' = 'profissionais',
 ): Promise<void> {
-  const { db, carimbo } = await quemRegistra()
+  const { db, conta, carimbo } = await quemRegistra()
   const texto = observacao.trim()
+
+  /*
+   * A recepção não sobrescreve o que não pode ler.
+   *
+   * A tela já esconde o texto restrito, então o campo chegaria vazio e a
+   * gravação apagaria a anotação do profissional sem ninguém perceber. Esconder
+   * na tela e não barrar aqui seria proteger a leitura e perder o dado.
+   */
+  if (conta.papel === 'recepcao') {
+    const atual = await db.from('participacao')
+      .select('observacao, observacao_visivel').eq('id', participacaoId)
+      .maybeSingle<{ observacao: string | null; observacao_visivel: string }>()
+    if (atual.data?.observacao && atual.data.observacao_visivel === 'profissionais') {
+      throw new Error('esta observação é de quem atende, e não dá para reescrever daqui')
+    }
+  }
 
   const { data, error } = await db
     .from('participacao')
-    .update({ observacao: texto || null, ...carimbo })
+    .update({
+      observacao: texto || null,
+      observacao_visivel: visivel,
+      ...carimbo,
+    })
     .eq('id', participacaoId)
     .select('sessao_id')
     .maybeSingle<{ sessao_id: string }>()

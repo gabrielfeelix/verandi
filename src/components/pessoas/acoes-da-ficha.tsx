@@ -3,8 +3,8 @@
 import { useState, useTransition } from 'react'
 import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
-import { Campo, entrada } from '@/components/ui/pecas'
-import { editarPessoa } from '@/server/pessoas/acoes'
+import { Campo, ListaImpacto, entrada } from '@/components/ui/pecas'
+import { anonimizarPessoa, editarPessoa } from '@/server/pessoas/acoes'
 
 /**
  * Marcar inativa: some do padrão das listas e **continua no histórico**.
@@ -50,6 +50,91 @@ export function MarcarInativa({
               'no histórico, e o março dela continua sendo março.'
             : 'Volta para a lista padrão e para as escolhas de horário novo. O histórico já estava lá o tempo todo.'}
         </p>
+      </Modal>
+    </>
+  )
+}
+
+/**
+ * Atender ao pedido de exclusão do titular do dado.
+ *
+ * Fica longe de "Editar" e de "Marcar inativa", no pé da coluna lateral, porque
+ * é a única ação da ficha que não tem volta. Quem procura isto está com um
+ * pedido na mão; quem não está não deve tropeçar nela.
+ *
+ * Só o dono vê. Recepção atende quem liga, mas decidir que um cadastro some é
+ * responsabilidade de quem responde pelo negócio perante o titular.
+ */
+export function AtenderPedidoDeExclusao({
+  pessoaId, nome,
+}: {
+  pessoaId: string
+  nome: string
+}) {
+  const [aberto, setAberto] = useState(false)
+  const [confere, setConfere] = useState('')
+  const [pendente, iniciar] = useTransition()
+
+  // digitar o nome não é cerimônia: é o que separa "cliquei sem ler" de "eu
+  // quis", e aqui não existe desfazer para consertar depois
+  const pode = confere.trim().toLowerCase() === nome.trim().toLowerCase()
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        className="cursor-pointer self-start text-[12px] text-tinta-fraca underline underline-offset-2 hover:text-alerta"
+      >
+        Atender pedido de exclusão
+      </button>
+
+      <Modal
+        aberto={aberto}
+        perigo
+        largura="lista"
+        titulo={`Apagar os dados de ${nome}?`}
+        sub="O pedido do titular, cumprido. Não tem desfazer."
+        primario="Apagar os dados"
+        secundario="Voltar"
+        pendente={pendente || !pode}
+        aoFechar={() => { setAberto(false); setConfere('') }}
+        aoConfirmar={() => {
+          if (!pode) return
+          setAberto(false)
+          setConfere('')
+          iniciar(() => anonimizarPessoa(pessoaId))
+        }}
+      >
+        <ListaImpacto
+          rotulo="O que sai"
+          itens={[
+            { titulo: 'Nome, telefone, e-mail e nascimento', meta: 'apagados' },
+            { titulo: 'Observação da ficha e marcações', meta: 'apagadas' },
+            { titulo: 'Observação escrita nas chamadas', meta: 'apagada' },
+          ]}
+        />
+        <ListaImpacto
+          rotulo="O que fica"
+          itens={[
+            { titulo: 'Presença, falta e reposição', meta: 'sem nome' },
+            { titulo: 'A contagem de cada horário', meta: 'continua batendo' },
+          ]}
+        />
+        <p className="text-[13px] leading-[1.55] text-tinta-media">
+          A linha continua existindo sem nada que identifique alguém, porque
+          apagar de vez levaria junto a presença de todo mundo que estava na
+          mesma aula. Fica registrado quem atendeu ao pedido e quando.
+        </p>
+        <Campo rotulo={`Escreva ${nome} para confirmar`} htmlFor="confere-exclusao">
+          <input
+            id="confere-exclusao"
+            value={confere}
+            onChange={(e) => setConfere(e.target.value)}
+            className={entrada}
+            autoComplete="off"
+          />
+        </Campo>
       </Modal>
     </>
   )

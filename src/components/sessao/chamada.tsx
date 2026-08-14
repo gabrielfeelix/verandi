@@ -245,15 +245,23 @@ export function ResumoChamada() {
 }
 
 /**
- * A barra que não sai da tela.
+ * A barra que não sai da tela, **só em tela estreita**.
  *
  * Numa turma longa, rolar até o fim para saber se a chamada está feita é o tipo
- * de atrito que faz voltar para a planilha.
+ * de atrito que faz voltar para a planilha. Mas o cabeçalho da sessão já traz o
+ * estado e as mesmas duas ações, e em tela larga ele fica visível junto com esta
+ * barra: eram dois "Marcar todos presentes" na mesma dobra, e quem clica em cima,
+ * não vê a lista mudar e clica embaixo não sabe se marcou uma ou duas vezes.
+ *
+ * O protótipo desenha as duas ao mesmo tempo (`Verandi.dc.html`, tela `sessao`),
+ * e aqui a tela diverge dele de propósito, apontado pelo Gabriel em 14/08/2026.
+ * Abaixo de `md` a barra continua, porque aí o cabeçalho sai de vista assim que a
+ * lista rola e ela é a única ação alcançável com o polegar.
  */
 export function BarraChamada({ cancelada }: { cancelada: boolean }) {
   const { registrados, total, podeRegistrar } = useChamada()
   return (
-    <div className="sticky bottom-3.5 z-20 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 shadow-[0_16px_34px_-22px_rgba(20,26,24,.5)]">
+    <div className="sticky bottom-3.5 z-20 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 shadow-[0_16px_34px_-22px_rgba(20,26,24,.5)] md:hidden">
       <div className="flex min-w-0 items-center gap-3">
         <EtiquetaEstado cancelada={cancelada} />
         <span className="text-[12.5px] text-tinta-media">

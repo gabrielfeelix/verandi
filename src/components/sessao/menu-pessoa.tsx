@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ParticipacaoDetalhe, FaltaEmAberto } from '@/server/agenda/consultas'
 import type { OrigemParticipacao } from '@/server/agenda/consultas'
 import { Botao } from '@/components/ui/botao'
-import { entrada } from '@/components/ui/pecas'
+import { Chip, entrada, Rotulo } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
 import {
   apontarReposicao, salvarObservacao, trocarOrigem, removerParticipacao,
@@ -39,6 +39,7 @@ export function MenuPessoa({
 }) {
   const [aberto, setAberto] = useState<Aberto>(null)
   const [texto, setTexto] = useState(participacao.observacao ?? '')
+  const [visivel, setVisivel] = useState(participacao.observacaoVisivel)
   const caixa = useRef<HTMLDivElement>(null)
 
   // clicar fora fecha: menu que só fecha no próprio botão é menu que fica aberto
@@ -77,9 +78,17 @@ export function MenuPessoa({
           >
             Ver ficha completa
           </Link>
-          <ItemMenu onClick={() => setAberto('observacao')}>
-            {participacao.observacao ? 'Editar observação' : 'Escrever observação'}
-          </ItemMenu>
+          {/* restrita e não é para estes olhos: o item some, em vez de abrir
+              uma caixa vazia que apagaria o que o profissional anotou */}
+          {participacao.observacaoRestrita ? (
+            <span className="px-3 py-2.5 text-[13px] text-tinta-fraca">
+              Observação de quem atende
+            </span>
+          ) : (
+            <ItemMenu onClick={() => setAberto('observacao')}>
+              {participacao.observacao ? 'Editar observação' : 'Escrever observação'}
+            </ItemMenu>
+          )}
           <ItemMenu onClick={() => setAberto('reposicao')}>
             {participacao.reposicaoDeId ? 'Trocar a falta reposta' : 'Apontar reposição'}
           </ItemMenu>
@@ -109,9 +118,28 @@ export function MenuPessoa({
             className={`${entrada} w-full py-2`}
             placeholder="chegou atrasada, saiu mais cedo…"
           />
-          <p className="text-[11.5px] text-tinta-media">
-            Fica visível para quem abrir esta {'sessão'}, inclusive a recepção.
-          </p>
+          {/* quem escreve escolhe quem lê, na hora de escrever: é o único
+              momento em que a pessoa sabe se está anotando "chegou atrasada" ou
+              "lesão no ombro". O padrão fecha, e é decisão, não descuido */}
+          <div className="flex flex-col gap-1.5">
+            <Rotulo>Visível para</Rotulo>
+            <div className="flex flex-wrap gap-1.5">
+              <Chip
+                ativo={visivel === 'profissionais'}
+                onClick={() => setVisivel('profissionais')}
+              >
+                Só quem atende
+              </Chip>
+              <Chip ativo={visivel === 'todos'} onClick={() => setVisivel('todos')}>
+                Todo mundo da conta
+              </Chip>
+            </div>
+            <p className="text-[11.5px] text-tinta-media">
+              {visivel === 'profissionais'
+                ? 'A recepção não lê. É onde vai o que é de saúde.'
+                : 'Aparece para quem abrir esta tela, inclusive a recepção.'}
+            </p>
+          </div>
           <div className="flex gap-2">
             <Botao
               miudo
@@ -119,7 +147,7 @@ export function MenuPessoa({
               onClick={() => {
                 fechar()
                 aoAgir(
-                  () => salvarObservacao(participacao.id, texto),
+                  () => salvarObservacao(participacao.id, texto, visivel),
                   'Observação salva',
                 )
               }}

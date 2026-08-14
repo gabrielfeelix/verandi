@@ -232,8 +232,19 @@ export async function salvarFuncionamento(
  *
  * Com `cancelar_avisar`, as sessões **já materializadas** daquele dia são
  * canceladas na hora. Sem isso, marcar o feriado depois que a semana já foi
- * aberta deixaria a aula na grade — e a materialização nunca apaga, então
+ * aberta deixaria a aula na grade, e a materialização nunca apaga, então
  * ninguém corrigiria isso depois.
+ *
+ * **E quem tinha lugar naquele dia sai com reposição em aberto.** Cancelar a
+ * sessão sem tocar em `participacao` deixava quarenta pessoas sem a aula e sem
+ * crédito nenhum: quem perdeu o dia foi o negócio que fechou, não quem faltou.
+ * O status é `cancelada`, que é o que `/pendencias` lê como crédito, e nunca
+ * `falta_avisada` — essa diria que a pessoa avisou, e ainda dependeria de a
+ * conta ter ligado o crédito para falta avisada, que é outra pergunta.
+ *
+ * O nome do valor no banco continua `cancelar_avisar`, de quando o aviso
+ * automático estava previsto para o mesmo passo. O aviso é do Marco 2; a tela
+ * diz isso, em vez de prometer mensagem que ninguém manda.
  */
 export async function salvarDataFechada(e: {
   id?: string
@@ -241,7 +252,7 @@ export async function salvarDataFechada(e: {
   tipo: 'feriado' | 'fechado'
   descricao?: string
   acao: 'cancelar_avisar' | 'so_marcar'
-}): Promise<{ sessoesCanceladas: number }> {
+}): Promise<{ sessoesCanceladas: number; reposicoesAbertas: number }> {
   const conta = await exigirDono()
   const db = await clienteServidor()
 
@@ -259,6 +270,7 @@ export async function salvarDataFechada(e: {
   if (r.error) throw r.error
 
   let sessoesCanceladas = 0
+  let reposicoesAbertas = 0
   if (e.acao === 'cancelar_avisar' && e.data >= hojeEm(conta.fuso)) {
     const de = instante(e.data, '00:00', conta.fuso)
     const ate = instante(e.data, '23:59', conta.fuso)
@@ -275,18 +287,36 @@ export async function salvarDataFechada(e: {
       .returns<{ id: string }[]>()
     if (error) throw error
     sessoesCanceladas = alvo?.length ?? 0
+
+    if (sessoesCanceladas > 0) {
+      // só quem ainda não tinha registro: presença, falta ou licença já
+      // escritas naquele dia são fato, e fato não se reescreve por decreto
+      const { data: soltas, error: erroPart } = await db.from('participacao')
+        .update({ status: 'cancelada' })
+        .eq('conta_id', conta.contaId)
+        .in('sessao_id', alvo!.map((s) => s.id))
+        .in('status', ['esperada', 'confirmada'])
+        .select('id')
+        .returns<{ id: string }[]>()
+      if (erroPart) throw erroPart
+      reposicoesAbertas = soltas?.length ?? 0
+    }
   }
 
   await registrar(db, {
     contaId: conta.contaId, entidade: 'excecao_calendario', entidadeId: r.data.id,
     acao: e.id ? 'editou' : 'criou',
-    detalhe: { data: e.data, tipo: e.tipo, acaoEscolhida: e.acao, sessoesCanceladas },
+    detalhe: {
+      data: e.data, tipo: e.tipo, acaoEscolhida: e.acao,
+      sessoesCanceladas, reposicoesAbertas,
+    },
   })
 
   revalidatePath('/config')
   revalidatePath('/semana')
   revalidatePath('/hoje')
-  return { sessoesCanceladas }
+  revalidatePath('/pendencias')
+  return { sessoesCanceladas, reposicoesAbertas }
 }
 
 export async function removerDataFechada(id: string): Promise<void> {

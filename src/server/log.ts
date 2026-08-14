@@ -3,9 +3,11 @@ import type { Db } from './supabase'
 export type EntidadeConfig =
   | 'serie' | 'servico' | 'profissional' | 'local' | 'vocabulario'
   | 'funcionamento' | 'excecao_calendario' | 'usuario_conta' | 'convite' | 'conta'
+  | 'pessoa'
 
 export type AcaoConfig =
   | 'criou' | 'editou' | 'duplicou' | 'encerrou' | 'desativou' | 'reativou' | 'removeu'
+  | 'anonimizou'
 
 /**
  * Registra uma mudança de configuração.

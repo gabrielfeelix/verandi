@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
+import { registrar } from '../log'
 
 /**
  * Nome é o único campo obrigatório, de propósito.
@@ -63,6 +64,69 @@ export async function editarPessoa(id: string, campos: {
 
   revalidatePath(`/pessoas/${id}`)
   revalidatePath('/pessoas')
+}
+
+/**
+ * O pedido de exclusão do titular do dado, cumprido sem destruir o negócio.
+ *
+ * Quem coletou o nome e o telefone foi o cliente, não a 4YU: ele é o
+ * controlador, nós somos operador, e ele precisa conseguir atender ao pedido
+ * pela tela, sem chamado e sem `psql`.
+ *
+ * **Apagar de verdade não é opção.** `delete` em `pessoa` leva `participacao`
+ * por cascade, e com ela vai a presença de todo mundo naquela turma: a
+ * ocupação de fevereiro passa a mentir, e o registro de operação de terceiros
+ * some junto. O titular tem direito aos dados dele, não ao histórico do
+ * estúdio.
+ *
+ * Então zera-se o que identifica alguém e mantém-se a linha. Depois disto não
+ * há como voltar, e é justamente esse o ponto: dado que se recupera não foi
+ * anonimizado.
+ *
+ * As tags saem junto. "gestante", "pós-operatório" e "idosa" identificam tão
+ * bem quanto o nome, e uma tabela ligada por `pessoa_id` é exatamente onde
+ * ninguém olha quando pensa em dado pessoal.
+ */
+export async function anonimizarPessoa(id: string): Promise<void> {
+  const conta = await exigirConta()
+  if (conta.papel !== 'dono' && conta.papel !== 'suporte') {
+    throw new Error('só o dono da conta atende a pedido de exclusão')
+  }
+  const db = await clienteServidor()
+
+  const { error } = await db.from('pessoa').update({
+    nome: 'Pessoa removida',
+    telefone: null,
+    email: null,
+    identificador_externo: null,
+    nascimento: null,
+    observacao: null,
+    ativo: false,
+    anonimizada_em: new Date().toISOString(),
+  }).eq('id', id).eq('conta_id', conta.contaId)
+  if (error) throw error
+
+  const tags = await db.from('pessoa_tag').delete().eq('pessoa_id', id)
+  if (tags.error) throw tags.error
+
+  // a observação da participação é anotação de terceiro sobre o titular, e vai
+  // junto: "lesão no ombro" continua sendo dado dela depois que o nome saiu
+  const obs = await db.from('participacao')
+    .update({ observacao: null })
+    .eq('pessoa_id', id)
+    .eq('conta_id', conta.contaId)
+    .not('observacao', 'is', null)
+  if (obs.error) throw obs.error
+
+  // o nome não entra no log: seria a cópia do dado que acabou de ser apagado
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'pessoa', entidadeId: id,
+    acao: 'anonimizou',
+  })
+
+  revalidatePath(`/pessoas/${id}`)
+  revalidatePath('/pessoas')
+  revalidatePath('/pendencias')
 }
 
 export async function criarVaga(

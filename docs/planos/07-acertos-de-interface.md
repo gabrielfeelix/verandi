@@ -79,17 +79,57 @@ Com `getComputedStyle` no navegador, com o modal aberto, nos sete casos novos:
 | corpo rola por dentro | sim | sim |
 | página rola atrás | **nunca** | não rola (era: rolava) |
 
-## O que ficou de fora, de propósito
+## O que ficou de fora, e foi feito depois
 
-- **Funcionamento** continua com a faixa embutida por dia. O protótipo usa modal
-  ali, e a troca é do mesmo tipo das outras, mas a seção também tem "nova data
-  fechada", que no protótipo é outro modal com escolha de o que fazer com as
-  sessões do dia. É um acerto com regra de negócio dentro, não só de forma, e
-  entra junto com quem for mexer em exceção de calendário.
-- **Confirmação ao desativar local e profissional.** O protótipo abre modal
-  destrutivo (`removerLocal`, `excluirProfissional`), dizendo quantas séries e
-  sessões dependem do item. Hoje o `×` desativa na hora. É defeito de confirmação,
-  não de vestir, e não estava neste plano.
+Os dois entraram em 14/08, e o primeiro trouxe o defeito que o plano suspeitava.
+
+### Funcionamento, agora um dia por vez — feito
+
+A lista mostra dia, horário e estado, e "Editar" abre modal por dia, como o
+protótipo desenha. "Nova data fechada" também virou modal.
+
+**A regra de negócio que estava escondida ali era um defeito de verdade.**
+Marcar 25/12 com "cancelar e avisar" cancelava as sessões do dia e **não fazia
+mais nada**: quarenta pessoas ficavam sem a aula e sem crédito nenhum. O
+comentário da migration `0037` dizia que aquilo "libera crédito para quem tinha
+vaga fixa", e não liberava, porque `participacao` não era tocada e é ela que
+`/pendencias` lê.
+
+Agora a participação daquele dia vira `cancelada`, que é o status que abre
+crédito. Não vira `falta_avisada`, por duas razões: diria que a pessoa avisou, e
+ainda dependeria de a conta ter ligado o crédito para falta avisada, que é outra
+pergunta. Quem fechou o dia foi o negócio.
+
+Como "o que dá crédito" estava escrito à mão em quatro lugares, virou
+`statusComCredito()` em `core/agenda/ocupacao.ts`, e a view `pessoa_resumo`
+nasceu de novo na `0043` com a mesma conta.
+
+O rótulo "Cancelar e avisar" virou **"Cancelar e liberar reposição"**: o aviso
+automático é do Marco 2, e a tela não promete mensagem que ninguém manda. O
+valor no banco continua `cancelar_avisar`.
+
+### Confirmação ao desativar local e profissional — feito
+
+Modal destrutivo com a contagem, como o protótipo (`removerLocal`,
+`excluirProfissional`). Para isso `listarLocais` e `listarEquipe` passaram a
+contar **séries ativas** (antes contavam todas, inclusive encerradas) e
+**sessões futuras já materializadas**, numa consulta só, contada em memória.
+
+Duas divergências do protótipo, e as duas porque o produto faz outra coisa:
+
+- o título diz **"Desativar"**, não "Remover": nenhum dos dois apaga nada;
+- a lista do profissional diz que o **login continua**, e o protótipo diz "perde
+  acesso na hora". `salvarProfissional` não toca em `usuario_conta`, e acesso se
+  tira em Usuários. A tela diz o que acontece.
+
+### E o que a captura pegou, que nenhum teste pegava
+
+O modal de desativar profissional saiu com **"Turmas ativos"**. A régua do
+artigo vale igual para adjetivo: o gênero é da palavra, e a palavra é do
+cliente. Onde havia qualificador colado, ele foi para a coluna da direita, que
+não precisa concordar com nada, e o rótulo do modal de data fechada deixou de
+nomear a sessão. `docs/VESTIR.md` continua valendo à risca: ler o código não
+substitui abrir a tela.
 
 ## Como conferir, para não repetir o erro que originou o VESTIR.md
 

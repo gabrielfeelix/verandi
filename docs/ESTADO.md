@@ -6,6 +6,12 @@ desatualizado sem causar dano, desde que se saiba disso.
 **Chegando agora?** Leia este inteiro e depois [`HANDOFF.md`](HANDOFF.md), que
 diz o que a última sessão fez e por qual ponta pegar o que falta.
 
+> **ANTES DE QUALQUER MUDANÇA DE BANCO:** leia
+> [BANCO-COMPARTILHADO.md](BANCO-COMPARTILHADO.md). A Verandi divide o projeto
+> Supabase de produção com o AutoFluxos: `app_verandi` é nosso; `public` é dele;
+> Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
+> somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
+
 **Última atualização:** 14/ago/2026 · **A Verandi está no ar em
 `https://verandi.4yu.com.br`, mandando e-mail de verdade, com o acesso inteiro
 resolvido.**
@@ -53,18 +59,62 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
    [`planos/09-defeitos-apontados.md`](planos/09-defeitos-apontados.md) (a barra
    fixa da Sessão repete o que já está no cabeçalho).
 
+## O que aconteceu depois, ainda em 14/ago
+
+9. **A barra fixa da Sessão sai em tela larga** e fica no celular. O protótipo
+   desenha as duas, e aqui a tela diverge dele de propósito. Ver
+   [`planos/09-defeitos-apontados.md`](planos/09-defeitos-apontados.md).
+10. **O que o plano 07 tinha deixado de fora entrou**: Funcionamento virou modal
+    por dia, e a confirmação destrutiva de local e profissional passou a dizer
+    quantas séries e sessões dependem do item. E o que estava escondido ali era
+    um defeito: **feriado com "cancelar e avisar" não dava crédito a ninguém**.
+    Agora dá.
+11. **As duas dívidas de modelo foram decididas pelo Gabriel e implementadas**,
+    migration `0043`: anonimizar preservando a linha, e observação de
+    participação com "visível para". Detalhe na seção abaixo.
+
+## As duas decisões de modelo, e o que ficou no código
+
+**Direito do titular: anonimiza, não apaga.** `delete` em `pessoa` levaria
+`participacao` por cascade e com ela a presença de todo mundo que estava na
+mesma turma; o titular tem direito aos dados dele, não ao registro de operação
+de terceiros. `anonimizarPessoa` zera nome, telefone, e-mail, nascimento,
+observação, marcações e a observação escrita nas chamadas, marca
+`pessoa.anonimizada_em` e registra no `log_configuracao` quem atendeu e quando,
+**sem copiar o nome para o log**. Só dono e suporte veem o botão, e ele exige
+digitar o nome, porque não existe desfazer. Fica no pé da coluna lateral da
+ficha, longe de "Editar".
+
+**Observação de participação: quem escreve escolhe quem lê.** Coluna
+`participacao.observacao_visivel`, com `profissionais` e `todos`, e o **padrão
+fecha**: quem anota entre uma turma e outra não vai lembrar de restringir
+depois, e o erro de deixar aberto é o que não tem volta. A recepção não recebe o
+texto restrito, e o menu dela nem oferece reescrever, senão a próxima gravação
+apagaria a anotação do profissional; a ação no servidor recusa também, porque
+esconder na tela sem barrar ali seria proteger a leitura e perder o dado.
+
+**A separação não é RLS, e isso é decisão.** RLS é por linha; esconder uma
+coluna de um papel seria privilégio de coluna, e privilégio no Postgres é por
+papel do banco. Aqui todo usuário logado é o mesmo `authenticated`, e "recepção"
+é uma linha em `usuario_conta`: não existe política que expresse isso. Quem
+filtra é `src/server`, que é o único caminho até o dado. Vira RLS de verdade no
+dia em que existir view por papel.
+
 ## O próximo passo, em ordem
 
-1. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
-   e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
-   dói no banco de desenvolvimento.
-2. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
+1. **Aplicar a migration `0043` em produção.** Ela está escrita, aplicada no
+   banco local e coberta por teste, e **não foi aplicada em produção de
+   propósito**: em 14/08 o Gabriel estava mexendo no AutoFluxos, que divide o
+   projeto. `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
+2. **As dívidas técnicas**, na seção mais abaixo. A de paginação em
+   `/contas-4yu` já dói no banco de desenvolvimento.
+3. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
    enquanto a sessão é resolvida, e ilustração onde ainda não há dado. É
    acabamento com razão de existir, e a razão está em
    [`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md).
-3. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
+4. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
    Nada disso exige tabela nova.
-4. **Cadastre-se**, por último, por decisão do Gabriel: a análise está pronta em
+5. **Cadastre-se**, por último, por decisão do Gabriel: a análise está pronta em
    [`planos/06-cadastro-e-organizacoes.md`](planos/06-cadastro-e-organizacoes.md),
    e a decisão de quem se cadastra sozinho ainda não foi tomada.
 
@@ -118,7 +168,7 @@ mas sem o e-mail preenchido.
 |---|---|
 | `npm run build` | limpo |
 | `npm test` | **272 passaram** |
-| `npm run test:e2e` | **106 passaram** |
+| `npm run test:e2e` | **114 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
 | tabelas em `app_verandi` · em `public` | **22 · 0** (as 12 do AutoFluxos seguem intactas) |
 | RLS em produção | 20 de 20; `anon` não alcança nada |
@@ -133,7 +183,7 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco:** treze migrations (`0030_vr_` a `0042_vr_`), RLS com política em todas as
+**Banco:** catorze migrations (`0030_vr_` a `0043_vr_`), RLS com política em todas as
 tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
@@ -144,6 +194,7 @@ pessoa · pessoa_tag · profissional · profissional_servico · servico · local
 serie · vaga · sessao · participacao · excecao_calendario
 funcionamento · pendencia_dispensada · acesso_suporte · log_configuracao
 onboarding (progresso do tutorial, por pessoa e por conta)
+pessoa.anonimizada_em · participacao.observacao_visivel (0043)
 view pessoa_resumo · função usuarios_da_conta (security definer)
 balde privado foto-profissional
 ```
@@ -166,12 +217,14 @@ especificação de interface: onde a tela divergir dele, é a tela que muda. O
 método de comparação está em [`VESTIR.md`](VESTIR.md), e as duas capturas saem
 de `scripts/tira-prototipo.mjs` e `scripts/tira-produto.mjs`.
 
-**Três divergências do protótipo, de propósito**, cada uma escrita no commit que
-a criou: alvo de toque de 44px onde o protótipo desenha 34px (a Sessão é usada
-em pé); etiqueta de ocupação só fica laranja **acima** da capacidade, como o
-protótipo renderiza, turma cheia é estado normal do dia; e a busca global do
+**Quatro divergências do protótipo, de propósito**, cada uma escrita no commit
+que a criou: alvo de toque de 44px onde o protótipo desenha 34px (a Sessão é
+usada em pé); etiqueta de ocupação só fica laranja **acima** da capacidade, como
+o protótipo renderiza, turma cheia é estado normal do dia; a busca global do
 cabeçalho fica reservada e desabilitada, porque a funcionalidade não existe e
-inventá-la seria pior do que deixá-la faltando.
+inventá-la seria pior do que deixá-la faltando; e a **barra fixa da Sessão só
+existe em tela estreita**, enquanto o protótipo a desenha junto do cabeçalho:
+em 1440 as duas caem na mesma dobra e viram dois "Marcar todos presentes".
 
 **Telas:**
 
@@ -306,10 +359,13 @@ plano gratuito, e restaurar é do banco inteiro, acidente num produto leva o
 outro junto. É aceitável enquanto não há cliente pagante e deixa de ser no dia
 que houver.
 
-A saída já está desenhada e é barata, porque schema separa de verdade: restaura
-o dump num projeto novo, `drop schema app_autofluxos cascade` lá,
-`drop schema app_verandi cascade` no velho. Sobra apagar de `auth.users` quem
-não tem vínculo, os dois projetos herdam todos os usuários.
+A saída da Verandi já está desenhada: restaurar o dump num projeto novo, manter
+`app_verandi` nele e derrubar `app_verandi` no projeto antigo. O caminho do
+AutoFluxos ainda exige uma etapa a mais, porque ele mora em `public` e não existe
+`app_autofluxos`: antes de separá-lo, será preciso migrar seus objetos para um
+schema próprio ou extrair explicitamente o conjunto de objetos de `public`.
+Nos dois caminhos sobra tratar `auth.users` e Storage, que são globais e não
+acompanham um `drop schema`.
 
 **Já está aplicado em produção** (projeto `autofluxos`, ref `xxxynoshwirupkdzwxbj`):
 21 objetos em `app_verandi`, 4 funções, 39 políticas, e as 12 tabelas do
@@ -320,13 +376,18 @@ reclamar das versões do outro produto. O controle mora em
 `app_verandi.migrations_aplicadas`. Desfazer tudo:
 `supabase/desfazer-verandi.sql`.
 
-Falta um passo que não tem API e **só pode ser dado depois** que o schema
-existe: painel → Integrations → Data API → Settings → **Exposed schemas** →
-`app_verandi`. Marcar antes derruba o cache do PostgREST, que é o mesmo dos dois
-produtos, e tira a API do AutoFluxos do ar.
+`app_verandi` já precisa estar em painel → Integrations → Data API → Settings →
+**Exposed schemas** para o site em produção funcionar. Não remova nem altere
+essa lista sem conferir os dois produtos: o cache do PostgREST é compartilhado,
+e uma mudança errada pode tirar Verandi e AutoFluxos do ar ao mesmo tempo.
 
 ## Dívidas técnicas anotadas
 
+- **O aplicador de produção confunde qualquer falha de leitura com banco
+  virgem.** `jaAplicadas()` captura token inválido, permissão, rede e tabela
+  inexistente do mesmo jeito. Antes da próxima migration, diferenciar o caso de
+  tabela ausente e parar em qualquer outro erro; nunca tentar reaplicar tudo
+  porque a consulta de controle falhou.
 - **Gerar os tipos do banco** (`supabase gen types typescript --local`) para
   tirar os `.returns<T[]>()` e os `as unknown as` espalhados.
 - **`/contas-4yu` lista todas as contas sem paginação nem busca.** Com dezenas
@@ -339,14 +400,13 @@ produtos, e tira a API do AutoFluxos do ar.
 - **Contraste de `#8B9691` sobre branco é 2,9:1**, abaixo do mínimo. Restrito a
   texto de 14px ou maior; ao vestir as telas do Plano 02, parte disso vira
   `#5D6B66`.
-- **Direito do titular do dado (LGPD).** Guardamos nome, telefone e observação de
-  gente que nunca consentiu conosco, quem coleta é o cliente. `delete` em
-  `pessoa` leva `participacao` por cascade e apagaria o histórico do negócio;
-  provavelmente é anonimizar preservando a linha. Decidir antes do primeiro
-  pedido.
-- **Observação de participação não separa quem enxerga.** Vira pré-requisito no
-  primeiro cliente de saúde: "lesão no ombro" é dado de saúde, e recepção ver
-  tudo é problema de LGPD, não de gosto.
+- **A régua do artigo ainda não varreu o produto inteiro.** O onboarding tem
+  teste; o resto não. Já apareceu "Turmas ativos" num modal novo, e "`Vagas`
+  ativas" continua na ficha da pessoa. Vale igual para adjetivo: o gênero é da
+  palavra e a palavra é do cliente.
+- **`pessoa.observacao`, a faixa "Atenção na aula", continua visível para todo
+  mundo.** A observação de *participação* já separa quem enxerga; a da ficha
+  não, e é onde mora o mesmo tipo de frase.
 
 ---
 

@@ -98,7 +98,7 @@ describe('consultas de agenda', () => {
       origem: 'encaixe',
     })
 
-    const d = await sessaoDetalhe(db, segunda.id)
+    const d = await sessaoDetalhe(db, segunda.id, 'dono')
     expect(d!.participacoes).toHaveLength(2)
 
     // recorrente em cima, encaixe embaixo — a leitura de relance depende disso
@@ -109,6 +109,6 @@ describe('consultas de agenda', () => {
   })
 
   it('devolve nulo para sessão que não existe', async () => {
-    expect(await sessaoDetalhe(db, '00000000-0000-0000-0000-000000000000')).toBeNull()
+    expect(await sessaoDetalhe(db, '00000000-0000-0000-0000-000000000000', 'dono')).toBeNull()
   })
 })

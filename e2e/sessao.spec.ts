@@ -165,3 +165,71 @@ test('a tela usa o rótulo da conta, não a palavra do código', async ({ page }
   ).toBeVisible()
   await expect(page.getByRole('list', { name: 'Alunos' })).toBeVisible()
 })
+
+test('observação restrita não chega à recepção, e ela não a sobrescreve', async ({ page, browser }) => {
+  const c = await cenario()
+  const recepcao = await usuarioDe(c.contaId, 'recepcao', `${c.marca}-rec`)
+
+  // quem atende escreve, e escolhe quem lê
+  await entrar(page, c.email)
+  await page.goto(`/sessao/${c.sessaoId}`)
+  await page.getByRole('button', { name: 'Mais ações' }).first().click()
+  await page.getByRole('button', { name: 'Escrever observação' }).click()
+  await page.getByRole('textbox').fill('lesão no ombro esquerdo')
+  await page.getByRole('button', { name: 'Só quem atende' }).click()
+  await page.getByRole('button', { name: 'Salvar' }).click()
+
+  await expect.poll(async () => {
+    const { data } = await admin.from('participacao')
+      .select('observacao, observacao_visivel')
+      .eq('sessao_id', c.sessaoId).not('observacao', 'is', null).maybeSingle()
+    return data
+  }).toEqual({
+    observacao: 'lesão no ombro esquerdo', observacao_visivel: 'profissionais',
+  })
+
+  // o profissional lê o que escreveu
+  await page.reload()
+  await expect(page.getByText('lesão no ombro esquerdo')).toBeVisible()
+
+  // a recepção abre a mesma sessão e não encontra o texto em lugar nenhum
+  const outra = await browser.newContext()
+  const pagRec = await outra.newPage()
+  await entrar(pagRec, recepcao.email)
+  await pagRec.goto(`/sessao/${c.sessaoId}`)
+  await expect(pagRec.getByText('Helena Moraes')).toBeVisible()
+  await expect(pagRec.getByText('lesão no ombro esquerdo')).toHaveCount(0)
+
+  // e o menu não oferece reescrever o que ela não pode ler
+  await pagRec.getByRole('button', { name: 'Mais ações' }).first().click()
+  await expect(pagRec.getByText('Observação de quem atende')).toBeVisible()
+  await expect(pagRec.getByRole('button', { name: /observação/ })).toHaveCount(0)
+  await outra.close()
+})
+
+test('observação para todos chega à recepção', async ({ page, browser }) => {
+  const c = await cenario()
+  const recepcao = await usuarioDe(c.contaId, 'recepcao', `${c.marca}-rec2`)
+
+  await entrar(page, c.email)
+  await page.goto(`/sessao/${c.sessaoId}`)
+  await page.getByRole('button', { name: 'Mais ações' }).first().click()
+  await page.getByRole('button', { name: 'Escrever observação' }).click()
+  await page.getByRole('textbox').fill('chegou 10 min atrasada, avisou antes')
+  await page.getByRole('button', { name: 'Todo mundo da conta' }).click()
+  await page.getByRole('button', { name: 'Salvar' }).click()
+
+  await expect.poll(async () => {
+    const { data } = await admin.from('participacao')
+      .select('observacao_visivel')
+      .eq('sessao_id', c.sessaoId).not('observacao', 'is', null).maybeSingle()
+    return data?.observacao_visivel
+  }).toBe('todos')
+
+  const outra = await browser.newContext()
+  const pagRec = await outra.newPage()
+  await entrar(pagRec, recepcao.email)
+  await pagRec.goto(`/sessao/${c.sessaoId}`)
+  await expect(pagRec.getByText('chegou 10 min atrasada, avisou antes')).toBeVisible()
+  await outra.close()
+})

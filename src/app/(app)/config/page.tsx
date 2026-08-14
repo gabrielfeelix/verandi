@@ -124,11 +124,17 @@ export default async function Config({
               .map((x) => ({ id: x.id, nome: x.nome }))}
             rotuloProfissional={rotulos.profissional.singular}
             rotuloPlural={rotulos.profissional.plural}
+            rotuloSeries={rotulos.serie.plural}
+            rotuloSessoes={rotulos.sessao.plural}
           />
         ) : null}
 
         {secao === 'locais' ? (
-          <SecaoLocais locais={await listarLocais(db, conta.contaId)} />
+          <SecaoLocais
+            locais={await listarLocais(db, conta.contaId)}
+            rotuloSeries={rotulos.serie.plural}
+            rotuloSessoes={rotulos.sessao.plural}
+          />
         ) : null}
 
         {secao === 'padroes' ? (

@@ -1,7 +1,7 @@
 import type { Db } from '../supabase'
 import { hojeEm, instante, localDe } from '../agenda/fuso'
 import { estadoDaChamada } from '@/core/agenda/chamada'
-import type { StatusParticipacao } from '@/core/agenda/ocupacao'
+import { statusComCredito, type StatusParticipacao } from '@/core/agenda/ocupacao'
 
 /**
  * O inbox de quem opera: o que exige ação humana hoje.
@@ -35,6 +35,20 @@ export type GrupoPendencia = {
 }
 
 const DIA = 864e5
+
+/**
+ * Por que esta pessoa tem crédito, na linha da pendência.
+ *
+ * Sem vocabulário da conta de propósito: a frase precisa caber em "faltou em
+ * 12/08", e qualquer artigo colado numa palavra do cliente vira "a
+ * atendimento". Quem quiser o nome do horário abre a ficha, que está a um
+ * clique.
+ */
+const MOTIVO_DO_CREDITO: Partial<Record<StatusParticipacao, string>> = {
+  falta: 'faltou',
+  falta_avisada: 'avisou que não vinha',
+  cancelada: 'ficou sem o horário, o negócio não abriu',
+}
 
 function diasDesde(iso: string): number {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / DIA))
@@ -82,7 +96,7 @@ export async function listarPendencias(
     {
       tipo: 'reposicao_aberta',
       titulo: 'Reposições em aberto',
-      sub: 'faltas com crédito não usado',
+      sub: 'crédito de falta ou de dia fechado que ninguém usou',
       itens: reposicoes.filter(vale),
     },
     {
@@ -155,21 +169,23 @@ async function chamadasNaoFeitas(
  * O prazo é o que faz esta lista esvaziar. Sem ele, crédito de dois anos atrás
  * continuaria pedindo ação para sempre — e lista que nunca zera vira ruído, que
  * é quando a pessoa para de abrir a tela.
+ *
+ * `cancelada` entra **sempre**, e não depende do `credito_falta_avisada` da
+ * conta: essa chave responde "falta avisada dá direito a repor?", que é uma
+ * pergunta sobre quem faltou. Participação cancelada é o negócio que fechou o
+ * dia, ou quem opera tirando a pessoa daquele horário, e aí não há o que
+ * decidir, o lugar era dela.
  */
 async function reposicoesAbertas(
   db: Db, contaId: string, prazoDias: number, creditoAvisada: boolean,
 ): Promise<Pendencia[]> {
-  const statusComCredito: StatusParticipacao[] = creditoAvisada
-    ? ['falta', 'falta_avisada']
-    : ['falta']
-
   const limite = new Date(Date.now() - prazoDias * DIA).toISOString()
 
   const { data, error } = await db
     .from('participacao')
     .select('id, status, pessoa:pessoa_id(id, nome), sessao:sessao_id(inicio, servico:servico_id(nome))')
     .eq('conta_id', contaId)
-    .in('status', statusComCredito)
+    .in('status', statusComCredito(creditoAvisada))
     .returns<{
       id: string
       status: StatusParticipacao
@@ -196,7 +212,7 @@ async function reposicoesAbertas(
       tipo: 'reposicao_aberta' as const,
       referenciaId: p.id,
       titulo: p.pessoa?.nome ?? 'Sem nome',
-      detalhe: `${p.status === 'falta' ? 'faltou' : 'avisou que não vinha'} em ${
+      detalhe: `${MOTIVO_DO_CREDITO[p.status] ?? 'ficou sem o horário'} em ${
         p.sessao!.inicio.slice(0, 10)} · ${p.sessao!.servico?.nome ?? ''}`,
       diasEmAberto: diasDesde(p.sessao!.inicio),
       href: p.pessoa ? `/pessoas/${p.pessoa.id}` : '/pessoas',

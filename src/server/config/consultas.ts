@@ -32,6 +32,8 @@ export type LocalLinha = {
   capacidade: number | null
   ativo: boolean
   emUso: number
+  /** quantas sessões futuras já materializadas dependem dele */
+  sessoesFuturas: number
 }
 
 export type DiaFuncionamento = {
@@ -107,15 +109,17 @@ export async function listarServicos(db: Db, contaId: string): Promise<ServicoLi
 }
 
 export async function listarLocais(db: Db, contaId: string): Promise<LocalLinha[]> {
-  const { data, error } = await db
-    .from('local')
-    .select('id, nome, capacidade, ativo, serie(id)')
-    .eq('conta_id', contaId)
-    .order('nome')
-    .returns<{
-      id: string; nome: string; capacidade: number | null
-      ativo: boolean; serie: { id: string }[]
-    }[]>()
+  const [{ data, error }, futuras] = await Promise.all([
+    db.from('local')
+      .select('id, nome, capacidade, ativo, serie(id, ativo)')
+      .eq('conta_id', contaId)
+      .order('nome')
+      .returns<{
+        id: string; nome: string; capacidade: number | null
+        ativo: boolean; serie: { id: string; ativo: boolean }[]
+      }[]>(),
+    sessoesFuturasPor(db, contaId, 'local_id'),
+  ])
 
   if (error) throw error
 
@@ -124,8 +128,40 @@ export async function listarLocais(db: Db, contaId: string): Promise<LocalLinha[
     nome: l.nome,
     capacidade: l.capacidade,
     ativo: l.ativo,
-    emUso: l.serie.length,
+    emUso: l.serie.filter((s) => s.ativo).length,
+    sessoesFuturas: futuras.get(l.id) ?? 0,
   }))
+}
+
+/**
+ * Quantas sessões futuras dependem de cada local ou de cada profissional.
+ *
+ * É o número que falta para a confirmação de desativar dizer o tamanho do
+ * estrago: "38 horários fixos" não conta o que já está marcado na agenda das
+ * próximas semanas, e é justamente isso que a recepção vai ter que remarcar.
+ *
+ * Uma consulta só, contada aqui, em vez de uma por item: são três ou quatro
+ * locais, e `group by` pelo PostgREST custaria uma view para o mesmo resultado.
+ * Só o que já foi materializado entra, que é o que existe de fato como sessão.
+ */
+export async function sessoesFuturasPor(
+  db: Db, contaId: string, campo: 'local_id' | 'profissional_id',
+): Promise<Map<string, number>> {
+  const { data, error } = await db
+    .from('sessao')
+    .select(campo)
+    .eq('conta_id', contaId)
+    .eq('status', 'prevista')
+    .gte('inicio', new Date().toISOString())
+    .returns<Record<string, string | null>[]>()
+  if (error) throw error
+
+  const conta = new Map<string, number>()
+  for (const linha of data ?? []) {
+    const id = linha[campo]
+    if (id) conta.set(id, (conta.get(id) ?? 0) + 1)
+  }
+  return conta
 }
 
 /**

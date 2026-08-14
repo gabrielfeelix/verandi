@@ -170,6 +170,35 @@ export function Campo({
 export const entrada = 'campo'
 
 /**
+ * A lista de impacto do modal destrutivo: o que depende do que vai sair.
+ *
+ * É a diferença entre "Desativar Sala 1?" e "Desativar Sala 1? 38 horários
+ * fixos e 112 sessões futuras estão nela". Confirmação sem número é
+ * confirmação às cegas, e quem clica em cima acaba clicando em tudo.
+ */
+export function ListaImpacto({
+  rotulo, itens,
+}: {
+  rotulo?: string
+  itens: Array<{ titulo: string; meta: string }>
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      {rotulo ? <Rotulo>{rotulo}</Rotulo> : null}
+      {itens.map((i) => (
+        <div
+          key={i.titulo}
+          className="flex items-center gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-2.5"
+        >
+          <span className="min-w-0 flex-1 text-[13.5px]">{i.titulo}</span>
+          <span className="font-mono text-[11.5px] text-tinta-media">{i.meta}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
  * Nota que explica a **consequência**, não a mecânica.
  *
  * "As sessões que já aconteceram continuam no histórico" — não "vigência recebe

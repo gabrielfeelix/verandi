@@ -6,7 +6,7 @@ import { fichaDaPessoa, type Ficha } from '@/server/pessoas/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { EditarPessoa } from '@/components/pessoas/editar-pessoa'
 import {
-  CopiarTelefone, MarcarInativa, RegistrarRenovacao,
+  AtenderPedidoDeExclusao, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
 } from '@/components/pessoas/acoes-da-ficha'
 import { Vagas } from '@/components/pessoas/vagas'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
@@ -596,6 +596,23 @@ export default async function Pessoa({
               ))}
             </dl>
           </section>
+
+          {/*
+            No pé, e só para quem responde pelo negócio: é a única ação da ficha
+            que não tem volta, e ninguém deve tropeçar nela procurando outra
+            coisa. Já anonimizada, o lugar do botão vira o registro do que
+            aconteceu.
+          */}
+          {p.anonimizadaEm ? (
+            <p className="rounded-media bg-neutro-fundo px-3.5 py-3 text-[12.5px] leading-[1.55] text-tinta-media">
+              Os dados desta pessoa foram apagados a pedido dela, em{' '}
+              {curta(p.anonimizadaEm.slice(0, 10))}. O que ficou é o histórico
+              de presença, sem nada que identifique alguém, e não dá para
+              desfazer.
+            </p>
+          ) : conta.papel === 'dono' || conta.papel === 'suporte' ? (
+            <AtenderPedidoDeExclusao pessoaId={p.id} nome={p.nome} />
+          ) : null}
         </aside>
       </div>
     </div>

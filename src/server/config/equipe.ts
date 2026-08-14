@@ -1,4 +1,5 @@
 import type { Db } from '../supabase'
+import { sessoesFuturasPor } from './consultas'
 
 export const BALDE_FOTO = 'foto-profissional'
 
@@ -15,6 +16,8 @@ export type ProfissionalLinha = {
   fotoUrl: string | null
   servicoIds: string[]
   emUso: number
+  /** quantas sessões futuras já materializadas estão com o nome dele */
+  sessoesFuturas: number
 }
 
 type Linha = {
@@ -27,7 +30,7 @@ type Linha = {
   usuario_id: string | null
   foto_path: string | null
   profissional_servico: { servico_id: string }[]
-  serie: { id: string }[]
+  serie: { id: string; ativo: boolean }[]
 }
 
 /**
@@ -38,13 +41,15 @@ type Linha = {
  * tela travando por um segundo.
  */
 export async function listarEquipe(db: Db, contaId: string): Promise<ProfissionalLinha[]> {
-  const { data, error } = await db
-    .from('profissional')
-    .select(`id, nome, email, telefone, cor, ativo, usuario_id, foto_path,
-             profissional_servico(servico_id), serie(id)`)
-    .eq('conta_id', contaId)
-    .order('nome')
-    .returns<Linha[]>()
+  const [{ data, error }, futuras] = await Promise.all([
+    db.from('profissional')
+      .select(`id, nome, email, telefone, cor, ativo, usuario_id, foto_path,
+               profissional_servico(servico_id), serie(id, ativo)`)
+      .eq('conta_id', contaId)
+      .order('nome')
+      .returns<Linha[]>(),
+    sessoesFuturasPor(db, contaId, 'profissional_id'),
+  ])
 
   if (error) throw error
   const linhas = data ?? []
@@ -71,6 +76,7 @@ export async function listarEquipe(db: Db, contaId: string): Promise<Profissiona
     fotoPath: l.foto_path,
     fotoUrl: l.foto_path ? (assinadas.get(l.foto_path) ?? null) : null,
     servicoIds: l.profissional_servico.map((s) => s.servico_id),
-    emUso: l.serie.length,
+    emUso: l.serie.filter((s) => s.ativo).length,
+    sessoesFuturas: futuras.get(l.id) ?? 0,
   }))
 }

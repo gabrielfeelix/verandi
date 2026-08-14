@@ -1,5 +1,9 @@
 import type { Db } from '../supabase'
 import { localDe } from '../agenda/fuso'
+import { statusComCredito } from '@/core/agenda/ocupacao'
+
+/** os status que deixam a pessoa devendo uma reposição, ver `statusComCredito` */
+const COM_CREDITO = new Set<string>(statusComCredito(true))
 
 /** Mesma normalização que a coluna gerada `pessoa.nome_busca` faz no banco. */
 export function semAcento(t: string): string {
@@ -289,6 +293,14 @@ export type Ficha = {
     email: string | null
     nascimento: string | null
     observacao: string | null
+    /**
+     * quando o titular pediu a exclusão e os dados dela foram zerados.
+     *
+     * A linha continua para o histórico de participação não abrir buraco, e a
+     * ficha precisa dizer isso: sem a data, uma pessoa anonimizada parece um
+     * cadastro mal preenchido, e alguém "conserta" digitando o nome de volta.
+     */
+    anonimizadaEm: string | null
     /** desde quando existe: é o denominador de "veio 92% das vezes" */
     criadoEm: string
   }
@@ -306,7 +318,8 @@ export async function fichaDaPessoa(
     .from('pessoa_resumo').select('*')
     .eq('id', pessoaId).eq('conta_id', contaId)
     .maybeSingle<LinhaResumo & { email: string | null; nascimento: string | null;
-                                 observacao: string | null; criado_em: string }>()
+                                 observacao: string | null; criado_em: string
+                                 anonimizada_em: string | null }>()
   if (!p) return null
 
   const { data: contaRow } = await db
@@ -373,7 +386,8 @@ export async function fichaDaPessoa(
 
   return {
     pessoa: { ...paraLinha(p), email: p.email, nascimento: p.nascimento,
-              observacao: p.observacao, criadoEm: p.criado_em },
+              observacao: p.observacao, criadoEm: p.criado_em,
+              anonimizadaEm: p.anonimizada_em },
     tags: (tags ?? []).map((t) => t.tag),
     vagas: (vagas ?? []).filter((v) => v.serie !== null).map((v) => ({
       id: v.id,
@@ -388,8 +402,10 @@ export async function fichaDaPessoa(
     proximas: futuras.slice().reverse(),
     historico: todas.filter(
       (x) => (x as ParticipacaoHistorico & { _inicio: string })._inicio < agora),
-    // o `REP 05/6` da planilha, agora consultável
+    // o `REP 05/6` da planilha, agora consultável. A lista mais larga, como no
+    // menu de apontar reposição: Padrões decide o que vira cobrança em
+    // `/pendencias`, não o que a ficha da pessoa deixa ver.
     reposicoesAbertas: todas.filter(
-      (x) => (x.status === 'falta' || x.status === 'falta_avisada') && !x.temReposicao),
+      (x) => COM_CREDITO.has(x.status) && !x.temReposicao),
   }
 }
