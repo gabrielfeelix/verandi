@@ -3,6 +3,9 @@
 Arquivo de leitura obrigatória ao voltar ao projeto. É o único que pode estar
 desatualizado sem causar dano, desde que se saiba disso.
 
+**Chegando agora?** Leia este inteiro e depois [`HANDOFF.md`](HANDOFF.md), que
+diz o que a última sessão fez e por qual ponta pegar o que falta.
+
 **Última atualização:** 14/ago/2026 · **A Verandi está no ar em
 `https://verandi.4yu.com.br`, mandando e-mail de verdade, com o acesso inteiro
 resolvido.**
@@ -386,10 +389,11 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
 - **O Brevo põe "Cancelar assinatura" em e-mail transacional, e não dá para
   desligar sozinho.** O cabeçalho `List-Unsubscribe` é obrigatório em tudo que
   sai por SMTP ou API, a documentação deles diz que campanha e transacional não
-  se distinguem no fluxo, então o cabeçalho vai em todos. O caminho oficial é
-  **abrir chamado no suporte do Brevo** pedindo a troca por `List-Help`, que não
-  vira botão clicável. Enquanto isso: a assinante que clicar ali para de receber
-  convite e redefinição de senha, e não vai ligar uma coisa à outra.
+  se distinguem no fluxo, então o cabeçalho vai em todos. Existe um caminho
+  oficial, abrir chamado pedindo a troca por `List-Help`, e **o Gabriel decidiu
+  em 14/08/2026 não abrir**: fica como está. O que isso custa, para ninguém se
+  assustar depois: quem clicar ali para de receber convite e redefinição de
+  senha, e não vai ligar uma coisa à outra. Não reabra essa discussão sem ele.
   O alívio é que o bloqueio de transacional é **por remetente**, não pela conta
   inteira. Quando alguém disser "não recebi", olhe a lista antes do código:
   `GET https://api.brevo.com/v3/smtp/blockedContacts`. Existe `DELETE` para
