@@ -30,13 +30,19 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
 
 ## O próximo passo, em ordem
 
-1. **Onboarding.** É o que falta para a primeira meia hora de quem chega não
+1. **Cadastre-se.** Existe login e "esqueci a senha", mas quem descobre o
+   produto não tem porta: só a 4YU cria conta, por script. A análise, a decisão
+   proposta (quem se cadastra vira dono; entrar em negócio que já existe é
+   sempre por convite) e o que já funciona sem migration estão em
+   [`planos/06-cadastro-e-organizacoes.md`](planos/06-cadastro-e-organizacoes.md).
+2. **Onboarding.** É o que falta para a primeira meia hora de quem chega não
    ser uma tela vazia. O plano inteiro, com o que precisa de migration e onde
    olhar o design, está em [`planos/05-onboarding.md`](planos/05-onboarding.md).
-2. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
+   Ele emenda no cadastro: as perguntas se dividem entre os dois.
+3. **As dívidas técnicas**, na seção mais abaixo. A de LGPD é decisão de modelo
    e vale resolver antes do primeiro cliente; a de paginação em `/contas-4yu` já
    dói no banco de desenvolvimento.
-3. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
+4. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
    Nada disso exige tabela nova.
 
 ## Como mexer nisto sem quebrar produção
@@ -48,6 +54,13 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
 | Deploy | `git push origin main` publica sozinho. |
 | Mexeu em e-mail | `npx tsx scripts/previa-email.ts voce@email.com` e olhe no cliente; depois `scripts/espelha-no-brevo.ts`. |
 | Antes de dizer que acabou | `npm test`, `npm run build`, `npm run test:e2e`, `npm run segredos`. |
+| Conta nova na mão | `node scripts/cria-conta.mjs "Nome" dono@email.com [senha]`, com `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` de produção no ambiente. |
+
+**Conta de demonstração em produção:** `MGM Pilates`, dona
+`contato@4yu.com.br`. Reflete o cliente real do AutoFluxos (responsável Daniel),
+com vocabulário de pilates, três modalidades, duas salas e a semana configurada.
+O e-mail do Daniel **não** foi usado de propósito: criar acesso e senha para
+alguém que não pediu é errado, e qualquer e-mail chegaria de verdade nele.
 
 ## A Tarefa 10, e o que ela achou
 
