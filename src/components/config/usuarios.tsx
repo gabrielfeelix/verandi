@@ -10,6 +10,7 @@ import { useAviso } from '@/components/ui/desfazer'
 import {
   convidar, revogarConvite, mudarPapel, removerUsuario, gerarLinkDeSenha,
 } from '@/server/usuarios/acoes'
+import { recadoDaEntrega } from '@/core/email/entrega'
 import { PAPEIS_CONVIDAVEIS, NOME_PAPEL, type PapelConvidavel } from '@/core/acesso/papeis'
 import type { ConvitePendente, UsuarioLinha } from '@/server/usuarios/consultas'
 
@@ -248,11 +249,22 @@ export function SecaoUsuarios({
               key={c.id}
               nome={c.email}
               detalhe={
-                c.expirado
-                  ? 'expirado'
-                  : `expira ${new Date(c.expiraEm).toLocaleDateString('pt-BR')}`
+                /*
+                 * O que aconteceu com o e-mail vem antes do prazo: se ele
+                 * voltou, saber que "expira em 7 dias" não ajuda ninguém — a
+                 * pessoa nunca vai receber. `entrega` nula é silêncio, não
+                 * sucesso, e por isso não vira texto nenhum.
+                 */
+                c.entrega && c.entrega !== 'entregue'
+                  ? recadoDaEntrega(c.entrega)
+                  : c.expirado
+                    ? 'expirado'
+                    : `expira ${new Date(c.expiraEm).toLocaleDateString('pt-BR')}`
               }
             >
+              {c.entrega && c.entrega !== 'entregue' ? (
+                <Etiqueta tinta="atencao">não chegou</Etiqueta>
+              ) : null}
               <Etiqueta tinta={c.tipo === 'senha' ? 'atencao' : 'info'}>
                 {c.tipo === 'senha' ? 'redefinir senha' : NOME_PAPEL[c.papel]}
               </Etiqueta>

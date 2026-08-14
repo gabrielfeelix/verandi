@@ -1,5 +1,6 @@
 import type { Db } from '../supabase'
 import type { Papel } from '@/core/acesso/destino'
+import type { EstadoDeEntrega } from '@/core/email/entrega'
 
 export type UsuarioLinha = {
   usuarioId: string
@@ -17,6 +18,8 @@ export type ConvitePendente = {
   criadoEm: string
   expiraEm: string
   expirado: boolean
+  /** `null` é "ainda não veio notícia", que não é o mesmo que "deu certo". */
+  entrega: EstadoDeEntrega | null
 }
 
 /**
@@ -54,14 +57,14 @@ export async function listarUsuarios(db: Db, contaId: string): Promise<UsuarioLi
 export async function listarConvites(db: Db, contaId: string): Promise<ConvitePendente[]> {
   const { data, error } = await db
     .from('convite')
-    .select('id, email, papel, tipo, criado_em, expira_em')
+    .select('id, email, papel, tipo, criado_em, expira_em, entrega')
     .eq('conta_id', contaId)
     .is('aceito_em', null)
     .is('revogado_em', null)
     .order('criado_em', { ascending: false })
     .returns<{
       id: string; email: string; papel: Papel; tipo: 'acesso' | 'senha'
-      criado_em: string; expira_em: string
+      criado_em: string; expira_em: string; entrega: EstadoDeEntrega | null
     }[]>()
 
   if (error) throw error
@@ -72,6 +75,7 @@ export async function listarConvites(db: Db, contaId: string): Promise<ConvitePe
     email: c.email,
     papel: c.papel,
     tipo: c.tipo,
+    entrega: c.entrega,
     criadoEm: c.criado_em,
     expiraEm: c.expira_em,
     expirado: new Date(c.expira_em).getTime() <= agora,
