@@ -141,11 +141,13 @@ falta para a Verandi ficar de pé". Em ordem de risco:
    `/privacidade`, com link no rodapé do sistema, nas telas de acesso e no pé de
    todo e-mail. O que sobrou é decisão do Gabriel, listada em
    [`juridico/README.md`](juridico/README.md). Detalhe na seção abaixo.
-2. **Backup.** Não existe. Estava anotado como "aceitável enquanto não há
-   cliente pagante", e vender encerra a ressalva. `pg_dump` agendado para fora
-   do Supabase resolve a maior parte do medo, e precisa de uma restauração de
-   mentira para valer.
-3. **Saber quando quebra.** Um 500 em produção é invisível hoje.
+2. **Backup.** O script existe, roda e foi **provado restaurando**
+   (`npm run backup` e `npm run backup:testa`). Falta você decidir **onde a
+   cópia mora e quem a dispara**, porque isso é escolha de destino de dado
+   pessoal, não de código. Ver `HANDOFF.md`.
+3. ~~**Saber quando quebra.**~~ **Feito.** Erro em produção manda e-mail, com
+   janela de silêncio de uma hora por defeito e contagem do que aconteceu
+   calado. Migration `0050`.
 4. **Uma página no site.** `4yu.com.br` não tem `/verandi`, e o produto está no
    ar.
 5. ~~**Marco 2, Fase 3:** escrever pela API.~~ **Feita em 15/08**, com a
@@ -238,13 +240,13 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **364 passaram** |
+| `npm test` | **370 passaram** |
 | `npm run test:e2e` | **165 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
-| tabelas em `app_verandi` · em `public` | **27 · 0** (as 12 do AutoFluxos seguem intactas) |
+| tabelas em `app_verandi` · em `public` | **28 · 0** (as 12 do AutoFluxos seguem intactas) |
 | RLS em produção | 20 de 20; `anon` não alcança nada |
 | `https://verandi.4yu.com.br` | 200, falando com o banco de produção |
-| migrations em produção (`0030` a `0049`) · onboarding abrindo lá | **as 20 aplicadas** · sim, sem 5xx |
+| migrations em produção (`0030` a `0050`) · onboarding abrindo lá | **as 21 aplicadas** · sim, sem 5xx |
 | migrations `0044` e `0045` em produção | aplicadas; a `0044` com a coluna na tabela **e na view**, a `0045` com RLS ligada, política única e `anon` sem alcance |
 | contraste dos tokens de texto | 15 pares medidos, todos em AA |
 | régua do vocabulário no `src/` inteiro | limpa, com lint guardando |
@@ -257,7 +259,7 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco:** vinte migrations (`0030_vr_` a `0049_vr_`), RLS com política em todas as
+**Banco:** vinte e uma migrations (`0030_vr_` a `0050_vr_`), RLS com política em todas as
 tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
@@ -272,7 +274,7 @@ pessoa.anonimizada_em · participacao.observacao_visivel (0043)
 pessoa.observacao_visivel (0044) · chave_api (0045)
 aceite_de_termos (0046) · pedido_idempotente (0047)
 webhook · evento_saida (0048, a fila de saída dos avisos)
-espera (0049, quem quer ser avisado quando abrir vaga)
+espera (0049) · alerta_enviado (0050, o que já foi avisado)
 view pessoa_resumo · função usuarios_da_conta (security definer)
 balde privado foto-profissional
 ```

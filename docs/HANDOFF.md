@@ -24,9 +24,9 @@ a cada push na `main`.
 | | |
 |---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) |
-| Migrations aplicadas | 20, da `0030` à `0049` |
+| Migrations aplicadas | 21, da `0030` à `0050` |
 | Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
-| Testes | 364 de unidade e banco · 165 de navegador |
+| Testes | 370 de unidade e banco · 165 de navegador |
 | API v1 | nove rotas e quatro eventos de webhook, com documentação pública em `/api-docs` |
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
@@ -128,40 +128,51 @@ dizia "Supabase e Brevo, os dois com dado no exterior", deduzido da sede das
 empresas, e estava errado. O que sobra de transferência é o acesso administrativo
 dos fornecedores a partir dos Estados Unidos, e está declarado na política.
 
-### 2. Backup
+### 2. Backup: o script está pronto e provado, falta você escolher o destino
 
-**Não existe.** Está escrito no `ESTADO.md` desde 14/08, com a ressalva "é
-aceitável enquanto não há cliente pagante". **Vender encerra a ressalva.**
+`npm run backup` faz o dump do schema `app_verandi`, comprime, guarda fora do
+repositório e apaga o que passou de sete dias. `npm run backup:testa <arquivo>`
+restaura num banco descartável e confere que a conta volta de pé.
 
-O plano gratuito do Supabase não tem PITR nem backup automático, e o banco é
-dividido com o AutoFluxos: um acidente destrutivo atinge os dois produtos, e
-restaurar significa restaurar o projeto inteiro.
+**A primeira restauração de mentira achou um defeito que o dump escondia.**
+`pg_dump --schema app_verandi` não carrega as extensões, que moram em
+`extensions`. Como `pessoa.nome_busca` é coluna gerada que chama `unaccent`,
+num banco novo **toda inserção de pessoa falhava**, uma por uma, enquanto série,
+sessão e participação entravam normalmente. A restauração parecia ter dado
+certo e voltava sem nenhuma pessoa, com o histórico apontando para gente que não
+existia mais. O script agora escreve as extensões no topo do arquivo, e a
+restauração volta com as 84 pessoas.
 
-Duas saídas, e a primeira é barata:
+**O que falta é decisão sua, e são duas linhas:**
 
-- **`pg_dump` agendado** para fora do Supabase (o `SUPABASE_ACCESS_TOKEN` já
-  alcança o banco; um cron diário guardando em storage fora do projeto resolve
-  90% do medo). Um agente faz isso em uma sessão.
-- **Plano pago do Supabase**, que traz PITR e resolve de vez. É decisão de
-  dinheiro, e ela chega junto com o primeiro cliente pagando.
+1. **Onde a cópia mora.** Hoje o padrão é `../backups-verandi`, na sua máquina,
+   fora do repositório (que é público). Qualquer destino em nuvem, GitHub,
+   Drive, S3, passa a ser **um lugar novo onde dado de saúde de paciente
+   descansa**, e por isso precisa entrar na política de privacidade como
+   subprocessador. Não escolhi por você por causa disso.
+2. **Quem dispara.** O plano gratuito da Vercel não roda `pg_dump`, então o
+   agendamento é fora dela: `cron` na sua máquina, ou uma ação agendada num
+   repositório **privado** com a senha do banco como segredo.
 
-**Um backup que ninguém testou não é backup.** Seja qual for o caminho, o mesmo
-trabalho precisa incluir uma restauração de mentira num projeto descartável.
+Enquanto não houver agendamento, rode à mão antes de qualquer mudança grande.
+É pouco, e é muito mais do que existia.
 
-### 3. Saber quando quebra
+### 3. Saber quando quebra ✔ feito em 15/08
 
-Hoje um 500 em produção é **invisível**. Não há Sentry, não há alerta, e o
-`console.error` da API vai para o log da Vercel, que ninguém abre de manhã.
+Erro em produção manda e-mail para `contato@4yu.com.br` (ou `ALERTA_EMAIL`, se
+existir). Pega tudo: tela, ação de servidor e rota de API, pelo gancho
+`onRequestError` mais o `try` da casca da API, que o gancho não enxerga.
 
-Com um cliente e o Gabriel olhando, dá para viver assim. Com cinco, o cliente
-vira o monitoramento, e isso custa o cliente.
+**A parte difícil é não virar ruído**, e é onde está o trabalho: erros com a
+mesma assinatura (mesmo lugar, mesma mensagem sem id, data e contagem) são um só,
+e o aviso fica calado por uma hora depois do primeiro. A contagem continua
+correndo em silêncio, e o e-mail seguinte diz quantas vezes aconteceu. Alerta que
+enche a caixa é alerta que todo mundo aprende a filtrar, e aí é pior que alerta
+nenhum. Migration `0050`, `tests/unit/alerta.test.ts` guardando a régua.
 
-O barato: Sentry no plano gratuito (ou o alerta nativo da Vercel) e um aviso em
-canal que alguém lê. Meia sessão.
-
-E há um caso específico que já existe e ninguém vê: o **webhook do Brevo** marca
-convite como `voltou` ou `bloqueado`, e isso hoje só aparece se alguém abrir a
-tela de Usuários daquela conta.
+**Não é Sentry, e é decisão.** Sentry resolveria melhor e cobra um cadastro, uma
+conta e um DSN que alguém precisa criar; enquanto isso o produto fica sem nada.
+Trocar depois é substituir uma função, `avisarErro`, chamada em dois lugares.
 
 ### 4. Uma página no site
 

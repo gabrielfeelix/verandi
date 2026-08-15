@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "segredos": "node scripts/confere-segredos.mjs",
-    "tipos": "node scripts/gera-tipos.mjs"
+    "tipos": "node scripts/gera-tipos.mjs",
+    "backup": "node scripts/backup.mjs",
+    "backup:testa": "node scripts/restaura-de-mentira.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

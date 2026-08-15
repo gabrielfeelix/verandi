@@ -108,6 +108,33 @@ export type Database = {
           },
         ]
       }
+      alerta_enviado: {
+        Row: {
+          assinatura: string
+          avisado_em: string
+          ocorrencias: number
+          primeiro_em: string
+          resumo: string
+          ultimo_em: string
+        }
+        Insert: {
+          assinatura: string
+          avisado_em?: string
+          ocorrencias?: number
+          primeiro_em?: string
+          resumo: string
+          ultimo_em?: string
+        }
+        Update: {
+          assinatura?: string
+          avisado_em?: string
+          ocorrencias?: number
+          primeiro_em?: string
+          resumo?: string
+          ultimo_em?: string
+        }
+        Relationships: []
+      }
       chave_api: {
         Row: {
           conta_id: string

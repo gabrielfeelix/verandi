@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { clienteAdmin, type Db } from '../supabase'
 import { contaDaChave } from './chave'
+import { avisarErro } from '../alerta'
 import type { Erro } from '@/core/api/pedido'
 
 /**
@@ -70,6 +71,12 @@ export function comChave<P extends Record<string, string> = Record<string, never
        * o mapa do banco entregue a quem estava só tentando.
        */
       console.error('[api/v1]', req.nextUrl.pathname, e)
+      /*
+       * A rota tem `try` próprio, então o gancho do Next nunca a vê: sem esta
+       * linha, justamente o caminho do robô, que ninguém está olhando, seria o
+       * único que quebra em silêncio.
+       */
+      await avisarErro(`api ${req.nextUrl.pathname}`, e)
       return erro(500, 'não deu para responder agora')
     }
   }
