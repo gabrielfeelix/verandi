@@ -12,16 +12,22 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 14/ago/2026 · **A Verandi está no ar em
-`https://verandi.4yu.com.br`, mandando e-mail de verdade, com o acesso inteiro
-resolvido.**
+**Última atualização:** 15/ago/2026 · **A Verandi está no ar em
+`https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
+verdade, onboarding e a porta do bot aberta.**
+
+**O produto opera; o negócio ainda não pode vender.** Faltam termos de uso,
+política de privacidade, contrato de operador, backup e monitoramento, e nada
+disso é código de funcionalidade. A lista inteira está em
+[`HANDOFF.md`](HANDOFF.md).
 
 ---
 
 ## Em uma frase
 
 Uma conta nasce vazia, se configura inteira pela tela e opera a semana, com a
-cara do protótipo, no ar, e com convite e senha chegando por e-mail.
+cara do protótipo, no ar, com convite e senha chegando por e-mail, e com uma
+API que o bot do AutoFluxos já consegue ler.
 
 ## O que aconteceu em 14/ago, em ordem
 
@@ -125,30 +131,27 @@ dia em que existir view por papel.
 
 ## O próximo passo, em ordem
 
-Resumo de uma linha: **falta a Fase 3 do Marco 2**, que é escrever pela API. O
-resto da lista ou depende de decisão do Gabriel, ou foi decidido que não se faz.
-O ponto de partida detalhado está em [`HANDOFF.md`](HANDOFF.md), na seção
-"Comece por aqui".
+**O produto opera; o negócio não está pronto para vender.** A lista completa,
+com o porquê de cada item, está em [`HANDOFF.md`](HANDOFF.md), na seção "O que
+falta para a Verandi ficar de pé". Em ordem de risco:
 
-1. **As dívidas técnicas**, na seção mais abaixo. A de paginação em
-   `/contas-4yu` já dói no banco de desenvolvimento.
-2. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
-   enquanto a sessão é resolvida, e ilustração onde ainda não há dado. É
-   acabamento com razão de existir, e a razão está em
-   [`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md).
-3. **Marco 2, na Fase 3.** O plano está em
-   [`planos/10-marco-2-api.md`](planos/10-marco-2-api.md), em cinco fases, e a
-   referência de quem chama em [`API.md`](API.md). **Fases 1 e 2 prontas**: a
-   chave (`0045`), a seção **Integrações**, e as três rotas de leitura
-   (`disponibilidade`, `catalogo`, `pessoas`). Falta a **Fase 3**, que é
-   escrever: cadastrar pessoa e marcar, com `Idempotency-Key`.
-4. ~~**Cadastre-se**~~ e ~~**organização com várias unidades**~~ **saíram da
-   lista** em 14/08, decisão do Gabriel com o porquê no [`HANDOFF.md`](HANDOFF.md).
-   Em uma linha: a venda é ativa, um cliente, Pix na mão — cadastro público
-   resolve um gargalo que ainda não existe. E o caso que parecia exigir
-   organização (o profissional que atende em dois estúdios) **já funciona**:
-   `usuario_conta` aceita a mesma pessoa em várias contas, e `/contas` é o
-   seletor.
+1. **Termos de uso, política de privacidade e o contrato de operador.** Não
+   existe nada disso, e é o que trava a primeira venda para clínica. O código já
+   respeita a LGPD (anonimização, observação com "visível para", log do pedido
+   de exclusão); falta dizer no papel o que ele já faz. Decisão do Gabriel: um
+   agente redige a minuta, quem assume o risco assina.
+2. **Backup.** Não existe. Estava anotado como "aceitável enquanto não há
+   cliente pagante", e vender encerra a ressalva. `pg_dump` agendado para fora
+   do Supabase resolve a maior parte do medo, e precisa de uma restauração de
+   mentira para valer.
+3. **Saber quando quebra.** Um 500 em produção é invisível hoje.
+4. **Uma página no site.** `4yu.com.br` não tem `/verandi`, e o produto está no
+   ar.
+5. **Marco 2, Fase 3:** escrever pela API. É a única coisa de código que não
+   depende de decisão de ninguém, e a única que exige tabela nova (a de
+   idempotência).
+6. **Marco 2, Fases 4 e 5:** o aviso de volta e a lista de espera.
+7. **O que depende do Gabriel:** ilustrações do onboarding e "vida nas telas".
 
 ## Como mexer nisto sem quebrar produção
 

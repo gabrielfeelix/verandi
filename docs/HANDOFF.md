@@ -1,305 +1,242 @@
-# Passagem de bastão, 14/ago/2026 (quarta sessão do dia)
+# Passagem de bastão
 
-> **Banco compartilhado — leitura obrigatória:** antes de qualquer mudança em
+> **Banco compartilhado, leitura obrigatória:** antes de qualquer mudança em
 > Supabase, migration, Auth, RLS, Storage, extensão ou Data API, leia
-> [BANCO-COMPARTILHADO.md](BANCO-COMPARTILHADO.md). Verandi usa
-> `app_verandi`; AutoFluxos usa `public`; os recursos globais afetam os dois.
+> [BANCO-COMPARTILHADO.md](BANCO-COMPARTILHADO.md). Verandi usa `app_verandi`;
+> AutoFluxos usa `public`; os recursos globais afetam os dois.
 
-Para o próximo agente. Este arquivo é o **atalho**: o que aconteceu nesta
-sessão, o que está pendente e por qual ponta pegar. Ele não substitui o
-[`ESTADO.md`](ESTADO.md), que continua sendo a leitura obrigatória e o único que
-descreve o sistema inteiro.
+Este arquivo é o **atalho**: onde o produto está, o que falta, e por qual ponta
+pegar. Ele não substitui o [`ESTADO.md`](ESTADO.md), que descreve o sistema
+inteiro e é a leitura obrigatória.
 
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
+
+Última revisão: 15/ago/2026.
+
+---
+
+## Onde o produto está, em números
+
+A Verandi está **no ar** em `https://verandi.4yu.com.br`, com deploy automático
+a cada push na `main`.
+
+| | |
+|---|---|
+| Contas de cliente em produção | **1** (MGM Pilates) |
+| Migrations aplicadas | 16, da `0030` à `0045` |
+| Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
+| Testes | 321 de unidade e banco · 133 de navegador |
+| API v1 | três rotas de leitura no ar, respondendo 401 sem chave |
+
+**O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
+monta a grade, registra chamada, controla reposição, manda convite e senha por
+e-mail, ensina quem chega pela primeira vez, e agora tem porta para o bot.
+
+**O produto não está pronto para vender.** Quatro coisas faltam, e nenhuma delas
+é código de funcionalidade. Estão na seção seguinte, em ordem.
 
 ---
 
 ## Comece por aqui
 
-**Marco 2, Fase 3: escrever pela API.** É a única coisa da lista que não depende
-de decisão de ninguém, e o caminho está aberto: as Fases 1 e 2 foram para o ar
-em 14/08, e a Fase 3 é a que faz o bot marcar de verdade.
+Se você é a próxima sessão e quer uma coisa só: **leia o bloco "O que falta para
+a Verandi ficar de pé" abaixo e comece pelo item 1.**
 
-O detalhe está na seção 4 de "O que fazer agora", e a armadilha em uma linha:
-**`encaixar` mistura a regra com `cookies()`**. A rota não pode reimplementar
-"cabe ou não cabe" — extraia o miolo para uma função que recebe quem está
-registrando, e chame dos dois lados.
-
-Antes de escrever a primeira linha:
+O item 1 não é o mais divertido, é o que trava a venda. A Fase 3 do Marco 2 (a
+parte de código que sobrou) é o item 5, e está detalhada e destravada — se o
+Gabriel disser que quer código antes de papel, pule para ela sem culpa.
 
 ```bash
-npx supabase start           # o local, no Docker, faixa 564xx
-npm run tipos                # se tiver mexido em migration desde a última vez
+npx supabase start           # local, no Docker, faixa 564xx
+npm run tipos                # se alguém mexeu em migration desde a última vez
 node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
+npm run dev
 ```
 
-Ler [`API.md`](API.md) leva cinco minutos e é o contrato que a Fase 3 continua.
-
-**O resto da lista depende do Gabriel**, ou foi decidido que não se faz: as
-ilustrações são ele quem gera, "vida nas telas" trava numa decisão dele, e a
-passada contra o protótipo ele pediu para não fazer.
+Entrar com `dono@dev.local`, `prof@dev.local`, `recepcao@dev.local` ou
+`suporte@dev.local`, senha `senha-de-teste-123`.
 
 ---
 
-## Onde o produto está
+## O que falta para a Verandi ficar de pé
 
-A Verandi está **no ar** em `https://verandi.4yu.com.br`, com banco de produção
-no schema `app_verandi` (dividido com o AutoFluxos), e-mail saindo pelo Brevo e
-deploy automático a cada push na `main`.
+A ordem aqui é de **risco**, não de esforço. Os quatro primeiros itens não
+apareciam em nenhum plano até 15/08, e os quatro são coisas que só doem depois
+que existe cliente pagante, que é exatamente para onde o produto está indo. O
+detalhe de cada um está em [`planos/11-por-em-pe.md`](planos/11-por-em-pe.md);
+aqui vai o resumo.
 
-Conta de demonstração em produção: MGM Pilates, dona `contato@4yu.com.br`.
-A senha não fica em documentação nem no repositório; o acesso deve vir do cofre
-da equipe.
+### 1. Termos de uso, política de privacidade e o contrato de operador
 
-Verificado no fim desta sessão: `npm run build` limpo, **321** testes de
-unidade, **133** de navegador (suíte inteira, sem falha), `npm run segredos` sem
-credencial no repositório, e as **dezesseis** migrations `0030` a `0045`
-aplicadas em produção, sem nada pendente.
+**É o que trava a primeira venda para clínica, e não existe nada disso hoje.**
+Nenhuma linha em `src/`, e a página de privacidade do site
+(`website/site/privacidade/`) fala só do Deixei Aqui.
 
----
+O problema não é burocrático, é estrutural, e o produto já foi construído em
+cima dele:
 
-## O que a primeira sessão fez, em quatro commits
+- Quem coletou o nome, o telefone e o "hérnia de disco" foi **o cliente**, não a
+  4YU. Ele é o **controlador**; a 4YU é **operadora** (LGPD, art. 5º).
+- O art. 39 diz que a operadora trata os dados **segundo as instruções** do
+  controlador. Instrução se dá por contrato. Sem contrato, a 4YU está tratando
+  dado sensível de terceiro sem base documentada.
+- O aluno do estúdio **nunca consentiu com a 4YU**. Ele consentiu com o estúdio.
+  Isso precisa estar escrito em algum lugar que ele possa ler.
 
-**`a017df4` Os três acertos de interface do plano 07.** O trilho nasce aberto (o
-código contrariava o próprio comentário). O login corta uma volta ao servidor e
-mantém o "Entrando…" até a próxima tela pintar. Criar e editar item de lista
-virou modal em Serviços, Equipe, Locais, Usuários e Grade, que é onde o
-protótipo desenha modal; Padrões e Vocabulário ficaram embutidos, também como
-no protótipo, porque ali a tela inteira é o formulário.
+O produto já respeita isso no código, e é isso que torna a falta do papel
+esquisita: `anonimizarPessoa` existe, `observacao_visivel` existe nas duas
+caixas, o log registra quem atendeu ao pedido de exclusão sem copiar o nome. O
+que falta é dizer no papel o que o código já faz.
 
-Junto veio uma correção que valia para os cinco modais que já existiam: **a
-página rolava atrás do modal**, o que o DESIGN-SYSTEM 4.7 proíbe em letras
-maiúsculas. O `<dialog>` nativo prende o foco mas não trava a rolagem. Nenhum
-teste pegava isso, e nenhum pega: mede-se com `window.scrollY` depois de um
-`wheel`.
+**O mínimo defensável para vender:**
 
-**`b506bd6` O onboarding, do plano 05.** Migration `0042` com a tabela
-`onboarding`, boas-vindas em modal por cima do sistema, e a pergunta do tipo de
-negócio escrevendo o vocabulário inteiro de uma vez.
+1. **Termos de uso** da Verandi (quem pode usar, o que a 4YU garante, suspensão,
+   encerramento e o que acontece com o dado depois).
+2. **Política de privacidade** que separe os dois papéis com todas as letras: a
+   4YU é operadora do dado dos alunos e controladora do dado de quem tem login.
+3. **Adendo de tratamento de dados** no contrato com o cliente: finalidade,
+   prazo, subprocessadores (Supabase e Brevo, os dois com dado no exterior),
+   segurança, e o que acontece quando o contrato acaba.
+4. **Um endereço de contato do encarregado** (`privacidade@4yu.com.br` serve),
+   publicado. A ANPD espera achar isso.
+5. **Link no rodapé do sistema e no e-mail**, senão o item existe e ninguém vê.
 
-**`c5cf17a` A visita guiada.** A tela inteira escurece e só o alvo fica aceso,
-com o balão branco por fora do escuro. Quinze passos para o dono, onze para a
-recepção, navegando sozinha pelo menu e por cada destino.
+**Isto é decisão do Gabriel, não do agente.** Um agente pode redigir a minuta e
+montar as telas; quem assume o risco jurídico assina. O caminho barato é uma
+minuta feita aqui e revisada por advogado, não o contrário.
 
-**`6954c13`** e os docs: `ESTADO.md` atualizado e os planos novos.
+**Subprocessador com dado fora do Brasil:** Supabase e Brevo. A transferência
+internacional precisa estar declarada na política. Não é impeditivo, é
+declaração.
 
-### Três coisas da primeira sessão que valem para o resto do produto
+### 2. Backup
 
-1. **`<dialog>` não trava rolagem.** Quem travar precisa de contador (dois
-   modais abertos não podem se destravar) e de compensar a barra de rolagem,
-   senão a página pula 15px ao abrir. Está feito na casca do `<Modal>`.
-2. **Artigo nunca cola na palavra do vocabulário.** "Cadastre um serviço" vira
-   "cadastre um modalidade" numa conta de pilates; "os horários fixos" vira "os
-   turmas fixas". O gênero é da palavra e a palavra é do cliente. A terceira
-   sessão varreu o produto inteiro com essa régua e a transformou em lint;
-   `tests/unit/regua-do-vocabulario.test.ts` falha se ela voltar a escapar.
-3. **`listUsers()` do Supabase devolve só os 50 primeiros.** Quebrou o semeador
-   de desenvolvimento com um erro que não citava e-mail nenhum. Quem procurar
-   usuário por e-mail precisa virar as páginas.
+**Não existe.** Está escrito no `ESTADO.md` desde 14/08, com a ressalva "é
+aceitável enquanto não há cliente pagante". **Vender encerra a ressalva.**
 
----
+O plano gratuito do Supabase não tem PITR nem backup automático, e o banco é
+dividido com o AutoFluxos: um acidente destrutivo atinge os dois produtos, e
+restaurar significa restaurar o projeto inteiro.
 
-## O que a segunda sessão fez
+Duas saídas, e a primeira é barata:
 
-Cinco coisas, e uma delas não estava na lista porque ninguém sabia que existia.
+- **`pg_dump` agendado** para fora do Supabase (o `SUPABASE_ACCESS_TOKEN` já
+  alcança o banco; um cron diário guardando em storage fora do projeto resolve
+  90% do medo). Um agente faz isso em uma sessão.
+- **Plano pago do Supabase**, que traz PITR e resolve de vez. É decisão de
+  dinheiro, e ela chega junto com o primeiro cliente pagando.
 
-1. **A barra fixa da Sessão saiu em tela larga** (`md:hidden`). O protótipo
-   desenha as duas ao mesmo tempo, então a tela estava fiel e o defeito era do
-   protótipo: virou a quarta divergência de propósito. Medido: 1440 tem um
-   botão, 420 tem dois.
-2. **Funcionamento virou modal por dia**, e "Nova data fechada" também.
-3. **O defeito que estava escondido no Funcionamento.** Marcar feriado com
-   "cancelar e avisar" cancelava as sessões e **não dava crédito a ninguém**,
-   apesar de a migration `0037` dizer que dava. Agora a participação vira
-   `cancelada` e abre reposição em `/pendencias`. "O que dá crédito" virou
-   `statusComCredito()`, porque estava escrito à mão em quatro lugares.
-4. **Confirmação destrutiva ao desativar local e profissional**, com a contagem
-   de séries ativas e sessões futuras.
-5. **As duas decisões de modelo**, migration `0043`: anonimizar preservando a
-   linha, e observação com "visível para", padrão fechado.
+**Um backup que ninguém testou não é backup.** Seja qual for o caminho, o mesmo
+trabalho precisa incluir uma restauração de mentira num projeto descartável.
 
-Verificado no fim: `npm run build` limpo, **272** de unidade, **114** de
-navegador, `npm run segredos` limpo.
+### 3. Saber quando quebra
 
-**Duas falhas de e2e nesta máquina são de concorrência, não de código**
-(`consultas.test.ts`, `suporte.spec.ts`, e mais duas em corrida cheia). Rodadas
-isoladas passam. A máquina fica com menos de 4 GB livres durante a suíte.
+Hoje um 500 em produção é **invisível**. Não há Sentry, não há alerta, e o
+`console.error` da API vai para o log da Vercel, que ninguém abre de manhã.
 
-## O que a terceira sessão fez
+Com um cliente e o Gabriel olhando, dá para viver assim. Com cinco, o cliente
+vira o monitoramento, e isso custa o cliente.
 
-Quatro coisas, e a primeira foi desfazer uma informação errada deste arquivo.
+O barato: Sentry no plano gratuito (ou o alerta nativo da Vercel) e um aviso em
+canal que alguém lê. Meia sessão.
 
-**1. A `0043` já estava em produção.** Este arquivo dizia que ela esperava o
-AutoFluxos parar. Não esperava:
+E há um caso específico que já existe e ninguém vê: o **webhook do Brevo** marca
+convite como `voltou` ou `bloqueado`, e isso hoje só aparece se alguém abrir a
+tela de Usuários daquela conta.
 
-```bash
-set -a && . ../.secrets/4yu.env && set +a
-node scripts/aplica-em-producao.mjs --dry     # "nada a fazer — as 14 já estão aplicadas"
-```
+### 4. Uma página no site
 
-O `--dry` é a resposta certa para "será que aplicaram?": lê
-`app_verandi.migrations_aplicadas` e não escreve nada. Vale mais do que confiar
-na última linha escrita aqui.
+`4yu.com.br` tem `/deixei-aqui`, `/rodape`, `/crm`, `/quanto-cobro`. **Não tem
+`/verandi`.** Não há para onde mandar um interessado, e o produto está no ar.
 
-**2. A régua do vocabulário varreu o produto**, e virou lint. Vinte e poucas
-frases mudaram. O que mais importa não é a contagem: **três telas não falavam a
-língua da conta**, e ninguém tinha percebido porque elas escreviam a palavra
-*neutra*, que é justamente a que o teste antigo não pegava.
+Isso é trabalho de site (`website/site/`, deploy por `website/scripts/deploy.py`),
+não de produto. Uma página com o que é, para quem é, três telas e um formulário
+de contato. O cadastro público **não** entra: a decisão de 14/08 é que a conta
+nasce pela mão da 4YU, com o `cria-conta.mjs`.
 
-- A Configuração de **Serviços e Locais** escrevia "serviço" e "local" à mão, do
-  título ao aviso de sucesso. Num estúdio de pilates, o dono clicava em
-  "Modalidades" no menu e caía numa tela chamada "Serviços".
-- O **menu lateral** da Configuração, pelo mesmo motivo.
-- Os três campos do **editor de série**: "Serviço", "Profissional", "Local".
+### 5. Marco 2, Fase 3: escrever pela API
 
-`tests/unit/regua-do-vocabulario.test.ts` é um lint que varre `src/` e falha se
-um artigo ou adjetivo voltar a colar na palavra do cliente. Ele pegou um erro
-meu na mesma sessão, três minutos depois de ser escrito.
-
-**3. A observação da ficha separa quem enxerga**, migration `0044`, com o mesmo
-desenho da `0043`. E uma coisa que só ficou clara aqui: **onde o texto some, a
-tela precisa dizer que ele existe.** Ficha sem observação e ficha com observação
-restrita não podem parecer iguais, senão a recepção escreve por cima achando que
-o campo está vazio.
-
-**4. Seis dívidas técnicas fechadas.** A que mais rende é a primeira.
-
-- **Tipos do banco gerados** (`npm run tipos`) e ligados aos dois clientes.
-  Achou quatro erros reais na hora de ligar. `db.from('pesoa')` deixou de
-  compilar.
-- **`/contas-4yu` pagina e busca**, e a consulta de sinais deixou de varrer o
-  banco inteiro.
-- **O encaixe busca no servidor**, em vez de baixar a conta inteira em toda
-  abertura de chamada.
-- **`/hoje` e `/semana` pararam de escrever a cada leitura.**
-- **Contraste corrigido e medido.** Nove tokens mudaram; `tinta-fraca` e
-  `tinta-apagada` colapsaram num tom só, de propósito.
-
-### Três coisas da terceira sessão que valem para o resto do produto
-
-1. **Gerar os tipos do banco não é cosmético.** Ligar `Database` aos clientes
-   fez o `tsc` achar quatro erros que estavam no ar: `status` como `string` na
-   materialização, `detalhe` como `Record<string, unknown>` no log,
-   `db.from(variável)` no onboarding e três objetos de update sem tipo nenhum.
-   **Migration nova pede `npm run tipos`** — senão o `tsc` segue passando com a
-   forma antiga, e o silêncio volta.
-2. **Função não atravessa a fronteira de Server para Client Component.** Passei
-   `hrefDaPagina` como prop e o Next recusou **em tempo de execução**, não de
-   compilação: o `tsc` passou, o `build` passou, e seis testes de navegador
-   caíram com "Functions cannot be passed directly to Client Components".
-3. **A régua do vocabulário vale para a palavra neutra também.** O teste antigo
-   procurava "Aluno" e "Turma" fixos, e por isso não via "Serviço" nem "Local"
-   escritos à mão: eles *são* o padrão. A pergunta certa não é "escreveram a
-   palavra de um cliente?", é "escreveram uma palavra que é do cliente?".
-
----
-
-## O que a quarta sessão fez
-
-**As decisões de produto, tomadas.** Cadastro público e organização com várias
-unidades **saíram da lista**:
-
-- **Cadastre-se: não construir.** A venda é ativa, um cliente, Pix na mão.
-  Cadastro público resolve um gargalo de aquisição que ainda não existe, e cria
-  três que não existem: conta morta enchendo o banco, custo antes de receita num
-  plano gratuito sem backup, e a perda da conversa que, nos dez primeiros
-  clientes, **é** a pesquisa de produto. O que resolve hoje é uma página no site
-  com nome e e-mail, e a conta criada com o `cria-conta.mjs` que já existe.
-- **Organização com várias unidades: não construir.** E não por preguiça: o
-  modelo atual já é o certo. `conta` é a unidade de isolamento, e organização
-  entra depois como tabela nova mais uma coluna anulável em `conta`, sem mover
-  nada e sem tocar na RLS. O caro seria o inverso, com `conta` sendo a
-  organização: aí **toda** tabela do sistema precisaria de `unidade_id`.
-- **O caso que parecia exigir organização já funciona.** O profissional que
-  atende em dois estúdios: `usuario_conta` tem PK `(usuario_id, conta_id)`,
-  `profissional.usuario_id` não tem restrição de unicidade, `/contas` é o
-  seletor e some sozinho para quem tem uma conta só. Tem teste desde sempre,
-  em `acesso.test.ts:82`. Nada a construir.
-- **Cobrança: não construir.** Pix na mão está certo com um cliente. O que vale
-  decidir agora é a **unidade** do preço, e por pessoa ativa o produto já sabe
-  contar. ([Tecnofit](https://www.tecnofit.com.br/precos/) cobra assim: a partir
-  de ~R$189/mês, ~R$3,98 por aluno.)
-
-**O Marco 2 andou até a Fase 2.** Plano em
-[`planos/10-marco-2-api.md`](planos/10-marco-2-api.md), referência de quem chama
-em [`API.md`](API.md).
-
-- **Fase 1**, em produção: migration `0045` com `chave_api`, autenticação por
-  `Authorization: Bearer vr_…`, e a seção **Integrações** na Configuração.
-- **Fase 2**, no código: `GET /api/v1/disponibilidade`, `/catalogo` e
-  `/pessoas?busca=`. Sem migration, então vai no ar com o próximo push.
-
-### Três coisas da quarta sessão que valem para o resto do produto
-
-1. **O arquivo gerado é reescrito inteiro.** Os atalhos de tipo (`Atualizacao`,
-   `Linha`) estavam no fim de `banco.types.ts` e sumiram no primeiro
-   `npm run tipos`. Agora moram em `banco.ts`, ao lado, e o cabeçalho do gerado
-   avisa. Vale para qualquer coisa que se queira acrescentar ali.
-2. **Chave de API é a credencial mais forte que um cliente emite.** Ela alcança
-   a agenda inteira da conta sem passar por papel, e por isso: só dono e suporte
-   veem, o segredo aparece uma vez, o banco guarda o hash, e revogar não apaga a
-   linha. Mesma régua do botão de anonimizar pessoa.
-3. **Uma pergunta mal feita custa uma volta inteira.** Perguntei "quem é o
-   comprador?" querendo saber se a venda é ativa ou se o dono assina sozinho, e
-   o Gabriel não entendeu, com razão. Pergunta de produto se faz descrevendo a
-   cena, não com o termo do manual.
-
----
-
-## O que fazer agora, em ordem
-
-### 1. Gerar as ilustrações do onboarding
-
-Os prompts estão prontos em [`ARTE-ONBOARDING.md`](ARTE-ONBOARDING.md), com
-prefixo e sufixo de estilo que casam com as artes que já existem. **Quem gera é
-o Gabriel**, não o agente. A arte de hoje é emprestada das telas de acesso, de
-propósito: trocar é uma linha por arte no registro de
-`src/core/onboarding/boas-vindas.ts`, sem tocar em tela nenhuma.
-
-### 2. Vida nas telas
-
-[`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md): movimento da marca
-onde há espera de verdade, e ilustração nos estados vazios. As três decisões que
-travam isso estão escritas lá (quem desenha, quantas artes, peso). **Não comece
-sem falar com o Gabriel**, porque a primeira delas é dele.
-
-### 3. As telas contra o protótipo, quando incomodar
-
-O Gabriel decidiu em 14/08 **não** fazer essa passada agora. Nove tokens de cor
-e umas vinte frases mudaram, a suíte de navegador passou inteira, e ele avisa se
-alguma tela ficar estranha. Não gaste sessão nisso por conta própria.
-
-O que muda de propósito e não deve "voltar" ao protótipo: `#8B9691` e as tintas
-`positivo`, `alerta` e `atenção` escureceram porque reprovavam em contraste, e
-há teste medindo cada par.
-
-### 4. Marco 2, Fase 3: escrever pela API
-
-As Fases 1 e 2 estão prontas. Falta a que marca:
+A parte de código que sobrou, e a única da lista que não depende de decisão de
+ninguém. Plano em [`planos/10-marco-2-api.md`](planos/10-marco-2-api.md),
+contrato do que já existe em [`API.md`](API.md).
 
 - `POST /api/v1/pessoas` — cadastra, nome como único obrigatório, igual à tela.
 - `POST /api/v1/participacoes` — marca alguém num horário, reusando a regra de
-  `encaixar` com `registrado_por_origem: 'bot'`, que já existe no enum.
+  `encaixar` com `registrado_por_origem: 'bot'`, que já existe no enum desde a
+  `0033`.
 - `DELETE /api/v1/participacoes/:id` — desmarca, virando crédito pelas mesmas
   regras da conta.
 
-**`Idempotency-Key` não é enfeite.** O bot vai repetir chamada: rede cai, o
-WhatsApp reentrega, a esteira roda duas vezes. Sem isso, o primeiro dia de
-produção tem gente marcada em duplicidade.
-
-**E não duplique a regra.** `encaixar` hoje mistura a regra com `cookies()`, via
-`quemRegistra()`. A rota **não** pode reimplementar "cabe ou não cabe": extraia
+**A armadilha, e ela é real:** `encaixar` mistura a regra com `cookies()`, via
+`quemRegistra()`. A rota **não pode** reimplementar "cabe ou não cabe". Extraia
 o miolo para uma função que recebe quem está registrando, e chame dos dois
 lados. Se `avaliarEncaixe` disser "cabe" na tela e a rota decidir sozinha, um
 dia elas discordam e ninguém descobre por semanas.
 
-### 5. Cadastre-se e organização: fora da lista
+**`Idempotency-Key` não é enfeite.** O bot repete chamada: rede cai, o WhatsApp
+reentrega, a esteira roda duas vezes. Sem isso, o primeiro dia de produção tem
+gente marcada em duplicidade. Precisa de tabela nova (`pedido_idempotente`, com
+chave, conta, hash do corpo e a resposta guardada) — é a única migration que a
+Fase 3 exige.
 
-Decisão do Gabriel em 14/08, com o porquê inteiro na seção da quarta sessão
-acima. Não reabra sem ele pedir. A análise antiga continua em
-[`planos/06-cadastro-e-organizacoes.md`](planos/06-cadastro-e-organizacoes.md),
-mas o `HANDOFF` vale mais que ela: a decisão é posterior.
+### 6. Marco 2, Fases 4 e 5
+
+Fase 4, **a Verandi avisa o AutoFluxos**: a recepção cancela pela tela e o bot
+precisa saber para avisar quem ia. Outbox na mesma transação do dado, entregador
+separado, HMAC e reentrega. Chamar o webhook dentro da ação amarraria o
+cancelamento à disponibilidade do outro sistema.
+
+Fase 5, **lista de espera**: transforma "não tem vaga" em "te aviso se abrir".
+Só funciona depois da 4, porque é o evento de cancelamento que dispara a
+chamada.
+
+### 7. O que depende do Gabriel, e você não começa sozinho
+
+- **Ilustrações do onboarding.** Prompts prontos em
+  [`ARTE-ONBOARDING.md`](ARTE-ONBOARDING.md). Ele gera; trocar é uma linha por
+  arte em `src/core/onboarding/boas-vindas.ts`, sem tocar em tela.
+- **Vida nas telas** ([`planos/08`](planos/08-vida-nas-telas.md)): movimento na
+  espera e ilustração nos estados vazios. Trava em três decisões dele, e ele
+  disse que vai querer mandar referências.
+- **As telas contra o protótipo.** Ele pediu para **não** fazer essa passada.
+  Nove tokens de cor e umas vinte frases mudaram em 14/08, a suíte passou
+  inteira, e ele avisa se algo ficar estranho.
+
+### 8. Higiene que pode esperar
+
+- O botão **"Entrar na conta"** do convite não entra: leva a `/entrar?novo=1`
+  sem preencher o e-mail. Atrito conhecido, não defeito.
+- A **busca global** do cabeçalho é uma caixa desabilitada dizendo que entra no
+  próximo marco.
+- `pessoa_resumo` recalcula quatro subconsultas por linha. Vai bem com mil
+  pessoas por conta; não medimos com dez mil.
+
+---
+
+## As decisões travadas. Não reabra sem o Gabriel pedir
+
+- **Cadastro público não será construído** enquanto a venda for ativa. A conta
+  nasce pela mão da 4YU. Análise antiga em
+  [`planos/06`](planos/06-cadastro-e-organizacoes.md); o que vale é esta linha,
+  porque a decisão é posterior a ela.
+- **Organização com várias unidades não será construída agora.** E o modelo
+  atual já é o certo para receber uma depois: `conta` é a unidade de isolamento,
+  e organização entraria como tabela nova mais uma coluna anulável, sem mover
+  nada. O caro seria o inverso.
+- **O profissional que atende em dois estúdios já funciona.** `usuario_conta`
+  tem chave `(usuario_id, conta_id)`, `profissional.usuario_id` não é único, e
+  `/contas` é o seletor. Teste em `acesso.test.ts:82`. Não construa nada.
+- **Cobrança não será construída.** Pix na mão está certo com um cliente. O que
+  já se decidiu é a **unidade** do preço, por pessoa ativa, que o produto já
+  conta.
+- **O robô não decide nada.** Horário cheio não aparece para ele, não abre
+  turma, não muda capacidade, não passa da lotação. É contrato de API e regra de
+  produto.
+- **O onboarding é dentro do sistema**, não uma tela antes de entrar. Já foi
+  tentado do outro jeito e a pessoa achava que o login não tinha funcionado.
+- **O "Cancelar assinatura" do Brevo em e-mail transacional fica como está.**
+  Existe caminho oficial e ele decidiu não abrir chamado.
 
 ---
 
@@ -307,8 +244,7 @@ mas o `HANDOFF` vale mais que ela: a decisão é posterior.
 
 Decisão do Gabriel em 14/08. Perguntar a cada migration é atrito sem ganho,
 porque a resposta é sempre a mesma enquanto o alcance for o nosso schema. O
-risco real não é aplicar: é aplicar sem conferir o que a mudança derruba no
-caminho.
+risco real não é aplicar: é aplicar sem conferir o que a mudança derruba.
 
 A conferência é fixa, e são cinco passos:
 
@@ -322,7 +258,7 @@ node scripts/aplica-em-producao.mjs --dry      # 1. o que está pendente
 3. **O que ela cria ainda não existe lá.** Migration que já rodou por outro
    caminho falha no meio e deixa a metade anterior aplicada.
 4. **Nada de fora depende do que ela derruba.** `drop view` e `drop function`
-   levam junto quem depende, em silêncio:
+   levam o dependente junto, em silêncio:
 
 ```sql
 select dependent_ns.nspname, dependent_view.relname
@@ -338,29 +274,14 @@ select dependent_ns.nspname, dependent_view.relname
 ```
 
 5. Aplica, e **prova fora do console**. O console diz "ok" para coisa que não
-   funciona; a mesma lição do GTM que está no `CLAUDE.md` da pasta de cima. O
-   que se confere: a coluna na tabela **e na view** (coluna nova não entra em
-   view sozinha, foi a armadilha da `0043` e da `0044`), o `security_invoker` da
-   view de pé, a contagem de tabelas em `public` intacta, e o site respondendo.
+   funciona. Confira: a coluna na tabela **e nas views que a expõem** (coluna
+   nova não entra em view sozinha, foi a armadilha da `0043` e da `0044`), o
+   `security_invoker` da view de pé, a contagem de tabelas em `public` intacta,
+   e o site respondendo.
 
 **Pergunte antes** em três casos, e só neles: a migration escapa do nosso
 schema; existe dependente de fora; ou ela é destrutiva sem volta (`drop` de
-coluna ou tabela que já tem dado de cliente).
-
----
-
-## Decisões do Gabriel que você não deve reabrir
-
-- **O "Cancelar assinatura" do Brevo em e-mail transacional fica como está.**
-  Existe um caminho oficial (abrir chamado pedindo `List-Help`) e ele decidiu em
-  14/08 não abrir. O custo está escrito no `ESTADO.md`.
-- **Cadastro público não vai ser construído** enquanto a venda for ativa. Deixou
-  de ser "o último item" e virou "fora da lista", em 14/08.
-- **Organização com várias unidades não vai ser construída** agora, e o modelo
-  atual já é o certo para receber uma depois.
-- **O onboarding é dentro do sistema.** Já foi tentado como tela antes de entrar
-  e estava errado: uma segunda tela com a cara do login faz a pessoa achar que o
-  login não funcionou.
+coluna ou tabela com dado de cliente).
 
 ---
 
@@ -369,18 +290,48 @@ coluna ou tabela que já tem dado de cliente).
 | Regra | Detalhe |
 |---|---|
 | Segredo | `set -a && . ../.secrets/4yu.env && set +a`. **Nunca** dentro do repo, que é público. `npm run segredos` confere. |
-| Migration nova | `node scripts/aplica-em-producao.mjs`. **Nunca** `supabase db push`: o banco é dividido com o AutoFluxos. Você aplica, não pergunta: a conferência está logo abaixo. |
-| Texto do produto | **Nada de travessão**. Vírgula, ponto ou dois-pontos. Há teste guardando os e-mails. |
-| Tela | Ler o código do protótipo não substitui abrir a tela dele. Rode os dois capturadores e compare em 1440×1000. [`VESTIR.md`](VESTIR.md). |
-| Antes de dizer que acabou | `npm test`, `npm run build`, `npm run test:e2e`, `npm run segredos`. |
-| Rota nova da API | não monte consulta própria: chame a função de `server/`, que já recebe `contaId` e filtra por ele. Sem sessão não há RLS, e um `select` sem `conta_id` lê a conta de todo mundo. |
+| Migration nova | `node scripts/aplica-em-producao.mjs`, com a conferência acima. **Nunca** `supabase db push`. |
 | Mexeu em migration | `npx supabase db reset` e depois **`npm run tipos`**. Sem isso o `tsc` segue passando com a forma antiga do banco. |
-| Prop de Server para Client Component | só valor. Função é recusada em tempo de execução, e nem o `tsc` nem o `build` avisam. |
-| Conta de teste em produção | MGM Pilates · dona `contato@4yu.com.br`; senha no cofre da equipe |
+| Tipo derivado do banco | mora em `src/server/banco.ts`. **Nunca** em `banco.types.ts`, que é reescrito inteiro a cada geração. |
+| Rota nova da API | chame a função de `server/`, que já recebe `contaId` e filtra por ele. Sem sessão não há RLS, e um `select` sem `conta_id` lê a conta de todo mundo. |
+| Prop de Server para Client Component | só valor. Função é recusada em **tempo de execução**, e nem o `tsc` nem o `build` avisam. |
+| `select` do supabase-js | string literal. Montado com `+` vira `string` e devolve `GenericStringError`, que fala de tudo menos do problema. |
+| Texto do produto | **Nada de travessão**. Vírgula, ponto ou dois-pontos. Há teste guardando os e-mails. |
+| Palavra do cliente | nem artigo nem adjetivo colado nela: o gênero é da palavra e a palavra é do cliente. Lint em `tests/unit/regua-do-vocabulario.test.ts`. |
+| Cor de texto | tem contraste mínimo, medido em `tests/unit/contraste.test.ts`. Não clareie para ficar igual ao protótipo. |
+| Tela | ler o código do protótipo não substitui abrir a tela dele. [`VESTIR.md`](VESTIR.md). |
+| Conta de teste nova | cai no onboarding. `e2e/apoio.ts` pula os dois roteiros por padrão; passe `{ pularOnboarding: false }` para testá-lo. |
+| Antes de dizer que acabou | `npm test`, `npm run build`, `npm run test:e2e`, `npm run segredos`. |
+| Conta de demonstração | MGM Pilates · dona `contato@4yu.com.br` · senha no cofre da equipe. |
 
-E uma que custou tempo nesta sessão: **toda conta de teste nova cai no
-onboarding**. Por isso `e2e/apoio.ts` marca os dois roteiros como pulados por
-padrão; quem for testar o onboarding passa `{ pularOnboarding: false }`.
+---
+
+## O que quatro sessões ensinaram, sem a cronologia
+
+A cronologia está no `git log`, que conta melhor. O que não está em lugar nenhum
+é isto:
+
+1. **O silêncio é o defeito.** Os piores achados não quebraram nada: a chamada
+   que cancelava sem dar crédito, o contraste que reprovava havia meses, a
+   Configuração que falava a língua errada, o aplicador que trataria erro de
+   token como banco virgem. Nenhum apareceu em teste, porque nenhum quebrava.
+   Quando desconfiar de algo assim, **transforme a regra em número e teste** — o
+   lint do vocabulário pegou um erro meu três minutos depois de escrito.
+2. **Verifique fora do console.** O painel diz "publicado", "aplicado", "ok"
+   para coisa que não funciona. Foi assim que se descobriu que o site carregava
+   o contêiner errado do GTM por meses.
+3. **Regra duplicada é regra que vai divergir.** Sempre que a tela e outra coisa
+   precisarem da mesma decisão, a decisão sai para `core/` e as duas chamam. Vale
+   para o encaixe, para o crédito de reposição e para a API.
+4. **Coluna nova não entra em view sozinha.** Duas migrations seguidas caíram
+   nisso.
+5. **A régua da palavra do cliente inclui a palavra neutra.** O teste antigo
+   procurava "Aluno" e "Turma" fixos, e por isso não via "Serviço" e "Local"
+   escritos à mão: eles *são* o padrão. A pergunta certa é "escreveram uma
+   palavra que é do cliente?", não "escreveram a palavra de um cliente?".
+6. **Pergunta de produto se faz descrevendo a cena.** "Quem é o comprador?" não
+   comunicou nada; "o dono acha vocês no Google ou vocês batem na porta dele?"
+   teria resolvido na primeira tentativa.
 
 ---
 
@@ -392,12 +343,14 @@ node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
 npm run dev
 ```
 
-Entrar com `dono@dev.local`, `prof@dev.local`, `recepcao@dev.local` ou
-`suporte@dev.local`, senha `senha-de-teste-123`.
-
 Para ver o onboarding de novo depois de tê-lo pulado:
 
 ```bash
 docker exec supabase_db_verandi psql -U postgres -d postgres \
   -c "delete from app_verandi.onboarding;"
 ```
+
+Se o Supabase local subir com config antiga (as rotas respondem
+`Invalid schema: app_verandi`), é porque os contêineres são de antes de uma
+mudança no `supabase/config.toml`: `npx supabase stop --no-backup` e suba de
+novo.
