@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Menu } from '@/components/ui/menu'
 import { Modal } from '@/components/ui/modal'
-import { cartao, Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
+import {
+  cartao, Campo, Etiqueta, Nota, Paginacao, entrada,
+} from '@/components/ui/pecas'
 import { paresDe } from '@/components/hoje/pecas'
 import { mesCurto } from '@/core/agenda/mes-curto'
 import { useAviso } from '@/components/ui/desfazer'
@@ -21,11 +23,27 @@ import type { AcessoSuporte, ContaSinais } from '@/server/suporte/consultas'
  * comparadas de cima a baixo, e cartão empilhado não deixa comparar nada.
  */
 export function PainelContas({
-  contas, acessos,
+  contas, acessos, busca, pagina, total, porPagina,
 }: {
+  /** só a página atual: a lista inteira não cabe mais na tela nem na memória */
   contas: ContaSinais[]
   acessos: AcessoSuporte[]
+  busca: string
+  pagina: number
+  /** quantas contas a busca encontrou ao todo, não quantas vieram */
+  total: number
+  porPagina: number
 }) {
+  /* o endereço de cada página é montado aqui: função não atravessa a fronteira
+     de Server para Client Component */
+  const hrefDaPagina = (n: number) => {
+    const b = new URLSearchParams()
+    if (busca) b.set('q', busca)
+    if (n > 1) b.set('p', String(n))
+    const s = b.toString()
+    return s ? `/contas-4yu?${s}` : '/contas-4yu'
+  }
+
   const [criando, setCriando] = useState(false)
   const [vendoLog, setVendoLog] = useState(false)
   const [convite, setConvite] = useState<{ url: string; para: string } | null>(null)
@@ -57,13 +75,32 @@ export function PainelContas({
             Contas
           </h1>
           <p className="pt-[3px] text-[13.5px] text-tinta-media">
-            Painel da 4YU · {contas.length}{' '}
-            {contas.length === 1 ? 'conta' : 'contas'} · sinais de vida antes da
-            reclamação
+            {/* o número é o da busca inteira, não o da página: "20 contas"
+                a cada página seria um número errado que ninguém desconfiaria */}
+            Painel da 4YU · {total} {total === 1 ? 'conta' : 'contas'}
+            {busca ? ' encontradas' : ''} · sinais de vida antes da reclamação
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* busca por GET, como em /pessoas: o endereço vira o link que se
+              manda no chat, e o voltar desfaz a busca */}
+          <form className="relative flex items-center" action="/contas-4yu">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-3.5 font-mono text-[13px] text-tinta-fraca"
+            >
+              ⌕
+            </span>
+            <input
+              id="q" name="q" defaultValue={busca} aria-label="Buscar conta"
+              placeholder="Nome ou identificador"
+              className="min-h-11 min-w-[228px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[13px] placeholder:text-tinta-fraca"
+            />
+            <button type="submit" className="sr-only focus:not-sr-only focus:ml-2">
+              Buscar
+            </button>
+          </form>
           <Botao tom="secundario" onClick={() => setVendoLog(true)}>
             Log de suporte
           </Botao>
@@ -154,6 +191,14 @@ export function PainelContas({
           ))}
         </div>
 
+        {contas.length === 0 ? (
+          <p className="px-4.5 py-6 text-[13px] text-tinta-media">
+            {busca
+              ? `Nenhuma conta com "${busca}".`
+              : 'Nenhuma conta de cliente ainda.'}
+          </p>
+        ) : null}
+
         <ul>
           {contas.map((c) => {
             const [fundo, frente] = paresDe(c.nome)
@@ -234,6 +279,14 @@ export function PainelContas({
           })}
         </ul>
       </section>
+
+      <Paginacao
+        pagina={pagina}
+        total={total}
+        porPagina={porPagina}
+        hrefDe={hrefDaPagina}
+        nota="conta suspensa continua na lista"
+      />
 
       {/* Entrar na conta de um cliente é o acesso mais forte do sistema, e a
           tela diz isso, depois da lista, onde ele fecha a leitura em vez de

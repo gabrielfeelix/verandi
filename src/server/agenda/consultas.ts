@@ -159,8 +159,8 @@ export async function sessoesDoIntervalo(
   ate: string,
   filtro: { profissionalId?: string; servicoId?: string; localId?: string } = {},
 ): Promise<SessaoResumo[]> {
-  await materializarJanela(db, contaId, de, ate)
   const fuso = await fusoDa(db, contaId)
+  await materializarJanela(db, contaId, de, ate, fuso)
 
   let q = db
     .from('sessao')
@@ -174,7 +174,7 @@ export async function sessoesDoIntervalo(
   if (filtro.servicoId) q = q.eq('servico_id', filtro.servicoId)
   if (filtro.localId) q = q.eq('local_id', filtro.localId)
 
-  const { data, error } = await q.returns<LinhaResumo[]>()
+  const { data, error } = await q
   if (error) throw error
   return (data ?? []).map((l) => paraResumo(l, fuso))
 }
@@ -270,6 +270,15 @@ export async function sessaoDetalhe(
       )
     `)
     .eq('id', sessaoId)
+    /*
+     * O tipo à mão fica por **uma** coluna: `participacao.observacao_visivel` é
+     * `text` com `check`, e o arquivo gerado diz `string`. `status` e `origem`,
+     * que são `enum` de verdade no Postgres, já vêm como união sozinhos, e por
+     * isso saíram daqui.
+     *
+     * A diferença não é estilo: é o que separa "quem lê esta observação" de uma
+     * comparação com qualquer texto.
+     */
     .maybeSingle<LinhaDetalhe>()
 
   if (error) throw error
@@ -281,7 +290,7 @@ export async function sessaoDetalhe(
     .from('pessoa_tag')
     .select('pessoa_id, tag')
     .in('pessoa_id', data.participacao.map((p) => p.pessoa?.id).filter(Boolean) as string[])
-    .returns<{ pessoa_id: string; tag: string }[]>()
+    
 
   const porPessoa = new Map<string, string[]>()
   for (const t of tags ?? []) {
@@ -317,7 +326,7 @@ export async function sessaoDetalhe(
       .from('vaga')
       .select('pessoa_id, inicio')
       .eq('serie_id', data.serie_id)
-      .returns<{ pessoa_id: string; inicio: string }[]>()
+      
     for (const v of vagas ?? []) {
       const anterior = desdeQuando.get(v.pessoa_id)
       // quem saiu e voltou tem duas vagas; a que interessa é a primeira
@@ -335,10 +344,7 @@ export async function sessaoDetalhe(
       .from('participacao')
       .select('id, sessao:sessao_id(inicio, servico:servico_id(nome))')
       .in('id', idsRepostos)
-      .returns<{
-        id: string
-        sessao: { inicio: string; servico: { nome: string } | null } | null
-      }[]>()
+      
     for (const o of origens ?? []) {
       if (!o.sessao) continue
       const { data: d, hora } = localDe(o.sessao.inicio, fuso)
@@ -484,11 +490,7 @@ export async function faltasEmAberto(
     // pagando, e Padrões decide o que vira cobrança em `/pendencias`, não o que
     // pode ser apontado à mão
     .in('status', statusComCredito(true))
-    .returns<{
-      id: string
-      status: StatusParticipacao
-      sessao: { inicio: string; servico: { nome: string } | null } | null
-    }[]>()
+    
   if (error) throw error
   if (!data?.length) return []
 
@@ -497,7 +499,7 @@ export async function faltasEmAberto(
     .select('reposicao_de_id')
     .eq('conta_id', contaId)
     .not('reposicao_de_id', 'is', null)
-    .returns<{ reposicao_de_id: string }[]>()
+    
   const jaReposta = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
 
   return data

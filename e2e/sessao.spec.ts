@@ -143,8 +143,9 @@ test('sessão cancelada mostra o motivo e não deixa registrar', async ({ page }
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  // a frase agora nomeia a entidade da conta: "Aula cancelada", "Sessão cancelada"
-  await expect(page.getByText(/cancelada, Professora doente/)).toBeVisible()
+  // a frase nomeia a entidade da conta sem concordar com ela: "cancelada"
+  // viraria "Atendimento cancelada" para quem chama sessão de atendimento
+  await expect(page.getByText(/não vai acontecer: Professora doente/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
 })
 
@@ -161,7 +162,7 @@ test('a tela usa o rótulo da conta, não a palavra do código', async ({ page }
   // o h1 agora é o nome do serviço, como no protótipo; o vocabulário da conta
   // aparece no título da lista e na trilha
   await expect(
-    page.getByRole('heading', { name: 'Alunos nesta aula' }),
+    page.getByRole('heading', { name: 'Alunos no horário' }),
   ).toBeVisible()
   await expect(page.getByRole('list', { name: 'Alunos' })).toBeVisible()
 })

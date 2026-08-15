@@ -53,7 +53,9 @@ test('entrar como suporte mostra a faixa que não some, e registra', async ({ pa
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto('/contas-4yu')
+  // pela busca, e não pela lista inteira: `/contas-4yu` pagina de vinte em
+  // vinte, e o banco de teste guarda mil contas de execuções anteriores
+  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
 
   await page.getByRole('listitem')
     .filter({ hasText: nome })
@@ -79,7 +81,7 @@ test('sair do suporte encerra o registro e devolve a conta', async ({ page }) =>
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto('/contas-4yu')
+  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
@@ -107,7 +109,7 @@ test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
   await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto('/contas-4yu')
+  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
@@ -150,7 +152,7 @@ test('suspender tira o acesso sem apagar dado', async ({ page }) => {
   await admin.from('pessoa').insert({ conta_id: cliente.contaId, nome: 'Cliente Antigo' })
 
   await entrar(page, s.email)
-  await page.goto('/contas-4yu')
+  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
   // suspender é ação de menu: não se suspende conta de cliente sem procurar
   await page.getByRole('listitem')
     .filter({ hasText: nome })
@@ -174,7 +176,7 @@ test('o log de acesso da 4YU mostra o que ficou em aberto', async ({ page }) => 
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto('/contas-4yu')
+  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })

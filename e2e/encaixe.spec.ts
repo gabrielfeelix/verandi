@@ -142,7 +142,7 @@ test('cancelar o horário avisa quantas pessoas serão afetadas', async ({ page 
   await confirmacao.getByLabel('Motivo').fill('Sala interditada')
   await confirmacao.getByRole('button', { name: 'Cancelar turma' }).click()
 
-  await expect(page.getByText(/cancelada, Sala interditada/)).toBeVisible()
+  await expect(page.getByText(/não vai acontecer: Sala interditada/)).toBeVisible()
 })
 
 test('com encaixe acima permitido, a tela pede confirmação e registra a exceção', async ({ page }) => {

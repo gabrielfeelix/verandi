@@ -5,6 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { calcularOcupacao, type StatusParticipacao } from '@/core/agenda/ocupacao'
 import { avaliarEncaixe } from '@/core/agenda/encaixe'
 import type { OrigemParticipacao } from './consultas'
+import { semAcento } from '../pessoas/consultas'
 
 /** De qual lado do balcão veio o registro. Serve auditoria, não permissão. */
 async function quemRegistra() {
@@ -62,7 +63,7 @@ export async function mudarStatus(
     .update({ status, ...carimbo })
     .eq('id', participacaoId)
     .select('sessao_id')
-    .maybeSingle<{ sessao_id: string }>()
+    .maybeSingle()
 
   if (error) throw error
   if (data) atualizarTela(data.sessao_id)
@@ -90,16 +91,13 @@ export async function encaixar(entrada: {
     .from('sessao')
     .select('capacidade, participacao(pessoa_id, status)')
     .eq('id', entrada.sessaoId)
-    .single<{
-      capacidade: number
-      participacao: { pessoa_id: string; status: StatusParticipacao }[]
-    }>()
+    .single()
   if (error) throw error
 
   // a conta decide se a recepção pode abrir exceção; a leitura é aqui e não na
   // tela porque entre mostrar e clicar alguém pode ter mudado a configuração
   const { data: padrao } = await db.from('conta')
-    .select('encaixe_acima').eq('id', conta.contaId).single<{ encaixe_acima: boolean }>()
+    .select('encaixe_acima').eq('id', conta.contaId).single()
 
   const jaParticipa = sessao.participacao.some((p) => p.pessoa_id === entrada.pessoaId)
   const ocupacao = calcularOcupacao(
@@ -178,7 +176,7 @@ export async function removerParticipacao(participacaoId: string): Promise<void>
     .delete()
     .eq('id', participacaoId)
     .select('sessao_id')
-    .maybeSingle<{ sessao_id: string }>()
+    .maybeSingle()
   if (error) throw error
   if (data) atualizarTela(data.sessao_id)
 }
@@ -213,7 +211,7 @@ export async function salvarObservacao(
   if (conta.papel === 'recepcao') {
     const atual = await db.from('participacao')
       .select('observacao, observacao_visivel').eq('id', participacaoId)
-      .maybeSingle<{ observacao: string | null; observacao_visivel: string }>()
+      .maybeSingle()
     if (atual.data?.observacao && atual.data.observacao_visivel === 'profissionais') {
       throw new Error('esta observação é de quem atende, e não dá para reescrever daqui')
     }
@@ -228,7 +226,7 @@ export async function salvarObservacao(
     })
     .eq('id', participacaoId)
     .select('sessao_id')
-    .maybeSingle<{ sessao_id: string }>()
+    .maybeSingle()
 
   if (error) throw error
   if (data) atualizarTela(data.sessao_id)
@@ -260,7 +258,7 @@ export async function apontarReposicao(
     })
     .eq('id', participacaoId)
     .select('sessao_id')
-    .maybeSingle<{ sessao_id: string }>()
+    .maybeSingle()
 
   if (error) throw error
   if (data) atualizarTela(data.sessao_id)
@@ -290,7 +288,7 @@ export async function trocarOrigem(
     })
     .eq('id', participacaoId)
     .select('sessao_id')
-    .maybeSingle<{ sessao_id: string }>()
+    .maybeSingle()
 
   if (error) throw error
   if (data) atualizarTela(data.sessao_id)
@@ -314,4 +312,48 @@ export async function trocarProfissionalDaSessao(
     .eq('id', sessaoId)
   if (error) throw error
   atualizarTela(sessaoId)
+}
+
+/**
+ * Quem pode ser encaixado neste horário, procurado pelo nome.
+ *
+ * Antes a tela da Sessão descia **todas as pessoas ativas da conta** para o
+ * navegador, em toda visita, só para o campo de encaixe filtrar no cliente. Um
+ * estúdio com 800 cadastros pagava 800 linhas de nome e telefone em cada
+ * abertura de chamada, e a busca só começa a valer a partir de duas letras: o
+ * caso comum era baixar tudo e usar nada.
+ *
+ * `nome_busca` é a coluna sem acento da 0034, a mesma que a lista de pessoas
+ * usa, então "ceci" acha "Cecília" aqui e lá do mesmo jeito.
+ *
+ * Oito resultados porque a lista mora dentro de um modal: quem tem dez
+ * "Maria Silva" escreve o sobrenome, e não rola uma lista de trinta com a
+ * pessoa esperando no balcão.
+ */
+export async function buscarCandidatos(
+  termo: string,
+): Promise<Array<{ id: string; nome: string; detalhe: string }>> {
+  const busca = termo.trim()
+  if (busca.length < 2) return []
+
+  const conta = await exigirConta()
+  const db = await clienteServidor()
+
+  const { data, error } = await db
+    .from('pessoa')
+    .select('id, nome, telefone, identificador_externo')
+    .eq('conta_id', conta.contaId)
+    .eq('ativo', true)
+    .like('nome_busca', `%${semAcento(busca)}%`)
+    .order('nome')
+    .limit(8)
+    
+  if (error) throw error
+
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    nome: p.nome,
+    // algo que desambigua: nomes se repetem e são escritos de formas diferentes
+    detalhe: p.telefone ?? p.identificador_externo ?? 'sem telefone',
+  }))
 }

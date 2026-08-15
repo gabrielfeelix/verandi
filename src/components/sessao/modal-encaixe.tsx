@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import type { Ocupacao } from '@/core/agenda/ocupacao'
-import { ajustarCapacidade, encaixar } from '@/server/agenda/acoes'
+import { ajustarCapacidade, buscarCandidatos, encaixar } from '@/server/agenda/acoes'
 import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { Avatar, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
@@ -13,7 +13,6 @@ type Candidato = { id: string; nome: string; detalhe: string }
 type Props = {
   sessaoId: string
   ocupacao: Ocupacao
-  candidatos: Candidato[]
   rotuloPessoa: string
   /** "Pilates Solo · 12 ago 09:00", para o subtítulo do modal */
   ondeQuando: string
@@ -27,7 +26,7 @@ type Props = {
  * disputa a atenção com a única coisa que importa enquanto a turma entra.
  */
 export function ModalEncaixe({
-  sessaoId, ocupacao, candidatos, rotuloPessoa, ondeQuando,
+  sessaoId, ocupacao, rotuloPessoa, ondeQuando,
 }: Props) {
   const { encaixeAberto, fecharEncaixe } = useChamada()
   const [pendente, iniciar] = useTransition()
@@ -37,14 +36,28 @@ export function ModalEncaixe({
   /** quem está esperando a confirmação de passar da capacidade */
   const [excedente, setExcedente] = useState<string | null>(null)
 
-  const normalizar = (s: string) =>
-    s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+  const [achados, setAchados] = useState<Candidato[]>([])
 
-  const achados = busca.trim().length < 2
-    ? []
-    : candidatos
-        .filter((c) => normalizar(c.nome).includes(normalizar(busca)))
-        .slice(0, 8)
+  /*
+   * A busca acontece no servidor, e não numa lista baixada de véspera.
+   *
+   * Descer a conta inteira para filtrar aqui era rápido de escrever e caro em
+   * toda abertura de chamada: 800 cadastros viravam 800 linhas de nome e
+   * telefone no HTML da página, para uma busca que só começa com duas letras.
+   *
+   * Os 200ms de espera existem porque quem digita "cec" não quer três buscas;
+   * e `cancelado` protege contra a resposta velha chegar depois da nova e
+   * repintar o resultado errado.
+   */
+  useEffect(() => {
+    if (busca.trim().length < 2) { setAchados([]); return }
+    let cancelado = false
+    const t = setTimeout(async () => {
+      const r = await buscarCandidatos(busca)
+      if (!cancelado) setAchados(r)
+    }, 200)
+    return () => { cancelado = true; clearTimeout(t) }
+  }, [busca])
 
   /**
    * Encaixar acima da capacidade **pede confirmação explícita**.
@@ -70,7 +83,7 @@ export function ModalEncaixe({
       setAviso(
         r.motivo === 'lotada'
           ? 'Este horário está cheio. Para caber mais um, aumente a capacidade abaixo.'
-          : `Essa ${rotuloPessoa.toLowerCase()} já está neste horário.`,
+          : `Quem você escolheu já está neste horário.`,
       )
     })
   }

@@ -50,28 +50,13 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
 
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
 
-  const { data: pessoas } = await db
-    .from('pessoa')
-    .select('id, nome, telefone, identificador_externo')
-    .eq('conta_id', conta.contaId)
-    .eq('ativo', true)
-    .order('nome')
-    .returns<{ id: string; nome: string; telefone: string | null; identificador_externo: string | null }[]>()
-
-  const candidatos = (pessoas ?? []).map((p) => ({
-    id: p.id,
-    nome: p.nome,
-    // algo que desambigua: nomes se repetem e são escritos de formas diferentes
-    detalhe: p.telefone ?? p.identificador_externo ?? 'sem telefone',
-  }))
-
   const { data: equipe } = await db
     .from('profissional')
     .select('id, nome, cor')
     .eq('conta_id', conta.contaId)
     .eq('ativo', true)
     .order('nome')
-    .returns<{ id: string; nome: string; cor: string | null }[]>()
+    
 
   // as faltas em aberto de quem está aqui: é o que o menu de reposição oferece
   const faltasPorPessoa: Record<string, FaltaEmAberto[]> = {}
@@ -147,7 +132,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                       {sessao.profissional}
                     </span>
                   ) : (
-                    <span>sem {rotulos.profissional.singular.toLowerCase()} definido</span>
+                    <span>sem {rotulos.profissional.singular.toLowerCase()} no horário</span>
                   )}
                   {sessao.local ? (
                     <>
@@ -173,7 +158,12 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
 
                 {cancelada ? (
                   <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">
-                    {rotulos.sessao.singular} cancelada, {sessao.motivoCancelamento}.
+                    {/* "cancelada" concorda com a palavra do cliente, e a
+                        palavra é dele: "Atendimento cancelada". O verbo no
+                        infinitivo não tem gênero, e a frase continua nomeando
+                        a coisa. */}
+                    {rotulos.sessao.singular} não vai acontecer:{' '}
+                    {sessao.motivoCancelamento}.
                     O que já foi registrado continua no histórico.
                   </p>
                 ) : null}
@@ -199,10 +189,9 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
 
           <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_316px]">
             <ListaParticipacao
-              titulo={`${rotulos.pessoa.plural} nesta ${rotulos.sessao.singular.toLowerCase()}`}
+              titulo={`${rotulos.pessoa.plural} no horário`}
               rotuloPessoa={rotulos.pessoa.singular}
               rotuloPessoas={rotulos.pessoa.plural}
-              rotuloSessao={rotulos.sessao.singular}
               livres={sessao.ocupacao.livres}
               faltasPorPessoa={faltasPorPessoa}
             />
@@ -227,7 +216,6 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
         <ModalEncaixe
           sessaoId={sessao.id}
           ocupacao={sessao.ocupacao}
-          candidatos={candidatos}
           rotuloPessoa={rotulos.pessoa.singular}
           ondeQuando={`${sessao.servico} · ${dataCurta} ${sessao.hora}`}
         />

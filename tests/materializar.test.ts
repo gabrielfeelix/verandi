@@ -88,6 +88,31 @@ describe('materializarJanela', () => {
     expect(count).toBe(0)
   })
 
+  /*
+   * A conferência que evita a escrita por leitura não pode virar cache.
+   *
+   * `materializarJanela` passou a ler o que já existe antes de escrever, para
+   * que a visita número cinquenta a `/hoje` não mande um `upsert` por série
+   * sem nada a criar. O risco desse tipo de atalho é ele "lembrar" de uma
+   * sessão que não existe mais: aqui uma é apagada na mão, e a chamada
+   * seguinte tem de trazê-la de volta.
+   */
+  it('sessão apagada na mão volta na próxima materialização', async () => {
+    const { data: alvo } = await db.from('sessao').select('id, inicio')
+      .eq('serie_id', serieId).order('inicio').limit(1).single()
+    await db.from('participacao').delete().eq('sessao_id', alvo!.id)
+    await db.from('sessao').delete().eq('id', alvo!.id)
+
+    const r = await materializarJanela(db, contaId, '2026-08-01', '2026-08-31')
+    expect(r.criadas).toBe(1)
+
+    // só agosto: os testes anteriores já materializaram setembro nesta série
+    const { count } = await db.from('sessao')
+      .select('*', { count: 'exact', head: true }).eq('serie_id', serieId)
+      .gte('inicio', '2026-08-01T00:00:00Z').lt('inicio', '2026-09-01T00:00:00Z')
+    expect(count).toBe(5)
+  })
+
   it('duas chamadas simultâneas não duplicam', async () => {
     const antes = await db.from('sessao')
       .select('*', { count: 'exact', head: true }).eq('conta_id', contaId)
