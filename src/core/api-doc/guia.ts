@@ -51,7 +51,7 @@ export const WEBHOOK: Passo[] = [
   {
     titulo: 'O que chega',
     texto:
-      'Um POST com o corpo abaixo. Três eventos hoje: participacao.criada, participacao.cancelada e sessao.cancelada. Ignore evento que você não conhece, porque outros vão aparecer.',
+      'Um POST com o corpo abaixo. Quatro eventos hoje: participacao.criada, participacao.cancelada, sessao.cancelada e vaga.aberta, este último quando abre vaga em horário que tinha fila. Ignore evento que você não conhece, porque outros vão aparecer.',
     codigo: `POST no seu endereço
 Verandi-Event: participacao.cancelada
 Verandi-Timestamp: 1786820400

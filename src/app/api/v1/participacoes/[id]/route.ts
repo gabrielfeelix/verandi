@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
 import { idObrigatorio } from '@/core/api/pedido'
 import { avisar } from '@/server/webhook/eventos'
+import { avisarQuemEspera } from '@/server/agenda/espera'
 
 /**
  * Desmarcar, que é diferente de apagar.
@@ -81,6 +82,9 @@ export const DELETE = comChave<{ id: string }>(async (
   await avisar(ctx.db, ctx.contaId, 'participacao.cancelada', {
     participacaoId: params.id, sessaoId: sessaoDaLinha,
   })
+
+  // e quem estava na fila deste horário é chamado, na ordem de chegada
+  await avisarQuemEspera(ctx.db, ctx.contaId, sessaoDaLinha)
 
   return NextResponse.json({
     participacaoId: p.id,

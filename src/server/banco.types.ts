@@ -262,6 +262,65 @@ export type Database = {
           },
         ]
       }
+      espera: {
+        Row: {
+          avisado_em: string | null
+          cancelado_em: string | null
+          conta_id: string
+          criado_em: string
+          id: string
+          pessoa_id: string
+          sessao_id: string
+        }
+        Insert: {
+          avisado_em?: string | null
+          cancelado_em?: string | null
+          conta_id: string
+          criado_em?: string
+          id?: string
+          pessoa_id: string
+          sessao_id: string
+        }
+        Update: {
+          avisado_em?: string | null
+          cancelado_em?: string | null
+          conta_id?: string
+          criado_em?: string
+          id?: string
+          pessoa_id?: string
+          sessao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "espera_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "espera_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "espera_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa_resumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "espera_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "sessao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evento_saida: {
         Row: {
           conta_id: string

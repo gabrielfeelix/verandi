@@ -719,3 +719,192 @@ test.describe('avisar de volta', () => {
     expect(data).toHaveLength(1)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Fase 5: lista de espera
+// ---------------------------------------------------------------------------
+
+/** Enche o horário até não sobrar vaga, e devolve as pessoas usadas. */
+async function encheOHorario(contaId: string, sessaoId: string, quantas = 2) {
+  const { data: pessoas } = await admin.from('pessoa').insert(
+    Array.from({ length: quantas }, (_, i) => ({
+      conta_id: contaId, nome: `Ocupa ${i} ${Date.now()}`,
+    })),
+  ).select('id')
+  await admin.from('participacao').insert(
+    (pessoas ?? []).map((p) => ({
+      conta_id: contaId, sessao_id: sessaoId, pessoa_id: p.id,
+      origem: 'avulso' as const, status: 'esperada' as const,
+    })),
+  )
+  return pessoas ?? []
+}
+
+test.describe('lista de espera', () => {
+  test('entra na fila do horário cheio, e a posição é a ordem de chegada', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    await encheOHorario(c.contaId, h.sessaoId)
+
+    const { data: pessoas } = await admin.from('pessoa').insert([
+      { conta_id: c.contaId, nome: 'Primeira da Fila' },
+      { conta_id: c.contaId, nome: 'Segunda da Fila' },
+    ]).select('id')
+
+    const um = await envia(request, 'post', '/api/v1/espera', {
+      headers: com(c.segredo).headers,
+      data: { pessoaId: pessoas![0].id, sessaoId: h.sessaoId },
+    })
+    const dois = await envia(request, 'post', '/api/v1/espera', {
+      headers: com(c.segredo).headers,
+      data: { pessoaId: pessoas![1].id, sessaoId: h.sessaoId },
+    })
+
+    expect(um.status).toBe(201)
+    expect(um.corpo.posicao).toBe(1)
+    expect(dois.corpo.posicao).toBe(2)
+  })
+
+  test('horário com vaga recusa a fila, e manda marcar', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Sem Precisar' }).select('id').single()
+
+    const r = await envia(request, 'post', '/api/v1/espera', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+
+    // fila em horário com vaga é a pessoa esperando um aviso que nunca vem
+    expect(r.status).toBe(409)
+    expect(r.corpo.motivo).toBe('tem_vaga')
+  })
+
+  test('a mesma pessoa não entra duas vezes na mesma fila', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    await encheOHorario(c.contaId, h.sessaoId)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Insistente' }).select('id').single()
+    const corpo = { pessoaId: p!.id, sessaoId: h.sessaoId }
+
+    await envia(request, 'post', '/api/v1/espera', { headers: com(c.segredo).headers, data: corpo })
+    const segunda = await envia(request, 'post', '/api/v1/espera', {
+      headers: com(c.segredo).headers, data: corpo,
+    })
+
+    // senão a reentrega põe a mesma pessoa três vezes, e ela recebe três avisos
+    expect(segunda.status).toBe(409)
+    expect(segunda.corpo.motivo).toBe('ja_esperava')
+  })
+
+  test('quando a vaga abre, quem está na frente é chamado, e só ela', async ({ request }) => {
+    const c = await contaComChave()
+    await comDestinoDeAviso(c.contaId)
+    const h = await umHorarioLivre(request, c)
+    const ocupantes = await encheOHorario(c.contaId, h.sessaoId)
+
+    const { data: fila } = await admin.from('pessoa').insert([
+      { conta_id: c.contaId, nome: 'Chamada Primeiro', telefone: '11911112222' },
+      { conta_id: c.contaId, nome: 'Ainda Espera' },
+    ]).select('id')
+
+    for (const p of fila ?? []) {
+      await envia(request, 'post', '/api/v1/espera', {
+        headers: com(c.segredo).headers, data: { pessoaId: p.id, sessaoId: h.sessaoId },
+      })
+    }
+
+    // alguém desiste: uma vaga, uma pessoa chamada
+    const { data: saiu } = await admin.from('participacao')
+      .select('id').eq('sessao_id', h.sessaoId).eq('pessoa_id', ocupantes[0].id).single()
+    await envia(request, 'delete', `/api/v1/participacoes/${saiu!.id}`, {
+      headers: com(c.segredo).headers,
+    })
+
+    const { data: eventos } = await admin.from('evento_saida')
+      .select('tipo, dados').eq('conta_id', c.contaId).eq('tipo', 'vaga.aberta')
+
+    /*
+     * Uma vaga, um aviso. Mandar para a fila inteira transformaria a boa notícia
+     * numa corrida em que todo mundo menos um perde, e os que perdem vão achar
+     * que o estúdio brincou com eles.
+     */
+    expect(eventos).toHaveLength(1)
+    expect(eventos![0].dados).toMatchObject({ pessoa: 'Chamada Primeiro', vagas: 1 })
+
+    const { data: naFila } = await admin.from('espera')
+      .select('avisado_em, pessoa_id').eq('sessao_id', h.sessaoId).order('criado_em')
+    expect(naFila![0].avisado_em).not.toBeNull()
+    expect(naFila![1].avisado_em).toBeNull()
+  })
+
+  test('sair da fila não apaga, e sair duas vezes devolve 200', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    await encheOHorario(c.contaId, h.sessaoId)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Desiste' }).select('id').single()
+
+    const entrou = await envia(request, 'post', '/api/v1/espera', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    const url = `/api/v1/espera/${entrou.corpo.esperaId}`
+
+    const saiu = await envia(request, 'delete', url, { headers: com(c.segredo).headers })
+    const denovo = await envia(request, 'delete', url, { headers: com(c.segredo).headers })
+
+    expect(saiu.corpo.jaEstavaAssim).toBe(false)
+    expect(denovo.status).toBe(200)
+    expect(denovo.corpo.jaEstavaAssim).toBe(true)
+
+    /*
+     * A linha fica: "quantas pessoas ficaram esperando a aula das sete" é a
+     * pergunta que decide se vale abrir uma turma nova.
+     */
+    const { data } = await admin.from('espera')
+      .select('cancelado_em').eq('id', entrou.corpo.esperaId).single()
+    expect(data?.cancelado_em).not.toBeNull()
+  })
+
+  test('quem saiu da fila não é chamado quando a vaga abre', async ({ request }) => {
+    const c = await contaComChave()
+    await comDestinoDeAviso(c.contaId)
+    const h = await umHorarioLivre(request, c)
+    const ocupantes = await encheOHorario(c.contaId, h.sessaoId)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Ja Foi Embora' }).select('id').single()
+
+    const entrou = await envia(request, 'post', '/api/v1/espera', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    await envia(request, 'delete', `/api/v1/espera/${entrou.corpo.esperaId}`, {
+      headers: com(c.segredo).headers,
+    })
+
+    const { data: saiu } = await admin.from('participacao')
+      .select('id').eq('sessao_id', h.sessaoId).eq('pessoa_id', ocupantes[0].id).single()
+    await envia(request, 'delete', `/api/v1/participacoes/${saiu!.id}`, {
+      headers: com(c.segredo).headers,
+    })
+
+    const { count } = await admin.from('evento_saida')
+      .select('id', { count: 'exact', head: true })
+      .eq('conta_id', c.contaId).eq('tipo', 'vaga.aberta')
+    expect(count).toBe(0)
+  })
+
+  test('a fila de outra conta dá 404', async ({ request }) => {
+    const a = await contaComChave('Estúdio A')
+    const b = await contaComChave('Salão B')
+    const h = await umHorarioLivre(request, b)
+    await encheOHorario(b.contaId, h.sessaoId)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: b.contaId, nome: 'Da B' }).select('id').single()
+
+    const r = await envia(request, 'post', '/api/v1/espera', {
+      headers: com(a.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    expect(r.status).toBe(404)
+  })
+})

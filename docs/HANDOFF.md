@@ -24,10 +24,10 @@ a cada push na `main`.
 | | |
 |---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) |
-| Migrations aplicadas | 19, da `0030` à `0048` |
+| Migrations aplicadas | 20, da `0030` à `0049` |
 | Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
-| Testes | 364 de unidade e banco · 158 de navegador |
-| API v1 | sete rotas no ar, leitura e escrita, com documentação pública em `/api-docs` |
+| Testes | 364 de unidade e banco · 165 de navegador |
+| API v1 | nove rotas e quatro eventos de webhook, com documentação pública em `/api-docs` |
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
@@ -192,16 +192,23 @@ desenho de até onde a automação vai estão em
   (migration `0047`). Mesma chave com corpo diferente dá 422, e não uma marcação
   silenciosa no horário errado.
 
-### 6. Marco 2, Fases 4 e 5
+### 6. Marco 2, Fases 4 e 5 ✔ feitas em 15/08
 
-Fase 4, **a Verandi avisa o AutoFluxos**: a recepção cancela pela tela e o bot
-precisa saber para avisar quem ia. Outbox na mesma transação do dado, entregador
-separado, HMAC e reentrega. Chamar o webhook dentro da ação amarraria o
-cancelamento à disponibilidade do outro sistema.
+**Fase 4, a Verandi avisa.** Outbox na mesma ação que mexe no dado, entrega em
+`after` (depois de a resposta sair), assinatura HMAC com o instante dentro da
+conta, e reentrega de 30s a 2h em seis tentativas. Quatro eventos:
+`participacao.criada`, `participacao.cancelada`, `sessao.cancelada` e
+`vaga.aberta`.
 
-Fase 5, **lista de espera**: transforma "não tem vaga" em "te aviso se abrir".
-Só funciona depois da 4, porque é o evento de cancelamento que dispara a
-chamada.
+**Fase 5, lista de espera.** `POST /api/v1/espera` e `DELETE /api/v1/espera/:id`.
+Fila por horário, ordem de chegada, e quando a vaga abre **uma pessoa por vaga**
+é chamada, nunca a fila inteira. Entrar na fila não reserva: quem é chamado
+precisa marcar, porque reservar sozinho seria a integração decidindo.
+
+**O limite conhecido:** a reentrega do webhook só dispara quando um evento novo
+é enfileirado, porque o plano gratuito da Vercel não dá cron de minuto. Numa
+agenda em uso isso acontece muitas vezes por dia; a correção é um cron externo, e
+está anotada no plano 12.
 
 ### 7. O que depende do Gabriel, e você não começa sozinho
 

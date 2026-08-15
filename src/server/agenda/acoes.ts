@@ -5,6 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { encaixarNaSessao, type PedidoDeEncaixe, type ResultadoEncaixe } from './encaixe'
 import { avisar } from '../webhook/eventos'
+import { avisarQuemEspera } from './espera'
 import type { OrigemParticipacao } from './consultas'
 import { semAcento } from '../pessoas/consultas'
 
@@ -82,6 +83,8 @@ export async function mudarStatus(
     await avisar(db, conta.contaId, 'participacao.cancelada', {
       participacaoId, sessaoId: data.sessao_id,
     })
+    // e a vaga que acabou de abrir tem dono, se alguém estava esperando por ela
+    await avisarQuemEspera(db, conta.contaId, data.sessao_id)
   }
 }
 
@@ -141,7 +144,7 @@ export async function reabrirSessao(sessaoId: string): Promise<void> {
 }
 
 export async function removerParticipacao(participacaoId: string): Promise<void> {
-  const { db } = await quemRegistra()
+  const { db, conta } = await quemRegistra()
   const { data, error } = await db
     .from('participacao')
     .delete()
@@ -149,7 +152,10 @@ export async function removerParticipacao(participacaoId: string): Promise<void>
     .select('sessao_id')
     .maybeSingle()
   if (error) throw error
-  if (data) atualizarTela(data.sessao_id)
+  if (!data) return
+  atualizarTela(data.sessao_id)
+  // remover é o outro jeito de a vaga abrir, e quem espera não faz distinção
+  await avisarQuemEspera(db, conta.contaId, data.sessao_id)
 }
 
 /**

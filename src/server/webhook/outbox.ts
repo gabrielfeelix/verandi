@@ -19,6 +19,8 @@ export type TipoDeEvento =
   | 'participacao.criada'
   | 'participacao.cancelada'
   | 'sessao.cancelada'
+  /* a vaga voltou a existir, e alguém estava esperando por ela */
+  | 'vaga.aberta'
 
 /** Um segredo de assinatura novo, para a tela mostrar uma vez. */
 export function novoSegredoDeWebhook(): string {

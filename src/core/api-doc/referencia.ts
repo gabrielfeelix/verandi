@@ -227,4 +227,45 @@ export const ROTAS: Rota[] = [
   "jaEstavaAssim": false
 }`,
   },
+  {
+    id: 'entrar-na-espera',
+    metodo: 'POST',
+    caminho: '/espera',
+    titulo: 'Entrar na fila de um horário cheio',
+    resumo:
+      'Quando a disponibilidade devolve o horário em cheios, esta rota transforma o não em "te aviso se abrir". Quando alguém desmarca, sai o evento vaga.aberta com quem está na frente.',
+    atencao:
+      'Entrar na fila não reserva nada. Quando a vaga abre, a pessoa é chamada e precisa marcar como qualquer um. Reservar sozinho seria a integração decidindo, e criaria a pior conversa possível: "você foi marcada numa aula que não pediu".',
+    corpo: [
+      { nome: 'pessoaId', tipo: 'id', obrigatorio: true, descricao: 'quem quer ser avisado' },
+      { nome: 'sessaoId', tipo: 'id', obrigatorio: true, descricao: 'qual horário, o mesmo id que vem em cheios' },
+    ],
+    exemplo: `curl -X POST ${BASE}/espera \\
+  -H "Authorization: Bearer vr_sua_chave_aqui" \\
+  -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: conversa-8f21c" \\
+  -d '{ "pessoaId": "77c0...", "sessaoId": "a41f..." }'`,
+    resposta: `201 Created
+
+{
+  "esperaId": "4d10...",
+  "pessoaId": "77c0...",
+  "sessaoId": "a41f...",
+  "posicao": 2
+}`,
+  },
+  {
+    id: 'sair-da-espera',
+    metodo: 'DELETE',
+    caminho: '/espera/{esperaId}',
+    titulo: 'Sair da fila',
+    resumo:
+      'A pessoa entrou na espera de terça, conseguiu marcar na quinta, e não quer mais ser avisada. Sem isto, o estúdio oferece uma vaga que ela já não precisa.',
+    exemplo: `curl -X DELETE ${BASE}/espera/4d10... \\
+  -H "Authorization: Bearer vr_sua_chave_aqui"`,
+    resposta: `{
+  "esperaId": "4d10...",
+  "jaEstavaAssim": false
+}`,
+  },
 ]
