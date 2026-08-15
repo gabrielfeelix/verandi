@@ -17,7 +17,8 @@ usuário. Ela lê o `vocabulario` da conta e escreve "Aluno", "Cliente" ou
 não como palavra fixa no layout, inclusive no plural e no cabeçalho de coluna.
 
 **A porta de entrada depende do papel.** `profissional` cai em **Hoje**;
-`dono` e `recepcao` caem em **Grade da semana**; `suporte` cai em **Contas**.
+`dono` e `recepcao` caem em **Grade da semana**; `suporte` cai em **Contas
+(4YU)**, a lista dos clientes — não em `/contas`, que é a troca de conta.
 Ninguém escolhe onde começar, o sistema já sabe.
 
 **Celular é o caso real, não o caso reduzido.** A tela de sessão é usada em pé,
@@ -545,7 +546,8 @@ reclamar, chamada que parou de ser feita é o primeiro sintoma de abandono.
 ```
 /entrar                        1
 /convite/[token]               2
-/contas                        3 · e 15 para suporte
+/contas                        3   (trocar de conta)
+/contas-4yu                   15   (a lista de clientes, só para suporte)
 /                              4  (profissional) · 6 (dono, recepção)
 /hoje                          4
 /semana                        6

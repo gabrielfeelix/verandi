@@ -32,9 +32,21 @@ async function criarUsuario(papel: string) {
   const { data } = await admin.auth.admin.createUser({
     email, password: SENHA, email_confirm: true,
   })
+  // o suporte da 4YU mora na conta interna, e é de lá que vem o acesso a
+  // `/contas-4yu`. Criá-lo numa conta de cliente, como os outros papéis,
+  // fabricava um suporte que não existe em produção — e foi o que deixou
+  // passar o laço de redirecionamento que apagava a tela de quem entrava.
+  const conta = papel === 'suporte' ? await contaInterna() : contaId
   await admin.from('usuario_conta')
-    .insert({ usuario_id: data.user!.id, conta_id: contaId, papel })
+    .insert({ usuario_id: data.user!.id, conta_id: conta, papel })
   return email
+}
+
+async function contaInterna() {
+  const { data } = await admin.from('conta')
+    .select('id').eq('interna', true).maybeSingle()
+  if (!data) throw new Error('não há conta interna: rode as migrations (0040)')
+  return data.id
 }
 
 test('quem não entrou é mandado para /entrar', async ({ page }) => {
@@ -64,7 +76,7 @@ for (const [papel, destino] of [
   ['profissional', '/hoje'],
   ['dono', '/semana'],
   ['recepcao', '/semana'],
-  ['suporte', '/contas'],
+  ['suporte', '/contas-4yu'],
 ] as const) {
   test(`${papel} entra e cai em ${destino}`, async ({ page }) => {
     const email = await criarUsuario(papel)
@@ -75,5 +87,8 @@ for (const [papel, destino] of [
     await page.getByRole('button', { name: 'Entrar' }).click()
 
     await expect(page).toHaveURL(new RegExp(`${destino}$`))
+    // chegar na URL não é chegar na tela: no laço de redirecionamento a URL
+    // ficava certa e o corpo vinha vazio. O título prova que renderizou.
+    await expect(page.getByRole('heading').first()).toBeVisible()
   })
 }

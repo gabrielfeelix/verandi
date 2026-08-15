@@ -24,7 +24,7 @@ describe('acesso e destino por papel', () => {
     ['profissional', '/hoje'],
     ['dono', '/semana'],
     ['recepcao', '/semana'],
-    ['suporte', '/contas'],
+    ['suporte', '/contas-4yu'],
   ]
 
   for (const [papel, destino] of casos) {
