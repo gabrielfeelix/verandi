@@ -521,6 +521,44 @@ export type Database = {
           },
         ]
       }
+      pedido_idempotente: {
+        Row: {
+          chave: string
+          conta_id: string
+          corpo: Json
+          corpo_hash: string
+          criado_em: string
+          rota: string
+          status: number
+        }
+        Insert: {
+          chave: string
+          conta_id: string
+          corpo: Json
+          corpo_hash: string
+          criado_em?: string
+          rota: string
+          status: number
+        }
+        Update: {
+          chave?: string
+          conta_id?: string
+          corpo?: Json
+          corpo_hash?: string
+          criado_em?: string
+          rota?: string
+          status?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_idempotente_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pendencia_dispensada: {
         Row: {
           conta_id: string

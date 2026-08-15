@@ -289,3 +289,314 @@ test.describe('pessoas', () => {
     expect(corpo.pessoas).toEqual([])
   })
 })
+
+// ---------------------------------------------------------------------------
+// Fase 3: escrever
+// ---------------------------------------------------------------------------
+
+async function envia(
+  req: APIRequestContext,
+  metodo: 'post' | 'delete',
+  url: string,
+  opts: { headers: Record<string, string>; data?: object },
+) {
+  const r = await req[metodo](url, opts)
+  return { status: r.status(), corpo: await r.json(), cabecalhos: r.headers() }
+}
+
+/** Uma sessão futura de verdade, com o id que a disponibilidade devolve. */
+async function umHorarioLivre(
+  req: APIRequestContext,
+  c: Awaited<ReturnType<typeof contaComChave>>,
+) {
+  await comGrade(c)
+  const segunda = proximaSegunda()
+  const { corpo } = await json(
+    req, `/api/v1/disponibilidade?de=${segunda}&ate=${segunda}`, com(c.segredo),
+  )
+  return { sessaoId: corpo.livres[0].sessaoId as string, data: segunda }
+}
+
+test.describe('cadastrar pessoa', () => {
+  test('cadastra com nome só, e o nome é o único obrigatório', async ({ request }) => {
+    const c = await contaComChave()
+
+    const semNome = await envia(request, 'post', '/api/v1/pessoas', {
+      headers: com(c.segredo).headers, data: { telefone: '11999' },
+    })
+    expect(semNome.status).toBe(400)
+    expect(semNome.corpo.campo).toBe('nome')
+
+    const r = await envia(request, 'post', '/api/v1/pessoas', {
+      headers: com(c.segredo).headers, data: { nome: '  Marina Alves  ' },
+    })
+    expect(r.status).toBe(201)
+    expect(r.corpo.nome).toBe('Marina Alves')
+
+    // o espaço no fim vira duplicata invisível na busca; some na entrada
+    const { data } = await admin.from('pessoa').select('nome').eq('id', r.corpo.pessoaId).single()
+    expect(data?.nome).toBe('Marina Alves')
+  })
+
+  test('a mesma Idempotency-Key não cadastra duas vezes', async ({ request }) => {
+    const c = await contaComChave()
+    const cabecalhos = { ...com(c.segredo).headers, 'Idempotency-Key': `conversa-${Date.now()}` }
+    const corpo = { nome: 'Repetida da Silva' }
+
+    const um = await envia(request, 'post', '/api/v1/pessoas', { headers: cabecalhos, data: corpo })
+    const dois = await envia(request, 'post', '/api/v1/pessoas', { headers: cabecalhos, data: corpo })
+
+    /*
+     * A rede cai depois de gravar e antes de a resposta chegar, o WhatsApp
+     * reentrega, a esteira repete. Sem isto, a mesma pessoa vira dois cadastros
+     * e ninguém descobre até a professora contar cabeças.
+     */
+    expect(um.status).toBe(201)
+    expect(dois.status).toBe(201)
+    expect(dois.corpo.pessoaId).toBe(um.corpo.pessoaId)
+    expect(dois.cabecalhos['idempotent-replay']).toBe('true')
+
+    const { count } = await admin.from('pessoa')
+      .select('id', { count: 'exact', head: true })
+      .eq('conta_id', c.contaId).eq('nome', 'Repetida da Silva')
+    expect(count).toBe(1)
+  })
+
+  test('mesma chave com corpo diferente é recusada, e não marcada em silêncio', async ({ request }) => {
+    const c = await contaComChave()
+    const cabecalhos = { ...com(c.segredo).headers, 'Idempotency-Key': `troca-${Date.now()}` }
+
+    await envia(request, 'post', '/api/v1/pessoas', { headers: cabecalhos, data: { nome: 'Um' } })
+    const outro = await envia(request, 'post', '/api/v1/pessoas', {
+      headers: cabecalhos, data: { nome: 'Outro Completamente' },
+    })
+
+    // isto não é reentrega, é bug de quem chama: devolver a resposta antiga
+    // cadastraria silenciosamente a pessoa errada
+    expect(outro.status).toBe(422)
+    const { count } = await admin.from('pessoa')
+      .select('id', { count: 'exact', head: true })
+      .eq('conta_id', c.contaId).eq('nome', 'Outro Completamente')
+    expect(count).toBe(0)
+  })
+
+  test('a chave de uma conta não serve na outra', async ({ request }) => {
+    const a = await contaComChave('Estúdio A')
+    const b = await contaComChave('Salão B')
+    const chave = `mesma-${Date.now()}`
+
+    const naA = await envia(request, 'post', '/api/v1/pessoas', {
+      headers: { ...com(a.segredo).headers, 'Idempotency-Key': chave },
+      data: { nome: 'Fulana' },
+    })
+    const naB = await envia(request, 'post', '/api/v1/pessoas', {
+      headers: { ...com(b.segredo).headers, 'Idempotency-Key': chave },
+      data: { nome: 'Fulana' },
+    })
+
+    // quem escolhe a chave é quem chama, então ela só pode ser única dentro da
+    // conta: global, o segundo cliente receberia a resposta do primeiro
+    expect(naA.corpo.pessoaId).not.toBe(naB.corpo.pessoaId)
+  })
+})
+
+test.describe('marcar', () => {
+  test('marca, carimba a origem como bot, e devolve o id da participação', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Marcada' }).select('id').single()
+
+    const r = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers,
+      data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    expect(r.status).toBe(201)
+    expect(r.corpo.status).toBe('esperada')
+
+    const { data: gravada } = await admin.from('participacao')
+      .select('origem, status, registrado_por_origem')
+      .eq('id', r.corpo.participacaoId).single()
+    // `bot` existe no enum desde a 0033: o modelo foi feito para este dia
+    expect(gravada).toMatchObject({
+      origem: 'avulso', status: 'esperada', registrado_por_origem: 'bot',
+    })
+  })
+
+  test('horário cheio recusa, e o robô nunca confirma acima da capacidade', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+
+    // a conta permite encaixe acima; para a recepção isso abre exceção, para o
+    // bot não abre nada, e é essa diferença que este teste prende
+    await admin.from('conta').update({ encaixe_acima: true }).eq('id', c.contaId)
+
+    const { data: pessoas } = await admin.from('pessoa').insert([
+      { conta_id: c.contaId, nome: 'Uma' }, { conta_id: c.contaId, nome: 'Duas' },
+      { conta_id: c.contaId, nome: 'Tres' },
+    ]).select('id')
+
+    for (const p of (pessoas ?? []).slice(0, 2)) {
+      const ok = await envia(request, 'post', '/api/v1/participacoes', {
+        headers: com(c.segredo).headers, data: { pessoaId: p.id, sessaoId: h.sessaoId },
+      })
+      expect(ok.status).toBe(201)
+    }
+
+    const terceira = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers,
+      data: { pessoaId: pessoas![2].id, sessaoId: h.sessaoId },
+    })
+    expect(terceira.status).toBe(409)
+    expect(terceira.corpo.motivo).toBe('acima_da_capacidade')
+  })
+
+  test('marcar duas vezes a mesma pessoa recusa', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Dupla' }).select('id').single()
+    const corpo = { pessoaId: p!.id, sessaoId: h.sessaoId }
+
+    await envia(request, 'post', '/api/v1/participacoes', { headers: com(c.segredo).headers, data: corpo })
+    const segunda = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: corpo,
+    })
+    expect(segunda.status).toBe(409)
+    expect(segunda.corpo.motivo).toBe('ja_participa')
+  })
+
+  test('a pessoa de outra conta dá 404, e não 403', async ({ request }) => {
+    const a = await contaComChave('Estúdio A')
+    const b = await contaDeTeste('Salão B')
+    const h = await umHorarioLivre(request, a)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: b.contaId, nome: 'De Outra' }).select('id').single()
+
+    const r = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(a.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    // "existe, mas não é sua" conta o que não precisa ser contado
+    expect(r.status).toBe(404)
+  })
+
+  test('sessão cancelada recusa', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    await admin.from('sessao')
+      .update({ status: 'cancelada', motivo_cancelamento: 'Feriado' }).eq('id', h.sessaoId)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Sem Sorte' }).select('id').single()
+
+    const r = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    expect(r.status).toBe(409)
+  })
+})
+
+test.describe('desmarcar', () => {
+  test('desmarcar não apaga: vira falta avisada, libera a vaga e gera crédito', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Vai Desmarcar' }).select('id').single()
+
+    const marcou = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+
+    const r = await envia(
+      request, 'delete', `/api/v1/participacoes/${marcou.corpo.participacaoId}`,
+      { headers: com(c.segredo).headers },
+    )
+    expect(r.status).toBe(200)
+    expect(r.corpo.status).toBe('falta_avisada')
+
+    /*
+     * A linha continua existindo, e é isso que dá a aula de volta: apagar
+     * destruiria o crédito de reposição junto com o histórico.
+     */
+    const { data: depois } = await admin.from('participacao')
+      .select('status').eq('id', marcou.corpo.participacaoId).single()
+    expect(depois?.status).toBe('falta_avisada')
+
+    // e a vaga volta a ser oferecida para quem estiver esperando
+    const livre = await json(
+      request, `/api/v1/disponibilidade?de=${h.data}&ate=${h.data}`, com(c.segredo),
+    )
+    expect(livre.corpo.livres[0]).toMatchObject({ ocupadas: 0 })
+  })
+
+  test('desmarcar duas vezes devolve 200, porque reentrega é o caminho normal', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Repete' }).select('id').single()
+    const marcou = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    const url = `/api/v1/participacoes/${marcou.corpo.participacaoId}`
+
+    await envia(request, 'delete', url, { headers: com(c.segredo).headers })
+    const denovo = await envia(request, 'delete', url, { headers: com(c.segredo).headers })
+
+    expect(denovo.status).toBe(200)
+    expect(denovo.corpo.jaEstavaAssim).toBe(true)
+  })
+
+  test('a marcação de outra conta dá 404', async ({ request }) => {
+    const a = await contaComChave('Estúdio A')
+    const b = await contaComChave('Salão B')
+    const h = await umHorarioLivre(request, b)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: b.contaId, nome: 'Da B' }).select('id').single()
+    const marcou = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(b.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+
+    const r = await envia(
+      request, 'delete', `/api/v1/participacoes/${marcou.corpo.participacaoId}`,
+      { headers: com(a.segredo).headers },
+    )
+    expect(r.status).toBe(404)
+  })
+})
+
+test.describe('a ficha que o bot lê', () => {
+  test('devolve os próximos horários com o id da participação, e nenhuma observação', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa').insert({
+      conta_id: c.contaId, nome: 'Com Ficha',
+      observacao: 'hérnia de disco, não pode carga axial',
+    }).select('id').single()
+
+    const marcou = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+
+    const { status, corpo } = await json(request, `/api/v1/pessoas/${p!.id}`, com(c.segredo))
+    expect(status).toBe(200)
+
+    /*
+     * Sem o id da participação aqui, o bot marca e nunca consegue desmarcar: a
+     * agenda só cresce. Esta é a linha que fecha o ciclo da Fase 3.
+     */
+    expect(corpo.proximas[0].participacaoId).toBe(marcou.corpo.participacaoId)
+    expect(corpo.proximas[0].data).toBe(h.data)
+
+    // e o que a 0043 e a 0044 fecharam pela frente não sai pela porta dos fundos
+    expect(JSON.stringify(corpo)).not.toContain('hérnia')
+  })
+
+  test('a ficha de outra conta dá 404', async ({ request }) => {
+    const a = await contaComChave('Estúdio A')
+    const b = await contaDeTeste('Salão B')
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: b.contaId, nome: 'Secreta' }).select('id').single()
+
+    const r = await json(request, `/api/v1/pessoas/${p!.id}`, com(a.segredo))
+    expect(r.status).toBe(404)
+  })
+})

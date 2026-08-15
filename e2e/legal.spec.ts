@@ -89,3 +89,18 @@ test('a frase de aceite fica junto do botão, não escondida no rodapé', async 
   await expect(frase).toBeVisible()
   await expect(frase.getByRole('link', { name: 'Termos de uso' })).toBeVisible()
 })
+
+test('a documentação da API é pública, e mostra as rotas de escrita', async ({ page }) => {
+  /*
+   * Pública porque quem decide se dá para integrar faz isso antes de ter conta.
+   * O teste prende as duas pontas: a rota não pede login, e a página realmente
+   * descreve o que a Fase 3 entregou.
+   */
+  await page.goto('/api-docs')
+  await expect(page).toHaveURL(/\/api-docs$/)
+  await expect(page.getByRole('heading', { name: 'API da Verandi', level: 1 })).toBeVisible()
+
+  await expect(page.getByText('POST', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('/participacoes', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('Idempotency-Key').first()).toBeVisible()
+})

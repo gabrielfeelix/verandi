@@ -63,6 +63,70 @@ export function idValido(bruto: string | null, campo: string): Erro | null {
   return UUID.test(bruto) ? null : { campo, mensagem: `${campo} não é um id válido` }
 }
 
+export function idObrigatorio(bruto: unknown, campo: string): Erro | null {
+  if (typeof bruto !== 'string' || bruto === '') {
+    return { campo, mensagem: `${campo} é obrigatório` }
+  }
+  return idValido(bruto, campo)
+}
+
+/**
+ * Um texto que veio no corpo de um `POST`.
+ *
+ * O `trim` acontece aqui e o resultado é o que a rota grava: nome com espaço no
+ * fim vira duplicata invisível na busca, e quem digitou foi um robô copiando de
+ * uma conversa de WhatsApp, onde sobra espaço.
+ */
+export function texto(
+  bruto: unknown,
+  campo: string,
+  regras: { obrigatorio?: boolean; max: number },
+): { valor: string | null; erro: Erro | null } {
+  if (bruto === undefined || bruto === null || bruto === '') {
+    return regras.obrigatorio
+      ? { valor: null, erro: { campo, mensagem: `${campo} é obrigatório` } }
+      : { valor: null, erro: null }
+  }
+  if (typeof bruto !== 'string') {
+    return { valor: null, erro: { campo, mensagem: `${campo} precisa ser texto` } }
+  }
+  const limpo = bruto.trim()
+  if (regras.obrigatorio && limpo === '') {
+    return { valor: null, erro: { campo, mensagem: `${campo} é obrigatório` } }
+  }
+  if (limpo.length > regras.max) {
+    return {
+      valor: null,
+      erro: { campo, mensagem: `${campo} não pode passar de ${regras.max} caracteres` },
+    }
+  }
+  return { valor: limpo === '' ? null : limpo, erro: null }
+}
+
+/**
+ * Um valor que só pode ser um de uma lista fechada.
+ *
+ * A mensagem **diz quais são**. Erro que recusa sem dizer o que aceitar obriga
+ * quem integra a ir procurar documentação, e é aí que a integração para no meio.
+ */
+export function escolha<T extends string>(
+  bruto: unknown,
+  campo: string,
+  aceitos: readonly T[],
+  padrao: T,
+): { valor: T; erro: Erro | null } {
+  if (bruto === undefined || bruto === null || bruto === '') {
+    return { valor: padrao, erro: null }
+  }
+  if (typeof bruto === 'string' && (aceitos as readonly string[]).includes(bruto)) {
+    return { valor: bruto as T, erro: null }
+  }
+  return {
+    valor: padrao,
+    erro: { campo, mensagem: `${campo} precisa ser um destes: ${aceitos.join(', ')}` },
+  }
+}
+
 /** o primeiro erro da lista, que é o único que a rota precisa contar */
 export function primeiro(...erros: Array<Erro | null>): Erro | null {
   return erros.find((e) => e !== null) ?? null

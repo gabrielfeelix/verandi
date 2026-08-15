@@ -24,10 +24,10 @@ a cada push na `main`.
 | | |
 |---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) |
-| Migrations aplicadas | 17, da `0030` à `0046` |
+| Migrations aplicadas | 18, da `0030` à `0047` |
 | Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
-| Testes | 344 de unidade e banco · 139 de navegador |
-| API v1 | três rotas de leitura no ar, respondendo 401 sem chave |
+| Testes | 358 de unidade e banco · 154 de navegador |
+| API v1 | sete rotas no ar, leitura e escrita, com documentação pública em `/api-docs` |
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
@@ -173,30 +173,24 @@ não de produto. Uma página com o que é, para quem é, três telas e um formul
 de contato. O cadastro público **não** entra: a decisão de 14/08 é que a conta
 nasce pela mão da 4YU, com o `cria-conta.mjs`.
 
-### 5. Marco 2, Fase 3: escrever pela API
+### 5. Marco 2, Fase 3: escrever pela API ✔ feito em 15/08
 
-A parte de código que sobrou, e a única da lista que não depende de decisão de
-ninguém. Plano em [`planos/10-marco-2-api.md`](planos/10-marco-2-api.md),
-contrato do que já existe em [`API.md`](API.md).
+Sete rotas no ar, e a documentação pública em `/api-docs`. O plano da fase e o
+desenho de até onde a automação vai estão em
+[`planos/12-api-que-escreve.md`](planos/12-api-que-escreve.md).
 
-- `POST /api/v1/pessoas` — cadastra, nome como único obrigatório, igual à tela.
-- `POST /api/v1/participacoes` — marca alguém num horário, reusando a regra de
-  `encaixar` com `registrado_por_origem: 'bot'`, que já existe no enum desde a
-  `0033`.
-- `DELETE /api/v1/participacoes/:id` — desmarca, virando crédito pelas mesmas
-  regras da conta.
-
-**A armadilha, e ela é real:** `encaixar` mistura a regra com `cookies()`, via
-`quemRegistra()`. A rota **não pode** reimplementar "cabe ou não cabe". Extraia
-o miolo para uma função que recebe quem está registrando, e chame dos dois
-lados. Se `avaliarEncaixe` disser "cabe" na tela e a rota decidir sozinha, um
-dia elas discordam e ninguém descobre por semanas.
-
-**`Idempotency-Key` não é enfeite.** O bot repete chamada: rede cai, o WhatsApp
-reentrega, a esteira roda duas vezes. Sem isso, o primeiro dia de produção tem
-gente marcada em duplicidade. Precisa de tabela nova (`pedido_idempotente`, com
-chave, conta, hash do corpo e a resposta guardada) — é a única migration que a
-Fase 3 exige.
+- `POST /api/v1/pessoas`, `POST /api/v1/participacoes`,
+  `DELETE /api/v1/participacoes/:id`, e a leitura que faltava,
+  `GET /api/v1/pessoas/:id`, que devolve os próximos horários **com o id da
+  participação**. Sem ela o bot marcava e não conseguia desmarcar.
+- A armadilha do plano 10 foi desarmada: a regra saiu de `encaixar` para
+  `encaixarNaSessao`, que recebe quem registra. Tela e rota chamam a mesma
+  função, e o bot nunca confirma acima da capacidade.
+- `DELETE` **não apaga**: grava `falta_avisada`, que libera a vaga e preserva o
+  crédito de reposição. Apagar destruiria os dois.
+- `Idempotency-Key` em toda escrita, com a tabela `pedido_idempotente`
+  (migration `0047`). Mesma chave com corpo diferente dá 422, e não uma marcação
+  silenciosa no horário errado.
 
 ### 6. Marco 2, Fases 4 e 5
 

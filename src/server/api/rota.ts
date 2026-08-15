@@ -45,15 +45,24 @@ export function erroDePedido(e: Erro) {
  * de conta suspensa dão a mesma resposta. Distinguir seria dizer a quem está
  * tentando qual das cinco portas existe.
  */
-export function comChave(
-  fn: (req: NextRequest, ctx: Contexto) => Promise<NextResponse>,
+export function comChave<P extends Record<string, string> = Record<string, never>>(
+  fn: (req: NextRequest, ctx: Contexto, params: P) => Promise<NextResponse>,
 ) {
-  return async (req: NextRequest): Promise<NextResponse> => {
+  return async (
+    req: NextRequest,
+    /*
+     * O segundo argumento do Next, com os pedaços da rota. No Next 16 ele chega
+     * como promessa, e rota sem pedaço nenhum não recebe nada, por isso o
+     * opcional: sem ele, `/catalogo` quebraria ao ser chamada.
+     */
+    contexto?: { params: Promise<P> },
+  ): Promise<NextResponse> => {
     const conta = await contaDaChave(req.headers.get('authorization'))
     if (!conta) return erro(401, 'chave de API ausente ou inválida')
 
     try {
-      return await fn(req, { ...conta, db: clienteAdmin() })
+      const params = contexto ? await contexto.params : ({} as P)
+      return await fn(req, { ...conta, db: clienteAdmin() }, params)
     } catch (e) {
       /*
        * O detalhe do erro fica no log do servidor, não na resposta. Mensagem de

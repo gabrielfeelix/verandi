@@ -3,13 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
+import { inserirPessoa } from './registro'
 import type { Atualizacao } from '../banco'
 
 /**
- * Nome é o único campo obrigatório, de propósito.
+ * Cadastrar pela tela.
  *
- * Exigir telefone é o jeito mais rápido de fazer a recepção inventar um
- * número: no dado real, 30% das pessoas não têm telefone cadastrado.
+ * A regra mora em `inserirPessoa`, que a rota da API também chama; aqui fica só
+ * o que é da tela, que é saber quem está logado e mandar a lista se redesenhar.
  */
 export async function criarPessoa(entrada: {
   nome: string
@@ -19,19 +20,9 @@ export async function criarPessoa(entrada: {
   const conta = await exigirConta()
   const db = await clienteServidor()
 
-  const nome = entrada.nome.trim()
-  if (!nome) throw new Error('nome é obrigatório')
-
-  const { data, error } = await db.from('pessoa').insert({
-    conta_id: conta.contaId,
-    nome,
-    telefone: entrada.telefone?.trim() || null,
-    identificador_externo: entrada.identificadorExterno?.trim() || null,
-  }).select('id').single()
-
-  if (error) throw error
+  const r = await inserirPessoa(db, conta.contaId, entrada)
   revalidatePath('/pessoas')
-  return { id: data.id }
+  return r
 }
 
 export async function editarPessoa(id: string, campos: {

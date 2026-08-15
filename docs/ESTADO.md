@@ -148,9 +148,9 @@ falta para a Verandi ficar de pé". Em ordem de risco:
 3. **Saber quando quebra.** Um 500 em produção é invisível hoje.
 4. **Uma página no site.** `4yu.com.br` não tem `/verandi`, e o produto está no
    ar.
-5. **Marco 2, Fase 3:** escrever pela API. É a única coisa de código que não
-   depende de decisão de ninguém, e a única que exige tabela nova (a de
-   idempotência).
+5. ~~**Marco 2, Fase 3:** escrever pela API.~~ **Feita em 15/08**, com a
+   documentação pública em `/api-docs` e o desenho de até onde a automação vai
+   em [`planos/12-api-que-escreve.md`](planos/12-api-que-escreve.md).
 6. **Marco 2, Fases 4 e 5:** o aviso de volta e a lista de espera.
 7. **O que depende do Gabriel:** ilustrações do onboarding e "vida nas telas".
 
@@ -238,13 +238,13 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **344 passaram** |
-| `npm run test:e2e` | **139 passaram** |
+| `npm test` | **358 passaram** |
+| `npm run test:e2e` | **154 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
-| tabelas em `app_verandi` · em `public` | **23 · 0** (as 12 do AutoFluxos seguem intactas) |
+| tabelas em `app_verandi` · em `public` | **24 · 0** (as 12 do AutoFluxos seguem intactas) |
 | RLS em produção | 20 de 20; `anon` não alcança nada |
 | `https://verandi.4yu.com.br` | 200, falando com o banco de produção |
-| migrations em produção (`0030` a `0046`) · onboarding abrindo lá | **as 17 aplicadas** · sim, sem 5xx |
+| migrations em produção (`0030` a `0047`) · onboarding abrindo lá | **as 18 aplicadas** · sim, sem 5xx |
 | migrations `0044` e `0045` em produção | aplicadas; a `0044` com a coluna na tabela **e na view**, a `0045` com RLS ligada, política única e `anon` sem alcance |
 | contraste dos tokens de texto | 15 pares medidos, todos em AA |
 | régua do vocabulário no `src/` inteiro | limpa, com lint guardando |
@@ -257,7 +257,7 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco:** dezessete migrations (`0030_vr_` a `0046_vr_`), RLS com política em todas as
+**Banco:** dezoito migrations (`0030_vr_` a `0047_vr_`), RLS com política em todas as
 tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
@@ -270,7 +270,7 @@ funcionamento · pendencia_dispensada · acesso_suporte · log_configuracao
 onboarding (progresso do tutorial, por pessoa e por conta)
 pessoa.anonimizada_em · participacao.observacao_visivel (0043)
 pessoa.observacao_visivel (0044) · chave_api (0045)
-aceite_de_termos (0046, prova de aceite; nenhum usuário logado alcança)
+aceite_de_termos (0046, prova de aceite) · pedido_idempotente (0047)
 view pessoa_resumo · função usuarios_da_conta (security definer)
 balde privado foto-profissional
 ```
@@ -321,7 +321,7 @@ em 1440 as duas caem na mesma dobra e viram dois "Marcar todos presentes".
 | `/convite/[token]` | aceitar convite e definir senha | sim |
 | `/amostra` | os primitivos do design system |, |
 
-**API v1**, para o bot do AutoFluxos. Três rotas de leitura, todas com
+**API v1**, para o bot do AutoFluxos e para quem vier depois. Sete rotas, com
 `Authorization: Bearer vr_…`, e a referência em [`API.md`](API.md):
 `GET /api/v1/disponibilidade`, `/catalogo` e `/pessoas?busca=`. Sem sessão não
 há RLS para proteger, então **quem isola conta de conta é o `conta_id` na
@@ -404,7 +404,8 @@ por API. Cinco fases, com o porquê de cada uma em
 
 1. **A chave e a tela de Integrações.** ✔ feito, em produção.
 2. **Ler a agenda:** `disponibilidade`, `catalogo`, `pessoas?busca=`. ✔ feito.
-3. **Marcar:** cadastrar pessoa, marcar e desmarcar, com `Idempotency-Key`.
+3. **Marcar:** cadastrar pessoa, marcar e desmarcar, com `Idempotency-Key`. ✔
+   feito, com a ficha que o bot lê e a documentação pública em `/api-docs`.
 4. **Avisar de volta:** outbox, webhook assinado, reentrega.
 5. **Lista de espera**, que só funciona depois da 4.
 

@@ -41,6 +41,12 @@ export async function proxy(req: NextRequest) {
     req.nextUrl.pathname.startsWith('/termos') ||
     req.nextUrl.pathname.startsWith('/privacidade') ||
     /*
+     * A documentação da API também é pública, e pela mesma lógica: quem decide
+     * se dá para integrar faz isso antes de ter conta. Documentação atrás de
+     * login não convence ninguém a plugar.
+     */
+    req.nextUrl.pathname.startsWith('/api-docs') ||
+    /*
      * `/api` não passa por aqui porque quem chama não é navegador e não tem
      * sessão: é o webhook do Brevo, e amanhã a API do AutoFluxos. Redirecionar
      * para `/entrar` devolvia 307 a um robô que não sabe seguir login — o

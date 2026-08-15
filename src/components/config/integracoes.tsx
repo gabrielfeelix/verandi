@@ -8,6 +8,7 @@ import { Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
 import { BotaoLinha, LinhaConfig, PainelConfig } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarChaveApi, revogarChaveApi } from '@/server/api/acoes'
+import { ENDERECO_PUBLICO } from '@/core/legal'
 import type { ChaveLinha } from '@/server/api/chave'
 
 /**
@@ -119,6 +120,33 @@ export function SecaoIntegracoes({ chaves }: { chaves: ChaveLinha[] }) {
         ) : null}
 
         {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+
+        {/*
+          * A tela entregava a chave e não dizia para onde apontar.
+          *
+          * Para a dona do estúdio isso não faltava: ela liga o AutoFluxos e
+          * pronto. Para quem vai escrever a integração, faltava tudo, e a
+          * referência morava num arquivo do repositório que ninguém de fora
+          * alcança. Chave sem endereço é um cadeado sem porta.
+          */}
+        <div className="flex flex-col gap-1.5 rounded-grande border border-linha-suave px-4 py-3.5">
+          <span className="text-[12.5px] font-medium">Para quem vai programar</span>
+          <span className="text-[12.5px] leading-relaxed text-tinta-media">
+            A agenda tem uma API para consultar horários com vaga, cadastrar,
+            marcar e desmarcar.
+          </span>
+          <span className="pt-0.5 font-mono text-[12px] text-tinta-fraca">
+            {`${ENDERECO_PUBLICO}/api/v1`}
+          </span>
+          <a
+            href="/api-docs"
+            target="_blank"
+            rel="noreferrer"
+            className="pt-1 text-[12.5px] font-medium text-marca hover:text-marca-forte"
+          >
+            Ver a documentação
+          </a>
+        </div>
       </div>
 
       {vivas.map((c) => (

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
-  JANELA_MAXIMA_DIAS, dataValida, idValido, intervaloValido, primeiro,
+  JANELA_MAXIMA_DIAS, dataValida, escolha, idObrigatorio, idValido,
+  intervaloValido, primeiro, texto,
 } from '@/core/api/pedido'
 
 describe('a data que entra na API', () => {
@@ -85,5 +86,53 @@ describe('primeiro', () => {
     expect(
       primeiro({ campo: 'de', mensagem: 'x' }, { campo: 'ate', mensagem: 'y' })?.campo,
     ).toBe('de')
+  })
+})
+
+describe('o que a escrita aceita', () => {
+  it('texto obrigatório recusa vazio, nulo e só espaço', () => {
+    for (const bruto of [undefined, null, '', '   ']) {
+      expect(texto(bruto, 'nome', { obrigatorio: true, max: 10 }).erro?.campo).toBe('nome')
+    }
+  })
+
+  it('texto some com o espaço das pontas, que vira duplicata invisível na busca', () => {
+    expect(texto('  Marina  ', 'nome', { obrigatorio: true, max: 10 }).valor).toBe('Marina')
+  })
+
+  it('texto opcional vazio vira nulo, e não string vazia', () => {
+    // string vazia no banco é telefone que existe e não serve para ligar
+    const r = texto('', 'telefone', { max: 40 })
+    expect(r.erro).toBeNull()
+    expect(r.valor).toBeNull()
+  })
+
+  it('texto recusa o que passa do limite, dizendo o limite', () => {
+    const r = texto('x'.repeat(11), 'nome', { max: 10 })
+    expect(r.erro?.mensagem).toContain('10')
+  })
+
+  it('texto recusa o que não é texto', () => {
+    expect(texto(42, 'nome', { max: 10 }).erro).not.toBeNull()
+    expect(texto({}, 'nome', { max: 10 }).erro).not.toBeNull()
+  })
+
+  it('escolha cai no padrão quando não vem, e aceita o que está na lista', () => {
+    const aceitos = ['avulso', 'reposicao'] as const
+    expect(escolha(undefined, 'origem', aceitos, 'avulso').valor).toBe('avulso')
+    expect(escolha('reposicao', 'origem', aceitos, 'avulso').valor).toBe('reposicao')
+  })
+
+  it('escolha errada diz quais são as certas', () => {
+    // erro que recusa sem dizer o que aceitar para a integração no meio
+    const r = escolha('inventada', 'origem', ['avulso', 'reposicao'] as const, 'avulso')
+    expect(r.erro?.mensagem).toContain('avulso')
+    expect(r.erro?.mensagem).toContain('reposicao')
+  })
+
+  it('id obrigatório recusa ausência e formato', () => {
+    expect(idObrigatorio(undefined, 'pessoaId')?.campo).toBe('pessoaId')
+    expect(idObrigatorio('nao-e-uuid', 'pessoaId')?.campo).toBe('pessoaId')
+    expect(idObrigatorio('3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f607', 'pessoaId')).toBeNull()
   })
 })

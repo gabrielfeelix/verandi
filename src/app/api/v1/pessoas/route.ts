@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { listarPessoas } from '@/server/pessoas/consultas'
-import { comChave, erro, type Contexto } from '@/server/api/rota'
+import { inserirPessoa } from '@/server/pessoas/registro'
+import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
+import { comIdempotencia, lerCorpo } from '@/server/api/idempotencia'
+import { primeiro, texto } from '@/core/api/pedido'
 
 /**
  * Achar quem já existe, antes de cadastrar de novo.
@@ -36,5 +39,48 @@ export const GET = comChave(async (req: NextRequest, ctx: Contexto) => {
       telefone: p.telefone,
       ativa: p.ativo,
     })),
+  })
+})
+
+/**
+ * Cadastrar quem a busca não achou.
+ *
+ * Nome é o único obrigatório, igual à tela. A rota chama `inserirPessoa`, que a
+ * ação de tela também chama: cadastro válido é uma definição só.
+ *
+ * **Procure antes de cadastrar.** A rota não tenta adivinhar duplicata, e é de
+ * propósito: "Ana" e "Ana Paula" podem ser a mesma pessoa ou duas, e quem sabe é
+ * a conversa, não o banco. Recusar por semelhança impediria o cadastro legítimo
+ * da segunda Ana; aceitar em silêncio é o comportamento previsível.
+ *
+ *   POST /api/v1/pessoas
+ *   { "nome": "Marina Alves", "telefone": "11988887777" }
+ */
+export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
+  const corpo = await lerCorpo(req)
+  if (!corpo) return erro(400, 'o corpo precisa ser um objeto JSON')
+
+  const nome = texto(corpo.json.nome, 'nome', { obrigatorio: true, max: 120 })
+  const telefone = texto(corpo.json.telefone, 'telefone', { max: 40 })
+  const externo = texto(corpo.json.identificadorExterno, 'identificadorExterno', { max: 60 })
+
+  const ruim = primeiro(nome.erro, telefone.erro, externo.erro)
+  if (ruim) return erroDePedido(ruim)
+
+  return comIdempotencia(req, ctx, 'POST /pessoas', corpo.bruto, async () => {
+    const { id } = await inserirPessoa(ctx.db, ctx.contaId, {
+      nome: nome.valor!,
+      telefone: telefone.valor,
+      identificadorExterno: externo.valor,
+    })
+    return {
+      status: 201,
+      corpo: {
+        pessoaId: id,
+        nome: nome.valor,
+        telefone: telefone.valor,
+        ativa: true,
+      },
+    }
   })
 })

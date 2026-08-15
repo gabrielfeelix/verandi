@@ -1,156 +1,75 @@
 # API v1
 
-O que a Verandi expõe para outro sistema. Hoje há um cliente: o bot do
-AutoFluxos, que atende no WhatsApp e marca aqui.
+> **A referência de quem vai chamar não mora mais aqui.** Ela é uma página do
+> produto, pública, em `https://verandi.4yu.com.br/api-docs`, e o conteúdo dela
+> está em `src/core/api-doc/`. Documentação em arquivo separado envelhece em
+> silêncio: alguém acrescenta uma rota, ninguém lembra do `.md`, e quem descobre
+> é o integrador. `tests/unit/api-doc.test.ts` confere que toda rota do código
+> está descrita e que nenhuma rota descrita deixou de existir.
 
-O plano das fases está em [`planos/10-marco-2-api.md`](planos/10-marco-2-api.md).
-Este arquivo é a referência de quem vai **chamar**.
+Este arquivo guarda o que **não** vai para a página pública: as decisões de
+dentro, e o porquê delas.
 
-**Base:** `https://verandi.4yu.com.br/api/v1`
-
----
-
-## A regra antes das rotas
-
-**O robô não decide nada.**
-
-- Horário cheio **não aparece** em `livres`, nem como "quase".
-- O robô não abre turma, não muda capacidade e não passa da lotação.
-- Encaixe acima da capacidade continua sendo decisão de quem está no balcão,
-  com nome e registro.
-
-Isso não é limitação da API: é regra do produto, escrita em
-`core/agenda/encaixe.ts`, e a tela obedece à mesma. Quem responde por uma vaga
-prometida é a pessoa da recepção, e ela não estava na conversa.
-
-## Autenticação
-
-```
-Authorization: Bearer vr_...
-```
-
-A chave se cria em **Configuração → Integrações**, e aparece **uma vez**. O
-banco guarda só o hash dela; se perder, revogue e crie outra.
-
-A chave é **da conta**, não de quem a criou: quem ligou a integração pode sair
-da empresa que o bot continua marcando.
-
-Todas as respostas de erro têm a mesma forma:
-
-```json
-{ "erro": "o intervalo não pode passar de 90 dias", "campo": "ate" }
-```
-
-| Status | Quando |
-|---|---|
-| `400` | pedido malformado. `campo` diz qual corrigir |
-| `401` | chave ausente, inválida, revogada, ou conta suspensa |
-| `500` | falha nossa. O detalhe fica no nosso log, não na resposta |
-
-**O 401 é sempre igual nos quatro casos.** Distinguir "revogada" de "não existe"
-contaria a quem está tentando qual das portas já existiu.
-
-## Datas
-
-Tudo é **local da conta**: `AAAA-MM-DD` para data, `HH:MM` para hora. Instante em
-UTC é recusado com 400.
-
-Não é implicância de formato. A turma das 21h em Brasília é 00h do dia seguinte
-em UTC: aceitar instante na fronteira é aceitar marcar aula no dia errado.
+O plano das fases está em [`planos/10-marco-2-api.md`](planos/10-marco-2-api.md)
+e, da Fase 3 em diante, em
+[`planos/12-api-que-escreve.md`](planos/12-api-que-escreve.md).
 
 ---
 
-## `GET /disponibilidade`
+## O que existe
 
-Os horários que dá para oferecer.
-
-| Parâmetro | |
+| Rota | Fase |
 |---|---|
-| `de`, `ate` | obrigatórios, `AAAA-MM-DD`. No máximo **90 dias** entre os dois |
-| `servico`, `profissional`, `local` | opcionais, uuid |
+| `GET /disponibilidade` · `/catalogo` · `/pessoas?busca=` | 2 |
+| `POST /pessoas` · `GET /pessoas/:id` | 3 |
+| `POST /participacoes` · `DELETE /participacoes/:id` | 3 |
 
-```
-GET /api/v1/disponibilidade?de=2026-08-17&ate=2026-08-23&profissional=<uuid>
-```
+## As decisões que não se deduzem lendo a rota
 
-```json
-{
-  "de": "2026-08-17",
-  "ate": "2026-08-23",
-  "livres": [
-    {
-      "sessaoId": "…", "data": "2026-08-17", "hora": "07:00", "duracaoMin": 60,
-      "servico": "Pilates solo",
-      "profissionalId": "…", "profissional": "Marina",
-      "localId": "…", "local": "Sala 1",
-      "capacidade": 4, "ocupadas": 2, "livres": 2
-    }
-  ],
-  "cheios": []
-}
-```
+**O robô não decide nada.** Horário cheio não aparece em `livres`, o bot não
+abre turma, não muda capacidade e não passa da lotação. Isso não é limitação da
+API: é regra de produto, escrita em `core/agenda/encaixe.ts`, e a tela obedece à
+mesma. Quem responde por uma vaga prometida é a pessoa da recepção, e ela não
+estava na conversa.
 
-**Ofereça só `livres`.** `cheios` existe para o bot saber a diferença entre "não
-tem horário nesse dia" e "tem, e está lotado" — são duas conversas diferentes, e
-a segunda vira lista de espera na Fase 5. Sessão cancelada não aparece em nenhuma
-das duas listas.
+**A regra mora em um lugar só.** `encaixarNaSessao` recebe quem está
+registrando; a ação de tela passa o carimbo da recepção, a rota passa o do bot.
+A rota **não** reimplementa "cabe ou não cabe", e não é por elegância: se as
+duas decidissem separado, um dia discordariam e as duas continuariam
+respondendo com confiança.
 
-O limite de 90 dias não é de gosto: ler a agenda **materializa** as sessões da
-janela, e um pedido de dois anos por ano digitado errado criaria milhares de
-linhas de uma vez.
+**`DELETE` não apaga.** Grava `falta_avisada`, que libera a vaga e preserva o
+crédito de reposição. Apagar a linha destruiria os dois, e o histórico junto.
+Apagar de verdade continua existindo na tela, porque marcação feita por engano
+quem reconhece é gente.
 
-## `GET /catalogo`
+**Sem sessão não há RLS**, então quem isola conta de conta é o `conta_id` na
+consulta da rota. É por isso que as rotas chamam as funções de `server/`, que já
+recebem `contaId`, em vez de montarem consulta própria. Um `select` daqui sem
+`conta_id` lê a conta de todo mundo.
 
-O que existe na conta, para montar a pergunta.
+**404, e não 403**, para recurso de outra conta: dizer "existe, mas não é sua"
+conta o que não precisa ser contado. Mesma lógica do 401 único.
 
-```json
-{
-  "servicos": [{ "id": "…", "nome": "Pilates solo", "duracaoMin": 50, "capacidadePadrao": 4 }],
-  "profissionais": [{ "id": "…", "nome": "Marina" }],
-  "locais": [{ "id": "…", "nome": "Sala 1" }],
-  "funcionamento": [{ "diaSemana": 1, "abre": "06:00", "fecha": "21:00" }],
-  "vocabulario": { "pessoa": { "singular": "Aluno", "plural": "Alunos" }, "…": {} }
-}
-```
+**Observação nunca sai.** É onde mora "lesão no ombro, não pode carga axial". A
+tela separa quem lê, com padrão fechado; devolver isso pela API abriria pela
+porta dos fundos o que as migrations `0043` e `0044` fecharam pela frente. Há
+teste de navegador conferindo que a palavra não aparece na resposta.
 
-Só o que está **ativo**: o bot não deve oferecer o serviço que o estúdio parou
-de dar em março.
+**Idempotência grava a marca antes de executar**, e não depois. Gravar depois
+deixa uma janela entre executar e registrar, e é exatamente nela que a reentrega
+cai quando a rede está ruim, que é quando a reentrega acontece. A marca nasce
+com `status = 0`, e quem encontra o zero recebe 409 em vez de esperar.
 
-**Use o `vocabulario` nas frases.** Sem ele, o robô de um estúdio de pilates
-escreve "escolha o serviço" enquanto a tela do mesmo cliente escreve "escolha a
-modalidade", e o cliente percebe antes da segunda mensagem.
+## Onde mexer
 
-`funcionamento` só traz os dias em que a casa abre. Dia que não está na lista é
-dia fechado, e isso separa "não tem horário nesse sábado" de "não abrimos aos
-sábados".
-
-## `GET /pessoas`
-
-Achar quem já existe, antes de cadastrar de novo.
-
-| Parâmetro | |
+| O quê | Onde |
 |---|---|
-| `busca` | obrigatório, **mínimo duas letras**. Sem acento funciona: `ceci` acha `Cecília` |
+| Autenticação e formato de erro | `src/server/api/rota.ts` |
+| Idempotência | `src/server/api/idempotencia.ts` |
+| Validação de entrada | `src/core/api/pedido.ts`, com teste por regra |
+| Texto da documentação | `src/core/api-doc/` |
+| Regra de encaixe compartilhada | `src/server/agenda/encaixe.ts` |
 
-```json
-{ "total": 1, "pessoas": [{ "pessoaId": "…", "nome": "Cecília Prado", "telefone": "11988887777", "ativa": true }] }
-```
-
-Existe para evitar o defeito mais previsível da integração: a mesma pessoa
-virando três cadastros porque escreveu o nome de três jeitos no WhatsApp.
-
-Sai o mínimo para reconhecer. Observação, nascimento e marcação **não saem**: o
-bot marca aula, e ficha é da tela, onde quem lê tem papel para isso.
-
----
-
-## O que ainda não existe
-
-Fases 3 a 5 do plano, nesta ordem:
-
-- **`POST /pessoas`** e **`POST /participacoes`** — cadastrar e marcar, com
-  `Idempotency-Key`, porque o bot vai repetir chamada e ninguém quer gente
-  marcada em duplicidade no primeiro dia.
-- **Webhook de saída** — a recepção cancela pela tela e o bot precisa saber para
-  avisar quem ia.
-- **Lista de espera** — "te aviso se abrir", que só funciona depois do webhook.
+Rota nova exige três coisas, e o teste cobra a terceira: a rota, o caso em
+`e2e/api-v1.spec.ts`, e a entrada em `src/core/api-doc/referencia.ts`.

@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
-import { calcularOcupacao, type StatusParticipacao } from '@/core/agenda/ocupacao'
-import { avaliarEncaixe } from '@/core/agenda/encaixe'
+import type { StatusParticipacao } from '@/core/agenda/ocupacao'
+import { encaixarNaSessao, type PedidoDeEncaixe, type ResultadoEncaixe } from './encaixe'
 import type { OrigemParticipacao } from './consultas'
 import { semAcento } from '../pessoas/consultas'
 
@@ -69,68 +69,19 @@ export async function mudarStatus(
   if (data) atualizarTela(data.sessao_id)
 }
 
-export type ResultadoEncaixe =
-  | { ok: true }
-  | { ok: false; motivo: 'lotada' | 'ja_participa' | 'acima_da_capacidade' }
-
 /**
- * Confere a vaga **na hora de gravar**, relendo a ocupação — não confia no que
- * a tela mostrava. Entre mostrar e clicar, alguém pode ter ocupado.
+ * O encaixe pela tela.
+ *
+ * A regra não mora mais aqui: ela está em `encaixarNaSessao`, que a rota da API
+ * chama com o carimbo do bot. O que sobrou nesta função é o que só a tela tem,
+ * que é ler quem está logado e mandar a tela se redesenhar. Ver
+ * `docs/planos/12-api-que-escreve.md`.
  */
-export async function encaixar(entrada: {
-  sessaoId: string
-  pessoaId: string
-  origem: Exclude<OrigemParticipacao, 'recorrente'>
-  reposicaoDeId?: string
-  /** o usuário viu que passa da capacidade e confirmou mesmo assim */
-  confirmarAcima?: boolean
-}): Promise<ResultadoEncaixe> {
+export async function encaixar(entrada: PedidoDeEncaixe): Promise<ResultadoEncaixe> {
   const { db, conta, carimbo } = await quemRegistra()
-
-  const { data: sessao, error } = await db
-    .from('sessao')
-    .select('capacidade, participacao(pessoa_id, status)')
-    .eq('id', entrada.sessaoId)
-    .single()
-  if (error) throw error
-
-  // a conta decide se a recepção pode abrir exceção; a leitura é aqui e não na
-  // tela porque entre mostrar e clicar alguém pode ter mudado a configuração
-  const { data: padrao } = await db.from('conta')
-    .select('encaixe_acima').eq('id', conta.contaId).single()
-
-  const jaParticipa = sessao.participacao.some((p) => p.pessoa_id === entrada.pessoaId)
-  const ocupacao = calcularOcupacao(
-    sessao.capacidade,
-    sessao.participacao.map((p) => p.status),
-  )
-  const veredito = avaliarEncaixe(ocupacao, jaParticipa, padrao?.encaixe_acima ?? false)
-  if (!veredito.cabe) return { ok: false, motivo: veredito.motivo! }
-
-  /*
-   * Encaixe acima da capacidade **exige confirmação explícita**.
-   *
-   * Sem isto, a tela mostraria 4/4 e a pessoa clicaria achando que havia vaga —
-   * e o excedente viraria acidente em vez de decisão. Quem confirma sabe o que
-   * está fazendo, e o registro guarda quem foi.
-   */
-  if (veredito.acimaDaCapacidade && !entrada.confirmarAcima) {
-    return { ok: false, motivo: 'acima_da_capacidade' }
-  }
-
-  const { error: erroInsert } = await db.from('participacao').insert({
-    conta_id: conta.contaId,
-    sessao_id: entrada.sessaoId,
-    pessoa_id: entrada.pessoaId,
-    origem: entrada.origem,
-    status: 'esperada',
-    reposicao_de_id: entrada.reposicaoDeId ?? null,
-    ...carimbo,
-  })
-  if (erroInsert) throw erroInsert
-
-  atualizarTela(entrada.sessaoId)
-  return { ok: true }
+  const r = await encaixarNaSessao(db, conta.contaId, carimbo, entrada)
+  if (r.ok) atualizarTela(entrada.sessaoId)
+  return r
 }
 
 /**
