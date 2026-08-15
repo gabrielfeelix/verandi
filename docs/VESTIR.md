@@ -105,7 +105,7 @@ documentadas em [`DESIGN.md`](DESIGN.md). Elas não voltam:
 | `user-select: none` e `caret-color: transparent` no `body` | quebram copiar telefone, copiar nome e leitor de tela |
 | Fontes por `<link>` do Google | em produção é um terceiro travando a primeira pintura; use `next/font`, que já está montado |
 | Botões de 24px de altura | a tela de Sessão é usada em pé, com a mão ocupada; mínimo de 44px nos controles de presença |
-| Texto em `#8B9691` sobre branco em corpo pequeno | 2,9:1 de contraste, abaixo do mínimo de 4,5:1 |
+| Texto em `#8B9691` | 3,06:1 de contraste, abaixo do mínimo de 4,5:1; no produto ele é `#656E6A` |
 
 E acrescente o que o protótipo não tem: **foco de teclado visível** e
 `prefers-reduced-motion`. Os dois já estão no `globals.css`.

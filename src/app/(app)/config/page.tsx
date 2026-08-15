@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
-import { PADRAO, type ChaveVocabulario } from '@/core/vocabulario/padrao'
+import { PADRAO, type ChaveVocabulario, type Rotulos } from '@/core/vocabulario/padrao'
 import {
   carregarPadroes, carregarFuncionamento, listarDatasFechadas, ultimaAlteracao,
   listarLocais, listarServicos,
@@ -17,22 +17,43 @@ import { SecaoFuncionamento } from '@/components/config/funcionamento'
 import { SecaoEquipe } from '@/components/config/equipe'
 import { listarEquipe } from '@/server/config/equipe'
 import { SecaoUsuarios } from '@/components/config/usuarios'
+import { SecaoIntegracoes } from '@/components/config/integracoes'
+import { listarChaves } from '@/server/api/chave'
 import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
 import { cartao } from '@/components/ui/pecas'
 
 // os glifos são os do protótipo: mono, discretos, e o suficiente para achar a
 // seção pelo canto do olho depois da terceira visita
 const SECOES = [
-  { chave: 'servicos', rotulo: 'Serviços', icone: 'lista' },
-  { chave: 'equipe', rotulo: 'Equipe', icone: 'pessoas' },
-  { chave: 'locais', rotulo: 'Locais', icone: 'local' },
-  { chave: 'padroes', rotulo: 'Padrões', icone: 'regua' },
-  { chave: 'vocabulario', rotulo: 'Vocabulário', icone: 'texto' },
-  { chave: 'funcionamento', rotulo: 'Funcionamento', icone: 'relogio' },
-  { chave: 'usuarios', rotulo: 'Usuários', icone: 'chave' },
-] as const satisfies ReadonlyArray<{ chave: string; rotulo: string; icone: NomeIcone }>
+  { chave: 'servicos', icone: 'lista' },
+  { chave: 'equipe', icone: 'pessoas' },
+  { chave: 'locais', icone: 'local' },
+  { chave: 'padroes', icone: 'regua' },
+  { chave: 'vocabulario', icone: 'texto' },
+  { chave: 'funcionamento', icone: 'relogio' },
+  { chave: 'usuarios', icone: 'chave' },
+  { chave: 'integracoes', icone: 'lista' },
+] as const satisfies ReadonlyArray<{ chave: string; icone: NomeIcone }>
 
 type Secao = (typeof SECOES)[number]['chave']
+
+/**
+ * O menu da Configuração fala a língua da conta nas três seções que nomeiam
+ * coisas do negócio.
+ *
+ * "Serviços", "Equipe" e "Locais" estavam escritos aqui, e o painel de cada uma
+ * já mostrava a palavra do cliente no título: quem chamava serviço de
+ * "modalidade" clicava em "Serviços" e caía numa tela chamada "Modalidades".
+ * As outras quatro nomeiam partes do sistema, não do negócio, e ficam.
+ */
+function rotuloDaSecao(chave: Secao, r: Rotulos): string {
+  if (chave === 'servicos') return r.servico.plural
+  if (chave === 'equipe') return r.profissional.plural
+  if (chave === 'locais') return r.local.plural
+  return { padroes: 'Padrões', vocabulario: 'Vocabulário',
+           funcionamento: 'Funcionamento', usuarios: 'Usuários',
+           integracoes: 'Integrações' }[chave]
+}
 
 /** O que cada palavra do vocabulário nomeia, em uma linha. */
 const EXPLICA: Record<ChaveVocabulario, string> = {
@@ -100,7 +121,7 @@ export default async function Config({
                 <span
                   className={`text-[13.5px] ${secao === x.chave ? 'font-medium' : ''}`}
                 >
-                  {x.rotulo}
+                  {rotuloDaSecao(x.chave, rotulos)}
                 </span>
               </Link>
             ))}
@@ -112,7 +133,12 @@ export default async function Config({
             ele só é lido pelo guia, e sumir daqui não quebra a tela. */}
         {secao === 'servicos' ? (
           <div data-guia="config-servicos">
-            <SecaoServicos servicos={await listarServicos(db, conta.contaId)} />
+            <SecaoServicos
+              servicos={await listarServicos(db, conta.contaId)}
+              rotulo={rotulos.servico}
+              rotuloSerie={rotulos.serie}
+              rotuloSessoes={rotulos.sessao.plural}
+            />
           </div>
         ) : null}
 
@@ -132,6 +158,7 @@ export default async function Config({
         {secao === 'locais' ? (
           <SecaoLocais
             locais={await listarLocais(db, conta.contaId)}
+            rotulo={rotulos.local}
             rotuloSeries={rotulos.serie.plural}
             rotuloSessoes={rotulos.sessao.plural}
           />
@@ -162,6 +189,10 @@ export default async function Config({
             convites={await listarConvites(db, conta.contaId)}
             meuId={(await db.auth.getUser()).data.user?.id ?? ''}
           />
+        ) : null}
+
+        {secao === 'integracoes' ? (
+          <SecaoIntegracoes chaves={await listarChaves(db, conta.contaId)} />
         ) : null}
 
         {secao === 'funcionamento' ? (

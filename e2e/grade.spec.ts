@@ -60,7 +60,7 @@ test('horário do mesmo profissional avisa a colisão e deixa seguir', async ({ 
   await page.getByRole('button', { name: 'Criar horário', exact: true }).click()
 
   await expect(page.getByText('Esse horário já tem coisa marcada')).toBeVisible()
-  await expect(page.getByText(/Marina já ocupa/)).toBeVisible()
+  await expect(page.getByText(/Marina já atende/)).toBeVisible()
 
   // a série não foi criada enquanto o aviso não foi confirmado
   const { count } = await admin.from('serie')
@@ -110,7 +110,7 @@ test('a grade mostra ocupação e separa as encerradas', async ({ page }) => {
 
   // o resumo do dia também diz "2/4 ocupadas"; a etiqueta da linha é a exata
   await expect(page.getByText('2/4', { exact: true })).toBeVisible()
-  await expect(page.getByRole('heading', { name: /encerrad/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /que terminaram/i })).toBeVisible()
 
   // a vigência é lida como época, não como dia: "mar/26 – ago/26"
   const mes = (d: string) =>
@@ -302,7 +302,7 @@ test('encerrar pergunta quantos ocupam, e não apaga o passado', async ({ page }
   await page.getByRole('button', { name: 'Encerrar', exact: true }).click()
   await page.getByRole('button', { name: 'Encerrar nesta data' }).click()
 
-  await expect(page.getByText(/1 .*ocupam este horário/)).toBeVisible()
+  await expect(page.getByText(/1 .*ocupa este horário/)).toBeVisible()
   await page.getByRole('button', { name: 'Encerrar mesmo assim' }).click()
 
   // a série ganhou fim, as sessões futuras saíram da grade, e nada foi apagado

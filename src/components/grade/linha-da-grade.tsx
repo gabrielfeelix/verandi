@@ -8,6 +8,7 @@ import {
   type MudancaSerie, type Preview,
 } from '@/server/grade/acoes'
 import type { Colisao } from '@/core/agenda/serie'
+import type { Rotulos } from '@/core/vocabulario/padrao'
 import type { CatalogoGrade, SerieLinha } from '@/server/grade/consultas'
 import { mesCurto } from '@/core/agenda/mes-curto'
 import { BotaoIcone } from '@/components/ui/botao'
@@ -19,12 +20,19 @@ type Modo = null | 'editar' | 'duplicar' | 'encerrar' | 'ocupa'
 type Ocupante = { pessoaId: string; nome: string; desde: string }
 
 export function LinhaDaGrade({
-  serie, catalogo, rotuloVaga, rotuloPessoa, podeEscrever,
+  serie, catalogo, rotulos, podeEscrever,
 }: {
   serie: SerieLinha
   catalogo: CatalogoGrade
-  rotuloVaga: string
-  rotuloPessoa: string
+  /*
+   * O vocabulário inteiro. Antes vinham duas palavras soltas, e o formulário
+   * de edição continuava rotulando "Serviço", "Profissional" e "Local" à mão.
+   *
+   * As duas formas de cada palavra importam: "1 aluno(s) ocupam" resolvia o
+   * plural com parêntese, que é o jeito de quem não sabe qual palavra vai cair
+   * ali. Aqui sabe-se, e o número decide.
+   */
+  rotulos: Rotulos
   podeEscrever: boolean
 }) {
   const [modo, setModo] = useState<Modo>(null)
@@ -89,7 +97,7 @@ export function LinhaDaGrade({
               ? 'bg-alerta-fundo text-alerta'
               : 'bg-superficie-mais-suave text-tinta-media'
           }`}
-          title={`${serie.ocupadas} de ${serie.capacidade} ${rotuloVaga.toLowerCase()}`}
+          title={`${serie.ocupadas} de ${serie.capacidade} ${rotulos.vaga.plural.toLowerCase()}`}
         >
           {serie.ocupadas}/{serie.capacidade}
         </span>
@@ -141,7 +149,7 @@ export function LinhaDaGrade({
             <p className="text-[12.5px] text-tinta-media">carregando…</p>
           ) : ocupantes.length === 0 ? (
             <p className="text-[12.5px] text-tinta-media">
-              Ninguém tem vaga fixa aqui. Encerrar não avisa ninguém.
+              Ninguém ocupa este horário. Encerrar não avisa ninguém.
             </p>
           ) : (
             <ul className="flex flex-wrap gap-2">
@@ -209,13 +217,13 @@ export function LinhaDaGrade({
                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] w-24" />
             </label>
             <label className="flex flex-col gap-1">
-              Serviço
+              {rotulos.servico.singular}
               <select name="servicoId" defaultValue={serie.servicoId} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
                 {catalogo.servicos.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              Profissional
+              {rotulos.profissional.singular}
               <select name="profissionalId" defaultValue={serie.profissionalId ?? ''}
                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
                 <option value="">, sem definir ,</option>
@@ -223,7 +231,7 @@ export function LinhaDaGrade({
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              Local
+              {rotulos.local.singular}
               <select name="localId" defaultValue={serie.localId ?? ''}
                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
                 <option value="">, sem definir ,</option>
@@ -252,8 +260,12 @@ export function LinhaDaGrade({
               ) : null}
               {preview.capacidadeMenorQueOcupacao ? (
                 <p>
-                  Atenção: {preview.vagasAtivas} {rotuloPessoa.toLowerCase()}(s)
-                  ocupam este horário, e a capacidade nova é menor.
+                  Atenção: {preview.vagasAtivas}{' '}
+                  {(preview.vagasAtivas === 1
+                    ? rotulos.pessoa.singular
+                    : rotulos.pessoa.plural).toLowerCase()}{' '}
+                  {preview.vagasAtivas === 1 ? 'ocupa' : 'ocupam'} este horário,
+                  e a capacidade nova é menor.
                 </p>
               ) : null}
             </div>
@@ -360,8 +372,12 @@ export function LinhaDaGrade({
 
           {vagasNoCaminho !== null ? (
             <p className="rounded-media border border-linha-suave bg-superficie p-3 text-[12.5px] leading-relaxed">
-              {vagasNoCaminho} {rotuloPessoa.toLowerCase()}(s) ocupam este horário.
-              Encerrar tira ele da grade daqui para frente.
+              {vagasNoCaminho}{' '}
+              {(vagasNoCaminho === 1
+                ? rotulos.pessoa.singular
+                : rotulos.pessoa.plural).toLowerCase()}{' '}
+              {vagasNoCaminho === 1 ? 'ocupa' : 'ocupam'} este horário.
+              Encerrar tira o horário da grade daqui para frente.
             </p>
           ) : null}
 

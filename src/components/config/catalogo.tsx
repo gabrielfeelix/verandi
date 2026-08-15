@@ -10,6 +10,7 @@ import {
 } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarServico, salvarLocal } from '@/server/config/acoes'
+import type { Rotulo } from '@/core/vocabulario/padrao'
 import type { ServicoLinha, LocalLinha } from '@/server/config/consultas'
 
 /**
@@ -46,7 +47,19 @@ function useSalvar() {
   return { pendente, erro, setErro, salvar }
 }
 
-export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
+export function SecaoServicos({
+  servicos, rotulo, rotuloSerie, rotuloSessoes,
+}: {
+  servicos: ServicoLinha[]
+  /*
+   * "Serviço" estava escrito à mão aqui, do título ao aviso de sucesso. É
+   * palavra de vocabulário como qualquer outra: quem chama de "modalidade"
+   * abria a Configuração e lia o nome do sistema, não o do negócio dele.
+   */
+  rotulo: Rotulo
+  rotuloSerie: Rotulo
+  rotuloSessoes: string
+}) {
   /** `'novo'`, ou o serviço em edição. `null` é modal fechado. */
   const [edicao, setEdicao] = useState<ServicoLinha | 'novo' | null>(null)
   const { pendente, erro, setErro, salvar } = useSalvar()
@@ -63,13 +76,17 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
 
   return (
     <PainelConfig
-      titulo="Serviços"
+      titulo={rotulo.plural}
       sub="Desativar não quebra histórico: sai das escolhas novas, continua no passado"
-      acao={<Botao miudo onClick={() => setEdicao('novo')}>Novo serviço</Botao>}
+      acao={
+        <Botao miudo onClick={() => setEdicao('novo')}>
+          Cadastrar {rotulo.singular.toLowerCase()}
+        </Botao>
+      }
     >
       {servicos.length === 0 ? (
         <p className="px-5 py-6 text-[13px] text-tinta-media">
-          Nenhum serviço ainda. É o primeiro cadastro da conta, sem serviço não
+          Nada cadastrado ainda. É o primeiro cadastro da conta: sem isso não
           dá para montar a grade.
         </p>
       ) : null}
@@ -93,7 +110,10 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
 
       {inativos.length > 0 ? (
         <Recolhivel
-          rotulo={`${inativos.length} serviço${inativos.length > 1 ? 's' : ''} desativado${inativos.length > 1 ? 's' : ''}`}
+          /* "desativados" concordaria com a palavra do cliente. "fora de uso"
+             não concorda com nada, e diz a mesma coisa. */
+          rotulo={`${inativos.length} ${(inativos.length === 1
+            ? rotulo.singular : rotulo.plural).toLowerCase()} fora de uso`}
         >
           {inativos.map((s) => (
             <LinhaConfig
@@ -115,13 +135,15 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
           aberto
           key={emEdicao?.id ?? 'novo'}
           glifo={emEdicao ? '✎' : '+'}
-          titulo={emEdicao ? 'Editar serviço' : 'Novo serviço'}
+          titulo={emEdicao
+            ? `Editar ${rotulo.singular.toLowerCase()}`
+            : `Cadastrar ${rotulo.singular.toLowerCase()}`}
           sub={
             emEdicao
               ? `${emEdicao.nome} · a mudança vale daqui para frente`
-              : 'Aparece nas escolhas de série, sessão e agendamento.'
+              : `Aparece nas escolhas de ${rotuloSerie.plural.toLowerCase()} e ${rotuloSessoes.toLowerCase()}.`
           }
-          primario={emEdicao ? 'Salvar' : 'Criar serviço'}
+          primario={emEdicao ? 'Salvar' : 'Criar'}
           pendente={pendente}
           aoFechar={fechar}
           aoEnviar={(f) => salvar(
@@ -134,7 +156,7 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
                 ativo: emEdicao ? f.get('ativo') === 'on' : true,
               })
             },
-            emEdicao ? 'Serviço atualizado' : 'Serviço criado',
+            emEdicao ? 'Cadastro salvo' : 'Cadastro criado',
             fechar,
           )}
         >
@@ -151,7 +173,7 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
             dica={
               emEdicao
                 ? 'vale para horários novos, os existentes mantêm a sua'
-                : 'todo horário fixo deste serviço começa com esse número'
+                : `cada ${rotuloSerie.singular.toLowerCase()} daqui nasce com esse número`
             }
           >
             <input id="srv-cap" name="capacidade" type="number" min={1}
@@ -168,7 +190,7 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
               Desativado, some das escolhas novas e continua aparecendo no
               histórico.{' '}
               {emEdicao.emUso > 0
-                ? `${emEdicao.emUso} horário(s) fixo(s) usam este serviço.`
+                ? `Em uso agora: ${emEdicao.emUso} em ${rotuloSerie.plural.toLowerCase()}.`
                 : ''}
             </Nota>
           ) : null}
@@ -180,9 +202,11 @@ export function SecaoServicos({ servicos }: { servicos: ServicoLinha[] }) {
 }
 
 export function SecaoLocais({
-  locais, rotuloSeries, rotuloSessoes,
+  locais, rotulo, rotuloSeries, rotuloSessoes,
 }: {
   locais: LocalLinha[]
+  /** como a conta chama o lugar: "Sala", "Cadeira", "Consultório" */
+  rotulo: Rotulo
   /** plurais do vocabulário da conta, para a lista de impacto da confirmação */
   rotuloSeries: string
   rotuloSessoes: string
@@ -204,12 +228,12 @@ export function SecaoLocais({
 
   return (
     <PainelConfig
-      titulo="Locais"
+      titulo={rotulo.plural}
       sub="Sala, cadeira, consultório, domicílio. A capacidade é o limite físico, avisa, não bloqueia"
     >
       {locais.length === 0 ? (
         <p className="px-5 py-6 text-[13px] text-tinta-media">
-          Nenhum local ainda. Horário fixo funciona sem local, cadastre quando
+          Nada cadastrado ainda. A grade funciona sem isso: cadastre quando
           houver mais de um lugar para separar.
         </p>
       ) : null}
@@ -261,20 +285,21 @@ export function SecaoLocais({
             onClick={() => setEdicao('novo')}
             className="inline-flex min-h-11 cursor-pointer items-center rounded-padrao border border-dashed border-linha-tracejada px-3.5 text-[13px] whitespace-nowrap text-marca hover:bg-superficie-suave"
           >
-            + Novo local
+            + Cadastrar {rotulo.singular.toLowerCase()}
           </button>
         </div>
       ) : (
         <div className="px-5 pb-4">
           <Botao miudo tom="tracejado" onClick={() => setEdicao('novo')}>
-            + Novo local
+            + Cadastrar {rotulo.singular.toLowerCase()}
           </Botao>
         </div>
       )}
 
       {inativos.length > 0 ? (
         <Recolhivel
-          rotulo={`${inativos.length} local${inativos.length > 1 ? 'is' : ''} desativado${inativos.length > 1 ? 's' : ''}`}
+          rotulo={`${inativos.length} ${(inativos.length === 1
+            ? rotulo.singular : rotulo.plural).toLowerCase()} fora de uso`}
         >
           {inativos.map((l) => (
             <LinhaConfig key={l.id} apagado nome={l.nome}
@@ -297,8 +322,8 @@ export function SecaoLocais({
           perigo
           largura="lista"
           titulo={`Desativar ${aDesativar.nome}?`}
-          sub="O local sai das escolhas novas e continua no que já aconteceu."
-          primario="Desativar local"
+          sub="Sai das escolhas novas e continua no que já aconteceu."
+          primario="Desativar"
           pendente={pendente}
           aoFechar={() => setADesativar(null)}
           aoConfirmar={() => salvar(
@@ -310,12 +335,12 @@ export function SecaoLocais({
                 ativo: false,
               })
             },
-            'Local desativado',
+            'Cadastro desativado',
             () => setADesativar(null),
           )}
         >
           <ListaImpacto
-            rotulo="Hoje ele é usado em"
+            rotulo="Hoje aparece em"
             /* o qualificador fica na coluna da direita, nunca colado na
                palavra do cliente: "locais ativos" vira "salas ativos" */
             itens={[
@@ -331,8 +356,8 @@ export function SecaoLocais({
           />
           <Nota tom="alerta">
             Nada é apagado e nada muda de lugar: o que já existe continua
-            apontando para este local, e ele para de aparecer nas escolhas
-            novas. Para tirar de vez, troque o local em cada um antes.
+            apontando para cá, e o nome para de aparecer nas escolhas novas.
+            Para tirar de vez, troque o lugar em cada um antes.
           </Nota>
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}
         </Modal>
@@ -343,13 +368,15 @@ export function SecaoLocais({
           aberto
           key={emEdicao?.id ?? 'novo'}
           glifo={emEdicao ? '✎' : '+'}
-          titulo={emEdicao ? 'Editar local' : 'Novo local'}
+          titulo={emEdicao
+            ? `Editar ${rotulo.singular.toLowerCase()}`
+            : `Cadastrar ${rotulo.singular.toLowerCase()}`}
           sub={
             emEdicao
-              ? `${emEdicao.nome} · usado em séries e sessões`
+              ? `${emEdicao.nome} · aparece em ${rotuloSeries.toLowerCase()} e ${rotuloSessoes.toLowerCase()}`
               : 'Sala, cadeira, consultório ou domicílio.'
           }
-          primario={emEdicao ? 'Salvar local' : 'Criar local'}
+          primario={emEdicao ? 'Salvar' : 'Criar'}
           pendente={pendente}
           aoFechar={fechar}
           aoEnviar={(f) => salvar(
@@ -362,7 +389,7 @@ export function SecaoLocais({
                 ativo: emEdicao ? f.get('ativo') === 'on' : true,
               })
             },
-            emEdicao ? 'Local atualizado' : 'Local criado',
+            emEdicao ? 'Cadastro salvo' : 'Cadastro criado',
             fechar,
           )}
         >
@@ -383,7 +410,8 @@ export function SecaoLocais({
                 Ativo
               </label>
               <Nota tom="atencao">
-                Renomear muda o nome em todas as sessões, inclusive nas antigas.
+                Renomear muda o nome em {rotuloSessoes.toLowerCase()} antigas
+                também, não só nas novas.
               </Nota>
             </>
           ) : null}

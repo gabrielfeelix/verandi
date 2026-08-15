@@ -46,7 +46,6 @@ type Props = {
   titulo: string
   rotuloPessoa: string
   rotuloPessoas: string
-  rotuloSessao: string
   /** quantas vagas livres, para o convite do rodapé da lista */
   livres: number
   /** as faltas em aberto de cada pessoa, para o "apontar reposição" */
@@ -54,7 +53,7 @@ type Props = {
 }
 
 export function ListaParticipacao({
-  titulo, rotuloPessoa, rotuloPessoas, rotuloSessao, livres, faltasPorPessoa,
+  titulo, rotuloPessoa, rotuloPessoas, livres, faltasPorPessoa,
 }: Props) {
   const { lista, podeRegistrar, ocupado, registrar, agir, abrirEncaixe } = useChamada()
 
@@ -169,7 +168,7 @@ export function ListaParticipacao({
             <Vazio
               icone="pessoas"
               titulo="Ninguém marcado ainda"
-              texto={`Não é erro de carregamento, é uma ${rotuloSessao.toLowerCase()} vazia.`}
+              texto="Não é erro de carregamento. O horário existe e ainda não tem ninguém."
             />
           </li>
         ) : null}

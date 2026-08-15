@@ -62,7 +62,8 @@ antes:
   avisou; hoje só se sabe quando a recepção registrou.
 - **Plano da conta** em Contas 4YU (o "Padrão · criada em mar/24" do protótipo) ,
   não existe coluna de plano. A tela mostra o identificador e a data de criação.
-- **Seção Integrações** da configuração, não há nada para integrar ainda.
+- ~~**Seção Integrações**~~ da configuração: **existe** desde a Fase 1 do
+  Marco 2, com a chave de API do AutoFluxos.
 
 ## Armadilhas que já custaram caro
 

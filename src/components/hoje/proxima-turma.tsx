@@ -46,7 +46,9 @@ export function ProximaTurma({
           <div className="flex flex-col gap-2">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[.1em] text-menta uppercase">
               <span aria-hidden className="size-[7px] rounded-full bg-menta" />
-              Próxima {rotulo.toLowerCase()}
+              {/* "Próxima" concordaria com a palavra do cliente: "Próxima
+                  atendimento". "A seguir" não tem gênero e diz o mesmo. */}
+              {rotulo.toLowerCase()} a seguir
             </span>
             <span className="font-titulo text-[40px] leading-none font-semibold tracking-[-.03em]">
               {sessao.hora}
@@ -115,7 +117,7 @@ export function ProximaTurma({
               })}
               {sessao.pessoas.length === 0 ? (
                 <span className="text-[12.5px] text-tinta-escura-media">
-                  Ninguém marcado nesta {rotulo.toLowerCase()} ainda.
+                  Ninguém marcado ainda.
                 </span>
               ) : null}
             </div>

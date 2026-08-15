@@ -38,7 +38,7 @@ com nome de cor é cor que ninguém troca depois.
 | Superfície mais suave | `#F1F5F3` |
 | Tinta forte (título, número) | `#141A18` |
 | Tinta média (texto de apoio) | `#5D6B66` |
-| Tinta fraca (rótulo, meta) | `#8B9691` |
+| Tinta fraca (rótulo, meta) | `#656E6A` (o `#8B9691` do protótipo reprova em contraste) |
 | Tinta sobre escuro | `#EAF3F0` |
 | Linha | `#DFE5E2` |
 | Linha suave | `#E7ECEA` |
@@ -57,14 +57,19 @@ com nome de cor é cor que ninguém troca depois.
 Cada par é fundo + texto. **A cor nunca é o único portador do significado** ,
 sempre acompanha texto ou glifo.
 
+Os três primeiros textos são um pouco mais escuros que os do protótipo, e o
+motivo é contraste: no par original a etiqueta dava 4,42:1, 4,13:1 e 3,93:1
+sobre o próprio fundo dela, abaixo do mínimo de 4,5:1. É onde se lê "presente",
+"falta" e "reposição". Há teste medindo cada par em `tests/unit/contraste.test.ts`.
+
 | Significado | Fundo | Texto |
 |---|---|---|
-| Positivo · presente · recorrente | `#DCEDE7` | `#0E7C6B` |
-| Atenção · falta avisada · reposição | `#F6E7C9` | `#8A6A22` |
-| Alerta · falta · lotado · pendente | `#FBE4D9` | `#C5502A` |
+| Positivo · presente · recorrente | `#DCEDE7` | `#0E7968` |
+| Atenção · falta avisada · reposição | `#F6E7C9` | `#806320` |
+| Alerta · falta · lotado · pendente | `#FBE4D9` | `#B24826` |
 | Informação · avulso | `#E4E9F5` | `#42507A` |
 | Licença | `#E9E6F3` | `#5B4C7C` |
-| Neutro · reserva · cancelada | `#EDF1EF` | `#5D6B66` |
+| Neutro · reserva · cancelada | `#EDF1EF` | `#656E6A` |
 
 ### Onde cada uma aparece no domínio
 
@@ -169,9 +174,14 @@ qual.
 
 O protótipo é bonito e falha em três coisas que o produto não pode falhar:
 
-- **Contraste.** `#8B9691` sobre `#FFFFFF` dá 2,9:1, abaixo do mínimo de 4,5:1
-  para texto. Tinta fraca fica só em texto de 14px ou maior, ou sobe para
-  `#5D6B66`.
+- **Contraste, resolvido.** `#8B9691` sobre `#FFFFFF` dá 3,06:1, abaixo do
+  mínimo de 4,5:1. A regra antiga era "tinta fraca só em 14px ou maior", e ela
+  não salvava nada: a isenção de texto grande da WCAG começa em 24px, não em
+  14. **Tinta fraca virou `#656E6A`** e passa a 4,78:1 sobre `#F1F5F3`, que é a
+  superfície mais clara que ainda recebe texto pequeno. `tinta-apagada` foi
+  junto, e as duas passaram a valer o mesmo tom: qualquer par que passasse
+  teria diferença de 2% de luminosidade. A etiqueta neutra e o texto fraco do
+  e-mail seguiram a mesma correção.
 - **Alvo de toque.** Botões de 24px de altura na tela de Sessão, que é usada em
   pé, com a mão ocupada. Mínimo de 44px nos controles de presença.
 - **Foco visível.** O protótipo não desenha foco de teclado. Anel de menta em

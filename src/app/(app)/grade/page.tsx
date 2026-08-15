@@ -44,14 +44,14 @@ export default async function Grade() {
             Grade fixa
           </h1>
           <p className="pt-[3px] text-[13.5px] text-tinta-media">
-            {vigentes.length} {rotulos.serie.plural.toLowerCase()} ativas ·
+            {vigentes.length} {rotulos.serie.plural.toLowerCase()} em uso ·
             configuração, usada muito no começo e pouco depois
           </p>
         </div>
 
         {podeEscrever ? (
           <div data-guia="grade-criar">
-            <EditorSerie catalogo={catalogo} rotuloSerie={rotulos.serie.singular} />
+            <EditorSerie catalogo={catalogo} rotulos={rotulos} />
           </div>
         ) : null}
       </header>
@@ -68,7 +68,7 @@ export default async function Grade() {
         <span>
           Editar {rotulos.serie.singular.toLowerCase()} vale{' '}
           <strong className="font-semibold">daqui para frente</strong>.{' '}
-          {rotulos.sessao.plural} que já aconteceram não são reescritas.
+          {rotulos.sessao.plural} que já aconteceram ficam como estão.
         </span>
       </p>
 
@@ -105,7 +105,7 @@ export default async function Grade() {
               {g.linhas.map((s) => (
                 <LinhaDaGrade
                   key={s.id} serie={s} catalogo={catalogo}
-                  rotuloVaga={rotulos.vaga.plural} rotuloPessoa={rotulos.pessoa.singular}
+                  rotulos={rotulos}
                   podeEscrever={podeEscrever}
                 />
               ))}
@@ -118,7 +118,7 @@ export default async function Grade() {
         <section className={`overflow-hidden ${cartao}`}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
             <h2 className="text-[13px] font-medium">
-              {rotulos.serie.plural} encerradas
+              {rotulos.serie.plural} que terminaram
             </h2>
             <span className="text-[12px] text-tinta-media">
               continuam existindo no histórico
@@ -128,7 +128,7 @@ export default async function Grade() {
             {encerradas.map((s) => (
               <LinhaDaGrade
                 key={s.id} serie={s} catalogo={catalogo}
-                rotuloVaga={rotulos.vaga.plural} rotuloPessoa={rotulos.pessoa.singular}
+                rotulos={rotulos}
                 podeEscrever={podeEscrever}
               />
             ))}
@@ -138,16 +138,13 @@ export default async function Grade() {
         </div>
 
         <div className="flex flex-col gap-3.5">
-          <CapacidadeDaSemana
-            series={vigentes}
-            rotuloSeries={rotulos.serie.plural.toLowerCase()}
-          />
+          <CapacidadeDaSemana series={vigentes} rotuloSerie={rotulos.serie} />
 
           {/* As duas ações que assustam, explicadas antes de serem clicadas. */}
           <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
             <p className="text-[12.5px] leading-relaxed text-tinta-media">
               Encerrar {rotulos.serie.singular.toLowerCase()} avisa quantas
-              pessoas ocupam vaga nela antes de confirmar. Duplicar existe porque
+              pessoas ocupam vaga ali antes de confirmar. Duplicar existe porque
               montar {vigentes.length} {rotulos.serie.plural.toLowerCase()} à mão
               é o pior momento da implantação.
             </p>

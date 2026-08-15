@@ -33,7 +33,9 @@ export const COR = {
   linhaSuave: '#EFF3F1',
   texto: '#141A18',
   apoio: '#5D6B66',
-  fraco: '#7B8681',
+  // 4,93:1 sobre o fundo afundado do e-mail. O tom do protótipo dava 3,3:1, e
+  // cliente de e-mail não deixa o leitor aumentar contraste como o navegador
+  fraco: '#656E6A',
 } as const
 
 /** DM Sans para tudo; quem não carregar cai numa pilha decente do sistema. */

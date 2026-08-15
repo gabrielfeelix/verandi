@@ -12,11 +12,11 @@ test('cadastrar serviço e ele aparecer na grade', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/config?s=servicos')
 
-  await page.getByRole('button', { name: 'Novo serviço' }).click()
+  await page.getByRole('button', { name: 'Cadastrar serviço' }).click()
   await page.getByLabel('Nome').fill('Fáscia avançada')
   await page.getByLabel('Duração (min)').fill('40')
   await page.getByLabel('Capacidade padrão').fill('3')
-  await page.getByRole('button', { name: 'Criar serviço' }).click()
+  await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
   await expect(page.getByText('Fáscia avançada')).toBeVisible()
 
@@ -36,7 +36,7 @@ test('desativar serviço tira das escolhas novas e mantém no histórico', async
   await page.getByRole('button', { name: 'Salvar' }).click()
 
   // desativado sai da lista de cima e vai para a gaveta do pé, como no protótipo
-  await expect(page.getByRole('button', { name: /1 serviço desativado/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /1 serviço fora de uso/ })).toBeVisible()
 
   await expect.poll(async () => {
     const { data } = await admin.from('servico')
@@ -47,7 +47,7 @@ test('desativar serviço tira das escolhas novas e mantém no histórico', async
   // some do editor de série, sem sumir do banco
   await page.goto('/grade')
   await page.getByRole('button', { name: /Criar/ }).click()
-  await expect(page.getByText('cadastre um serviço em Configuração')).toBeVisible()
+  await expect(page.getByText('o catálogo precisa de pelo menos um nome')).toBeVisible()
 })
 
 test('local guarda capacidade, e sem capacidade também vale', async ({ page }) => {
@@ -55,10 +55,10 @@ test('local guarda capacidade, e sem capacidade também vale', async ({ page }) 
   await entrar(page, c.email)
   await page.goto('/config?s=locais')
 
-  await page.getByRole('button', { name: 'Novo local' }).click()
+  await page.getByRole('button', { name: 'Cadastrar local' }).click()
   await page.getByLabel('Nome').fill('Sala 2')
   await page.getByLabel('Capacidade').fill('6')
-  await page.getByRole('button', { name: 'Criar local' }).click()
+  await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
   await expect(page.getByText('cabe 6')).toBeVisible()
 })
@@ -148,7 +148,7 @@ test('desativar local pede confirmação e diz quantos dependem dele', async ({ 
   expect(antes.data!.ativo).toBe(true)
 
   await page.getByRole('button', { name: 'Desativar Sala 1' }).click()
-  await page.getByRole('button', { name: 'Desativar local' }).click()
+  await page.getByRole('button', { name: 'Desativar', exact: true }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('local').select('ativo').eq('id', c.localId).single()
@@ -330,9 +330,9 @@ test('mexer na configuração registra quem fez', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/config?s=locais')
 
-  await page.getByRole('button', { name: 'Novo local' }).click()
+  await page.getByRole('button', { name: 'Cadastrar local' }).click()
   await page.getByLabel('Nome').fill('Domicílio')
-  await page.getByRole('button', { name: 'Criar local' }).click()
+  await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('log_configuracao')
@@ -346,7 +346,7 @@ test('cadastrar profissional com cor e serviços que atende', async ({ page }) =
   await entrar(page, c.email)
   await page.goto('/config?s=equipe')
 
-  await page.getByRole('button', { name: /Novo/ }).click()
+  await page.getByRole('button', { name: /Cadastrar profissional/ }).click()
   await page.getByLabel('Nome').fill('Sofia Andrade')
   await page.getByLabel('E-mail').fill('sofia@estudio.local')
   await page.getByRole('button', { name: 'Azul' }).click()

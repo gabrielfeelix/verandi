@@ -90,15 +90,14 @@ export function SecaoEquipe({
       sub="Existe sem usuário: um nome na grade não precisa de acesso ao sistema"
       acao={
         <Botao miudo onClick={() => setAberto('novo')}>
-          Novo {rotuloProfissional.toLowerCase()}
+          Cadastrar {rotuloProfissional.toLowerCase()}
         </Botao>
       }
     >
       {equipe.length === 0 ? (
         <p className="px-5 py-6 text-[13px] text-tinta-media">
-          Ninguém cadastrado ainda. Horário fixo funciona sem{' '}
-          {rotuloProfissional.toLowerCase()} definido, mas a grade fica mais
-          clara com nome e cor.
+          Ninguém cadastrado ainda. A grade funciona sem isso, e fica mais
+          fácil de ler com nome e cor.
         </p>
       ) : null}
 
@@ -212,7 +211,7 @@ export function SecaoEquipe({
           titulo={
             emEdicao
               ? `Editar ${rotuloProfissional.toLowerCase()}`
-              : `Novo ${rotuloProfissional.toLowerCase()}`
+              : `Cadastrar ${rotuloProfissional.toLowerCase()}`
           }
           sub={
             emEdicao
@@ -224,7 +223,7 @@ export function SecaoEquipe({
           aoFechar={() => setAberto(null)}
           aoEnviar={(f) => comErro(
             async () => { await salvarProfissional(f) },
-            emEdicao ? 'Profissional atualizado' : 'Profissional criado',
+            emEdicao ? 'Cadastro salvo' : 'Cadastro criado',
             () => setAberto(null),
           )}
         >

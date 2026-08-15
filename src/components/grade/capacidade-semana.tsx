@@ -1,3 +1,4 @@
+import type { Rotulo } from '@/core/vocabulario/padrao'
 import type { SerieLinha } from '@/server/grade/consultas'
 import { cartao } from '@/components/ui/pecas'
 
@@ -17,10 +18,16 @@ const CORES = ['#0E7C6B', '#F0693C', '#4A5C8C', '#5B4C7C', '#4E6B37', '#8A6A22']
  * uma.
  */
 export function CapacidadeDaSemana({
-  series, rotuloSeries,
+  series, rotuloSerie,
 }: {
   series: SerieLinha[]
-  rotuloSeries: string
+  /*
+   * As duas formas, e não uma só: singularizar cortando o "s" final devolve
+   * "turmas fixa" para quem chama série de "turmas fixas". Quem sabe o plural
+   * de uma palavra é quem a escreveu em Configuração, não uma expressão
+   * regular.
+   */
+  rotuloSerie: Rotulo
 }) {
   const porServico = new Map<string, { n: number; ocupadas: number; vagas: number }>()
   for (const s of series) {
@@ -53,7 +60,8 @@ export function CapacidadeDaSemana({
             <span className="flex items-baseline justify-between gap-3">
               <span className="truncate text-[13px] font-medium">{l.servico}</span>
               <span className="shrink-0 font-mono text-[11.5px] text-tinta-media">
-                {l.n} {l.n === 1 ? rotuloSeries.replace(/s$/, '') : rotuloSeries} · {l.pct}%
+                {l.n} {(l.n === 1 ? rotuloSerie.singular : rotuloSerie.plural)
+                  .toLowerCase()} · {l.pct}%
               </span>
             </span>
             {/* a barra é o resumo; o número ao lado é o dado. Barra sozinha em

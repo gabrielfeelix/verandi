@@ -65,7 +65,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
     .from('profissional').select('id, nome')
     .eq('conta_id', conta.contaId)
     .eq('usuario_id', user?.id ?? '')
-    .maybeSingle<{ id: string; nome: string }>()
+    .maybeSingle()
 
   const podeVerTodos = conta.papel !== 'profissional'
   const verTodos = podeVerTodos && todos === '1'
@@ -381,8 +381,8 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 ))}
                 {profs.length === 0 ? (
                   <p className="text-[12.5px] text-tinta-media">
-                    Nenhuma {rotulos.sessao.singular.toLowerCase()} com{' '}
-                    {rotulos.profissional.singular.toLowerCase()} neste dia.
+                    Ninguém da equipe tem {rotulos.sessao.singular.toLowerCase()}
+                    {' '}neste dia.
                   </p>
                 ) : null}
               </div>
@@ -390,7 +390,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
             <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
               <p className="text-[12.5px] leading-relaxed text-tinta-media">
-                {rotulos.sessao.singular} lotada não é bloqueio:{' '}
+                Lotação cheia não é bloqueio:{' '}
                 <strong className="font-semibold text-tinta">5/4</strong> aparece em
                 laranja e o encaixe segue permitido, quem decide é quem está na
                 recepção, com nome e registro.

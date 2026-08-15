@@ -29,7 +29,7 @@ export function TrocarProfissional({
     setAberto(false)
     iniciar(async () => {
       await trocarProfissionalDaSessao(sessaoId, id)
-      avisar({ texto: `${nome} atende esta ${rotuloSessao.toLowerCase()}` })
+      avisar({ texto: `${nome} atende ${rotuloSessao.toLowerCase()} deste horário` })
     })
   }
 
@@ -42,7 +42,7 @@ export function TrocarProfissional({
         aria-expanded={aberto}
         className="font-medium text-marca hover:text-marca-forte"
       >
-        trocar {rotulo.toLowerCase()} só desta {rotuloSessao.toLowerCase()}
+        trocar {rotulo.toLowerCase()} só neste horário
       </button>
 
       {aberto ? (
@@ -74,7 +74,7 @@ export function TrocarProfissional({
           ) : null}
 
           <span className="px-2.5 py-2 text-[11.5px] leading-relaxed text-tinta-media">
-            Vale só para este dia. O horário fixo continua com quem estava.
+            Vale só para este dia. A grade continua com quem estava.
           </span>
         </span>
       ) : null}

@@ -22,11 +22,31 @@
   --color-linha-fina: #eff3f1;
   --color-linha-tracejada: #c6d2cd;
 
-  /* ---- texto ---- */
+  /* ---- texto ----
+   *
+   * O protótipo desce até `#8B9691` no texto de apoio, e ali ele falha: sobre
+   * branco dá 3,06:1, contra o mínimo de 4,5:1 da WCAG AA. Não é detalhe de
+   * purista. Esse tom carrega hora, contagem, "criada em", "sem telefone" —
+   * exatamente o que alguém procura de relance, em monitor barato, com sol na
+   * tela, num sistema que se usa em pé.
+   *
+   * A régua não é o branco: é `#F1F5F3`, a superfície mais clara que ainda
+   * recebe texto pequeno (cabeçalho de lista, chip). Passar só no branco
+   * deixaria a metade das telas reprovada.
+   *
+   * **A escala abaixo de `tinta-media` colapsou em um degrau só, de
+   * propósito.** `apagada` e `fraca` eram dois tons que ninguém distingue e
+   * que reprovavam os dois; qualquer par que passasse teria diferença de 2% de
+   * luminosidade, hierarquia que só existe no arquivo de cor. Os dois nomes
+   * ficam porque dizem intenção diferente nas quarenta chamadas que os usam, e
+   * porque podem voltar a divergir no tema escuro.
+   */
   --color-tinta: #141a18;
   --color-tinta-media: #5d6b66;
-  --color-tinta-apagada: #7b8681;
-  --color-tinta-fraca: #8b9691;
+  /* 5,26:1 no branco · 4,78:1 em #F1F5F3 */
+  --color-tinta-apagada: #656e6a;
+  --color-tinta-fraca: #656e6a;
+  /* só onde a WCAG isenta: controle desabilitado (1.4.3). Não use em texto. */
   --color-tinta-inativa: #9aa5a0;
   --color-tinta-clara: #eaf3f0;
   /* texto sobre o painel escuro: o de apoio, e o do item que não está ativo */
@@ -52,15 +72,27 @@
   --color-destaque: #f0693c;
 
   /* ---- tintas com significado — sempre acompanhadas de texto ou glifo ---- */
+  /*
+   * As três tintas abaixo foram escurecidas contra o próprio fundo delas.
+   *
+   * A etiqueta é texto de 11px dentro de um chip claro, e o par do protótipo
+   * dava 4,42:1 (positivo), 3,93:1 (alerta) e 4,13:1 (atenção) — os três abaixo
+   * do mínimo. É onde se lê "falta", "presente" e "reposição", que é o dado
+   * inteiro de uma linha da chamada. Há teste medindo cada par.
+   *
+   * `positivo` deixou de ser exatamente `marca` por isso, e a diferença é de
+   * 2% de luminosidade: a marca continua `#0E7C6B` em botão e link, onde o
+   * fundo é branco e o contraste já fechava.
+   */
   --color-positivo-fundo: #e3f2ed;
-  --color-positivo: #0e7c6b;
+  --color-positivo: #0e7968;
   --color-positivo-linha: #cfebe1;
   --color-positivo-superficie: #f3faf7;
   /* fundo do estado marcado (presente, vaga fixa): mais saturado que o chip */
   --color-positivo-marcado: #dcede7;
 
   --color-alerta-fundo: #fde9e0;
-  --color-alerta: #c5502a;
+  --color-alerta: #b24826;
   --color-alerta-forte: #a8411f;
   --color-alerta-mais-forte: #9c3d1f;
   --color-alerta-linha: #f7dacb;
@@ -71,7 +103,7 @@
   --color-alerta-texto: #8a4526;
 
   --color-atencao-fundo: #f6e7c9;
-  --color-atencao: #8a6a22;
+  --color-atencao: #806320;
   --color-atencao-linha: #f2e3d4;
   --color-atencao-superficie: #fffbf7;
 
@@ -82,7 +114,9 @@
   --color-licenca: #5b4c7c;
 
   --color-neutro-fundo: #edf1ef;
-  --color-neutro: #8b9691;
+  /* a etiqueta neutra é a que mais aparece ("esperada", "cancelada"), e era a
+     pior do conjunto: 2,68:1 sobre o próprio fundo dela */
+  --color-neutro: #656e6a;
   --color-neutro-linha: #e7ecea;
 
   /* ---- tipografia ---- */
@@ -202,8 +236,11 @@ select:focus-visible {
     border-color 0.15s ease,
     background-color 0.15s ease;
 
+  /* placeholder é texto, e a WCAG não o isenta: só o controle desabilitado
+     logo abaixo é isento. "Nome, telefone ou identificador" em cinza de 2,5:1
+     é a dica que some justamente para quem mais precisa dela. */
   &::placeholder {
-    color: var(--color-tinta-inativa);
+    color: var(--color-tinta-fraca);
   }
 
   &[placeholder]:not(:placeholder-shown) {

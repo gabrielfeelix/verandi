@@ -8,9 +8,10 @@ type Props = {
   vagas: Array<{ id: string; rotulo: string; desde: string; ate: string | null }>
   series: Array<{ id: string; rotulo: string }>
   rotuloVaga: string
+  rotuloSerie: string
 }
 
-export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
+export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Props) {
   const [pendente, iniciar] = useTransition()
   const hoje = new Date().toISOString().slice(0, 10)
 
@@ -21,8 +22,9 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
     <div className="flex flex-col gap-3">
       {ativas.length === 0 ? (
         <p className="text-[12.5px] text-tinta-media">
-          Sem horário fixo. Quem só vem de vez em quando é normal, a vaga
-          recorrente é para quem ocupa o mesmo horário toda semana.
+          Sem {rotuloSerie.toLowerCase()}. Quem só vem de vez em quando é
+          normal: {rotuloVaga.toLowerCase()} existe para quem ocupa o mesmo
+          horário toda semana.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -55,7 +57,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
       {encerradas.length > 0 ? (
         <details>
           <summary className="cursor-pointer text-[12.5px] text-tinta-media">
-            {encerradas.length} encerrada(s)
+            {encerradas.length} no histórico
           </summary>
           <ul className="mt-2 flex flex-col gap-1 text-[12.5px] text-tinta-media">
             {encerradas.map((v) => (
@@ -76,7 +78,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga }: Props) {
       >
         <div className="flex flex-col gap-1">
           <label htmlFor="serie" className="text-[12.5px] font-medium">
-            Nova {rotuloVaga.toLowerCase()}
+            Criar {rotuloVaga.toLowerCase()}
           </label>
           <select id="serie" name="serie" required className="min-h-11 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px]">
             <option value="">escolha o horário</option>

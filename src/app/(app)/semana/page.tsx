@@ -70,10 +70,10 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const [{ data: profissionais }, { data: locais }] = await Promise.all([
     db.from('profissional').select('id, nome, cor')
       .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-      .returns<{ id: string; nome: string; cor: string | null }[]>(),
+      ,
     db.from('local').select('id, nome')
       .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-      .returns<{ id: string; nome: string }[]>(),
+      ,
   ])
 
   const ehDia = p.modo === 'dia'
@@ -91,7 +91,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   // vazio do sábado que a casa não abre
   const { data: aberturas } = await db
     .from('funcionamento').select('dia_semana').eq('conta_id', conta.contaId)
-    .returns<{ dia_semana: number }[]>()
+    
   const abertos = new Set((aberturas ?? []).map((a) => a.dia_semana))
   const fechados = new Set(
     abertos.size === 0 ? [] : [0, 1, 2, 3, 4, 5, 6].filter((d) => !abertos.has(d)),
@@ -100,7 +100,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const { data: excecoes } = await db
     .from('excecao_calendario').select('data, descricao, tipo')
     .eq('conta_id', conta.contaId).gte('data', de).lte('data', ate)
-    .returns<{ data: string; descricao: string | null; tipo: string }[]>()
+    
 
   const feriados = Object.fromEntries(
     (excecoes ?? []).map((e) => [e.data, e.descricao ?? e.tipo]),
@@ -190,7 +190,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           semana da Marina". O de local só aparece quando há mais de um lugar. */}
       <div data-imprimir="fora" className="flex flex-wrap items-center gap-1.5">
         <Chip href={q({ profissional: undefined })} ativo={!p.profissional}>
-          {`Todos os ${rotulos.profissional.plural.toLowerCase()}`}
+          Equipe inteira
         </Chip>
         {(profissionais ?? []).map((pr) => (
           <Chip

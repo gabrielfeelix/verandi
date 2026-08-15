@@ -7,6 +7,7 @@ import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
 import { criarSeries } from '@/server/grade/acoes'
 import type { Colisao, NovaSerie } from '@/core/agenda/serie'
+import type { Rotulos } from '@/core/vocabulario/padrao'
 import type { CatalogoGrade } from '@/server/grade/consultas'
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -19,10 +20,16 @@ const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
  * não uma opção escondida.
  */
 export function EditorSerie({
-  catalogo, rotuloSerie,
+  catalogo, rotulos,
 }: {
   catalogo: CatalogoGrade
-  rotuloSerie: string
+  /*
+   * O vocabulário inteiro, e não uma palavra por prop: os três campos do
+   * formulário rotulavam "Serviço", "Profissional" e "Local" à mão, que é o
+   * nome neutro do sistema. Num estúdio de pilates a grade é montada
+   * escolhendo modalidade, professor e sala.
+   */
+  rotulos: Rotulos
 }) {
   const [aberto, setAberto] = useState(false)
   const [dias, setDias] = useState<number[]>([])
@@ -86,13 +93,13 @@ export function EditorSerie({
   return (
     <>
       <Botao onClick={() => setAberto(true)}>
-        Criar {rotuloSerie.toLowerCase()}
+        Criar {rotulos.serie.singular.toLowerCase()}
       </Botao>
 
       {aberto ? (
         <ModalFormulario
           aberto
-          titulo={`${rotuloSerie} nova`}
+          titulo={`Criar ${rotulos.serie.singular.toLowerCase()}`}
           sub="Um horário que se repete toda semana."
           primario={
             dias.length > 1 ? `Criar ${dias.length} horários` : 'Criar horário'
@@ -103,7 +110,8 @@ export function EditorSerie({
         >
           {semServico ? (
             <Nota tom="atencao">
-              Antes de montar a grade, cadastre um serviço em Configuração.
+              Antes de montar a grade, o catálogo precisa de pelo menos um
+              nome. Cadastre em Configuração, {rotulos.servico.plural}.
             </Nota>
           ) : (
             <>
@@ -145,7 +153,7 @@ export function EditorSerie({
                 </Campo>
               </div>
 
-              <Campo rotulo="Serviço" htmlFor="servicoId">
+              <Campo rotulo={rotulos.servico.singular} htmlFor="servicoId">
                 <select id="servicoId" name="servicoId" required className={entrada}>
                   {catalogo.servicos.map((s) => (
                     <option key={s.id} value={s.id}>{s.nome}</option>
@@ -154,7 +162,7 @@ export function EditorSerie({
               </Campo>
 
               <div className="flex flex-wrap items-start gap-3">
-                <Campo rotulo="Profissional" htmlFor="profissionalId">
+                <Campo rotulo={rotulos.profissional.singular} htmlFor="profissionalId">
                   <select id="profissionalId" name="profissionalId" className={entrada}>
                     <option value="">, sem definir ,</option>
                     {catalogo.profissionais.map((p) => (
@@ -162,7 +170,7 @@ export function EditorSerie({
                     ))}
                   </select>
                 </Campo>
-                <Campo rotulo="Local" htmlFor="localId">
+                <Campo rotulo={rotulos.local.singular} htmlFor="localId">
                   <select id="localId" name="localId" className={entrada}>
                     <option value="">, sem definir ,</option>
                     {catalogo.locais.map((l) => (
@@ -194,8 +202,10 @@ export function EditorSerie({
                   <ul className="list-inside list-disc">
                     {colisoes.map((c, i) => (
                       <li key={`${c.serieId}-${i}`}>
-                        {DIAS[c.diaSemana]} às {c.horaInicio}, {c.ocupadoPor} já ocupa
-                        {c.tipo === 'profissional' ? ' esse horário' : ' esse local'}
+                        {DIAS[c.diaSemana]} às {c.horaInicio}, {c.ocupadoPor} já
+                        {c.tipo === 'profissional'
+                          ? ' atende nesse horário'
+                          : ' está ocupado nesse horário'}
                       </li>
                     ))}
                   </ul>
