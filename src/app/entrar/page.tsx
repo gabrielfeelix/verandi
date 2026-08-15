@@ -92,6 +92,21 @@ export default function Entrar() {
         >
           {carregando ? 'Entrando…' : 'Entrar'}
         </Botao>
+
+        {/* Junto do botão, e não no rodapé: aceite só vale se a pessoa teve como
+            ler o que aceitou, e link escondido no pé da página é a versão fraca
+            disso. O registro de quem aceitou o quê fica em `aceite_de_termos`. */}
+        <p className="pt-1 text-center text-[11.5px] leading-[1.6] text-tinta-fraca">
+          Ao entrar, você concorda com os{' '}
+          <Link href="/termos" className="text-marca hover:text-marca-forte">
+            Termos de uso
+          </Link>{' '}
+          e com a{' '}
+          <Link href="/privacidade" className="text-marca hover:text-marca-forte">
+            Política de privacidade
+          </Link>
+          .
+        </p>
       </form>
 
       {/* O link por e-mail passou a existir, mas o caminho pela pessoa continua

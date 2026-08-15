@@ -177,10 +177,17 @@ Há teste de navegador prendendo isso, porque reorganizar a lista de rotas
 públicas do `proxy.ts` derrubaria o documento em silêncio.
 
 **Onde o dado é tratado, conferido na API de cada fornecedor:** banco no Brasil
-(Supabase, `sa-east-1`, São Paulo), aplicação nos Estados Unidos (Vercel,
-`iad1`), e-mail na União Europeia (Brevo). Os documentos internos diziam
-"Supabase e Brevo, os dois com dado no exterior", que era dedução pela sede da
-empresa e estava errada sobre o banco.
+(Supabase, `sa-east-1`) e aplicação no Brasil (Vercel, `gru1`, movida de `iad1`
+em 15/08 justamente para o dado não sair do país), e-mail na União Europeia
+(Brevo, coberto pela decisão de adequação da ANPD de jan/2026). Os documentos
+internos diziam "Supabase e Brevo, os dois com dado no exterior", que era dedução
+pela sede da empresa. A região da Vercel mora em `vercel.json`, versionada.
+
+**O aceite dos documentos é registrado**, migration `0046`: quem, quando, de qual
+endereço e **qual versão** estava no ar. Grava ao criar a senha do convite e ao
+entrar, e o segundo caminho existe porque quem já usava o produto antes dos
+documentos nunca passaria pelo primeiro. A tabela não é dado de conta: RLS ligada
+sem política e `revoke` explícito, com teste provando os dois cadeados.
 
 ## Como mexer nisto sem quebrar produção
 
@@ -231,13 +238,13 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **339 passaram** |
-| `npm run test:e2e` | **137 passaram** |
+| `npm test` | **344 passaram** |
+| `npm run test:e2e` | **139 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
-| tabelas em `app_verandi` · em `public` | **22 · 0** (as 12 do AutoFluxos seguem intactas) |
+| tabelas em `app_verandi` · em `public` | **23 · 0** (as 12 do AutoFluxos seguem intactas) |
 | RLS em produção | 20 de 20; `anon` não alcança nada |
 | `https://verandi.4yu.com.br` | 200, falando com o banco de produção |
-| migrations em produção (`0030` a `0045`) · onboarding abrindo lá | **as 16 aplicadas** · sim, sem 5xx |
+| migrations em produção (`0030` a `0046`) · onboarding abrindo lá | **as 17 aplicadas** · sim, sem 5xx |
 | migrations `0044` e `0045` em produção | aplicadas; a `0044` com a coluna na tabela **e na view**, a `0045` com RLS ligada, política única e `anon` sem alcance |
 | contraste dos tokens de texto | 15 pares medidos, todos em AA |
 | régua do vocabulário no `src/` inteiro | limpa, com lint guardando |
@@ -250,7 +257,7 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco:** dezesseis migrations (`0030_vr_` a `0045_vr_`), RLS com política em todas as
+**Banco:** dezessete migrations (`0030_vr_` a `0046_vr_`), RLS com política em todas as
 tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
@@ -263,6 +270,7 @@ funcionamento · pendencia_dispensada · acesso_suporte · log_configuracao
 onboarding (progresso do tutorial, por pessoa e por conta)
 pessoa.anonimizada_em · participacao.observacao_visivel (0043)
 pessoa.observacao_visivel (0044) · chave_api (0045)
+aceite_de_termos (0046, prova de aceite; nenhum usuário logado alcança)
 view pessoa_resumo · função usuarios_da_conta (security definer)
 balde privado foto-profissional
 ```

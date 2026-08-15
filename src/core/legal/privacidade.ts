@@ -129,7 +129,8 @@ export const PRIVACIDADE: Documento = {
             'o nome, quando a pessoa também é cadastrada como profissional que atende, e a foto, quando o negócio a inclui;',
             'convites enviados, com endereço, data, validade e se o e-mail chegou, voltou ou foi bloqueado pelo destino;',
             'registro do que foi configurado na conta, com quem fez e quando;',
-            'registro de quando a equipe de suporte da 4YU entrou na conta.',
+            'registro de quando a equipe de suporte da 4YU entrou na conta;',
+            'registro do aceite destes documentos, com data, versão aceita, endereço de rede e navegador usado. Ele existe para que a 4YU consiga demonstrar a que texto cada pessoa aderiu, e é guardado enquanto a relação durar.',
           ],
         },
         {
@@ -177,7 +178,21 @@ export const PRIVACIDADE: Documento = {
         {
           tipo: 'p',
           texto:
-            'O banco de dados fica no Brasil, em São Paulo. A aplicação que lê esse banco roda nos Estados Unidos, e o envio de e-mail acontece na União Europeia: essas duas são transferências internacionais de dados, e ficam declaradas aqui por isso. Os fornecedores são empresas com sede fora do Brasil e submetidas a regimes de proteção de dados equivalentes ou compatíveis com a lei brasileira.',
+            'O banco de dados e a aplicação que o lê ficam no Brasil, em São Paulo, e isso é escolha, não acaso: a aplicação rodava nos Estados Unidos e foi trazida para cá justamente para o dado não precisar sair do país. O que sai é o envio de e-mail, e ele fica declarado abaixo.',
+        },
+        {
+          tipo: 'lista',
+          itens: [
+            'Forma e duração: o dado trafega de forma criptografada, de maneira contínua, enquanto durar o contrato com o negócio que contratou a Verandi.',
+            'Finalidade: executar o próprio serviço contratado, e nada além disso. Nenhum fornecedor recebe os dados para uso próprio.',
+            'União Europeia, para o envio de e-mail: a Autoridade Nacional de Proteção de Dados reconheceu o bloco como destino de grau de proteção adequado, pela Resolução 32/2026. A Brevo, por sua vez, tem fornecedores próprios nos Estados Unidos, e essa etapa segue as regras europeias. O que vai por e-mail é convite, senha e aviso, não a agenda.',
+            'Estados Unidos, para a administração do serviço: a Supabase e a Vercel são empresas americanas, e a equipe delas pode alcançar a infraestrutura a partir de lá para mantê-la. A lei considera isso transferência internacional, porque disponibilizar acesso já basta, mesmo com o dado guardado aqui.',
+          ],
+        },
+        {
+          tipo: 'p',
+          texto:
+            'Cada fornecedor responde pela segurança do que trata, e a 4YU responde perante o cliente pela escolha deles. A íntegra das cláusulas que amparam a transferência é entregue a quem pedir, em até 15 dias, pelo endereço da seção 12.',
         },
         {
           tipo: 'p',
@@ -187,7 +202,7 @@ export const PRIVACIDADE: Documento = {
         {
           tipo: 'p',
           texto:
-            'A entrada de um fornecedor novo é comunicada ao cliente antes de passar a valer.',
+            'A entrada de um fornecedor novo é comunicada ao cliente antes de passar a valer, e quem discordar de forma fundamentada pode encerrar o contrato sem ônus.',
         },
       ],
     },
@@ -233,6 +248,11 @@ export const PRIVACIDADE: Documento = {
           texto:
             'Em qualquer dos casos, a resposta sai em até 15 dias.',
         },
+        {
+          tipo: 'p',
+          texto:
+            'O titular também pode peticionar diretamente à Autoridade Nacional de Proteção de Dados, a ANPD, se entender que o pedido não foi atendido.',
+        },
       ],
     },
     {
@@ -276,7 +296,7 @@ export const PRIVACIDADE: Documento = {
         {
           tipo: 'p',
           texto:
-            'Nenhum sistema é imune. Se acontecer um incidente de segurança com risco relevante, a 4YU avisa o cliente assim que tomar conhecimento, com o que se sabe até ali, e apoia a comunicação à Autoridade Nacional de Proteção de Dados e aos titulares.',
+            'Nenhum sistema é imune. Se acontecer um incidente de segurança com risco relevante, a 4YU avisa o cliente em até 24 horas contadas do momento em que tomar conhecimento, com o que se sabe até ali. Quem comunica à Autoridade Nacional de Proteção de Dados e aos titulares é o cliente, porque a lei dá esse dever a quem é controlador, e a 4YU entrega a ele tudo que for preciso para cumprir o prazo dele.',
         },
       ],
     },
@@ -310,7 +330,7 @@ export const PRIVACIDADE: Documento = {
         },
         {
           tipo: 'p',
-          texto: `A ${EMPRESA.nome} responde por esta política e mantém o encarregado indicado neste endereço.`,
+          texto: `Este é o canal de comunicação com o titular. A ${EMPRESA.nome} é operadora de pequeno porte e, nessa condição, a lei dispensa a indicação de um encarregado nomeado, exigindo em lugar dele um canal publicado. É este. Quem escreve para ele fala com quem responde pela ${EMPRESA.nome}.`,
         },
       ],
     },

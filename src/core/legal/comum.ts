@@ -97,7 +97,7 @@ export const SUBPROCESSADORES = [
   {
     nome: 'Vercel',
     faz: 'hospedagem e execução da aplicação',
-    onde: 'Washington, Estados Unidos (região iad1)',
+    onde: 'São Paulo, Brasil (região gru1)',
     sede: 'Estados Unidos',
   },
   {

@@ -24,9 +24,9 @@ a cada push na `main`.
 | | |
 |---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) |
-| Migrations aplicadas | 16, da `0030` à `0045` |
+| Migrations aplicadas | 17, da `0030` à `0046` |
 | Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
-| Testes | 339 de unidade e banco · 137 de navegador |
+| Testes | 344 de unidade e banco · 139 de navegador |
 | API v1 | três rotas de leitura no ar, respondendo 401 sem chave |
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
@@ -110,17 +110,23 @@ que falta é dizer no papel o que o código já faz.
    **A caixa ainda não existe**, e endereço que devolve erro é pior que
    endereço nenhum.
 5. **Link no rodapé e no e-mail.** ✔ rodapé do sistema, rodapé das telas de
-   acesso, pé de todo e-mail, e a frase de aceite ao criar a senha do convite.
+   acesso, pé de todo e-mail, e a frase de aceite em dois lugares: ao criar a
+   senha do convite e ao entrar.
+6. **Registro do aceite.** ✔ migration `0046`, `aceite_de_termos`: quem, quando,
+   de onde, e **qual versão**. Não estava na lista original, e a pesquisa
+   mostrou que é o item de maior retorno: sem a versão registrada, "a pessoa
+   aceitou" não se prova.
 
 **Isto é decisão do Gabriel, não do agente.** Um agente redigiu a minuta e
 montou as telas; quem assume o risco jurídico assina.
 
 **Onde o dado é tratado, conferido na API de cada fornecedor:** banco no
-**Brasil** (Supabase, `sa-east-1`, São Paulo); aplicação nos **Estados Unidos**
-(Vercel, `iad1`); e-mail na **União Europeia** (Brevo). Este arquivo dizia
-"Supabase e Brevo, os dois com dado no exterior", deduzido da sede das empresas,
-e estava errado sobre o banco. A transferência internacional que existe é a da
-aplicação e a do e-mail, e as duas estão declaradas na política.
+**Brasil** (Supabase, `sa-east-1`) e, desde 15/08, **aplicação também no Brasil**
+(Vercel, `gru1`, movida de `iad1` de propósito); e-mail na **União Europeia**
+(Brevo, coberto pela decisão de adequação da ANPD de jan/2026). Este arquivo
+dizia "Supabase e Brevo, os dois com dado no exterior", deduzido da sede das
+empresas, e estava errado. O que sobra de transferência é o acesso administrativo
+dos fornecedores a partir dos Estados Unidos, e está declarado na política.
 
 ### 2. Backup
 

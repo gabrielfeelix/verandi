@@ -32,6 +32,50 @@ export type Json =
 export type Database = {
   app_verandi: {
     Tables: {
+      aceite_de_termos: {
+        Row: {
+          aceito_em: string
+          agente: string | null
+          conta_id: string | null
+          documento: string
+          id: string
+          ip: string | null
+          origem: string
+          usuario_id: string
+          versao: string
+        }
+        Insert: {
+          aceito_em?: string
+          agente?: string | null
+          conta_id?: string | null
+          documento: string
+          id?: string
+          ip?: string | null
+          origem: string
+          usuario_id: string
+          versao: string
+        }
+        Update: {
+          aceito_em?: string
+          agente?: string | null
+          conta_id?: string | null
+          documento?: string
+          id?: string
+          ip?: string | null
+          origem?: string
+          usuario_id?: string
+          versao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aceite_de_termos_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       acesso_suporte: {
         Row: {
           conta_id: string

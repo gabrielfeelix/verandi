@@ -7,6 +7,7 @@ import { clienteAdmin } from '../supabase'
 import { registrar } from '../log'
 import { envia } from '../email/brevo'
 import { urlDoApp } from '../url'
+import { registrarAceite } from '../legal/aceite'
 import { montaConvite } from '@/core/email/convite'
 import { estadoDoConvite, type EstadoConvite } from '@/core/acesso/convite'
 import type { Papel } from '@/core/acesso/destino'
@@ -322,6 +323,17 @@ export async function aceitarConvite(
     aceito_por_usuario_id: usuarioId,
   }).eq('id', convite.id)
   if (erroMarca) throw erroMarca
+
+  /*
+   * O aceite é registrado onde a frase aparece, e ela só aparece no convite de
+   * acesso. Quem chega por link de senha nova já é usuário: repetir o aceite
+   * numa tela de socorro registraria consentimento que ninguém leu.
+   */
+  if (convite.tipo === 'acesso') {
+    await registrarAceite({
+      usuarioId, contaId: convite.conta_id, origem: 'convite',
+    })
+  }
 
   return {
     ok: true,

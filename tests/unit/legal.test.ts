@@ -100,8 +100,11 @@ describe('o que a política de privacidade não pode deixar de dizer', () => {
     })
   })
 
-  it('declara a transferência internacional', () => {
-    expect(tudo).toContain('transferências internacionais')
+  it('declara a transferência internacional, e diz em que ela se apoia', () => {
+    expect(tudo).toMatch(/transferência internacional|transferências internacionais/)
+    // adequação da União Europeia: é o que dispensa cláusula contratual no envio
+    // de e-mail, e some do texto no dia em que alguém "simplificar" a seção
+    expect(tudo).toContain('adequado')
   })
 
   it('publica o endereço do encarregado', () => {

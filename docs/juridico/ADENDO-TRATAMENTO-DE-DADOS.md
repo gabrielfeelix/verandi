@@ -72,7 +72,7 @@ se compromete a não reduzi-las durante a vigência do contrato.
 
 ## 5. Incidente de segurança
 
-A 4YU comunicará ao CONTRATANTE, **em até 48 horas** do momento em que tomar
+A 4YU comunicará ao CONTRATANTE, **em até 24 horas** do momento em que tomar
 conhecimento, qualquer incidente de segurança que possa acarretar risco ou dano
 relevante aos titulares, informando o que se souber até ali:
 
@@ -84,6 +84,15 @@ relevante aos titulares, informando o que se souber até ali:
 A comunicação à ANPD e aos titulares é decisão e obrigação do **controlador**,
 por ser dele o papel; a 4YU fornece as informações necessárias e apoia a
 comunicação.
+
+O prazo de 24 horas não é enfeite de contrato: pela Resolução CD/ANPD nº
+15/2024, o controlador comunica à ANPD em **três dias úteis** (seis, se ele
+também for agente de pequeno porte) contados do conhecimento **dele**. Se a 4YU
+demorar, quem perde o prazo é o CONTRATANTE, e o operador que não seguiu
+instrução responde solidariamente (LGPD, art. 42, § 1º, I).
+
+O campo de observação faz o gatilho ficar baixo: pela mesma resolução, incidente
+que envolva **dado pessoal sensível** já entra na régua de comunicação.
 
 ## 6. Assistência ao controlador
 
@@ -112,13 +121,37 @@ A 4YU responde perante o CONTRATANTE pelos atos dos suboperadores que contrata.
 
 ## 8. Transferência internacional
 
-Parte do tratamento ocorre fora do Brasil, conforme o Anexo III. As
-transferências se apoiam nas hipóteses do art. 33 da LGPD, em especial a
-necessidade para a execução do contrato, e são feitas com fornecedores
-submetidos a regime de proteção compatível.
+**O banco de dados e a aplicação ficam no Brasil**, em São Paulo. A aplicação
+rodava nos Estados Unidos (`iad1`) e foi movida para `gru1` em 15/08/2026,
+justamente para eliminar a transferência em vez de tentar ampará-la.
 
-**O banco de dados fica no Brasil**, em São Paulo. O que sai do país é a
-execução da aplicação (Estados Unidos) e o envio de e-mail (União Europeia).
+O que resta, declarado:
+
+- **União Europeia (Brevo, envio de e-mail):** amparada em **decisão de
+  adequação**. A ANPD reconheceu a União Europeia como destino de grau adequado
+  de proteção pela **Resolução CD/ANPD nº 32/2026**, de 26/01/2026. Não são
+  necessárias cláusulas contratuais para esse fluxo.
+- **Estados Unidos (administração):** Supabase Inc. e Vercel Inc. são empresas
+  americanas e podem alcançar a infraestrutura a partir de lá para mantê-la. A
+  LGPD (art. 3º, III) considera transferência internacional **disponibilizar
+  acesso** a agente no exterior, e não apenas copiar o dado para fora, então isso
+  segue caracterizado, com volume muito menor.
+
+A 4YU mantém a lista de suboperadores e das regiões atualizada no Anexo III, e
+entrega ao CONTRATANTE, mediante pedido e em até 15 dias, a íntegra das cláusulas
+que amparam cada transferência.
+
+> **Resíduo conhecido, a registrar e não a esconder.** A Resolução CD/ANPD nº
+> 19/2024 exige, para transferência amparada em contrato, a adoção **integral e
+> sem alteração** das cláusulas-padrão do Anexo II dela, e o prazo de adequação
+> venceu em **23/08/2025**. Supabase, Vercel e Brevo oferecem cláusulas-padrão
+> **europeias** nos contratos deles, e **nenhum dos três oferece as
+> brasileiras**, nem vai assinar aditivo com um cliente pequeno.
+>
+> Depois da mudança para `gru1`, o que sobra descoberto é só o acesso
+> administrativo a partir dos Estados Unidos. Vale abrir chamado pedindo o
+> aditivo brasileiro a cada fornecedor, contar com "não", e manter o registro da
+> lacuna. Ver [`README.md`](README.md).
 
 ## 9. Auditoria
 
@@ -215,11 +248,13 @@ separados de outros produtos da 4YU hospedados na mesma infraestrutura.
 | Suboperador | O que faz | Onde o dado é tratado |
 |---|---|---|
 | Supabase | banco de dados, autenticação e arquivo | São Paulo, Brasil (`sa-east-1`) |
-| Vercel | hospedagem e execução da aplicação | Washington, Estados Unidos (`iad1`) |
+| Vercel | hospedagem e execução da aplicação | São Paulo, Brasil (`gru1`) |
 | Brevo | envio de e-mail transacional | União Europeia |
 
 As regiões foram conferidas na API de cada fornecedor em 15/ago/2026, e não
-deduzidas da sede da empresa.
+deduzidas da sede da empresa. As três empresas têm sede fora do Brasil, e a
+administração da infraestrutura pode ser feita a partir do exterior, conforme a
+cláusula 8.
 
 ---
 

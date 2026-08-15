@@ -281,9 +281,9 @@ export const TERMOS: Documento = {
             'A 4YU responde pelo funcionamento do serviço e pela segurança do que está sob a guarda dela, nos termos da política de privacidade e do adendo de tratamento de dados.',
         },
         {
-          tipo: 'p',
+          tipo: 'nota',
           texto:
-            'Salvo dolo ou culpa grave, a responsabilidade da 4YU fica limitada ao valor pago pelo cliente nos 12 meses anteriores ao evento.',
+            'Limite de responsabilidade, em destaque porque limita um direito seu: a responsabilidade da 4YU fica limitada ao valor pago pelo cliente nos 12 meses anteriores ao evento. Esse limite não vale, e a responsabilidade é integral, em três casos: dolo ou culpa grave, quebra de sigilo, e dano causado por incidente de segurança de responsabilidade da 4YU.',
         },
       ],
     },
@@ -305,12 +305,17 @@ export const TERMOS: Documento = {
         {
           tipo: 'p',
           texto:
-            'Estes termos podem mudar. Toda versão traz número e data de vigência no topo, e mudança relevante é avisada por e-mail ao dono da conta com 30 dias de antecedência.',
+            'Estes termos podem mudar. Toda versão traz número e data de vigência no topo, e as versões anteriores continuam disponíveis.',
         },
         {
           tipo: 'p',
           texto:
-            'Quem não concordar com a versão nova pode encerrar a conta antes de ela entrar em vigor, com o direito de pedir a cópia descrito acima.',
+            'Mudança pequena, de redação ou de esclarecimento, entra com a publicação da versão nova. Mudança relevante, que altere preço, alcance do serviço, tratamento de dados, limite de responsabilidade ou foro, é avisada por e-mail ao dono da conta com 30 dias de antecedência e pede aceite novo no primeiro acesso depois de entrar em vigor.',
+        },
+        {
+          tipo: 'p',
+          texto:
+            'Quem não concordar com a versão nova pode encerrar a conta antes de ela entrar em vigor, sem ônus e sem multa, com o direito de pedir a cópia descrito acima.',
         },
       ],
     },
