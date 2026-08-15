@@ -148,8 +148,9 @@ falta para a Verandi ficar de pé". Em ordem de risco:
 3. ~~**Saber quando quebra.**~~ **Feito.** Erro em produção manda e-mail, com
    janela de silêncio de uma hora por defeito e contagem do que aconteceu
    calado. Migration `0050`.
-4. **Uma página no site.** `4yu.com.br` não tem `/verandi`, e o produto está no
-   ar.
+4. ~~**Uma página no site.**~~ **Feita.** `4yu.com.br/verandi` está no ar, com
+   três capturas do sistema rodando e formulário de contato, e a home lista a
+   Verandi como o primeiro produto "No ar".
 5. ~~**Marco 2, Fase 3:** escrever pela API.~~ **Feita em 15/08**, com a
    documentação pública em `/api-docs` e o desenho de até onde a automação vai
    em [`planos/12-api-que-escreve.md`](planos/12-api-que-escreve.md).

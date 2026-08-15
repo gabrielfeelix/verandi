@@ -174,15 +174,19 @@ nenhum. Migration `0050`, `tests/unit/alerta.test.ts` guardando a régua.
 conta e um DSN que alguém precisa criar; enquanto isso o produto fica sem nada.
 Trocar depois é substituir uma função, `avisarErro`, chamada em dois lugares.
 
-### 4. Uma página no site
+### 4. Uma página no site ✔ feita em 15/08
 
-`4yu.com.br` tem `/deixei-aqui`, `/rodape`, `/crm`, `/quanto-cobro`. **Não tem
-`/verandi`.** Não há para onde mandar um interessado, e o produto está no ar.
+`4yu.com.br/verandi`, com o que é, para quem é, três capturas do sistema rodando
+(não maquete) e um formulário que monta um e-mail para `contato@4yu.com.br`. Ela
+diz também o que a Verandi **não** faz, porque descobrir isso depois da proposta
+custa a venda inteira.
 
-Isso é trabalho de site (`website/site/`, deploy por `website/scripts/deploy.py`),
-não de produto. Uma página com o que é, para quem é, três telas e um formulário
-de contato. O cadastro público **não** entra: a decisão de 14/08 é que a conta
-nasce pela mão da 4YU, com o `cria-conta.mjs`.
+Mora em `website/site/verandi/`, e o deploy é
+`set -a && . ../.secrets/4yu.env && set +a && python3 scripts/deploy.py site`,
+de dentro de `website/`. Trocar as capturas é regerar os `.webp` de lá.
+
+O rodapé dela aponta para `/termos`, `/privacidade` e `/api-docs` do produto, e a
+home ganhou o cartão com a etiqueta "No ar".
 
 ### 5. Marco 2, Fase 3: escrever pela API ✔ feito em 15/08
 
