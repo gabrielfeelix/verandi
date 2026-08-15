@@ -449,7 +449,8 @@ de ser genérica e vira "o sistema do estúdio".
 - **Funcionamento e feriados**, dias e horários em que o negócio abre; datas
   fechadas.
 - **Usuários**, quem tem acesso, com que papel; convidar, mudar papel, remover.
-- **Integrações**, token de API para o AutoFluxos e endereço do webhook de saída.
+- **Integrações**, a chave de API para o AutoFluxos e, na Fase 4, o endereço do
+  webhook de saída. **Feita** na Fase 1 do Marco 2.
 
 **O que importa:**
 
