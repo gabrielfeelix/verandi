@@ -64,11 +64,11 @@ export async function listarPendencias(
     db.from('conta')
       .select('prazo_reposicao_dias, credito_falta_avisada')
       .eq('id', contaId)
-      .single<{ prazo_reposicao_dias: number; credito_falta_avisada: boolean }>(),
+      .single(),
     db.from('pendencia_dispensada')
       .select('tipo, referencia_id')
       .eq('conta_id', contaId)
-      .returns<{ tipo: TipoPendencia; referencia_id: string }[]>(),
+      ,
   ])
 
   const dispensada = new Set(
@@ -132,13 +132,7 @@ async function chamadasNaoFeitas(
     .lt('inicio', agora)
     .gte('inicio', new Date(Date.now() - 30 * DIA).toISOString())
     .order('inicio', { ascending: false })
-    .returns<{
-      id: string
-      inicio: string
-      servico: { nome: string } | null
-      profissional: { nome: string } | null
-      participacao: { status: StatusParticipacao }[]
-    }[]>()
+    
 
   if (error) throw error
 
@@ -186,12 +180,7 @@ async function reposicoesAbertas(
     .select('id, status, pessoa:pessoa_id(id, nome), sessao:sessao_id(inicio, servico:servico_id(nome))')
     .eq('conta_id', contaId)
     .in('status', statusComCredito(creditoAvisada))
-    .returns<{
-      id: string
-      status: StatusParticipacao
-      pessoa: { id: string; nome: string } | null
-      sessao: { inicio: string; servico: { nome: string } | null } | null
-    }[]>()
+    
   if (error) throw error
 
   const faltas = (data ?? []).filter((p) => p.sessao && p.sessao.inicio >= limite)
@@ -203,7 +192,7 @@ async function reposicoesAbertas(
     .select('reposicao_de_id')
     .eq('conta_id', contaId)
     .not('reposicao_de_id', 'is', null)
-    .returns<{ reposicao_de_id: string }[]>()
+    
   const jaReposta = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
 
   return faltas
@@ -229,12 +218,7 @@ async function reservasEsperando(
     .eq('conta_id', contaId)
     .eq('origem', 'reserva')
     .eq('status', 'esperada')
-    .returns<{
-      id: string
-      registrado_em: string
-      pessoa: { id: string; nome: string } | null
-      sessao: { id: string; inicio: string; servico: { nome: string } | null } | null
-    }[]>()
+    
   if (error) throw error
 
   return (data ?? [])
@@ -265,13 +249,7 @@ async function cadastrosIncompletos(
     .eq('conta_id', contaId)
     .eq('ativo', true)
     .or('telefone.is.null,identificador_externo.is.null')
-    .returns<{
-      id: string
-      nome: string
-      telefone: string | null
-      identificador_externo: string | null
-      vaga: { id: string; inicio: string; fim: string | null }[]
-    }[]>()
+    
   if (error) throw error
 
   return (data ?? [])

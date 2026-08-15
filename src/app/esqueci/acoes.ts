@@ -67,7 +67,7 @@ async function mandaSeExistir(email: string): Promise<void> {
     .eq('usuario_id', usuarioId)
     .eq('ativo', true)
     .limit(1)
-    .maybeSingle<{ conta_id: string }>()
+    .maybeSingle()
   if (!vinculo) return
 
   /*
@@ -87,7 +87,7 @@ async function mandaSeExistir(email: string): Promise<void> {
     .is('revogado_em', null)
     .gt('expira_em', new Date().toISOString())
     .limit(1)
-    .maybeSingle<{ id: string }>()
+    .maybeSingle()
   if (emAberto) return
 
   const token = randomBytes(32).toString('base64url')

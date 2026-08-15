@@ -3,10 +3,19 @@ import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import type { Papel } from '@/core/acesso/destino'
 import { ESQUEMA } from './esquema'
+import type { Database } from './banco.types'
 
+/**
+ * O cliente que respeita a RLS, com a sessão do cookie: é o caminho de toda
+ * tela e de toda ação do usuário.
+ *
+ * `Database` vem do arquivo gerado por `npm run tipos`. Sem ele, este cliente
+ * aceitava qualquer nome de tabela e qualquer nome de coluna, e devolvia um
+ * tipo que cada consulta tinha de reescrever à mão.
+ */
 export async function clienteServidor() {
   const jar = await cookies()
-  return createServerClient(
+  return createServerClient<Database, 'app_verandi'>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -53,8 +62,9 @@ export async function contaAtiva(): Promise<ContaAtiva | null> {
   const jar = await cookies()
   const escolhida = jar.get('conta')?.value
   const linha = data.find((l) => l.conta_id === escolhida) ?? data[0]
-  const conta = linha.conta as unknown as
-    { nome: string; fuso: string; interna: boolean }
+  // com os tipos do banco gerados, `linha.conta` já vem com a forma certa: a
+  // chave estrangeira é um-para-um e o supabase-js sabe disso pelo arquivo
+  const conta = linha.conta
 
   return {
     contaId: linha.conta_id,
@@ -85,7 +95,7 @@ export async function papelAoEntrar(
     .eq('usuario_id', usuarioId)
     .eq('ativo', true)
     .limit(1)
-    .returns<Array<{ papel: Papel }>>()
+    
 
   return data?.[0]?.papel ?? null
 }
@@ -114,6 +124,6 @@ export async function contasDoUsuario(): Promise<
   return (data ?? []).map((l) => ({
     contaId: l.conta_id,
     papel: l.papel as Papel,
-    nome: (l.conta as unknown as { nome: string }).nome,
+    nome: l.conta.nome,
   }))
 }

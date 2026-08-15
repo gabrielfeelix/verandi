@@ -89,8 +89,8 @@ export async function salvarServico(e: {
   }
 
   const r = e.id
-    ? await db.from('servico').update(linha).eq('id', e.id).select('id').single<{ id: string }>()
-    : await db.from('servico').insert(linha).select('id').single<{ id: string }>()
+    ? await db.from('servico').update(linha).eq('id', e.id).select('id').single()
+    : await db.from('servico').insert(linha).select('id').single()
   if (r.error) throw r.error
 
   await registrar(db, {
@@ -125,8 +125,8 @@ export async function salvarLocal(e: {
   }
 
   const r = e.id
-    ? await db.from('local').update(linha).eq('id', e.id).select('id').single<{ id: string }>()
-    : await db.from('local').insert(linha).select('id').single<{ id: string }>()
+    ? await db.from('local').update(linha).eq('id', e.id).select('id').single()
+    : await db.from('local').insert(linha).select('id').single()
   if (r.error) throw r.error
 
   await registrar(db, {
@@ -266,7 +266,7 @@ export async function salvarDataFechada(e: {
 
   const r = await db.from('excecao_calendario')
     .upsert(linha, { onConflict: 'conta_id,data' })
-    .select('id').single<{ id: string }>()
+    .select('id').single()
   if (r.error) throw r.error
 
   let sessoesCanceladas = 0
@@ -284,7 +284,7 @@ export async function salvarDataFechada(e: {
       .eq('status', 'prevista')
       .gte('inicio', de).lte('inicio', ate)
       .select('id')
-      .returns<{ id: string }[]>()
+      
     if (error) throw error
     sessoesCanceladas = alvo?.length ?? 0
 
@@ -297,7 +297,7 @@ export async function salvarDataFechada(e: {
         .in('sessao_id', alvo!.map((s) => s.id))
         .in('status', ['esperada', 'confirmada'])
         .select('id')
-        .returns<{ id: string }[]>()
+        
       if (erroPart) throw erroPart
       reposicoesAbertas = soltas?.length ?? 0
     }
@@ -365,8 +365,8 @@ export async function salvarProfissional(entrada: FormData): Promise<{ id: strin
 
   const r = id
     ? await db.from('profissional').update(linha).eq('id', id)
-        .select('id').single<{ id: string }>()
-    : await db.from('profissional').insert(linha).select('id').single<{ id: string }>()
+        .select('id').single()
+    : await db.from('profissional').insert(linha).select('id').single()
   if (r.error) throw r.error
   const profissionalId = r.data.id
 
@@ -428,7 +428,7 @@ export async function removerFoto(profissionalId: string): Promise<void> {
   const db = await clienteServidor()
 
   const { data, error } = await db.from('profissional')
-    .select('foto_path').eq('id', profissionalId).single<{ foto_path: string | null }>()
+    .select('foto_path').eq('id', profissionalId).single()
   if (error) throw error
   if (!data.foto_path) return
 

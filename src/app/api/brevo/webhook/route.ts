@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
       .eq('email', email)
       .is('aceito_em', null)
       .is('revogado_em', null)
+      // `entrega` é `text` com `check`: o gerador diz `string`, a união é nossa
       .returns<{ id: string; entrega: EstadoDeEntrega | null }[]>()
 
     for (const linha of linhas ?? []) {

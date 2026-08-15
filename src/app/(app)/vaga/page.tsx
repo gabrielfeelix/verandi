@@ -60,12 +60,12 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
 
   const [{ data: servicos }, { data: profissionais }, { data: locais }] = await Promise.all([
     db.from('servico').select('id, nome').eq('conta_id', conta.contaId)
-      .eq('ativo', true).order('nome').returns<{ id: string; nome: string }[]>(),
+      .eq('ativo', true).order('nome'),
     db.from('profissional').select('id, nome, cor').eq('conta_id', conta.contaId)
       .eq('ativo', true).order('nome')
-      .returns<{ id: string; nome: string; cor: string | null }[]>(),
+      ,
     db.from('local').select('id, nome').eq('conta_id', conta.contaId)
-      .eq('ativo', true).order('nome').returns<{ id: string; nome: string }[]>(),
+      .eq('ativo', true).order('nome'),
   ])
 
   const { livres, cheios } = await horariosLivres(db, conta.contaId, {

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "segredos": "node scripts/confere-segredos.mjs"
+    "segredos": "node scripts/confere-segredos.mjs",
+    "tipos": "node scripts/gera-tipos.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

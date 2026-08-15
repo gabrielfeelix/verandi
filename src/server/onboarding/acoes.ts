@@ -69,7 +69,7 @@ export async function escolherTipoDeNegocio(tipo: string): Promise<void> {
 
   const { data: jaTem } = await db.from('vocabulario')
     .select('chave').eq('conta_id', conta.contaId)
-    .returns<{ chave: ChaveVocabulario }[]>()
+    
   const escolhidas = new Set((jaTem ?? []).map((l) => l.chave))
 
   const linhas = (Object.keys(palavras) as ChaveVocabulario[])

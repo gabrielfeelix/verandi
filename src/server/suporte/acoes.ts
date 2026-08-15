@@ -51,7 +51,7 @@ export async function criarConta(entrada: {
 
   const { data: conta, error } = await admin.from('conta').insert({
     nome, slug, fuso: entrada.fuso || 'America/Sao_Paulo', ativo: true,
-  }).select('id').single<{ id: string }>()
+  }).select('id').single()
   if (error) {
     if (error.code === '23505') throw new Error('já existe conta com esse identificador')
     throw error
@@ -94,7 +94,7 @@ export async function entrarComoSuporte(contaId: string): Promise<void> {
   // a conta interna não é cliente, e entrar nela criaria o laço que este
   // desenho existe para cortar: sair apagaria o vínculo que dá acesso à tela
   const { data: alvo } = await admin.from('conta')
-    .select('interna').eq('id', contaId).single<{ interna: boolean }>()
+    .select('interna').eq('id', contaId).single()
   if (alvo?.interna) throw new Error('a conta da 4YU não é conta de cliente')
 
   const { error: erroVinculo } = await admin.from('usuario_conta').upsert({
@@ -128,7 +128,7 @@ export async function sairDoSuporte(): Promise<void> {
     .is('encerrado_em', null)
     .order('iniciado_em', { ascending: false })
     .limit(1)
-    .returns<{ id: string }[]>()
+    
 
   if (aberto?.length) {
     await admin.from('acesso_suporte')
@@ -139,7 +139,7 @@ export async function sairDoSuporte(): Promise<void> {
   // Nunca na conta interna — lá o vínculo é o que faz o usuário ser da 4YU, e
   // apagá-lo tirava o acesso a tudo.
   const { data: onde } = await admin.from('conta')
-    .select('interna').eq('id', contaId).single<{ interna: boolean }>()
+    .select('interna').eq('id', contaId).single()
   if (!onde?.interna) {
     await admin.from('usuario_conta')
       .delete().eq('usuario_id', user.id).eq('conta_id', contaId).eq('papel', 'suporte')

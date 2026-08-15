@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { ESQUEMA } from './esquema'
+import type { Database } from './banco.types'
 
 /*
  * `Db` sai do que `createClient` devolve, em vez de ser escrito à mão.
@@ -8,9 +9,14 @@ import { ESQUEMA } from './esquema'
  * `app_verandi` — escrito à mão, todo lugar que recebe um cliente passava a
  * recusá-lo por tipo. Inferir também sobrevive à próxima versão do
  * supabase-js mudar a quantidade de genéricos, que já mudou antes.
+ *
+ * `Database` é o arquivo gerado por `npm run tipos`. Com ele, `db.from('pesoa')`
+ * e `.eq('observacao_vsivel', x)` param de compilar; sem ele, o supabase-js
+ * devolvia `GenericStringError` e cada consulta declarava o próprio formato à
+ * mão, sem nada conferindo que ele batia com o banco.
  */
 function criaCliente(url: string, chave: string) {
-  return createClient(url, chave, {
+  return createClient<Database, { PostgrestVersion: '12' }>(url, chave, {
     db: { schema: ESQUEMA },
     auth: { persistSession: false, autoRefreshToken: false },
   })

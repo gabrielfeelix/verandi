@@ -28,12 +28,20 @@ type Linha = {
 export async function estadoDoOnboarding(
   db: Db, contaId: string, usuarioId: string,
 ): Promise<Record<Roteiro, EstadoRoteiro>> {
+  /*
+   * `.returns<>()` porque `onboarding.roteiro` é `text` com `check`, e o
+   * arquivo gerado diz `string`. A união é `Roteiro`, e é o que faz o `saida[
+   * l.roteiro]` abaixo ser seguro em vez de um `any` disfarçado.
+   */
   const { data } = await db
     .from('onboarding')
     .select('roteiro, passo, concluido_em, pulado_em')
     .eq('conta_id', contaId)
     .eq('usuario_id', usuarioId)
-    .returns<Linha[]>()
+    .returns<{
+      roteiro: Roteiro; passo: number
+      concluido_em: string | null; pulado_em: string | null
+    }[]>()
 
   const saida: Record<Roteiro, EstadoRoteiro> = {
     'boas-vindas': { ...NOVO },
@@ -67,7 +75,10 @@ export function encerrado(e: EstadoRoteiro): boolean {
  * contagens com `head`, sem trazer linha nenhuma.
  */
 export async function contaVazia(db: Db, contaId: string): Promise<boolean> {
-  const quantos = async (tabela: string) => {
+  // `'serie' | 'pessoa'`, e não `string`: com os tipos do banco gerados,
+  // `db.from(string)` não compila mais, e é bom que não compile. Nome de tabela
+  // em variável solta é como se erra o nome sem nada avisar.
+  const quantos = async (tabela: 'serie' | 'pessoa') => {
     const { count } = await db.from(tabela)
       .select('id', { count: 'exact', head: true })
       .eq('conta_id', contaId)

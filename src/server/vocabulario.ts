@@ -15,11 +15,17 @@ type LinhaVocabulario = { chave: ChaveVocabulario; singular: string; plural: str
  */
 export const carregarVocabulario = cache(
   async (db: Db, contaId: string): Promise<Vocabulario> => {
+    /*
+     * `.returns<>()` diz o que o gerador não sabe: `vocabulario.chave` é `text`
+     * com `check (chave in (...))`, e checagem de texto não vira união em
+     * TypeScript. A união é `ChaveVocabulario`, e ela é a mesma lista da
+     * migration.
+     */
     const { data } = await db
       .from('vocabulario')
       .select('chave, singular, plural')
       .eq('conta_id', contaId)
-      .returns<LinhaVocabulario[]>()
+      .returns<{ chave: ChaveVocabulario; singular: string; plural: string }[]>()
 
     const voc: Vocabulario = {}
     for (const l of data ?? []) voc[l.chave] = { singular: l.singular, plural: l.plural }

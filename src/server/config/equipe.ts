@@ -47,7 +47,7 @@ export async function listarEquipe(db: Db, contaId: string): Promise<Profissiona
                profissional_servico(servico_id), serie(id, ativo)`)
       .eq('conta_id', contaId)
       .order('nome')
-      .returns<Linha[]>(),
+      ,
     sessoesFuturasPor(db, contaId, 'profissional_id'),
   ])
 

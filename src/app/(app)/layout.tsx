@@ -31,7 +31,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
     .from('profissional').select('nome')
     .eq('conta_id', conta.contaId)
     .eq('usuario_id', user?.id ?? '')
-    .maybeSingle<{ nome: string }>()
+    .maybeSingle()
 
   /*
    * O onboarding acontece **dentro** do sistema, e é decidido aqui.

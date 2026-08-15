@@ -80,7 +80,7 @@ export async function listarSeries(
     .eq('ativo', true)
     .order('dia_semana')
     .order('hora_inicio')
-    .returns<LinhaSerie[]>()
+    
 
   if (error) throw error
 
@@ -115,16 +115,16 @@ export async function catalogoDaGrade(db: Db, contaId: string): Promise<Catalogo
   const [servicos, profissionais, locais, funcionamento] = await Promise.all([
     db.from('servico').select('id, nome, duracao_min, capacidade_padrao')
       .eq('conta_id', contaId).eq('ativo', true).order('nome')
-      .returns<{ id: string; nome: string; duracao_min: number; capacidade_padrao: number }[]>(),
+      ,
     db.from('profissional').select('id, nome')
       .eq('conta_id', contaId).eq('ativo', true).order('nome')
-      .returns<{ id: string; nome: string }[]>(),
+      ,
     db.from('local').select('id, nome')
       .eq('conta_id', contaId).eq('ativo', true).order('nome')
-      .returns<{ id: string; nome: string }[]>(),
+      ,
     db.from('funcionamento').select('dia_semana, abre, fecha')
       .eq('conta_id', contaId).order('dia_semana')
-      .returns<{ dia_semana: number; abre: string; fecha: string }[]>(),
+      ,
   ])
 
   return {

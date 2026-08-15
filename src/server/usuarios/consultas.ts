@@ -33,16 +33,7 @@ export async function listarUsuarios(db: Db, contaId: string): Promise<UsuarioLi
   const { data, error } = await db.rpc('usuarios_da_conta', { p_conta: contaId })
   if (error) throw error
 
-  // o cliente não tem os tipos do banco gerados, e o retorno de função ainda
-  // não é inferido: a forma vem da própria migration
-  const linhas = (data ?? []) as unknown as {
-    usuario_id: string
-    email: string
-    papel: Papel
-    ativo: boolean
-    criado_em: string
-    ultimo_acesso: string | null
-  }[]
+  const linhas = data ?? []
 
   return linhas.map((u) => ({
     usuarioId: u.usuario_id,
@@ -55,6 +46,11 @@ export async function listarUsuarios(db: Db, contaId: string): Promise<UsuarioLi
 
 /** Convites em aberto — os aceitos e os revogados ficam fora da lista. */
 export async function listarConvites(db: Db, contaId: string): Promise<ConvitePendente[]> {
+  /*
+   * `.returns<>()` pelas duas colunas de união: `papel` e `tipo` são `text` com
+   * `check`, e o arquivo gerado diz `string` nos dois. É a informação que mora
+   * na migration e não atravessa o gerador.
+   */
   const { data, error } = await db
     .from('convite')
     .select('id, email, papel, tipo, criado_em, expira_em, entrega')
@@ -63,8 +59,8 @@ export async function listarConvites(db: Db, contaId: string): Promise<ConvitePe
     .is('revogado_em', null)
     .order('criado_em', { ascending: false })
     .returns<{
-      id: string; email: string; papel: Papel; tipo: 'acesso' | 'senha'
-      criado_em: string; expira_em: string; entrega: EstadoDeEntrega | null
+      id: string; email: string; papel: Papel; tipo: ConvitePendente['tipo']
+      criado_em: string; expira_em: string; entrega: ConvitePendente['entrega']
     }[]>()
 
   if (error) throw error

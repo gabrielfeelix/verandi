@@ -118,7 +118,7 @@ export async function convidar(entrada: {
     token_hash: hash,
     criado_por_usuario_id: user?.id ?? null,
     expira_em: expira,
-  }).select('id').single<{ id: string }>()
+  }).select('id').single()
 
   if (error) {
     if (error.code === '23505') throw new Error('já existe convite em aberto para esse e-mail')
@@ -165,7 +165,7 @@ export async function gerarLinkDeSenha(usuarioId: string): Promise<{ token: stri
     await db.rpc('usuarios_da_conta', { p_conta: conta.contaId })
   if (erroUsuarios) throw erroUsuarios
 
-  const lista = (usuarios ?? []) as unknown as { usuario_id: string; email: string }[]
+  const lista = usuarios ?? []
   const alvo = lista.find((u) => u.usuario_id === usuarioId)
   if (!alvo) throw new Error('essa pessoa não tem acesso a esta conta')
 
@@ -180,7 +180,7 @@ export async function gerarLinkDeSenha(usuarioId: string): Promise<{ token: stri
     token_hash: hash,
     criado_por_usuario_id: user?.id ?? null,
     expira_em: new Date(Date.now() + 864e5).toISOString(), // 24h para senha
-  }).select('id').single<{ id: string }>()
+  }).select('id').single()
   if (error) throw error
 
   await registrar(db, {
@@ -241,7 +241,7 @@ export async function lerConvite(token: string): Promise<ResultadoConvite> {
   const { data } = await db.from('convite')
     .select('id, conta_id, email, papel, tipo, expira_em, aceito_em, revogado_em, conta:conta_id(nome)')
     .eq('token_hash', hashDe(token))
-    .maybeSingle<LinhaConvite>()
+    .maybeSingle()
 
   const estado = estadoDoConvite(
     data ? {
@@ -279,7 +279,7 @@ export async function aceitarConvite(
   const { data: convite } = await db.from('convite')
     .select('id, conta_id, email, papel, tipo, expira_em, aceito_em, revogado_em, conta:conta_id(nome)')
     .eq('token_hash', hashDe(token))
-    .maybeSingle<LinhaConvite>()
+    .maybeSingle()
 
   const estado = estadoDoConvite(
     convite ? {
@@ -419,7 +419,7 @@ async function exigirOutroDono(
   const { data, error } = await db.from('usuario_conta')
     .select('usuario_id, papel')
     .eq('conta_id', contaId).eq('ativo', true)
-    .returns<{ usuario_id: string; papel: Papel }[]>()
+    
   if (error) throw error
 
   const donos = (data ?? []).filter((u) => u.papel === 'dono')

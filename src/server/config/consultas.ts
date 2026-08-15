@@ -62,15 +62,7 @@ export async function carregarPadroes(db: Db, contaId: string): Promise<Padroes>
              prazo_reposicao_dias, encaixe_acima, credito_falta_avisada,
              horarios_sugeridos`)
     .eq('id', contaId)
-    .single<{
-      capacidade_padrao: number
-      duracao_padrao_min: number
-      intervalo_min: number
-      prazo_reposicao_dias: number
-      encaixe_acima: boolean
-      credito_falta_avisada: boolean
-      horarios_sugeridos: string[]
-    }>()
+    .single()
 
   if (error) throw error
 
@@ -91,10 +83,7 @@ export async function listarServicos(db: Db, contaId: string): Promise<ServicoLi
     .select('id, nome, duracao_min, capacidade_padrao, ativo, serie(id)')
     .eq('conta_id', contaId)
     .order('nome')
-    .returns<{
-      id: string; nome: string; duracao_min: number
-      capacidade_padrao: number; ativo: boolean; serie: { id: string }[]
-    }[]>()
+    
 
   if (error) throw error
 
@@ -114,10 +103,7 @@ export async function listarLocais(db: Db, contaId: string): Promise<LocalLinha[
       .select('id, nome, capacidade, ativo, serie(id, ativo)')
       .eq('conta_id', contaId)
       .order('nome')
-      .returns<{
-        id: string; nome: string; capacidade: number | null
-        ativo: boolean; serie: { id: string; ativo: boolean }[]
-      }[]>(),
+      ,
     sessoesFuturasPor(db, contaId, 'local_id'),
   ])
 
@@ -147,13 +133,19 @@ export async function listarLocais(db: Db, contaId: string): Promise<LocalLinha[
 export async function sessoesFuturasPor(
   db: Db, contaId: string, campo: 'local_id' | 'profissional_id',
 ): Promise<Map<string, number>> {
+  /*
+   * `.returns<>()` porque a coluna vem em **variável**: o supabase-js infere a
+   * forma a partir do `select` como tipo literal, e `campo` é união de dois
+   * nomes. Sem isto o tipo vira "ou um objeto ou o outro", e indexar por
+   * `[campo]` deixa de compilar.
+   */
   const { data, error } = await db
     .from('sessao')
     .select(campo)
     .eq('conta_id', contaId)
     .eq('status', 'prevista')
     .gte('inicio', new Date().toISOString())
-    .returns<Record<string, string | null>[]>()
+    .returns<Record<typeof campo, string | null>[]>()
   if (error) throw error
 
   const conta = new Map<string, number>()
@@ -178,7 +170,7 @@ export async function carregarFuncionamento(
     .from('funcionamento')
     .select('dia_semana, abre, fecha')
     .eq('conta_id', contaId)
-    .returns<{ dia_semana: number; abre: string; fecha: string }[]>()
+    
 
   if (error) throw error
 
@@ -196,6 +188,8 @@ export async function carregarFuncionamento(
 export async function listarDatasFechadas(
   db: Db, contaId: string, de: string,
 ): Promise<DataFechada[]> {
+  // `tipo` e `acao` são `text` com `check`: o arquivo gerado diz `string`, e a
+  // união está aqui e na migration
   const { data, error } = await db
     .from('excecao_calendario')
     .select('id, data, tipo, descricao, acao')
@@ -238,14 +232,14 @@ export async function ultimaAlteracao(
     .eq('entidade', entidade)
     .order('em', { ascending: false })
     .limit(1)
-    .maybeSingle<{ em: string; por_usuario_id: string | null }>()
+    .maybeSingle()
 
   if (!data) return null
 
   let quem: string | null = null
   if (data.por_usuario_id) {
     const { data: usuarios } = await db.rpc('usuarios_da_conta', { p_conta: contaId })
-    const lista = (usuarios ?? []) as unknown as { usuario_id: string; email: string }[]
+    const lista = usuarios ?? []
     quem = lista.find((u) => u.usuario_id === data.por_usuario_id)?.email ?? null
   }
 

@@ -1,9 +1,10 @@
 import type { Db } from './supabase'
+import type { Json } from './banco.types'
 
 export type EntidadeConfig =
   | 'serie' | 'servico' | 'profissional' | 'local' | 'vocabulario'
   | 'funcionamento' | 'excecao_calendario' | 'usuario_conta' | 'convite' | 'conta'
-  | 'pessoa'
+  | 'pessoa' | 'chave_api'
 
 export type AcaoConfig =
   | 'criou' | 'editou' | 'duplicou' | 'encerrou' | 'desativou' | 'reativou' | 'removeu'
@@ -24,7 +25,12 @@ export async function registrar(
     entidade: EntidadeConfig
     entidadeId?: string | null
     acao: AcaoConfig
-    detalhe?: Record<string, unknown>
+    /*
+     * `Json`, e não `Record<string, unknown>`: a coluna é `jsonb`, e o tipo
+     * amplo passava por qualquer coisa que o Postgres depois recusaria em
+     * tempo de execução (uma função, um `undefined`, um `Map`).
+     */
+    detalhe?: Json
   },
 ): Promise<void> {
   const { data: { user } } = await db.auth.getUser()

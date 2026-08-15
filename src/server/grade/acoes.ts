@@ -9,6 +9,7 @@ import {
 import { diaDaSemanaDe } from '@/core/agenda/datas'
 import { hojeEm, localDe } from '../agenda/fuso'
 import { registrar } from '../log'
+import type { Atualizacao } from '../banco'
 
 /**
  * Montar 70 horários na mão é o pior momento do cliente com o produto. Por isso
@@ -59,7 +60,7 @@ async function seriesQueDisputam(
 
   if (ignorarSerieId) q = q.neq('id', ignorarSerieId)
 
-  const { data, error } = await q.returns<LinhaExistente[]>()
+  const { data, error } = await q
   if (error) throw error
 
   return (data ?? []).map((e) => ({
@@ -104,7 +105,7 @@ export async function criarSeries(
   const { data, error } = await db.from('serie')
     .insert(linhasDaSerie({ ...nova, diasSemana: dias }, conta.contaId))
     .select('id')
-    .returns<{ id: string }[]>()
+    
 
   if (error) throw error
 
@@ -166,7 +167,7 @@ async function carregarSerie(
   const { data, error } = await db.from('serie')
     .select(`id, conta_id, servico_id, profissional_id, local_id, dia_semana,
              hora_inicio, duracao_min, capacidade, vigencia_inicio, vigencia_fim`)
-    .eq('id', serieId).single<SerieAtual>()
+    .eq('id', serieId).single()
   if (error) throw error
   return data
 }
@@ -178,7 +179,7 @@ async function sessoesFuturas(
     .select('id, inicio, status, capacidade')
     .eq('serie_id', serieId)
     .gt('inicio', new Date().toISOString())
-    .returns<SessaoParaReconciliar[]>()
+    
   if (error) throw error
   return data ?? []
 }
@@ -188,7 +189,7 @@ async function vagasVivas(
 ): Promise<number> {
   const { data, error } = await db.from('vaga')
     .select('inicio, fim').eq('serie_id', serieId)
-    .returns<{ inicio: string; fim: string | null }[]>()
+    
   if (error) throw error
   return (data ?? []).filter((v) => v.inicio <= hoje && (v.fim === null || v.fim >= hoje)).length
 }
@@ -260,7 +261,7 @@ export async function editarSerie(serieId: string, mudanca: MudancaSerie): Promi
   const db = await clienteServidor()
   const atual = await carregarSerie(db, serieId)
 
-  const linha: Record<string, unknown> = {}
+  const linha: Atualizacao<'serie'> = {}
   if (mudanca.servicoId !== undefined) linha.servico_id = mudanca.servicoId
   if (mudanca.profissionalId !== undefined) linha.profissional_id = mudanca.profissionalId
   if (mudanca.localId !== undefined) linha.local_id = mudanca.localId
@@ -278,7 +279,7 @@ export async function editarSerie(serieId: string, mudanca: MudancaSerie): Promi
   if (error) throw error
 
   if (atualiza.length) {
-    const daSessao: Record<string, unknown> = {}
+    const daSessao: Atualizacao<'sessao'> = {}
     if (mudanca.servicoId !== undefined) daSessao.servico_id = mudanca.servicoId
     if (mudanca.profissionalId !== undefined) daSessao.profissional_id = mudanca.profissionalId
     if (mudanca.localId !== undefined) daSessao.local_id = mudanca.localId
@@ -410,12 +411,7 @@ export async function quemOcupa(serieId: string): Promise<
     .eq('conta_id', conta.contaId)
     .eq('serie_id', serieId)
     .or(`fim.is.null,fim.gte.${hoje}`)
-    .returns<Array<{
-      pessoa_id: string
-      inicio: string
-      fim: string | null
-      pessoa: { nome: string } | null
-    }>>()
+    
   if (error) throw error
 
   return (data ?? [])
