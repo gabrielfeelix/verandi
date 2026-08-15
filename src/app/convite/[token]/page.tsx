@@ -59,6 +59,27 @@ export default async function Convite({
             </p>
           )}
           <AceitarConvite token={token} />
+
+          {/*
+            O aceite aparece onde ele acontece: criar a senha é o primeiro ato
+            de uso do sistema, e é o único momento em que quem chega para
+            trabalhar tem os dois documentos na frente antes de entrar. No
+            caminho de senha nova a frase não vem: quem já é usuário aceitou
+            quando entrou, e repetir aceite em tela de socorro é ruído.
+          */}
+          {r.tipo === 'acesso' ? (
+            <p className="pt-4 text-center text-[11.5px] leading-[1.6] text-tinta-fraca">
+              Ao criar sua senha, você concorda com os{' '}
+              <a href="/termos" className="text-marca hover:text-marca-forte">
+                Termos de uso
+              </a>{' '}
+              e com a{' '}
+              <a href="/privacidade" className="text-marca hover:text-marca-forte">
+                Política de privacidade
+              </a>
+              .
+            </p>
+          ) : null}
         </>
       ) : (
         <>

@@ -9,6 +9,7 @@ import { BoasVindas } from '@/components/onboarding/boas-vindas'
 import { Sair } from '@/components/ui/sair'
 import { FaixaSuporte } from '@/components/ui/faixa-suporte'
 import { Rail, BarraInferior, type ItemRail } from '@/components/ui/rail'
+import { RodapeLegal } from '@/components/ui/rodape-legal'
 
 const PAPEL: Record<string, string> = {
   dono: 'Dono',
@@ -135,6 +136,10 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           </p>
 
           {children}
+
+          {/* mora dentro do `main` para respeitar o `pb-24` que a barra do
+              celular exige: fora dele, o rodapé nasceria escondido atrás dela */}
+          <RodapeLegal className="pt-8" />
         </main>
       </div>
 

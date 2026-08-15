@@ -16,10 +16,10 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
 verdade, onboarding e a porta do bot aberta.**
 
-**O produto opera; o negócio ainda não pode vender.** Faltam termos de uso,
-política de privacidade, contrato de operador, backup e monitoramento, e nada
-disso é código de funcionalidade. A lista inteira está em
-[`HANDOFF.md`](HANDOFF.md).
+**O produto opera; o negócio ainda não pode vender.** Termos, privacidade e
+contrato de operador saíram como minuta em 15/08 e esperam assinatura; faltam
+backup e monitoramento, e nada disso é código de funcionalidade. A lista inteira
+está em [`HANDOFF.md`](HANDOFF.md).
 
 ---
 
@@ -135,11 +135,12 @@ dia em que existir view por papel.
 com o porquê de cada item, está em [`HANDOFF.md`](HANDOFF.md), na seção "O que
 falta para a Verandi ficar de pé". Em ordem de risco:
 
-1. **Termos de uso, política de privacidade e o contrato de operador.** Não
-   existe nada disso, e é o que trava a primeira venda para clínica. O código já
-   respeita a LGPD (anonimização, observação com "visível para", log do pedido
-   de exclusão); falta dizer no papel o que ele já faz. Decisão do Gabriel: um
-   agente redige a minuta, quem assume o risco assina.
+1. ~~**Termos de uso, política de privacidade e o contrato de operador.**~~
+   **Minuta feita em 15/08.** Os três documentos existem, escritos a partir do
+   que o sistema faz; termos e privacidade estão no ar em `/termos` e
+   `/privacidade`, com link no rodapé do sistema, nas telas de acesso e no pé de
+   todo e-mail. O que sobrou é decisão do Gabriel, listada em
+   [`juridico/README.md`](juridico/README.md). Detalhe na seção abaixo.
 2. **Backup.** Não existe. Estava anotado como "aceitável enquanto não há
    cliente pagante", e vender encerra a ressalva. `pg_dump` agendado para fora
    do Supabase resolve a maior parte do medo, e precisa de uma restauração de
@@ -152,6 +153,34 @@ falta para a Verandi ficar de pé". Em ordem de risco:
    idempotência).
 6. **Marco 2, Fases 4 e 5:** o aviso de volta e a lista de espera.
 7. **O que depende do Gabriel:** ilustrações do onboarding e "vida nas telas".
+
+## O papel, e onde ele mora
+
+Termos de uso, política de privacidade e adendo de operador foram redigidos em
+15/08 **a partir do que o sistema faz**, e não de modelo de mercado. É por isso
+que eles conseguem afirmar coisas que a maioria das políticas de SaaS não
+afirma: o acesso do suporte é registrado porque existe `acesso_suporte`, o
+segredo da chave de API não é recuperável porque a coluna guarda só o `sha256`,
+a anotação tem controle de leitura porque existe `observacao_visivel` com padrão
+fechado.
+
+**Termos e privacidade moram em `src/core/legal/`, não num `.md`**, porque são
+tela: a mesma estrutura que a página desenha é a que
+`tests/unit/legal.test.ts` confere. O adendo, que é assinado e não publicado,
+está em `docs/juridico/`. O `README.md` de lá é o que a próxima sessão precisa
+ler: ele lista o que só o Gabriel decide (CNPJ, prazos de contrato, a caixa
+`privacidade@4yu.com.br`, e a chave `EM_REVISAO`).
+
+**As rotas são públicas de propósito.** Quem mais precisa da política é quem não
+tem login: o titular do dado e o jurídico da clínica que ainda avalia a compra.
+Há teste de navegador prendendo isso, porque reorganizar a lista de rotas
+públicas do `proxy.ts` derrubaria o documento em silêncio.
+
+**Onde o dado é tratado, conferido na API de cada fornecedor:** banco no Brasil
+(Supabase, `sa-east-1`, São Paulo), aplicação nos Estados Unidos (Vercel,
+`iad1`), e-mail na União Europeia (Brevo). Os documentos internos diziam
+"Supabase e Brevo, os dois com dado no exterior", que era dedução pela sede da
+empresa e estava errada sobre o banco.
 
 ## Como mexer nisto sem quebrar produção
 
@@ -202,8 +231,8 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **321 passaram** |
-| `npm run test:e2e` | **133 passaram** |
+| `npm test` | **339 passaram** |
+| `npm run test:e2e` | **137 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
 | tabelas em `app_verandi` · em `public` | **22 · 0** (as 12 do AutoFluxos seguem intactas) |
 | RLS em produção | 20 de 20; `anon` não alcança nada |

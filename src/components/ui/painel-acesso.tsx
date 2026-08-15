@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { ACESSO, type TelaAcesso } from './arte-acesso'
+import { RodapeLegal } from './rodape-legal'
 
 /** A arte de um painel: arquivo, descrição e a geometria dela na moldura. */
 export type ArtePainel = {
@@ -45,7 +46,7 @@ export function CascaAcesso({
   children: ReactNode
 }) {
   return (
-    <main className="flex min-h-dvh items-center justify-center p-4 md:p-7">
+    <main className="flex min-h-dvh flex-col items-center justify-center p-4 md:p-7">
       {/*
        * A arte é o primeiro pixel do produto: ela tem de estar na tela junto com
        * o texto, não um segundo depois. O `preload` a põe na fila antes de o
@@ -129,6 +130,10 @@ export function CascaAcesso({
           {children}
         </section>
       </div>
+
+      {/* aqui o rodapé não é higiene, é o único lugar onde quem foi convidado
+          consegue ler os termos antes de criar a senha */}
+      <RodapeLegal className="justify-center pt-5" />
     </main>
   )
 }

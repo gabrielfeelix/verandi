@@ -33,6 +33,14 @@ export async function proxy(req: NextRequest) {
     // a amostra dos primitivos não lê dado de conta nenhuma: é design system
     req.nextUrl.pathname.startsWith('/amostra') ||
     /*
+     * Termos e privacidade são públicos por necessidade, não por descuido: quem
+     * mais precisa lê-los é quem não tem login. O titular do dado, que nunca
+     * ouviu falar da 4YU, e o jurídico da clínica, que ainda está decidindo se
+     * compra. Documento atrás de senha é documento que não existe.
+     */
+    req.nextUrl.pathname.startsWith('/termos') ||
+    req.nextUrl.pathname.startsWith('/privacidade') ||
+    /*
      * `/api` não passa por aqui porque quem chama não é navegador e não tem
      * sessão: é o webhook do Brevo, e amanhã a API do AutoFluxos. Redirecionar
      * para `/entrar` devolvia 307 a um robô que não sabe seguir login — o

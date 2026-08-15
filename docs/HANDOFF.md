@@ -26,26 +26,29 @@ a cada push na `main`.
 | Contas de cliente em produção | **1** (MGM Pilates) |
 | Migrations aplicadas | 16, da `0030` à `0045` |
 | Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
-| Testes | 321 de unidade e banco · 133 de navegador |
+| Testes | 339 de unidade e banco · 137 de navegador |
 | API v1 | três rotas de leitura no ar, respondendo 401 sem chave |
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
 e-mail, ensina quem chega pela primeira vez, e agora tem porta para o bot.
 
-**O produto não está pronto para vender.** Quatro coisas faltam, e nenhuma delas
-é código de funcionalidade. Estão na seção seguinte, em ordem.
+**O produto não está pronto para vender.** O papel saiu em 15/08 e espera
+assinatura; faltam backup, monitoramento e uma página no site. Nada disso é
+código de funcionalidade. Está na seção seguinte, em ordem.
 
 ---
 
 ## Comece por aqui
 
 Se você é a próxima sessão e quer uma coisa só: **leia o bloco "O que falta para
-a Verandi ficar de pé" abaixo e comece pelo item 1.**
+a Verandi ficar de pé" abaixo e comece pelo item 2, o backup.**
 
-O item 1 não é o mais divertido, é o que trava a venda. A Fase 3 do Marco 2 (a
-parte de código que sobrou) é o item 5, e está detalhada e destravada — se o
-Gabriel disser que quer código antes de papel, pule para ela sem culpa.
+O item 1, o papel, saiu em 15/08 como minuta e agora depende de decisão do
+Gabriel, não de trabalho de agente. O item 2 é o único que protege o que já
+existe. A Fase 3 do Marco 2 (a parte de código que sobrou) é o item 5, e está
+detalhada e destravada — se o Gabriel disser que quer código antes disso, pule
+para ela sem culpa.
 
 ```bash
 npx supabase start           # local, no Docker, faixa 564xx
@@ -69,11 +72,18 @@ aqui vai o resumo.
 
 ### 1. Termos de uso, política de privacidade e o contrato de operador
 
-**É o que trava a primeira venda para clínica, e não existe nada disso hoje.**
-Nenhuma linha em `src/`, e a página de privacidade do site
-(`website/site/privacidade/`) fala só do Deixei Aqui.
+**Minuta feita em 15/08.** Os três documentos existem, as duas telas estão no
+ar e o link está no rodapé do sistema, no rodapé das telas de acesso e no pé de
+todo e-mail. O que falta agora é **decisão do Gabriel**, e a lista inteira está
+em [`juridico/README.md`](juridico/README.md): razão social e CNPJ, criar de
+verdade o `privacidade@4yu.com.br`, os quatro prazos de contrato, e virar
+`EM_REVISAO` para `false` depois do advogado.
 
-O problema não é burocrático, é estrutural, e o produto já foi construído em
+O texto mora em `src/core/legal/`, não num `.md`, porque ele é tela. O adendo de
+operador, que é assinado e não publicado, mora em
+[`juridico/ADENDO-TRATAMENTO-DE-DADOS.md`](juridico/ADENDO-TRATAMENTO-DE-DADOS.md).
+
+O problema nunca foi burocrático, é estrutural, e o produto já foi construído em
 cima dele:
 
 - Quem coletou o nome, o telefone e o "hérnia de disco" foi **o cliente**, não a
@@ -89,26 +99,28 @@ esquisita: `anonimizarPessoa` existe, `observacao_visivel` existe nas duas
 caixas, o log registra quem atendeu ao pedido de exclusão sem copiar o nome. O
 que falta é dizer no papel o que o código já faz.
 
-**O mínimo defensável para vender:**
+**O mínimo defensável para vender, e o que já foi feito dele:**
 
-1. **Termos de uso** da Verandi (quem pode usar, o que a 4YU garante, suspensão,
-   encerramento e o que acontece com o dado depois).
-2. **Política de privacidade** que separe os dois papéis com todas as letras: a
-   4YU é operadora do dado dos alunos e controladora do dado de quem tem login.
-3. **Adendo de tratamento de dados** no contrato com o cliente: finalidade,
-   prazo, subprocessadores (Supabase e Brevo, os dois com dado no exterior),
-   segurança, e o que acontece quando o contrato acaba.
-4. **Um endereço de contato do encarregado** (`privacidade@4yu.com.br` serve),
-   publicado. A ANPD espera achar isso.
-5. **Link no rodapé do sistema e no e-mail**, senão o item existe e ninguém vê.
+1. **Termos de uso.** ✔ `src/core/legal/termos.ts`, publicado em `/termos`.
+2. **Política de privacidade** com os dois papéis separados com todas as letras.
+   ✔ `src/core/legal/privacidade.ts`, publicada em `/privacidade`.
+3. **Adendo de tratamento de dados.** ✔ minuta em `docs/juridico/`, com os três
+   anexos (dados tratados, medidas de segurança, suboperadores).
+4. **Endereço do encarregado**, publicado. ✔ nos documentos, `privacidade@4yu.com.br`.
+   **A caixa ainda não existe**, e endereço que devolve erro é pior que
+   endereço nenhum.
+5. **Link no rodapé e no e-mail.** ✔ rodapé do sistema, rodapé das telas de
+   acesso, pé de todo e-mail, e a frase de aceite ao criar a senha do convite.
 
-**Isto é decisão do Gabriel, não do agente.** Um agente pode redigir a minuta e
-montar as telas; quem assume o risco jurídico assina. O caminho barato é uma
-minuta feita aqui e revisada por advogado, não o contrário.
+**Isto é decisão do Gabriel, não do agente.** Um agente redigiu a minuta e
+montou as telas; quem assume o risco jurídico assina.
 
-**Subprocessador com dado fora do Brasil:** Supabase e Brevo. A transferência
-internacional precisa estar declarada na política. Não é impeditivo, é
-declaração.
+**Onde o dado é tratado, conferido na API de cada fornecedor:** banco no
+**Brasil** (Supabase, `sa-east-1`, São Paulo); aplicação nos **Estados Unidos**
+(Vercel, `iad1`); e-mail na **União Europeia** (Brevo). Este arquivo dizia
+"Supabase e Brevo, os dois com dado no exterior", deduzido da sede das empresas,
+e estava errado sobre o banco. A transferência internacional que existe é a da
+aplicação e a do e-mail, e as duas estão declaradas na política.
 
 ### 2. Backup
 

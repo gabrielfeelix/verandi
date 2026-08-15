@@ -21,6 +21,8 @@
  * Onde este arquivo divergir dele, é este que está errado.
  */
 
+import { ENDERECO_PUBLICO, LINKS_LEGAIS } from '@/core/legal'
+
 export const COR = {
   tinta: '#12211C',
   tinta2: '#173029',
@@ -156,6 +158,7 @@ export function casca(c: Casca): string {
     <tr><td style="background:${COR.afundado};border-top:1px solid ${COR.linhaSuave};padding:22px 36px">
       <p style="margin:0 0 4px;font-family:${CORPO};font-size:13px;line-height:1.6;color:${COR.apoio}">Um abraço,<br><strong style="color:${COR.texto};font-weight:600">Equipe Verandi</strong></p>
       <p style="margin:12px 0 0;font-family:${CORPO};font-size:11.5px;line-height:1.6;color:${COR.fraco}">Você recebeu este e-mail porque ${c.conta ? `o <strong style="font-weight:600;color:${COR.apoio}">${escapa(c.conta)}</strong> usa` : 'o seu negócio usa'} a Verandi para organizar a agenda.</p>
+      <p style="margin:8px 0 0;font-family:${CORPO};font-size:11.5px;line-height:1.6;color:${COR.fraco}">${LINKS_LEGAIS.map((l) => `<a href="${ENDERECO_PUBLICO}${l.href}" style="color:${COR.fraco};text-decoration:underline">${l.rotulo}</a>`).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}</p>
     </td></tr>
 
   </table>

@@ -14,6 +14,20 @@ A ordem é de risco. O primeiro item trava a venda; o segundo trava o sono.
 
 ## 1. O papel: termos, privacidade e contrato de operador
 
+> **Feito em 15/ago/2026, como minuta.** Os três documentos existem, termos e
+> privacidade estão no ar, e o link está nos quatro lugares. O que sobrou é
+> decisão de gente, e está listado em [`../juridico/README.md`](../juridico/README.md).
+>
+> Duas coisas que este plano dizia e a execução corrigiu:
+>
+> - **O banco não está no exterior.** Supabase `sa-east-1`, São Paulo,
+>   conferido na API. A tabela de subprocessadores abaixo deduzia pela sede da
+>   empresa. Quem sai do país é a aplicação (Vercel `iad1`, Washington) e o
+>   e-mail (Brevo, União Europeia).
+> - **A tela já exporta parte do dado.** A lista de quem é atendido sai em
+>   planilha com o filtro aplicado, o que muda o que a cláusula de portabilidade
+>   pode afirmar. A conta inteira ainda é `pg_dump` na mão.
+
 ### Por que isto é o primeiro item
 
 A Verandi guarda o nome, o telefone e o "hérnia de disco, não pode carga axial"
