@@ -24,9 +24,9 @@ a cada push na `main`.
 | | |
 |---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) |
-| Migrations aplicadas | 18, da `0030` à `0047` |
+| Migrations aplicadas | 19, da `0030` à `0048` |
 | Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
-| Testes | 358 de unidade e banco · 154 de navegador |
+| Testes | 364 de unidade e banco · 158 de navegador |
 | API v1 | sete rotas no ar, leitura e escrita, com documentação pública em `/api-docs` |
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,

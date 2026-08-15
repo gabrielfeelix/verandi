@@ -2,6 +2,7 @@ import type { Db } from '../supabase'
 import { calcularOcupacao } from '@/core/agenda/ocupacao'
 import { avaliarEncaixe } from '@/core/agenda/encaixe'
 import type { OrigemParticipacao } from './consultas'
+import { avisar } from '../webhook/eventos'
 
 /**
  * "Cabe ou não cabe", escrito uma vez só.
@@ -98,6 +99,15 @@ export async function encaixarNaSessao(
     ...carimbo,
   }).select('id').single()
   if (erroInsert) throw erroInsert
+
+  /*
+   * O evento sai daqui, e não da tela nem da rota, pelo mesmo motivo que a regra
+   * mora aqui: quem marcou pela recepção e quem marcou pelo bot geram o mesmo
+   * acontecimento. Avisar em dois lugares é esquecer em um deles.
+   */
+  await avisar(db, contaId, 'participacao.criada', {
+    participacaoId: criada.id, sessaoId: entrada.sessaoId,
+  })
 
   return { ok: true, participacaoId: criada.id }
 }

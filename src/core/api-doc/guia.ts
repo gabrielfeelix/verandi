@@ -34,6 +34,60 @@ export const COMECAR: Passo[] = [
   },
 ]
 
+/**
+ * O caminho de volta, documentado com o mesmo cuidado das rotas.
+ *
+ * Webhook é a parte que mais se implementa errado, e o erro é silencioso: quem
+ * recebe pula a conferência da assinatura "para testar", nunca volta, e o
+ * endereço vira uma porta pública onde qualquer um bate dizendo que uma aula
+ * caiu. Por isso a conferência vem com código pronto, e não com prosa.
+ */
+export const WEBHOOK: Passo[] = [
+  {
+    titulo: 'Ligue o aviso',
+    texto:
+      'Na Verandi, em Configuração, Integrações, informe o endereço https do seu sistema. O segredo de assinatura aparece uma vez, na hora. Trocar o endereço gera um segredo novo, e o anterior para de valer.',
+  },
+  {
+    titulo: 'O que chega',
+    texto:
+      'Um POST com o corpo abaixo. Três eventos hoje: participacao.criada, participacao.cancelada e sessao.cancelada. Ignore evento que você não conhece, porque outros vão aparecer.',
+    codigo: `POST no seu endereço
+Verandi-Event: participacao.cancelada
+Verandi-Timestamp: 1786820400
+Verandi-Signature: 9f86d0818...
+
+{
+  "evento": "participacao.cancelada",
+  "eventoId": "b7c2...",
+  "criadoEm": "2026-08-17T12:03:00.000Z",
+  "dados": {
+    "sessaoId": "a41f...", "data": "2026-08-18", "hora": "07:00",
+    "servico": "Pilates solo", "profissional": "Marina",
+    "participacaoId": "5e90...", "status": "falta_avisada", "origem": "avulso",
+    "pessoaId": "77c0...", "pessoa": "Marina Alves", "telefone": "11988887777"
+  }
+}`,
+  },
+  {
+    titulo: 'Confira a assinatura antes de confiar',
+    texto:
+      'A assinatura é um HMAC SHA-256 do texto instante.corpo, com o seu segredo. O instante entra na conta, e não só no cabeçalho: sem isso, quem gravasse uma entrega poderia repeti-la amanhã com a assinatura ainda válida. Recuse o que tiver mais de 5 minutos.',
+    codigo: `const bruto = await req.text()
+const instante = req.headers.get('Verandi-Timestamp')
+const esperado = crypto.createHmac('sha256', SEGREDO)
+  .update(\`\${instante}.\${bruto}\`).digest('hex')
+
+if (esperado !== req.headers.get('Verandi-Signature')) return new Response(null, { status: 401 })
+if (Math.abs(Date.now() / 1000 - Number(instante)) > 300) return new Response(null, { status: 401 })`,
+  },
+  {
+    titulo: 'Responda rápido, e trate repetição',
+    texto:
+      'Qualquer resposta 2xx encerra a entrega. Qualquer outra coisa, ou 10 segundos sem resposta, faz a Verandi tentar de novo em 30 segundos, 2 minutos, 5 minutos, 15 minutos, 1 hora e 2 horas. Depois disso ela desiste e registra o erro. Como a reentrega existe, o mesmo evento pode chegar duas vezes: use o eventoId para descartar o que você já processou.',
+  },
+]
+
 export const REGRAS: Passo[] = [
   {
     titulo: 'Datas são sempre locais do negócio',

@@ -262,6 +262,50 @@ export type Database = {
           },
         ]
       }
+      evento_saida: {
+        Row: {
+          conta_id: string
+          criado_em: string
+          dados: Json
+          entregue_em: string | null
+          id: string
+          proxima_tentativa_em: string | null
+          tentativas: number
+          tipo: string
+          ultimo_erro: string | null
+        }
+        Insert: {
+          conta_id: string
+          criado_em?: string
+          dados: Json
+          entregue_em?: string | null
+          id?: string
+          proxima_tentativa_em?: string | null
+          tentativas?: number
+          tipo: string
+          ultimo_erro?: string | null
+        }
+        Update: {
+          conta_id?: string
+          criado_em?: string
+          dados?: Json
+          entregue_em?: string | null
+          id?: string
+          proxima_tentativa_em?: string | null
+          tentativas?: number
+          tipo?: string
+          ultimo_erro?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evento_saida_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       excecao_calendario: {
         Row: {
           acao: string
@@ -1088,6 +1132,41 @@ export type Database = {
             foreignKeyName: "vocabulario_conta_id_fkey"
             columns: ["conta_id"]
             isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook: {
+        Row: {
+          ativo: boolean
+          conta_id: string
+          criado_em: string
+          id: string
+          segredo: string
+          url: string
+        }
+        Insert: {
+          ativo?: boolean
+          conta_id: string
+          criado_em?: string
+          id?: string
+          segredo: string
+          url: string
+        }
+        Update: {
+          ativo?: boolean
+          conta_id?: string
+          criado_em?: string
+          id?: string
+          segredo?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: true
             referencedRelation: "conta"
             referencedColumns: ["id"]
           },

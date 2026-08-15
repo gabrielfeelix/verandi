@@ -9,6 +9,8 @@ import { BotaoLinha, LinhaConfig, PainelConfig } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarChaveApi, revogarChaveApi } from '@/server/api/acoes'
 import { ENDERECO_PUBLICO } from '@/core/legal'
+import { salvarWebhook, desligarWebhook } from '@/server/webhook/acoes'
+import type { AvisoDaConta } from '@/server/webhook/consultas'
 import type { ChaveLinha } from '@/server/api/chave'
 
 /**
@@ -34,11 +36,19 @@ function quando(iso: string | null): string {
   return `usada em ${d.toLocaleDateString('pt-BR')}`
 }
 
-export function SecaoIntegracoes({ chaves }: { chaves: ChaveLinha[] }) {
+export function SecaoIntegracoes({
+  chaves, aviso,
+}: {
+  chaves: ChaveLinha[]
+  aviso: AvisoDaConta
+}) {
   const [criando, setCriando] = useState(false)
   /** o segredo recém-criado. Existe só nesta tela e nunca volta */
   const [segredo, setSegredo] = useState<string | null>(null)
   const [aRevogar, setARevogar] = useState<ChaveLinha | null>(null)
+  const [avisando, setAvisando] = useState(false)
+  /** o segredo de assinatura recém-criado. Existe só nesta tela e nunca volta */
+  const [segredoAviso, setSegredoAviso] = useState<string | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
@@ -120,6 +130,72 @@ export function SecaoIntegracoes({ chaves }: { chaves: ChaveLinha[] }) {
         ) : null}
 
         {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+
+        {/*
+          * O caminho de volta.
+          *
+          * Até agora o outro sistema perguntava e a Verandi respondia. Isto é o
+          * contrário: a recepção cancela a aula de quinta aqui, e o outro lado
+          * precisa saber para avisar as seis pessoas que iam. Sem isso, quem
+          * avisa é o cliente chegando na porta fechada.
+          */}
+        <div className="flex flex-wrap items-start justify-between gap-3 rounded-grande border border-linha-suave px-4 py-3.5">
+          <div className="flex min-w-0 flex-col gap-1">
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="text-[12.5px] font-medium">Avisar quando algo mudar</span>
+              {aviso?.ativo ? <Etiqueta tinta="info">ligado</Etiqueta> : null}
+            </span>
+            <span className="text-[12.5px] leading-relaxed text-tinta-media">
+              A Verandi manda um aviso para o seu sistema quando alguém é marcado,
+              quando alguém desmarca e quando um horário é cancelado.
+            </span>
+            {aviso?.ativo ? (
+              <span className="truncate font-mono text-[11.5px] text-tinta-fraca">
+                {aviso.url}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex gap-2">
+            <Botao miudo tom={aviso?.ativo ? 'secundario' : 'primario'} onClick={() => setAvisando(true)}>
+              {aviso?.ativo ? 'Trocar endereço' : 'Configurar'}
+            </Botao>
+            {aviso?.ativo ? (
+              <BotaoLinha
+                disabled={pendente}
+                onClick={() => comErro(() => desligarWebhook(), 'Aviso desligado')}
+              >
+                Desligar
+              </BotaoLinha>
+            ) : null}
+          </div>
+        </div>
+
+        {segredoAviso ? (
+          <div className="flex flex-col gap-2 rounded-padrao border border-linha p-3">
+            <span className="text-[12.5px] font-medium">
+              Copie agora, este segredo não aparece de novo
+            </span>
+            <input
+              readOnly value={segredoAviso} aria-label="Segredo de assinatura"
+              className={`${entrada} font-mono text-[12px]`}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <Botao
+              tom="secundario" miudo
+              onClick={() => {
+                navigator.clipboard?.writeText(segredoAviso)
+                avisar({ texto: 'Segredo copiado' })
+              }}
+            >
+              Copiar segredo
+            </Botao>
+            <Nota tom="atencao">
+              É com ele que o seu sistema confere que o aviso veio mesmo da
+              Verandi. Sem conferir, o endereço vira uma porta que qualquer um
+              pode bater dizendo que uma aula foi cancelada.
+            </Nota>
+          </div>
+        ) : null}
 
         {/*
           * A tela entregava a chave e não dizia para onde apontar.
@@ -212,6 +288,40 @@ export function SecaoIntegracoes({ chaves }: { chaves: ChaveLinha[] }) {
           <Nota tom="atencao">
             Uma chave alcança a agenda inteira desta conta. Só crie uma para cada
             sistema que precisar, e revogue a que parar de ser usada.
+          </Nota>
+        </ModalFormulario>
+      ) : null}
+
+      {avisando ? (
+        <ModalFormulario
+          aberto
+          glifo="→"
+          titulo="Para onde avisar"
+          sub="O endereço do seu sistema que vai receber os avisos."
+          primario="Salvar"
+          pendente={pendente}
+          aoFechar={() => setAvisando(false)}
+          aoEnviar={(f) => comErro(async () => {
+            const r = await salvarWebhook(String(f.get('url') ?? ''))
+            setSegredoAviso(r.segredo)
+            setAvisando(false)
+          }, 'Aviso configurado')}
+        >
+          <Campo
+            rotulo="Endereço" htmlFor="wh-url"
+            dica="precisa começar com https://"
+          >
+            <input
+              id="wh-url" name="url" required autoFocus type="url"
+              placeholder="https://seusistema.com.br/avisos-da-verandi"
+              defaultValue={aviso?.url ?? ''}
+              className={entrada}
+            />
+          </Campo>
+          <Nota tom="atencao">
+            Salvar gera um segredo de assinatura novo, e o anterior para de
+            valer na hora. Se você só está trocando o endereço, o seu sistema
+            precisa do segredo novo para continuar aceitando os avisos.
           </Nota>
         </ModalFormulario>
       ) : null}

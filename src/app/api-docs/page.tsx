@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ABERTURA, COMECAR, REGRAS, type Passo } from '@/core/api-doc/guia'
+import { ABERTURA, COMECAR, REGRAS, WEBHOOK, type Passo } from '@/core/api-doc/guia'
 import { BASE, ROTAS, type Campo, type Rota } from '@/core/api-doc/referencia'
 
 export const metadata: Metadata = {
@@ -173,6 +173,20 @@ export default function ApiDocs() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section id="webhook" className="flex flex-col gap-7 scroll-mt-6 pt-14">
+        <div>
+          <h2 className="font-titulo text-[19px] font-semibold">
+            Receber avisos da Verandi
+          </h2>
+          <p className="max-w-[62ch] pt-2 text-[14px] leading-[1.7] text-tinta-media">
+            As rotas acima são você perguntando. Esta parte é o contrário: a
+            recepção cancela a aula de quinta na tela, e o seu sistema precisa
+            saber para avisar quem ia.
+          </p>
+        </div>
+        {WEBHOOK.map((p) => <Bloco key={p.titulo} p={p} />)}
       </section>
 
       <footer className="mt-14 border-t border-linha pt-6 text-[12.5px] leading-relaxed text-tinta-fraca">

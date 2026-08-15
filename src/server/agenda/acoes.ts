@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { encaixarNaSessao, type PedidoDeEncaixe, type ResultadoEncaixe } from './encaixe'
+import { avisar } from '../webhook/eventos'
 import type { OrigemParticipacao } from './consultas'
 import { semAcento } from '../pessoas/consultas'
 
@@ -56,7 +57,7 @@ export async function mudarStatus(
   participacaoId: string,
   status: StatusParticipacao,
 ): Promise<void> {
-  const { db, carimbo } = await quemRegistra()
+  const { db, conta, carimbo } = await quemRegistra()
 
   const { data, error } = await db
     .from('participacao')
@@ -66,7 +67,22 @@ export async function mudarStatus(
     .maybeSingle()
 
   if (error) throw error
-  if (data) atualizarTela(data.sessao_id)
+  if (!data) return
+  atualizarTela(data.sessao_id)
+
+  /*
+   * Só os dois status que devolvem a vaga viram evento.
+   *
+   * "Presente" e "falta" são registro do que aconteceu na sala, e o outro
+   * sistema não tem nada a fazer com isso. `falta_avisada` e `cancelada` são o
+   * contrário: a vaga abriu, e é exatamente a notícia que faz o bot chamar a
+   * próxima pessoa.
+   */
+  if (status === 'falta_avisada' || status === 'cancelada') {
+    await avisar(db, conta.contaId, 'participacao.cancelada', {
+      participacaoId, sessaoId: data.sessao_id,
+    })
+  }
 }
 
 /**
@@ -101,13 +117,17 @@ export async function ajustarCapacidade(sessaoId: string, capacidade: number): P
 }
 
 export async function cancelarSessao(sessaoId: string, motivo: string): Promise<void> {
-  const { db } = await quemRegistra()
+  const { db, conta } = await quemRegistra()
   const { error } = await db
     .from('sessao')
     .update({ status: 'cancelada', motivo_cancelamento: motivo })
     .eq('id', sessaoId)
   if (error) throw error
   atualizarTela(sessaoId)
+
+  // é o evento que mais justifica a Fase 4 existir: a aula caiu, e são seis
+  // pessoas que precisam saber antes de sair de casa
+  await avisar(db, conta.contaId, 'sessao.cancelada', { sessaoId })
 }
 
 export async function reabrirSessao(sessaoId: string): Promise<void> {

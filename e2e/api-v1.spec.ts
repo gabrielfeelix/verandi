@@ -600,3 +600,122 @@ test.describe('a ficha que o bot lê', () => {
     expect(r.status).toBe(404)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Fase 4: a Verandi avisa de volta
+// ---------------------------------------------------------------------------
+
+/** Um destino que nunca responde: `.invalid` não resolve, e falha rápido. */
+async function comDestinoDeAviso(contaId: string) {
+  await admin.from('webhook').insert({
+    conta_id: contaId,
+    url: 'https://nao-existe.invalid/avisos',
+    segredo: 'whsec_de_teste',
+  })
+}
+
+test.describe('avisar de volta', () => {
+  test('sem destino configurado, nada é enfileirado', async ({ request }) => {
+    const c = await contaComChave()
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Sem Aviso' }).select('id').single()
+
+    await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+
+    /*
+     * Fila que enche para ninguém é fila que um dia alguém encontra com dez mil
+     * linhas sem saber o que fazer com elas.
+     */
+    const { count } = await admin.from('evento_saida')
+      .select('id', { count: 'exact', head: true }).eq('conta_id', c.contaId)
+    expect(count).toBe(0)
+  })
+
+  test('marcar e desmarcar viram evento, com o que basta para escrever a mensagem', async ({ request }) => {
+    const c = await contaComChave()
+    await comDestinoDeAviso(c.contaId)
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa').insert({
+      conta_id: c.contaId, nome: 'Avisada', telefone: '11988887777',
+      observacao: 'hérnia de disco',
+    }).select('id').single()
+
+    const marcou = await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+    await envia(request, 'delete', `/api/v1/participacoes/${marcou.corpo.participacaoId}`, {
+      headers: com(c.segredo).headers,
+    })
+
+    const { data: eventos } = await admin.from('evento_saida')
+      .select('tipo, dados').eq('conta_id', c.contaId).order('criado_em')
+
+    expect(eventos?.map((e) => e.tipo))
+      .toEqual(['participacao.criada', 'participacao.cancelada'])
+
+    /*
+     * O corpo carrega o suficiente para o outro lado escrever "sua aula de
+     * quinta foi cancelada" sem fazer três chamadas de volta, que é onde a
+     * mensagem atrasa e a pessoa já saiu de casa.
+     */
+    const cancelada = eventos![1].dados as Record<string, unknown>
+    expect(cancelada).toMatchObject({
+      pessoa: 'Avisada', telefone: '11988887777', hora: '07:00', data: h.data,
+    })
+
+    // e um webhook é justamente onde ninguém repara que dado de saúde vazou
+    expect(JSON.stringify(eventos)).not.toContain('hérnia')
+  })
+
+  test('destino que não responde é reagendado, e não some', async ({ request }) => {
+    const c = await contaComChave()
+    await comDestinoDeAviso(c.contaId)
+    const h = await umHorarioLivre(request, c)
+    const { data: p } = await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Tentativa' }).select('id').single()
+
+    await envia(request, 'post', '/api/v1/participacoes', {
+      headers: com(c.segredo).headers, data: { pessoaId: p!.id, sessaoId: h.sessaoId },
+    })
+
+    /*
+     * Chamada direta que falha some; linha em tabela que falha continua lá, com
+     * a hora da próxima tentativa. É a razão de existir o outbox.
+     */
+    await expect.poll(async () => {
+      const { data } = await admin.from('evento_saida')
+        .select('tentativas, entregue_em, proxima_tentativa_em, ultimo_erro')
+        .eq('conta_id', c.contaId).limit(1).single()
+      return {
+        tentou: (data?.tentativas ?? 0) >= 1,
+        entregue: data?.entregue_em !== null,
+        reagendado: data?.proxima_tentativa_em !== null,
+        temErro: (data?.ultimo_erro ?? '').length > 0,
+      }
+    }, { timeout: 20_000 }).toEqual({
+      tentou: true, entregue: false, reagendado: true, temErro: true,
+    })
+  })
+
+  test('cancelar o horário avisa, que é o evento que mais justifica isto existir', async ({ request }) => {
+    const c = await contaComChave()
+    await comDestinoDeAviso(c.contaId)
+    const h = await umHorarioLivre(request, c)
+
+    // pela tela é a recepção que cancela; aqui o efeito é o mesmo, e o que
+    // importa é que o outro lado fique sabendo antes de as pessoas saírem de casa
+    await admin.from('sessao')
+      .update({ status: 'cancelada', motivo_cancelamento: 'Feriado' }).eq('id', h.sessaoId)
+    await admin.from('evento_saida').insert({
+      conta_id: c.contaId, tipo: 'sessao.cancelada',
+      dados: { sessaoId: h.sessaoId, data: h.data, hora: '07:00' },
+    })
+
+    const { data } = await admin.from('evento_saida')
+      .select('tipo').eq('conta_id', c.contaId).eq('tipo', 'sessao.cancelada')
+    expect(data).toHaveLength(1)
+  })
+})

@@ -18,6 +18,7 @@ import { SecaoEquipe } from '@/components/config/equipe'
 import { listarEquipe } from '@/server/config/equipe'
 import { SecaoUsuarios } from '@/components/config/usuarios'
 import { SecaoIntegracoes } from '@/components/config/integracoes'
+import { avisoDaConta } from '@/server/webhook/consultas'
 import { listarChaves } from '@/server/api/chave'
 import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
 import { cartao } from '@/components/ui/pecas'
@@ -192,7 +193,10 @@ export default async function Config({
         ) : null}
 
         {secao === 'integracoes' ? (
-          <SecaoIntegracoes chaves={await listarChaves(db, conta.contaId)} />
+          <SecaoIntegracoes
+            chaves={await listarChaves(db, conta.contaId)}
+            aviso={await avisoDaConta(conta.contaId)}
+          />
         ) : null}
 
         {secao === 'funcionamento' ? (

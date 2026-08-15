@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
 import { idObrigatorio } from '@/core/api/pedido'
+import { avisar } from '@/server/webhook/eventos'
 
 /**
  * Desmarcar, que é diferente de apagar.
@@ -37,7 +38,7 @@ export const DELETE = comChave<{ id: string }>(async (
 
   const { data: p } = await ctx.db
     .from('participacao')
-    .select('id, status, sessao:sessao_id(inicio, status)')
+    .select('id, status, sessao_id, sessao:sessao_id(inicio, status)')
     .eq('id', params.id).eq('conta_id', ctx.contaId)
     .maybeSingle()
 
@@ -45,6 +46,7 @@ export const DELETE = comChave<{ id: string }>(async (
 
   const sessao = p.sessao as unknown as { inicio: string; status: string } | null
   if (!sessao) return erro(404, 'esta marcação não existe nesta conta')
+  const sessaoDaLinha = p.sessao_id
 
   if (Date.parse(sessao.inicio) < Date.now()) {
     return erro(409, 'este horário já passou, e a chamada dele é de quem estava na sala')
@@ -70,6 +72,15 @@ export const DELETE = comChave<{ id: string }>(async (
     registrado_em: new Date().toISOString(),
   }).eq('id', params.id).eq('conta_id', ctx.contaId)
   if (error) throw error
+
+  /*
+   * A vaga abriu, e alguém do outro lado pode estar esperando por ela. O evento
+   * sai mesmo quando quem desmarcou foi o próprio bot: a integração que recebe
+   * pode não ser a mesma que chamou, e é ela que mantém a lista de espera.
+   */
+  await avisar(ctx.db, ctx.contaId, 'participacao.cancelada', {
+    participacaoId: params.id, sessaoId: sessaoDaLinha,
+  })
 
   return NextResponse.json({
     participacaoId: p.id,
