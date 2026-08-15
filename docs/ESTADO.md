@@ -72,6 +72,17 @@ cara do protótipo, no ar, e com convite e senha chegando por e-mail.
 11. **As duas dívidas de modelo foram decididas pelo Gabriel e implementadas**,
     migration `0043`: anonimizar preservando a linha, e observação de
     participação com "visível para". Detalhe na seção abaixo.
+12. **A observação da ficha também separa quem enxerga**, migration `0044`. A
+    `0043` tinha resolvido metade: `participacao.observacao` é o que se escreve
+    na chamada, e `pessoa.observacao` é a faixa "Atenção na aula", aberta o
+    tempo todo, que é justamente onde alguém escreve "hérnia de disco". Fechar
+    metade do vazamento não fecha vazamento nenhum.
+13. **A régua do vocabulário varreu o produto inteiro**, e virou lint com teste.
+    Três telas passaram a falar a língua da conta pela primeira vez.
+14. **Seis dívidas técnicas fechadas**: tipos do banco gerados e ligados aos
+    dois clientes, `/contas-4yu` com busca e paginação, encaixe buscando no
+    servidor, `/hoje` e `/semana` sem escrever a cada leitura, e o contraste
+    corrigido com teste que o mede.
 
 ## As duas decisões de modelo, e o que ficou no código
 
@@ -85,13 +96,25 @@ observação, marcações e a observação escrita nas chamadas, marca
 digitar o nome, porque não existe desfazer. Fica no pé da coluna lateral da
 ficha, longe de "Editar".
 
-**Observação de participação: quem escreve escolhe quem lê.** Coluna
-`participacao.observacao_visivel`, com `profissionais` e `todos`, e o **padrão
-fecha**: quem anota entre uma turma e outra não vai lembrar de restringir
-depois, e o erro de deixar aberto é o que não tem volta. A recepção não recebe o
-texto restrito, e o menu dela nem oferece reescrever, senão a próxima gravação
-apagaria a anotação do profissional; a ação no servidor recusa também, porque
-esconder na tela sem barrar ali seria proteger a leitura e perder o dado.
+**Observação: quem escreve escolhe quem lê. Nas duas caixas.** Colunas
+`participacao.observacao_visivel` (`0043`) e `pessoa.observacao_visivel`
+(`0044`), com `profissionais` e `todos`, e o **padrão fecha**: quem anota entre
+uma turma e outra não vai lembrar de restringir depois, e o erro de deixar
+aberto é o que não tem volta. A recepção não recebe o texto restrito, e a tela
+dela nem oferece reescrever, senão a próxima gravação apagaria a anotação do
+profissional; a ação no servidor recusa também, porque esconder na tela sem
+barrar ali seria proteger a leitura e perder o dado.
+
+As duas caixas precisam da mesma régua, e isso demorou uma migration para ficar
+claro: a da chamada vale para hoje, a da ficha vale para sempre, e é a segunda
+que recebe "hérnia de disco, não pode carga axial". Fechar só uma delas faz a
+frase migrar para a que continua aberta.
+
+Onde o texto some, a tela **diz que ele existe**. Uma ficha sem observação e uma
+ficha com observação restrita não podem parecer iguais: se parecerem, a recepção
+escreve por cima achando que o campo está vazio. Na `0044` a conta existente não
+perde nada e não vaza mais, porque o `default` fecha o que já estava escrito, e
+a direção segura do erro é essa.
 
 **A separação não é RLS, e isso é decisão.** RLS é por linha; esconder uma
 coluna de um papel seria privilégio de coluna, e privilégio no Postgres é por
@@ -102,28 +125,32 @@ dia em que existir view por papel.
 
 ## O próximo passo, em ordem
 
-1. **Aplicar a migration `0043` em produção.** Ela está escrita, aplicada no
-   banco local e coberta por teste, e **não foi aplicada em produção de
-   propósito**: em 14/08 o Gabriel estava mexendo no AutoFluxos, que divide o
-   projeto. `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
-2. **As dívidas técnicas**, na seção mais abaixo. A de paginação em
+1. **As dívidas técnicas**, na seção mais abaixo. A de paginação em
    `/contas-4yu` já dói no banco de desenvolvimento.
-3. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
+2. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca
    enquanto a sessão é resolvida, e ilustração onde ainda não há dado. É
    acabamento com razão de existir, e a razão está em
    [`planos/08-vida-nas-telas.md`](planos/08-vida-nas-telas.md).
-4. **Marco 2:** API v1 para o AutoFluxos, eventos de saída, confirmação por bot.
-   Nada disso exige tabela nova.
-5. **Cadastre-se**, por último, por decisão do Gabriel: a análise está pronta em
-   [`planos/06-cadastro-e-organizacoes.md`](planos/06-cadastro-e-organizacoes.md),
-   e a decisão de quem se cadastra sozinho ainda não foi tomada.
+3. **Marco 2, na Fase 3.** O plano está em
+   [`planos/10-marco-2-api.md`](planos/10-marco-2-api.md), em cinco fases, e a
+   referência de quem chama em [`API.md`](API.md). **Fases 1 e 2 prontas**: a
+   chave (`0045`), a seção **Integrações**, e as três rotas de leitura
+   (`disponibilidade`, `catalogo`, `pessoas`). Falta a **Fase 3**, que é
+   escrever: cadastrar pessoa e marcar, com `Idempotency-Key`.
+4. ~~**Cadastre-se**~~ e ~~**organização com várias unidades**~~ **saíram da
+   lista** em 14/08, decisão do Gabriel com o porquê no [`HANDOFF.md`](HANDOFF.md).
+   Em uma linha: a venda é ativa, um cliente, Pix na mão — cadastro público
+   resolve um gargalo que ainda não existe. E o caso que parecia exigir
+   organização (o profissional que atende em dois estúdios) **já funciona**:
+   `usuario_conta` aceita a mesma pessoa em várias contas, e `/contas` é o
+   seletor.
 
 ## Como mexer nisto sem quebrar produção
 
 | O quê | Como |
 |---|---|
 | Segredo | `set -a && . ../.secrets/4yu.env && set +a`. **Nunca** dentro do repo: ele é público. `npm run segredos` confere. |
-| Migration nova | `node scripts/aplica-em-producao.mjs`. **Nunca** `supabase db push`. |
+| Migration nova | `node scripts/aplica-em-producao.mjs`, sem perguntar: a conferência de cinco passos está no [`HANDOFF.md`](HANDOFF.md). **Nunca** `supabase db push`. |
 | Deploy | `git push origin main` publica sozinho. |
 | Mexeu em e-mail | `npx tsx scripts/previa-email.ts voce@email.com` e olhe no cliente; depois `scripts/espelha-no-brevo.ts`. |
 | Antes de dizer que acabou | `npm test`, `npm run build`, `npm run test:e2e`, `npm run segredos`. |
@@ -167,13 +194,16 @@ mas sem o e-mail preenchido.
 | O quê | Resultado |
 |---|---|
 | `npm run build` | limpo |
-| `npm test` | **272 passaram** |
-| `npm run test:e2e` | **114 passaram** |
+| `npm test` | **321 passaram** |
+| `npm run test:e2e` | **133 passaram** |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
 | tabelas em `app_verandi` · em `public` | **22 · 0** (as 12 do AutoFluxos seguem intactas) |
 | RLS em produção | 20 de 20; `anon` não alcança nada |
 | `https://verandi.4yu.com.br` | 200, falando com o banco de produção |
-| migration `0042` em produção · onboarding abrindo lá | aplicada · sim, sem 5xx |
+| migrations em produção (`0030` a `0045`) · onboarding abrindo lá | **as 16 aplicadas** · sim, sem 5xx |
+| migrations `0044` e `0045` em produção | aplicadas; a `0044` com a coluna na tabela **e na view**, a `0045` com RLS ligada, política única e `anon` sem alcance |
+| contraste dos tokens de texto | 15 pares medidos, todos em AA |
+| régua do vocabulário no `src/` inteiro | limpa, com lint guardando |
 | Tarefa 10, jornada inteira em banco virgem | 13 passos, terminou em "Chamada feita" |
 | `core/` sem import de banco, Next ou rede | limpo |
 | nenhuma tela com "Aluno"/"Turma"/"Paciente"/"Professor" fixo | limpo |
@@ -183,7 +213,7 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco:** catorze migrations (`0030_vr_` a `0043_vr_`), RLS com política em todas as
+**Banco:** dezesseis migrations (`0030_vr_` a `0045_vr_`), RLS com política em todas as
 tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
@@ -195,6 +225,7 @@ serie · vaga · sessao · participacao · excecao_calendario
 funcionamento · pendencia_dispensada · acesso_suporte · log_configuracao
 onboarding (progresso do tutorial, por pessoa e por conta)
 pessoa.anonimizada_em · participacao.observacao_visivel (0043)
+pessoa.observacao_visivel (0044) · chave_api (0045)
 view pessoa_resumo · função usuarios_da_conta (security definer)
 balde privado foto-profissional
 ```
@@ -244,6 +275,13 @@ em 1440 as duas caem na mesma dobra e viram dois "Marcar todos presentes".
 | `/contas-4yu` | contas dos clientes, com sinais de vida | sim |
 | `/convite/[token]` | aceitar convite e definir senha | sim |
 | `/amostra` | os primitivos do design system |, |
+
+**API v1**, para o bot do AutoFluxos. Três rotas de leitura, todas com
+`Authorization: Bearer vr_…`, e a referência em [`API.md`](API.md):
+`GET /api/v1/disponibilidade`, `/catalogo` e `/pessoas?busca=`. Sem sessão não
+há RLS para proteger, então **quem isola conta de conta é o `conta_id` na
+consulta da rota** — e é por isso que as rotas chamam as funções de `server/`
+em vez de montarem consulta própria.
 
 ---
 
@@ -315,10 +353,23 @@ aquece).
 
 ### Marco 2, o bot conversa com a agenda
 
-API v1, eventos de saída (outbox + webhook + Resend), notificações, confirmação
-por bot, lista de espera. Nada disso exige tabela nova. O e-mail entra aqui, e
-então convite e redefinição de senha ganham um segundo caminho, o token já
-existe.
+O bot é do **AutoFluxos**, não da Verandi: ele atende no WhatsApp e marca aqui
+por API. Cinco fases, com o porquê de cada uma em
+[`planos/10-marco-2-api.md`](planos/10-marco-2-api.md):
+
+1. **A chave e a tela de Integrações.** ✔ feito, em produção.
+2. **Ler a agenda:** `disponibilidade`, `catalogo`, `pessoas?busca=`. ✔ feito.
+3. **Marcar:** cadastrar pessoa, marcar e desmarcar, com `Idempotency-Key`.
+4. **Avisar de volta:** outbox, webhook assinado, reentrega.
+5. **Lista de espera**, que só funciona depois da 4.
+
+A regra que atravessa tudo: **o robô não decide nada.** Horário cheio não
+aparece para ele, ele não abre turma, não muda capacidade e não passa da
+lotação. Isso já está em `core/agenda/encaixe.ts` e agora é contrato de API.
+
+Duas coisas que o modelo já previa e economizam trabalho: `origem_registro` tem
+`bot` desde a `0033`, e `horariosLivres` foi escrita para o endpoint de
+disponibilidade.
 
 ### Fora de escopo, e por quê
 
@@ -383,30 +434,71 @@ e uma mudança errada pode tirar Verandi e AutoFluxos do ar ao mesmo tempo.
 
 ## Dívidas técnicas anotadas
 
-- **O aplicador de produção confunde qualquer falha de leitura com banco
-  virgem.** `jaAplicadas()` captura token inválido, permissão, rede e tabela
-  inexistente do mesmo jeito. Antes da próxima migration, diferenciar o caso de
-  tabela ausente e parar em qualquer outro erro; nunca tentar reaplicar tudo
-  porque a consulta de controle falhou.
-- **Gerar os tipos do banco** (`supabase gen types typescript --local`) para
-  tirar os `.returns<T[]>()` e os `as unknown as` espalhados.
-- **`/contas-4yu` lista todas as contas sem paginação nem busca.** Com dezenas
-  de clientes vai bem; com centenas, não, e o banco de desenvolvimento já
-  mostra o defeito, porque as contas que os testes deixam para trás passaram de
-  mil linhas na tela.
-- **`PainelVaga` carrega todas as pessoas da conta** para a busca de encaixe.
-- **`/hoje` e `/semana` materializam a cada visita.** Correto e idempotente, mas
-  é uma escrita por leitura de página.
-- **Contraste de `#8B9691` sobre branco é 2,9:1**, abaixo do mínimo. Restrito a
-  texto de 14px ou maior; ao vestir as telas do Plano 02, parte disso vira
-  `#5D6B66`.
-- **A régua do artigo ainda não varreu o produto inteiro.** O onboarding tem
-  teste; o resto não. Já apareceu "Turmas ativos" num modal novo, e "`Vagas`
-  ativas" continua na ficha da pessoa. Vale igual para adjetivo: o gênero é da
-  palavra e a palavra é do cliente.
-- **`pessoa.observacao`, a faixa "Atenção na aula", continua visível para todo
-  mundo.** A observação de *participação* já separa quem enxerga; a da ficha
-  não, e é onde mora o mesmo tipo de frase.
+- ~~O aplicador de produção confunde qualquer falha de leitura com banco
+  virgem.~~ **Resolvido.** Ele pergunta `to_regclass(...)` antes, que responde
+  sem erro nos dois casos; só "a tabela não existe" segue como banco virgem, e
+  qualquer outra falha para antes de escrever. Virou urgente quando aplicar
+  migration deixou de ser pergunta a cada vez.
+- ~~Os `.returns<T[]>()` espalhados.~~ **Resolvido**, e o que sobrou tem
+  critério. Eram 67 chamadas com tipo escrito à mão; ficaram **10**, e cada uma
+  tem comentário dizendo qual das duas coisas ela acrescenta:
+
+  1. **Coluna `text` com `check`.** O Postgres não tem união de texto, e o
+     gerador escreve `string`. `observacao_visivel`, `excecao_calendario.tipo`,
+     `convite.tipo`, `vocabulario.chave`, `onboarding.roteiro`, `entrega`. Quem
+     sabe que são dois ou três valores é a migration. (Onde o banco usa `enum` de
+     verdade, como `status` e `origem` da participação, a união vem sozinha e o
+     tipo à mão saiu.)
+  2. **Leitura de view.** View não carrega `NOT NULL`: o arquivo gerado descreve
+     `pessoa_resumo` com toda coluna anulável, `id` e `nome` inclusive. É verdade
+     para o Postgres e mentira para o produto.
+
+  Os três `as unknown as` sumiram: `rpc()` passou a vir tipado pelo arquivo
+  gerado. E um achado do caminho: **`select` montado com `+` não funciona.** O
+  supabase-js lê a lista de colunas como tipo literal, e concatenação vira
+  `string`, que devolve `GenericStringError` — o erro que fala de tudo menos do
+  problema. Quebre a linha dentro das aspas.
+
+### As sete resolvidas em 14/08, de tarde
+
+Ficam aqui por um tempo, com o que cada uma virou, porque a próxima pessoa vai
+procurar por elas.
+
+- **Tipos do banco: gerados.** `src/server/banco.types.ts`, por `npm run tipos`
+  (script em `scripts/gera-tipos.mjs`, só o schema `app_verandi`). Os dois
+  clientes passaram a ser genéricos nele, e `db.from('pesoa')` deixou de
+  compilar. Quatro erros reais apareceram na hora de ligar: `status` como
+  `string` na materialização, `detalhe` como `Record<string, unknown>` no log,
+  `db.from(variável)` no onboarding e três objetos de update sem tipo.
+  **Migration nova pede `npm run tipos`**, senão o `tsc` segue passando com a
+  forma antiga.
+- **`/contas-4yu` pagina e busca.** Vinte por página, busca por nome ou
+  identificador, tudo na URL. A consulta de sinais deixou de varrer sessão e
+  vínculo do banco inteiro: agora é `in_` nos vinte ids da página, e o
+  `listUsers` do Auth para de virar páginas assim que acha quem procura.
+- **O encaixe não baixa mais a conta inteira.** `/sessao/[id]` mandava todas as
+  pessoas ativas para o navegador em toda visita, para um campo que só busca a
+  partir de duas letras. Virou `buscarCandidatos()` no servidor, com `nome_busca`
+  e oito resultados, com 200ms de espera no cliente.
+- **`/hoje` e `/semana` deixaram de escrever a cada leitura.**
+  `materializarJanela` confere o que já existe com uma consulta e, no caso comum
+  (janela pronta), não escreve nada. O `upsert` continua para o que sobrar,
+  porque ele é a garantia contra corrida entre duas abas.
+- **Contraste: medido, e agora com teste.** `tinta-fraca` e `tinta-apagada`
+  viraram `#656E6A`; a etiqueta neutra, o texto fraco do e-mail e as tintas
+  `positivo`, `alerta` e `atenção` também subiram, porque as três reprovavam
+  sobre o próprio fundo delas. `tests/unit/contraste.test.ts` mede cada par.
+- **A régua do vocabulário varreu o produto.** Vinte e poucas frases mudaram, e
+  três telas passaram a falar a língua da conta pela primeira vez: a
+  Configuração de Serviços e Locais (que escrevia "serviço" e "local" à mão, do
+  título ao aviso de sucesso), o menu lateral da Configuração e os três campos
+  do editor de série. `tests/unit/regua-do-vocabulario.test.ts` é um lint que
+  varre `src/` e falha se um artigo ou adjetivo voltar a colar na palavra do
+  cliente.
+- **`pessoa.observacao` separa quem enxerga**, migration `0044`, com o mesmo
+  desenho da `0043`: coluna `observacao_visivel`, padrão fechado, recepção não
+  lê nem sobrescreve, e a faixa continua dizendo que existe anotação restrita
+  para ninguém escrever por cima achando que o campo está vazio.
 
 ---
 

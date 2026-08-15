@@ -55,7 +55,7 @@ Verandi. Nenhum substitui o outro.
 ## Migrations da Verandi
 
 - `0030_vr_schema_app_verandi.sql` cria a divisória;
-- `0031_vr_...` a `0042_vr_...` constroem o produto;
+- `0031_vr_...` a `0044_vr_...` constroem o produto;
 - cada arquivo usa `app_verandi` e termina com os `GRANT`s necessários;
 - aplicação incremental em produção:
   `node scripts/aplica-em-producao.mjs`;
@@ -68,11 +68,14 @@ permissão ou rede não significa “banco virgem”. Se a leitura de
 `migrations_aplicadas` falhar por motivo diferente de tabela inexistente, a
 operação precisa ser interrompida e investigada.
 
-> **Gap conhecido antes da próxima migration de produção:** a implementação
-> atual de `jaAplicadas()` captura qualquer erro e devolve conjunto vazio. Antes
-> de aplicar a próxima migration, ela precisa distinguir “a tabela ainda não
-> existe” de falha de token, permissão, rede ou API. Até isso ser corrigido, uma
-> leitura que falhou não pode ser tratada como autorização para reaplicar tudo.
+~~Gap conhecido~~ **resolvido em 14/08, junto com a `0044`.** `jaAplicadas()`
+pergunta em duas partes: primeiro `to_regclass(...) is not null`, que responde
+sem erro tanto para "existe" quanto para "não existe". Só o "não existe" segue
+como banco virgem; qualquer falha de token, permissão, rede ou API para o
+programa antes de escrever qualquer coisa, com mensagem em vez de stack trace.
+
+Conferido com token inválido e com ref inexistente: os dois param em
+`Nada foi aplicado`.
 
 ## O que o schema não separa
 
@@ -102,8 +105,18 @@ operação precisa ser interrompida e investigada.
 - [ ] Avaliei efeitos globais em Auth, Storage, extensões e Data API.
 - [ ] Defini `GRANT`, RLS, políticas e `search_path`.
 - [ ] Rodei testes locais e o aplicador com `--dry`.
-- [ ] Só pedi aplicação em produção depois de revisar o SQL completo.
-- [ ] Verifiquei Verandi e AutoFluxos depois da aplicação.
+- [ ] Revisei o SQL completo antes de aplicar.
+- [ ] **Conferi quem depende do que a migration derruba** (`pg_depend`), porque
+      `drop view` e `drop function` levam o dependente junto, em silêncio.
+- [ ] Apliquei, e verifiquei **fora do console**: o objeto novo na tabela e nas
+      views que o expõem, `security_invoker` de pé, contagem de tabelas em
+      `public` intacta, e o site respondendo.
+
+> **Aplicar não é decisão a cada vez.** Enquanto o alcance for `app_verandi`,
+> quem faz a mudança aplica, com esta lista cumprida. A pergunta ao Gabriel fica
+> reservada a três casos: a migration escapa do nosso schema, existe dependente
+> fora dele, ou ela é destrutiva sem volta (`drop` de coluna ou tabela com dado
+> de cliente). O passo a passo está no [`HANDOFF.md`](HANDOFF.md).
 
 ## Quando separar os projetos
 

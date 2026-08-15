@@ -46,20 +46,49 @@ async function sql(query) {
   return corpo
 }
 
-/** Versões já aplicadas. Banco virgem ainda não tem a tabela — isso é normal. */
+/**
+ * Versões já aplicadas.
+ *
+ * Banco virgem ainda não tem a tabela, e isso é normal. **Qualquer outra falha
+ * não é.** Antes daqui o `catch` engolia tudo e devolvia conjunto vazio: token
+ * errado, permissão, rede ou API fora do ar viravam "nenhuma migration foi
+ * aplicada", e o passo seguinte reaplicaria as quinze em cima de um banco
+ * cheio. A primeira falharia, mas só depois de a anterior ter passado.
+ *
+ * Então a pergunta é feita em duas partes. Primeiro **se a tabela existe**, com
+ * uma consulta que responde sem erro nos dois casos: se essa falhar, é falha de
+ * verdade e o programa para. Só o "não existe" segue como banco virgem.
+ */
 async function jaAplicadas() {
-  try {
-    const linhas = await sql(
-      'select versao from app_verandi.migrations_aplicadas order by versao',
-    )
-    return new Set(linhas.map((l) => l.versao))
-  } catch {
+  const existe = await sql(
+    "select to_regclass('app_verandi.migrations_aplicadas') is not null as tem",
+  )
+  if (!existe?.[0]?.tem) {
+    console.log('sem tabela de controle: tratando como banco virgem\n')
     return new Set()
   }
+  const linhas = await sql(
+    'select versao from app_verandi.migrations_aplicadas order by versao',
+  )
+  return new Set(linhas.map((l) => l.versao))
 }
 
 const arquivos = readdirSync(PASTA).filter((f) => f.endsWith('.sql')).sort()
-const feitas = await jaAplicadas()
+
+/*
+ * Falha aqui não vira "banco virgem", e também não vira stack trace: quem
+ * precisa da mensagem está aplicando em produção, e o que importa é saber que
+ * **nada foi escrito**.
+ */
+let feitas
+try {
+  feitas = await jaAplicadas()
+} catch (e) {
+  console.error(`não deu para ler o controle de migrations: ${e.message}`)
+  console.error('Nada foi aplicado. Confira o token, a rede e o ref do projeto.')
+  process.exit(1)
+}
+
 const pendentes = arquivos.filter((f) => !feitas.has(f.split('_')[0]))
 
 if (pendentes.length === 0) {
