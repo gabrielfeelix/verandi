@@ -99,7 +99,7 @@ export default async function Pessoa({
   const conta = await exigirConta()
   const db = await clienteServidor()
 
-  const ficha = await fichaDaPessoa(db, conta.contaId, id)
+  const ficha = await fichaDaPessoa(db, conta.contaId, id, conta.papel)
   if (!ficha) notFound()
 
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
@@ -111,8 +111,7 @@ export default async function Pessoa({
     .select('id, dia_semana, hora_inicio, servico:servico_id(nome)')
     .eq('conta_id', conta.contaId).eq('ativo', true)
     .order('dia_semana').order('hora_inicio')
-    .returns<Array<{ id: string; dia_semana: number; hora_inicio: string;
-                     servico: { nome: string } | null }>>()
+    
 
   const opcoesSerie = (series ?? []).map((s) => ({
     id: s.id,
@@ -227,6 +226,8 @@ export default async function Pessoa({
                 nascimento: p.nascimento,
                 vencimentoPlano: p.vencimentoPlano,
                 observacao: p.observacao,
+                observacaoVisivel: p.observacaoVisivel,
+                observacaoRestrita: p.observacaoRestrita,
                 ativo: p.ativo,
               }}
             />
@@ -272,8 +273,8 @@ export default async function Pessoa({
                     {rotulos.vaga.plural}
                   </h2>
                   <span className="text-[12px] text-tinta-fraca">
-                    a {rotulos.vaga.singular.toLowerCase()} tem vigência, encerrar
-                    não apaga o passado
+                    cada {rotulos.vaga.singular.toLowerCase()} tem vigência,
+                    encerrar não apaga o passado
                   </span>
                 </div>
                 <Vagas
@@ -287,12 +288,13 @@ export default async function Pessoa({
                   }))}
                   series={opcoesSerie}
                   rotuloVaga={rotulos.vaga.singular}
+                  rotuloSerie={rotulos.serie.singular}
                 />
               </section>
 
               <section className={`${cartao} px-[18px] py-4`}>
                 <h2 className="pb-3 font-titulo text-[17px] font-semibold">
-                  Próximas {rotulos.sessao.plural.toLowerCase()}
+                  {rotulos.sessao.plural} à frente
                 </h2>
                 {ficha.proximas.length === 0 ? (
                   <Vazio
@@ -460,7 +462,7 @@ export default async function Pessoa({
 
               <p className="pt-3 text-[11.5px] leading-[1.55] text-tinta-apagada">
                 Para usar um crédito, encaixe a pessoa num horário e aponte a
-                falta pelo menu dela na tela da {rotulos.sessao.singular.toLowerCase()}.
+                falta pelo menu dela na tela do horário.
               </p>
             </section>
           ) : null}
@@ -510,8 +512,30 @@ export default async function Pessoa({
                 <span className="text-[10.5px] font-semibold tracking-[.1em] text-atencao uppercase">
                   Atenção na aula
                 </span>
+                {p.observacaoVisivel === 'profissionais' ? (
+                  <span className="ml-auto rounded-peca bg-atencao-fundo px-2 py-0.5 text-[10.5px] text-atencao">
+                    só quem atende
+                  </span>
+                ) : null}
               </div>
               <p className="text-[13px] leading-[1.55] text-[#414A47]">{p.observacao}</p>
+            </section>
+          ) : null}
+
+          {/*
+            * Restrita, a faixa continua existindo e diz que existe.
+            *
+            * Sumir por completo faria a ficha da recepção ficar igual à de quem
+            * não tem observação nenhuma, e alguém escreveria por cima achando
+            * que o campo estava vazio. Isto é o mesmo que a Sessão já faz com a
+            * observação da chamada.
+            */}
+          {p.observacaoRestrita ? (
+            <section className="rounded-grande border border-linha-suave bg-superficie-suave px-4 py-3.5">
+              <p className="text-[12.5px] leading-[1.55] text-tinta-media">
+                Há uma anotação nesta ficha escrita para quem atende. Se
+                precisar dela, peça a quem escreveu.
+              </p>
             </section>
           ) : null}
 
@@ -585,9 +609,12 @@ export default async function Pessoa({
                  p.faltasRecentes > 1 ? 'text-alerta' : 'text-tinta'],
                 ['Reposições em aberto', String(ficha.reposicoesAbertas.length),
                  ficha.reposicoesAbertas.length > 0 ? 'text-atencao' : 'text-tinta'],
-                [`${rotulos.vaga.plural} ativas`, String(ficha.vagas.filter((v) => !v.fim).length),
+                // "ativas" concordaria com a palavra do cliente ("Contratos
+                // ativas"), e "Cadastrada" com o gênero de quem está na ficha.
+                // Os dois qualificadores saíram de perto da palavra.
+                [`${rotulos.vaga.plural} em vigor`, String(ficha.vagas.filter((v) => !v.fim).length),
                  'text-tinta'],
-                ['Cadastrada em', mesAno(p.criadoEm.slice(0, 10)), 'text-tinta'],
+                ['No sistema desde', mesAno(p.criadoEm.slice(0, 10)), 'text-tinta'],
               ] as const).map(([rotulo, valor, cor]) => (
                 <div key={rotulo} className="flex items-baseline justify-between gap-2.5">
                   <dt className="text-[12.5px] text-tinta-media">{rotulo}</dt>

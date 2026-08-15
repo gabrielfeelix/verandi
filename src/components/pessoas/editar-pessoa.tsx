@@ -13,6 +13,9 @@ type Pessoa = {
   nascimento: string | null
   vencimentoPlano: string | null
   observacao: string | null
+  observacaoVisivel: 'profissionais' | 'todos'
+  /** existe anotação de quem atende, e quem está lendo não pode vê-la */
+  observacaoRestrita: boolean
   ativo: boolean
 }
 
@@ -25,6 +28,7 @@ export function EditarPessoa({
 }) {
   const [aberto, setAberto] = useState(false)
   const [pendente, iniciar] = useTransition()
+  const [visivel, setVisivel] = useState(pessoa.observacaoVisivel)
 
   if (!aberto) {
     return (
@@ -47,7 +51,17 @@ export function EditarPessoa({
             nascimento: String(f.get('nascimento') ?? ''),
             // data que avisa, não valor que cobra — financeiro é outro produto
             vencimentoPlano: String(f.get('vencimento') ?? ''),
-            observacao: String(f.get('observacao') ?? ''),
+            /*
+              * Restrita, a observação nem vai no pacote: mandar `''` daqui
+              * apagaria a anotação de quem atende, e o servidor recusaria a
+              * gravação inteira junto com o resto do formulário.
+              */
+            ...(pessoa.observacaoRestrita
+              ? {}
+              : {
+                  observacao: String(f.get('observacao') ?? ''),
+                  observacaoVisivel: visivel,
+                }),
             ativo: f.get('ativo') === 'on',
           })
           setAberto(false)
@@ -69,14 +83,47 @@ export function EditarPessoa({
         </div>
       ))}
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="observacao">Observação</label>
-        <textarea
-          id="observacao" name="observacao" rows={3}
-          defaultValue={pessoa.observacao ?? ''}
-          className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
-        />
-      </div>
+      {pessoa.observacaoRestrita ? (
+        <p className="rounded-padrao border border-linha-suave bg-superficie px-3 py-2.5 text-[12.5px] leading-relaxed text-tinta-media">
+          A observação desta ficha foi escrita para quem atende. O resto dos
+          dados continua editável daqui.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-1">
+          <label htmlFor="observacao">Observação</label>
+          <textarea
+            id="observacao" name="observacao" rows={3}
+            defaultValue={pessoa.observacao ?? ''}
+            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
+          />
+          {/* quem escreve escolhe quem lê, na hora de escrever: é o único
+              momento em que a pessoa sabe se está anotando "prefere a maca do
+              fundo" ou "hérnia de disco". O padrão fecha, e é decisão. */}
+          <fieldset className="flex flex-col gap-1.5 pt-1.5">
+            <legend className="pb-1.5 text-[11px] font-semibold tracking-[.08em] text-tinta-media uppercase">
+              Visível para
+            </legend>
+            {([
+              ['profissionais', 'Só quem atende'],
+              ['todos', 'Todo mundo da conta'],
+            ] as const).map(([valor, texto]) => (
+              <label key={valor} className="flex items-center gap-2 text-[13px]">
+                <input
+                  type="radio" name="observacaoVisivel" value={valor}
+                  checked={visivel === valor}
+                  onChange={() => setVisivel(valor)}
+                />
+                {texto}
+              </label>
+            ))}
+            <p className="text-[11.5px] text-tinta-media">
+              {visivel === 'profissionais'
+                ? 'A recepção não lê. É onde vai o que é de saúde.'
+                : 'Aparece para quem abrir esta ficha, inclusive a recepção.'}
+            </p>
+          </fieldset>
+        </div>
+      )}
 
       <label className="flex items-center gap-2">
         <input type="checkbox" name="ativo" defaultChecked={pessoa.ativo} />

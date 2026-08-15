@@ -136,6 +136,13 @@ export async function listarPessoas(
     q = q.range(de, de + POR_PAGINA - 1)
   }
 
+  /*
+   * `.returns<>()` porque a leitura é de **view**, e view não carrega
+   * `NOT NULL`: o arquivo gerado descreve `pessoa_resumo` com toda coluna
+   * anulável, inclusive `id` e `nome`. É verdade para o Postgres e mentira para
+   * o produto — `pessoa.nome` é `not null` na tabela, e a view só faz um
+   * `select`. O tipo à mão diz o que a tabela garante.
+   */
   const { data, error, count } = await q.returns<LinhaResumo[]>()
   if (error) throw error
 
@@ -147,7 +154,7 @@ export async function listarPessoas(
 async function idsComTag(db: Db, contaId: string, tag: string): Promise<string[]> {
   const { data } = await db
     .from('pessoa_tag').select('pessoa_id').eq('conta_id', contaId).eq('tag', tag)
-    .returns<{ pessoa_id: string }[]>()
+    
   return (data ?? []).map((t) => t.pessoa_id)
 }
 
@@ -169,14 +176,10 @@ async function enriquecer(db: Db, contaId: string, linhas: PessoaLinha[]) {
       .select('pessoa_id, fim, serie:serie_id(dia_semana, hora_inicio)')
       .in('pessoa_id', ids)
       .or(`fim.is.null,fim.gte.${hoje}`)
-      .returns<Array<{
-        pessoa_id: string
-        fim: string | null
-        serie: { dia_semana: number; hora_inicio: string } | null
-      }>>(),
+      ,
     db.from('pessoa_tag')
       .select('pessoa_id, tag').eq('conta_id', contaId).in('pessoa_id', ids)
-      .returns<{ pessoa_id: string; tag: string }[]>(),
+      ,
   ])
 
   for (const v of vagas ?? []) {
@@ -242,7 +245,7 @@ export async function contarPessoas(
     .from('pessoa_tag')
     .select('tag, pessoa:pessoa_id(ativo)')
     .eq('conta_id', contaId)
-    .returns<{ tag: string; pessoa: { ativo: boolean } | null }[]>()
+    
 
   const contagem = new Map<string, number>()
   for (const t of tags ?? []) {
@@ -292,7 +295,23 @@ export type Ficha = {
   pessoa: PessoaLinha & {
     email: string | null
     nascimento: string | null
+    /**
+     * a faixa "Atenção na aula", já filtrada por quem está lendo.
+     *
+     * Vem `null` para a recepção quando o texto é de quem atende. Filtrar aqui
+     * e não na tela é decisão: a tela é uma das leitoras do dado, e proteger na
+     * tela protege quem olha, não o dado.
+     */
     observacao: string | null
+    observacaoVisivel: 'profissionais' | 'todos'
+    /**
+     * existe texto, e não é para estes olhos.
+     *
+     * Sem isto a ficha da recepção fica idêntica à de uma pessoa sem
+     * observação nenhuma, e a recepção reescreve por cima achando que está
+     * preenchendo um campo vazio.
+     */
+    observacaoRestrita: boolean
     /**
      * quando o titular pediu a exclusão e os dados dela foram zerados.
      *
@@ -313,14 +332,32 @@ export type Ficha = {
 
 export async function fichaDaPessoa(
   db: Db, contaId: string, pessoaId: string,
+  /*
+   * Quem está lendo. Sem papel a ficha é lida como recepção, que é o lado
+   * seguro do erro: chamada nova que esquecer de passar o papel esconde
+   * demais, e não de menos.
+   */
+  papel: 'dono' | 'recepcao' | 'profissional' | 'suporte' = 'recepcao',
 ): Promise<Ficha | null> {
   const { data: p } = await db
     .from('pessoa_resumo').select('*')
     .eq('id', pessoaId).eq('conta_id', contaId)
-    .maybeSingle<LinhaResumo & { email: string | null; nascimento: string | null;
+    // view não carrega `NOT NULL`, e `observacao_visivel` é `text` com `check`:
+    // as duas coisas que o gerador não tem como saber, na mesma consulta
+    .maybeSingle<LinhaResumo & { email: string | null; nascimento: string | null
                                  observacao: string | null; criado_em: string
+                                 observacao_visivel: 'profissionais' | 'todos'
                                  anonimizada_em: string | null }>()
   if (!p) return null
+
+  /*
+   * Quem atende lê tudo; a recepção lê o que foi escrito para todos.
+   *
+   * Dono e suporte leem pelo mesmo motivo da 0043: o dono responde pelo
+   * negócio perante o titular do dado, e o suporte só entra na conta com o
+   * acesso registrado.
+   */
+  const podeLerObservacao = papel !== 'recepcao' || p.observacao_visivel === 'todos'
 
   const { data: contaRow } = await db
     .from('conta').select('fuso').eq('id', contaId).single()
@@ -328,7 +365,7 @@ export async function fichaDaPessoa(
 
   const { data: tags } = await db
     .from('pessoa_tag').select('tag').eq('pessoa_id', pessoaId)
-    .returns<{ tag: string }[]>()
+    
 
   const { data: vagas } = await db
     .from('vaga')
@@ -338,14 +375,7 @@ export async function fichaDaPessoa(
                      profissional:profissional_id(nome))
     `)
     .eq('pessoa_id', pessoaId)
-    .returns<Array<{
-      id: string; inicio: string; fim: string | null; serie_id: string
-      serie: {
-        dia_semana: number; hora_inicio: string
-        servico: { nome: string } | null
-        profissional: { nome: string } | null
-      } | null
-    }>>()
+    
 
   const { data: participacoes } = await db
     .from('participacao')
@@ -355,11 +385,7 @@ export async function fichaDaPessoa(
       reposicoes:participacao!reposicao_de_id(id)
     `)
     .eq('pessoa_id', pessoaId)
-    .returns<Array<{
-      id: string; origem: string; status: string; sessao_id: string
-      sessao: { inicio: string; servico: { nome: string } | null } | null
-      reposicoes: { id: string }[]
-    }>>()
+    
 
   const agora = new Date().toISOString()
   const todas: ParticipacaoHistorico[] = (participacoes ?? [])
@@ -386,7 +412,10 @@ export async function fichaDaPessoa(
 
   return {
     pessoa: { ...paraLinha(p), email: p.email, nascimento: p.nascimento,
-              observacao: p.observacao, criadoEm: p.criado_em,
+              observacao: podeLerObservacao ? p.observacao : null,
+              observacaoVisivel: p.observacao_visivel,
+              observacaoRestrita: !podeLerObservacao && p.observacao !== null,
+              criadoEm: p.criado_em,
               anonimizadaEm: p.anonimizada_em },
     tags: (tags ?? []).map((t) => t.tag),
     vagas: (vagas ?? []).filter((v) => v.serie !== null).map((v) => ({

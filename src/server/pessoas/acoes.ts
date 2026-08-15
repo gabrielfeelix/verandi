@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
+import type { Atualizacao } from '../banco'
 
 /**
  * Nome é o único campo obrigatório, de propósito.
@@ -26,7 +27,7 @@ export async function criarPessoa(entrada: {
     nome,
     telefone: entrada.telefone?.trim() || null,
     identificador_externo: entrada.identificadorExterno?.trim() || null,
-  }).select('id').single<{ id: string }>()
+  }).select('id').single()
 
   if (error) throw error
   revalidatePath('/pessoas')
@@ -41,11 +42,35 @@ export async function editarPessoa(id: string, campos: {
   nascimento?: string | null
   vencimentoPlano?: string | null
   observacao?: string | null
+  /** quem lê a observação da ficha; ver `0044` e a barreira logo abaixo */
+  observacaoVisivel?: 'profissionais' | 'todos'
   ativo?: boolean
 }): Promise<void> {
+  const conta = await exigirConta()
   const db = await clienteServidor()
 
-  const linha: Record<string, unknown> = {}
+  /*
+   * A recepção não sobrescreve a observação que não pode ler.
+   *
+   * É a mesma barreira de `salvarObservacao` (0043), e existe pelo mesmo
+   * motivo: a tela já esconde o texto restrito, então o campo chega vazio e a
+   * gravação apagaria a anotação de quem atende sem ninguém perceber. Esconder
+   * na leitura e não barrar aqui seria proteger o texto e perder o dado.
+   *
+   * Vale só quando a observação está no pacote: mudar telefone não deveria
+   * esbarrar em nada disso.
+   */
+  if (conta.papel === 'recepcao' && campos.observacao !== undefined) {
+    const atual = await db.from('pessoa')
+      .select('observacao, observacao_visivel').eq('id', id)
+      .eq('conta_id', conta.contaId)
+      .maybeSingle()
+    if (atual.data?.observacao && atual.data.observacao_visivel === 'profissionais') {
+      throw new Error('esta observação é de quem atende, e não dá para reescrever daqui')
+    }
+  }
+
+  const linha: Atualizacao<'pessoa'> = {}
   if (campos.nome !== undefined) linha.nome = campos.nome.trim()
   if (campos.telefone !== undefined) linha.telefone = campos.telefone || null
   if (campos.email !== undefined) linha.email = campos.email || null
@@ -57,6 +82,9 @@ export async function editarPessoa(id: string, campos: {
     linha.vencimento_plano = campos.vencimentoPlano || null
   }
   if (campos.observacao !== undefined) linha.observacao = campos.observacao || null
+  if (campos.observacaoVisivel !== undefined) {
+    linha.observacao_visivel = campos.observacaoVisivel
+  }
   if (campos.ativo !== undefined) linha.ativo = campos.ativo
 
   const { error } = await db.from('pessoa').update(linha).eq('id', id)
@@ -152,7 +180,7 @@ export async function encerrarVaga(vagaId: string, fim: string): Promise<void> {
   const db = await clienteServidor()
   const { data, error } = await db.from('vaga')
     .update({ fim }).eq('id', vagaId)
-    .select('pessoa_id').maybeSingle<{ pessoa_id: string }>()
+    .select('pessoa_id').maybeSingle()
   if (error) throw error
   if (data) revalidatePath(`/pessoas/${data.pessoa_id}`)
 }
