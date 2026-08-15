@@ -125,6 +125,11 @@ dia em que existir view por papel.
 
 ## O próximo passo, em ordem
 
+Resumo de uma linha: **falta a Fase 3 do Marco 2**, que é escrever pela API. O
+resto da lista ou depende de decisão do Gabriel, ou foi decidido que não se faz.
+O ponto de partida detalhado está em [`HANDOFF.md`](HANDOFF.md), na seção
+"Comece por aqui".
+
 1. **As dívidas técnicas**, na seção mais abaixo. A de paginação em
    `/contas-4yu` já dói no banco de desenvolvimento.
 2. **Vida nas telas**, anotado do Gabriel olhando a Brevo: movimento da marca

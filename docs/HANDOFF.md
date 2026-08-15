@@ -15,6 +15,33 @@ for fazer.
 
 ---
 
+## Comece por aqui
+
+**Marco 2, Fase 3: escrever pela API.** É a única coisa da lista que não depende
+de decisão de ninguém, e o caminho está aberto: as Fases 1 e 2 foram para o ar
+em 14/08, e a Fase 3 é a que faz o bot marcar de verdade.
+
+O detalhe está na seção 4 de "O que fazer agora", e a armadilha em uma linha:
+**`encaixar` mistura a regra com `cookies()`**. A rota não pode reimplementar
+"cabe ou não cabe" — extraia o miolo para uma função que recebe quem está
+registrando, e chame dos dois lados.
+
+Antes de escrever a primeira linha:
+
+```bash
+npx supabase start           # o local, no Docker, faixa 564xx
+npm run tipos                # se tiver mexido em migration desde a última vez
+node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
+```
+
+Ler [`API.md`](API.md) leva cinco minutos e é o contrato que a Fase 3 continua.
+
+**O resto da lista depende do Gabriel**, ou foi decidido que não se faz: as
+ilustrações são ele quem gera, "vida nas telas" trava numa decisão dele, e a
+passada contra o protótipo ele pediu para não fazer.
+
+---
+
 ## Onde o produto está
 
 A Verandi está **no ar** em `https://verandi.4yu.com.br`, com banco de produção
