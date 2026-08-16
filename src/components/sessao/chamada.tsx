@@ -204,14 +204,22 @@ export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
   const { podeRegistrar, abrirCancelar } = useChamada()
   if (!podeRegistrar) return null
   return (
+    /*
+     * Com a palavra, não só o glifo.
+     *
+     * Era um quadrado de 44px com o sinal de proibido dentro, e ninguém
+     * descobre pelo desenho se aquilo cancela a aula, bloqueia o aluno ou
+     * suspende a conta — o `title` só aparece parando o mouse em cima, e no
+     * celular não aparece nunca. Botão que destrói tem que dizer o que
+     * destrói antes de ser clicado.
+     */
     <button
       type="button"
-      title={rotulo}
-      aria-label={rotulo}
       onClick={abrirCancelar}
-      className="flex min-h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-media border border-alerta-linha bg-alerta-superficie text-alerta transition-colors duration-150 hover:bg-alerta-fundo"
+      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media border border-alerta-linha bg-alerta-superficie px-3.5 text-[13px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-fundo"
     >
       <Icone nome="proibido" tamanho={18} />
+      {rotulo}
     </button>
   )
 }

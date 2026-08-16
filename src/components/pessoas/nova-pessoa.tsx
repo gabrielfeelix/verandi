@@ -73,21 +73,19 @@ export function NovaPessoa({
             <input id="np-nome" name="nome" required autoFocus className={entrada} />
           </Campo>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Campo rotulo="Telefone" dica="opcional" htmlFor="np-fone">
               <input
                 id="np-fone" name="telefone" type="tel" inputMode="tel"
                 placeholder="(11) 99999-9999"
-                className={`${entrada} min-w-[180px]`}
+                className={`${entrada} w-full`}
               />
             </Campo>
-            <Campo
-              rotulo="Identificador" dica="opcional" htmlFor="np-id"
-            >
+            <Campo rotulo="Identificador" dica="opcional" htmlFor="np-id">
               <input
                 id="np-id" name="identificador"
-                placeholder="o número da ficha antiga"
-                className={`${entrada} min-w-[150px]`}
+                placeholder="número da ficha antiga"
+                className={`${entrada} w-full`}
               />
             </Campo>
           </div>

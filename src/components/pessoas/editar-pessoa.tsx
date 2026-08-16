@@ -23,13 +23,22 @@ type Pessoa = {
   ativo: boolean
 }
 
+/*
+ * Duas colunas de largura igual, e o campo ocupa a coluna inteira.
+ *
+ * Antes era `flex-wrap` com largura mínima: cada campo ficava do tamanho que
+ * sobrava, espremido, e nenhum deles alinhava com a caixa de observação logo
+ * abaixo — o formulário parecia montado a esmo. Nome e vencimento atravessam as
+ * duas colunas porque nome é o campo mais longo e vencimento é o último: meia
+ * linha solta no fim deixa um buraco.
+ */
 const CAMPOS = [
-  ['nome', 'Nome', 'text'],
-  ['telefone', 'Telefone', 'tel'],
-  ['email', 'E-mail', 'email'],
-  ['identificador', 'Identificador', 'text'],
-  ['nascimento', 'Nascimento', 'date'],
-  ['vencimento', 'Vencimento do plano', 'date'],
+  ['nome', 'Nome', 'text', true],
+  ['telefone', 'Telefone', 'tel', false],
+  ['email', 'E-mail', 'email', false],
+  ['identificador', 'Identificador', 'text', false],
+  ['nascimento', 'Nascimento', 'date', false],
+  ['vencimento', 'Vencimento do plano', 'date', true],
 ] as const
 
 /**
@@ -117,15 +126,17 @@ export function EditarPessoa({
             }
           })}
         >
-          <div className="flex flex-wrap gap-3">
-            {CAMPOS.map(([n, r, t]) => (
-              <Campo key={n} rotulo={r} htmlFor={`ep-${n}`}>
-                <input
-                  id={`ep-${n}`} name={n} type={t} defaultValue={valor[n]}
-                  required={n === 'nome'}
-                  className={`${entrada} ${n === 'nome' ? 'w-full' : 'min-w-[168px]'}`}
-                />
-              </Campo>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {CAMPOS.map(([n, r, t, largo]) => (
+              <div key={n} className={largo ? 'sm:col-span-2' : ''}>
+                <Campo rotulo={r} htmlFor={`ep-${n}`}>
+                  <input
+                    id={`ep-${n}`} name={n} type={t} defaultValue={valor[n]}
+                    required={n === 'nome'}
+                    className={`${entrada} w-full`}
+                  />
+                </Campo>
+              </div>
             ))}
           </div>
 
