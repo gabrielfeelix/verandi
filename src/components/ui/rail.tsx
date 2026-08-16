@@ -140,7 +140,7 @@ export function Rail({
                   }`}
                 >
                   {i.badge}
-                  <span className="sr-only"> esperando decisão</span>
+                  <span className="sr-only"> aguardando decisão</span>
                 </span>
               ) : null}
             </Link>

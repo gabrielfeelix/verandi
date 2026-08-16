@@ -210,7 +210,7 @@ export function EditorSerie({
                   deixa seguir. */}
               {colisoes.length > 0 ? (
                 <div className="flex flex-col gap-2 rounded-media border border-atencao-linha bg-atencao-superficie p-3 text-[12.5px] leading-relaxed">
-                  <p className="font-medium">Esse horário já tem coisa marcada:</p>
+                  <p className="font-medium">Já existe algo marcado neste horário:</p>
                   <ul className="list-inside list-disc">
                     {colisoes.map((c, i) => (
                       <li key={`${c.serieId}-${i}`}>

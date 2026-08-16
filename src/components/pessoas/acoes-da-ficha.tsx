@@ -95,7 +95,7 @@ export function AtenderPedidoDeExclusao({
         perigo
         largura="lista"
         titulo={`Apagar os dados de ${nome}?`}
-        sub="O pedido do titular, cumprido. Não tem desfazer."
+        sub="O pedido do titular, cumprido. Não é possível desfazer."
         primario="Apagar os dados"
         secundario="Voltar"
         pendente={pendente || !pode}

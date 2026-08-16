@@ -481,7 +481,7 @@ export default async function Pessoa({
                 <Vazio
                   icone="check"
                   titulo="Nenhuma. Nada a cobrar de volta."
-                  texto="Falta que virou crédito e ninguém usou aparece aqui."
+                  texto="Faltas que geraram crédito e ainda não foram repostas aparecem aqui."
                 />
               ) : (
                 <ul className="flex flex-col gap-2">

@@ -242,7 +242,7 @@ export function SecaoUsuarios({
       {convites.length > 0 ? (
         <PainelConfig
           titulo="Convites em aberto"
-          sub="O link aparece uma vez; perdeu, revoga e cria outro"
+          sub="O link aparece uma vez. Se perder, revogue e crie outro"
         >
           {convites.map((c) => (
             <LinhaConfig
@@ -263,7 +263,7 @@ export function SecaoUsuarios({
               }
             >
               {c.entrega && c.entrega !== 'entregue' ? (
-                <Etiqueta tinta="atencao">não chegou</Etiqueta>
+                <Etiqueta tinta="atencao">Não chegou</Etiqueta>
               ) : null}
               <Etiqueta tinta={c.tipo === 'senha' ? 'atencao' : 'info'}>
                 {c.tipo === 'senha' ? 'redefinir senha' : NOME_PAPEL[c.papel]}

@@ -172,7 +172,7 @@ export function Escolha({
                 value={filtro}
                 onChange={(e) => { setFiltro(e.target.value); setFoco(0) }}
                 onKeyDown={teclado}
-                placeholder="filtrar"
+                placeholder="Filtrar"
                 aria-label="Filtrar a lista"
                 className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-tinta-fraca"
               />

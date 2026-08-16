@@ -219,7 +219,7 @@ export function PainelContas({
                   <span className="flex min-w-0 flex-col leading-[1.35]">
                     <span className="flex items-center gap-2 truncate text-[14px] font-medium">
                       {c.nome}
-                      {!c.ativa ? <Etiqueta tinta="alerta">suspensa</Etiqueta> : null}
+                      {!c.ativa ? <Etiqueta tinta="alerta">Suspensa</Etiqueta> : null}
                     </span>
                     <span className="truncate text-[11.5px] text-tinta-media">
                       <span className="font-mono">{c.slug}</span>
@@ -235,7 +235,7 @@ export function PainelContas({
                 {/* chamada que despenca é o primeiro sintoma de abandono */}
                 <span className="justify-self-start">
                   {c.chamadasFeitasPct === null ? (
-                    <Etiqueta tinta="neutro">sem dados</Etiqueta>
+                    <Etiqueta tinta="neutro">Sem dados</Etiqueta>
                   ) : (
                     <Etiqueta tinta={c.chamadasFeitasPct >= 70 ? 'positivo' : 'alerta'}>
                       {c.chamadasFeitasPct}% feitas

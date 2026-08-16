@@ -82,11 +82,11 @@ export function SecaoIntegracoes({
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2">
               <span className="text-[14.5px] font-medium">AutoFluxos</span>
-              <Etiqueta tinta="positivo">recomendado</Etiqueta>
-              {ligado ? <Etiqueta tinta="info">ligado</Etiqueta> : null}
+              <Etiqueta tinta="positivo">Recomendado</Etiqueta>
+              {ligado ? <Etiqueta tinta="info">Ativo</Etiqueta> : null}
             </span>
             <span className="text-[12.5px] leading-relaxed text-tinta-media">
-              O robô atende no WhatsApp e marca direto aqui. Ele oferece só
+              O atendimento automático responde no WhatsApp e marca direto aqui. Ele oferece só
               horário com vaga, e nunca abre turma nem passa da lotação: isso
               continua sendo decisão de quem está no balcão.
             </span>
@@ -144,7 +144,7 @@ export function SecaoIntegracoes({
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2">
               <span className="text-[12.5px] font-medium">Notificações</span>
-              {aviso?.ativo ? <Etiqueta tinta="info">ligado</Etiqueta> : null}
+              {aviso?.ativo ? <Etiqueta tinta="info">Ativo</Etiqueta> : null}
             </span>
             <span className="text-[12.5px] leading-relaxed text-tinta-media">
               A Verandi manda um aviso para o seu sistema quando alguém é marcado,
@@ -279,7 +279,7 @@ export function SecaoIntegracoes({
         >
           <Campo
             rotulo="Nome" htmlFor="ch-nome"
-            dica="Aparece na lista, e é como você vai saber qual revogar"
+            dica="Aparece na lista, e é como você identifica qual revogar"
           >
             <input
               id="ch-nome" name="nome" required autoFocus maxLength={60}
@@ -344,7 +344,7 @@ export function SecaoIntegracoes({
         >
           <Nota tom="alerta">
             O que já foi marcado por ela continua marcado, e continua dizendo que
-            veio do robô. Revogar fecha a porta daqui para frente, não apaga o
+            veio do atendimento automático. Revogar bloqueia daqui para frente, e não apaga o
             passado.
           </Nota>
         </ModalFormulario>

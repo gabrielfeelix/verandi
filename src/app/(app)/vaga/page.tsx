@@ -193,7 +193,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
           >
             <span className="flex flex-col leading-[1.35]">
               <span className="text-[13px] font-medium">Incluir lotados</span>
-              <span className="text-[11.5px] text-tinta-fraca">para encaixe</span>
+              <span className="text-[11.5px] text-tinta-fraca">Para encaixe</span>
             </span>
             <span
               aria-hidden

@@ -91,7 +91,7 @@ export function SecaoPadroes({
       <div className="flex flex-col gap-2.5">
         <LinhaPadrao
           rotulo="Vagas por sessão"
-          detalhe="usado quando o serviço não tem capacidade própria"
+          detalhe="Usado quando a modalidade não tem capacidade própria"
         >
           <Contador
             rotulo="Vagas por sessão"
@@ -105,7 +105,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Duração da sessão"
-          detalhe="o tamanho de um horário na grade"
+          detalhe="O tamanho de um horário na grade"
         >
           <Contador
             rotulo="Duração da sessão"
@@ -120,7 +120,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Intervalo entre sessões"
-          detalhe="a folga que separa uma da próxima, é ela que sugere o horário seguinte"
+          detalhe="A folga entre um horário e o próximo. É ela que sugere o horário seguinte"
         >
           <Contador
             rotulo="Intervalo entre sessões"
@@ -135,7 +135,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Prazo da reposição"
-          detalhe="depois disso o crédito de uma falta expira, e a pendência sai da lista"
+          detalhe="Depois desse prazo o crédito da falta expira, e a pendência sai da lista"
         >
           <Contador
             rotulo="Prazo da reposição"
@@ -149,7 +149,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Encaixe acima da capacidade"
-          detalhe="vale para quem está na recepção. A busca de vaga e o robô continuam sem enxergar horário cheio, 5/4 é sempre alguém decidindo"
+          detalhe="Vale para quem está na recepção. A busca de vaga e a API continuam sem oferecer horário cheio, 5/4 é sempre alguém decidindo"
         >
           <Opcoes
             rotulo="Encaixe acima da capacidade"
@@ -164,7 +164,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Falta avisada gera crédito"
-          detalhe="exigir antecedência mínima depende de saber a que horas a pessoa avisou; hoje só sabemos quando a recepção registrou"
+          detalhe="Exigir antecedência mínima depende de saber a que horas a pessoa avisou. Hoje o sistema registra apenas quando a recepção anotou"
         >
           <Opcoes
             rotulo="Falta avisada gera crédito"
@@ -179,14 +179,14 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Horários sugeridos"
-          detalhe="os atalhos que aparecem ao montar a grade; sempre dá para digitar outro na mão"
+          detalhe="Os atalhos que aparecem ao montar a grade. Qualquer outro horário pode ser digitado"
         >
           <div className="flex flex-wrap items-center gap-2">
             {v.horariosSugeridos.map((h) => (
               <button
                 key={h}
                 type="button"
-                aria-label={`remover ${h}`}
+                aria-label={`Remover ${h}`}
                 onClick={() =>
                   setV({
                     ...v,
@@ -308,7 +308,7 @@ function Contador({
       <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
         <button
           type="button"
-          aria-label="menos"
+          aria-label="Diminuir"
           title={`Diminuir ${rotulo.toLowerCase()}`}
           disabled={valor <= min}
           onClick={() => aoMudar(limitar(valor - passo))}
@@ -330,7 +330,7 @@ function Contador({
         <span aria-hidden className="h-full w-px self-stretch bg-linha-fina" />
         <button
           type="button"
-          aria-label="mais"
+          aria-label="Aumentar"
           title={`Aumentar ${rotulo.toLowerCase()}`}
           disabled={valor >= max}
           onClick={() => aoMudar(limitar(valor + passo))}

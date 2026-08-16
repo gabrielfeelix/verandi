@@ -195,7 +195,7 @@ export function LinhaDaGrade({
           aoFechar={fechar}
         >
           {ocupantes === null ? (
-            <p className="text-[12.5px] text-tinta-media">carregando…</p>
+            <p className="text-[12.5px] text-tinta-media">Carregando…</p>
           ) : ocupantes.length === 0 ? (
             <Nota>
               Ninguém ocupa este horário. Encerrar não avisa ninguém.

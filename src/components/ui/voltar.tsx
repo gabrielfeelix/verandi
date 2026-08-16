@@ -6,7 +6,7 @@ import { Icone } from './icones'
 /**
  * Voltar para a tela anterior — a de verdade, não a que a trilha supõe.
  *
- * A trilha (`Alunos / Fulano`) só sabe levar para a lista. Quem chegou na ficha
+ * A trilha só sabe levar para a lista de cadastros. Quem chegou na ficha
  * pela agenda, pela busca do Hoje ou por Pendências queria desfazer o passo que
  * deu, e acabava caindo numa terceira tela. Isto é o `history.back()` do
  * navegador, com alvo de toque e nome — no celular não existe o botão do

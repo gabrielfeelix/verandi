@@ -199,7 +199,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
             <>
               <Campo
                 rotulo="Qual horário?" htmlFor="vg-serie"
-                dica={`${series.length} na grade · a ocupação de cada um aparece na lista`}
+                dica={`${series.length} na grade. A ocupação de cada um aparece na lista`}
               >
                 <Escolha
                   id="vg-serie"
@@ -208,7 +208,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
                   opcoes={series.map((s) => ({
                     valor: s.id, rotulo: s.rotulo, detalhe: s.detalhe, grupo: s.grupo,
                   }))}
-                  placeholder="escolha o dia e a hora"
+                  placeholder="Escolha o dia e a hora"
                   aoTrocar={() => setErro(null)}
                   invalido={erro !== null}
                 />

@@ -221,7 +221,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                       }`}
                     >
                       {fone ?? 'Sem registro'}
-                      {fone ? null : <span className="sr-only">sem telefone</span>}
+                      {fone ? null : <span className="sr-only">Sem telefone</span>}
                     </span>
 
                     <span

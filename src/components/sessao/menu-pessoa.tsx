@@ -116,7 +116,7 @@ export function MenuPessoa({
             onChange={(e) => setTexto(e.target.value)}
             rows={3}
             className={`${entrada} w-full py-2`}
-            placeholder="chegou atrasada, saiu mais cedo…"
+            placeholder="Ex.: chegou atrasada, saiu mais cedo"
           />
           {/* quem escreve escolhe quem lê, na hora de escrever: é o único
               momento em que a pessoa sabe se está anotando "chegou atrasada" ou

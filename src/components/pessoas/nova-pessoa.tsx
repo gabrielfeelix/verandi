@@ -81,7 +81,7 @@ export function NovaPessoa({
             <Campo rotulo="Identificador" dica="Opcional" htmlFor="np-id">
               <input
                 id="np-id" name="identificador"
-                placeholder="número da ficha antiga"
+                placeholder="Número da ficha antiga"
                 className={`${entrada} w-full`}
               />
             </Campo>

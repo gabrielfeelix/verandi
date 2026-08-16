@@ -336,7 +336,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             {rotulo}
           </span>
         ))}
-        <span className="text-tinta-fraca">Em celular a grade vira um dia por vez.</span>
+        <span className="text-tinta-fraca">No celular, a agenda mostra um dia por vez.</span>
       </div>
     </div>
   )

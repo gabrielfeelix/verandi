@@ -114,7 +114,7 @@ export function Sino({ itens }: { itens: Notificacao[] }) {
         >
           <div className="flex shrink-0 items-baseline justify-between gap-2 border-b border-linha-fina px-4 py-3">
             <span className="text-[13.5px] font-semibold">Notificações</span>
-            <span className="text-[11.5px] text-tinta-fraca">últimos 7 dias</span>
+            <span className="text-[11.5px] text-tinta-fraca">Últimos 7 dias</span>
           </div>
 
           {itens.length === 0 ? (
