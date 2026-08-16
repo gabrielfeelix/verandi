@@ -39,15 +39,20 @@ const DIA = 864e5
 /**
  * Por que esta pessoa tem crédito, na linha da pendência.
  *
- * Sem vocabulário da conta de propósito: a frase precisa caber em "faltou em
- * 12/08", e qualquer artigo colado numa palavra do cliente vira "a
- * atendimento". Quem quiser o nome do horário abre a ficha, que está a um
- * clique.
+ * O nome do estado, igual ao da chamada e do resumo — e não o verbo do dia a
+ * dia ("faltou", "avisou que não vinha"), que muda a mesma informação de nome
+ * de uma tela para outra. Sem vocabulário da conta de propósito: qualquer
+ * artigo colado numa palavra do cliente vira "a atendimento".
  */
 const MOTIVO_DO_CREDITO: Partial<Record<StatusParticipacao, string>> = {
-  falta: 'faltou',
-  falta_avisada: 'avisou que não vinha',
-  cancelada: 'ficou sem o horário, o negócio não abriu',
+  falta: 'Falta',
+  falta_avisada: 'Falta avisada',
+  cancelada: 'Horário cancelado pelo estúdio',
+}
+
+/** `2026-07-13` → `13/07/26`: data na tela é escrita como se lê. */
+function dataCurta(iso: string): string {
+  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(2, 4)}`
 }
 
 function diasDesde(iso: string): number {
@@ -201,8 +206,8 @@ async function reposicoesAbertas(
       tipo: 'reposicao_aberta' as const,
       referenciaId: p.id,
       titulo: p.pessoa?.nome ?? 'Sem nome',
-      detalhe: `${MOTIVO_DO_CREDITO[p.status] ?? 'ficou sem o horário'} em ${
-        p.sessao!.inicio.slice(0, 10)} · ${p.sessao!.servico?.nome ?? ''}`,
+      detalhe: `${MOTIVO_DO_CREDITO[p.status] ?? 'Horário perdido'} em ${
+        dataCurta(p.sessao!.inicio.slice(0, 10))} · ${p.sessao!.servico?.nome ?? ''}`,
       diasEmAberto: diasDesde(p.sessao!.inicio),
       href: p.pessoa ? `/pessoas/${p.pessoa.id}` : '/pessoas',
     }))
@@ -227,8 +232,8 @@ async function reservasEsperando(
       tipo: 'reserva_esperando' as const,
       referenciaId: p.id,
       titulo: p.pessoa?.nome ?? 'Sem nome',
-      detalhe: `quer ${p.sessao!.servico?.nome ?? 'o horário'} de ${
-        p.sessao!.inicio.slice(0, 10)}`,
+      detalhe: `Aguarda vaga em ${p.sessao!.servico?.nome ?? 'um horário'} de ${
+        dataCurta(p.sessao!.inicio.slice(0, 10))}`,
       diasEmAberto: diasDesde(p.registrado_em),
       href: `/sessao/${p.sessao!.id}`,
     }))

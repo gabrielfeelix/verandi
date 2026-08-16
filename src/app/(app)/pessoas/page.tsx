@@ -16,7 +16,7 @@ const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   { valor: 'sem_telefone',     rotulo: 'Telefone incompleto' },
   { valor: 'sem_horario_fixo', rotulo: 'Sem horário fixo' },
   { valor: 'plano_vencendo',   rotulo: 'Plano vencendo' },
-  { valor: 'faltou_duas',      rotulo: 'Faltou nas últimas duas' },
+  { valor: 'faltou_duas',      rotulo: 'Duas faltas seguidas' },
   { valor: 'inativa',          rotulo: 'Inativa' },
 ]
 

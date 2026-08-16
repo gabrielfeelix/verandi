@@ -164,7 +164,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Falta avisada gera crédito"
-          detalhe="Exigir antecedência mínima depende de saber a que horas a pessoa avisou. Hoje o sistema registra apenas quando a recepção anotou"
+          detalhe="Exigir antecedência mínima depende da hora em que o aviso chegou. Hoje o sistema registra apenas quando a recepção anotou"
         >
           <Opcoes
             rotulo="Falta avisada gera crédito"
