@@ -400,7 +400,7 @@ export default async function Pessoa({
                   ))}
                 </div>
                 <div className="flex gap-3.5 pt-0.5">
-                  {[['#0E7C6B', 'veio'], ['#F6E7C9', 'avisou'], ['#FBE4D9', 'faltou']].map(
+                  {[['#0E7C6B', 'Presente'], ['#F6E7C9', 'Falta avisada'], ['#FBE4D9', 'Falta']].map(
                     ([cor, rotulo]) => (
                       <span key={rotulo} className="inline-flex items-center gap-1.5 text-[10.5px] text-tinta-fraca">
                         <span aria-hidden className="size-2 rounded-[3px]" style={{ background: cor }} />

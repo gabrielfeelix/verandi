@@ -12,11 +12,11 @@ import {
 } from '@/server/agenda/acoes'
 
 const ORIGENS: Array<{ valor: OrigemParticipacao; rotulo: string; explica: string }> = [
-  { valor: 'recorrente', rotulo: 'Fixo', explica: 'tem vaga permanente neste horário' },
-  { valor: 'avulso', rotulo: 'Avulso', explica: 'veio só desta vez' },
-  { valor: 'reposicao', rotulo: 'Reposição', explica: 'está repondo uma falta' },
-  { valor: 'encaixe', rotulo: 'Encaixe', explica: 'entrou fora da capacidade prevista' },
-  { valor: 'reserva', rotulo: 'Reserva', explica: 'espera vaga abrir' },
+  { valor: 'recorrente', rotulo: 'Fixo', explica: 'Tem vaga permanente neste horário' },
+  { valor: 'avulso', rotulo: 'Avulso', explica: 'Veio só desta vez' },
+  { valor: 'reposicao', rotulo: 'Reposição', explica: 'Está repondo uma falta' },
+  { valor: 'encaixe', rotulo: 'Encaixe', explica: 'Entrou fora da capacidade prevista' },
+  { valor: 'reserva', rotulo: 'Reserva', explica: 'Espera vaga abrir' },
 ]
 
 type Aberto = null | 'menu' | 'observacao' | 'reposicao' | 'origem'
@@ -191,7 +191,7 @@ export function MenuPessoa({
                     </span>
                     <span className="flex-1">{f.servico}</span>
                     <span className="text-[11.5px] text-tinta-media">
-                      {f.status === 'falta' ? 'faltou' : 'avisou'}
+                      {f.status === 'falta' ? 'Falta' : 'Falta avisada'}
                     </span>
                   </button>
                 </li>
@@ -219,7 +219,7 @@ export function MenuPessoa({
       ) : null}
 
       {aberto === 'origem' ? (
-        <Gaveta titulo={`De onde ${participacao.nome} veio`} aoFechar={fechar}>
+        <Gaveta titulo={`Origem de ${participacao.nome}`} aoFechar={fechar}>
           <ul className="flex flex-col gap-1.5">
             {ORIGENS.map((o) => (
               <li key={o.valor}>
