@@ -141,7 +141,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
-            {ehDia ? 'Dia por recurso' : 'Grade da semana'}
+            {ehDia ? 'Dia por recurso' : 'Agenda da semana'}
           </h1>
           <p className="pt-[3px] text-[13.5px] text-tinta-media">
             {ehDia

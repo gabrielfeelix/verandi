@@ -8,10 +8,11 @@ import { EditarPessoa } from '@/components/pessoas/editar-pessoa'
 import {
   AtenderPedidoDeExclusao, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
 } from '@/components/pessoas/acoes-da-ficha'
-import { Vagas } from '@/components/pessoas/vagas'
+import { BotaoAgendar, ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
 import { Etiqueta, Rotulo, Vazio, cartao } from '@/components/ui/pecas'
+import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
@@ -145,6 +146,8 @@ export default async function Pessoa({
   const semanas = semanasDe(ficha.historico, hoje)
 
   return (
+    <ProvedorDeAviso>
+    <ProvedorDeMatricula>
     <div className="flex flex-col gap-4">
       <nav className="flex items-center gap-2.5 text-[12.5px] text-tinta-apagada">
         <Link href="/pessoas" className="font-medium text-marca">
@@ -204,16 +207,12 @@ export default async function Pessoa({
 
         <div className="flex min-w-[200px] flex-[1_1_200px] flex-col gap-2.5">
           {/*
-            "Agendar" leva ao único lugar onde se marca horário para alguém: o
-            formulário de vaga, na aba Agenda. Botão que abre um modal que a
-            tela já tem embaixo seria um caminho a mais para o mesmo destino.
+            "Agendar" abre o mesmo modal do "Criar matrícula" que fica na aba
+            Agenda. Eram uma âncora e um formulário embutido: o botão de cima
+            não abria nada, e quando a aba aberta era outra ele não levava a
+            lugar nenhum.
           */}
-          <Link
-            href={`/pessoas/${id}#nova-matricula`}
-            className="flex min-h-11 w-full items-center justify-center rounded-media bg-escuro px-4 text-[13.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
-          >
-            Agendar
-          </Link>
+          <BotaoAgendar>Agendar</BotaoAgendar>
           <div className="flex gap-2">
             <EditarPessoa
               className="flex-1"
@@ -643,5 +642,7 @@ export default async function Pessoa({
         </aside>
       </div>
     </div>
+    </ProvedorDeMatricula>
+    </ProvedorDeAviso>
   )
 }

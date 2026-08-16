@@ -73,7 +73,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
     { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', icone: 'hoje', guia: 'rail-hoje' },
     ...(operacional
       ? ([
-          { href: '/semana', rotulo: 'Grade da semana', curto: 'Semana', icone: 'semana', guia: 'rail-semana' },
+          { href: '/semana', rotulo: 'Agenda', curto: 'Agenda', icone: 'semana', guia: 'rail-semana' },
           { href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', icone: 'pendencias', guia: 'rail-pendencias' },
           {
             href: '/pessoas',

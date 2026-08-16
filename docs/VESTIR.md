@@ -169,7 +169,7 @@ avatar    no rodapé do trilho
 Os itens, na ordem, com o rótulo curto que aparece fechado:
 
 ```
-Hoje→Hoje · Grade da semana→Semana · Pendências→Pend. (com selo)
+Hoje→Hoje · Agenda→Agenda · Pendências→Pend. (com selo)
 <vocábulo plural>→Alunos · Buscar vaga→Vaga · Grade fixa→Fixa
 Contas (4YU)→4YU · Acesso→Acesso · Configuração→Config
 ```

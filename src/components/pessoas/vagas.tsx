@@ -1,6 +1,12 @@
 'use client'
 
-import { useTransition } from 'react'
+import {
+  createContext, useContext, useState, useTransition, type ReactNode,
+} from 'react'
+import { useRouter } from 'next/navigation'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
+import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { useAviso } from '@/components/ui/desfazer'
 import { criarVaga, encerrarVaga } from '@/server/pessoas/acoes'
 
 type Props = {
@@ -11,12 +17,67 @@ type Props = {
   rotuloSerie: string
 }
 
+/*
+ * "Agendar", no alto da ficha, e "Adicionar", dentro do cartão de matrículas,
+ * são a mesma ação em dois lugares — e o lugar de baixo pode estar numa aba
+ * fechada. Antes o botão de cima era uma âncora `#nova-matricula`: clicar não
+ * abria nada, e em aba errada não rolava para lugar nenhum. Este contexto deixa
+ * os dois abrirem o mesmo modal sem que a ficha (que é servidor) precise virar
+ * cliente inteira.
+ */
+const Abrir = createContext<(() => void) | null>(null)
+
+/** Muda de valor a cada clique em "Agendar": é o sinal para o modal abrir. */
+const Pedido = createContext(0)
+
+export function ProvedorDeMatricula({ children }: { children: ReactNode }) {
+  const [pedido, setPedido] = useState(0)
+  return (
+    <Abrir.Provider value={() => setPedido((n) => n + 1)}>
+      <Pedido.Provider value={pedido}>{children}</Pedido.Provider>
+    </Abrir.Provider>
+  )
+}
+
+export function BotaoAgendar({ children }: { children: ReactNode }) {
+  const abrir = useContext(Abrir)
+  return (
+    <button
+      type="button"
+      onClick={() => abrir?.()}
+      className="flex min-h-11 w-full items-center justify-center rounded-media bg-escuro px-4 text-[13.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
+    >
+      {children}
+    </button>
+  )
+}
+
 export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Props) {
   const [pendente, iniciar] = useTransition()
+  const [criando, setCriando] = useState(false)
+  const [encerrando, setEncerrando] =
+    useState<{ id: string; rotulo: string } | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
+  const pedido = useContext(Pedido)
+  const [visto, setVisto] = useState(pedido)
+  const router = useRouter()
+  const avisar = useAviso()
   const hoje = new Date().toISOString().slice(0, 10)
+
+  // o clique em "Agendar" lá em cima chega como um número novo
+  if (pedido !== visto) {
+    setVisto(pedido)
+    if (!criando) setCriando(true)
+  }
 
   const ativas = vagas.filter((v) => v.ate === null || v.ate >= hoje)
   const encerradas = vagas.filter((v) => v.ate !== null && v.ate < hoje)
+
+  function fechar() {
+    setCriando(false)
+    setEncerrando(null)
+    setErro(null)
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -41,11 +102,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
                 type="button"
                 disabled={pendente}
                 className="ml-auto min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
-                onClick={() => {
-                  if (confirm('Encerrar a partir de hoje? O histórico anterior fica.')) {
-                    iniciar(() => encerrarVaga(v.id, hoje))
-                  }
-                }}
+                onClick={() => setEncerrando({ id: v.id, rotulo: v.rotulo })}
               >
                 Encerrar
               </button>
@@ -67,41 +124,103 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
         </details>
       ) : null}
 
-      <form
-        id="nova-matricula"
-        className="flex flex-wrap items-end gap-2"
-        action={(f) => {
-          const serieId = String(f.get('serie') ?? '')
-          if (!serieId) return
-          iniciar(() => criarVaga(serieId, pessoaId, String(f.get('desde') ?? hoje)))
-        }}
+      <button
+        type="button"
+        onClick={() => setCriando(true)}
+        className="min-h-11 self-start rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
       >
-        <div className="flex flex-col gap-1">
-          <label htmlFor="serie" className="text-[12.5px] font-medium">
-            Criar {rotuloVaga.toLowerCase()}
-          </label>
-          <select id="serie" name="serie" required className="min-h-11 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px]">
-            <option value="">escolha o horário</option>
-            {series.map((s) => (
-              <option key={s.id} value={s.id}>{s.rotulo}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="desde" className="text-[12.5px] font-medium">A partir de</label>
-          <input id="desde" name="desde" type="date" defaultValue={hoje}
-                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-2.5 text-[13px]" />
-        </div>
-
-        <button type="submit" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-          Adicionar
-        </button>
-      </form>
-
-      <p className="text-[11.5px] text-tinta-media">
+        Criar {rotuloVaga.toLowerCase()}
+      </button>
+      <p className="text-[12px] text-tinta-fraca">
         Ocupa esse horário toda semana, por tempo indeterminado.
       </p>
+
+      {criando ? (
+        <ModalFormulario
+          aberto
+          glifo="+"
+          largura="lista"
+          titulo="Novo agendamento"
+          sub={`${rotuloVaga} ocupa o mesmo horário toda semana, a partir da data escolhida.`}
+          primario="Agendar"
+          pendente={pendente}
+          aoFechar={fechar}
+          aoEnviar={(f) => {
+            const serieId = String(f.get('serie') ?? '')
+            // sem horário escolhido o formulário parava calado; agora o
+            // navegador cobra o campo, e este `if` é só a rede de baixo
+            if (!serieId) return setErro('Escolha o horário.')
+            iniciar(async () => {
+              setErro(null)
+              try {
+                await criarVaga(serieId, pessoaId, String(f.get('desde') ?? hoje))
+                avisar({ texto: 'Agendamento feito' })
+                fechar()
+                router.refresh()
+              } catch (e) {
+                setErro(e instanceof Error ? e.message : 'não deu para agendar')
+              }
+            })
+          }}
+        >
+          {series.length === 0 ? (
+            <Nota tom="atencao">
+              Não há horário na grade fixa para ocupar. Crie o horário
+              primeiro, em Grade fixa.
+            </Nota>
+          ) : (
+            <>
+              <Campo rotulo="Horário" htmlFor="vg-serie">
+                <select id="vg-serie" name="serie" required autoFocus className={entrada}>
+                  <option value="">escolha o horário</option>
+                  {series.map((s) => (
+                    <option key={s.id} value={s.id}>{s.rotulo}</option>
+                  ))}
+                </select>
+              </Campo>
+              <Campo
+                rotulo="A partir de" htmlFor="vg-desde"
+                dica="o que já passou não muda"
+              >
+                <input
+                  id="vg-desde" name="desde" type="date" defaultValue={hoje}
+                  className={`${entrada} w-[190px]`}
+                />
+              </Campo>
+            </>
+          )}
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </ModalFormulario>
+      ) : null}
+
+      {encerrando ? (
+        <Modal
+          aberto
+          perigo
+          titulo={`Encerrar ${rotuloVaga.toLowerCase()}?`}
+          sub={encerrando.rotulo}
+          primario="Encerrar"
+          pendente={pendente}
+          aoFechar={fechar}
+          aoConfirmar={() => iniciar(async () => {
+            setErro(null)
+            try {
+              await encerrarVaga(encerrando.id, hoje)
+              avisar({ texto: 'Agendamento encerrado' })
+              fechar()
+              router.refresh()
+            } catch (e) {
+              setErro(e instanceof Error ? e.message : 'não deu para encerrar')
+            }
+          })}
+        >
+          <Nota>
+            Vale a partir de hoje: o que já passou continua no histórico, e
+            daqui para frente esse horário deixa de ser marcado sozinho.
+          </Nota>
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </Modal>
+      ) : null}
     </div>
   )
 }

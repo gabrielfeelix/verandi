@@ -226,7 +226,7 @@ export function LinhaDaGrade({
               {rotulos.profissional.singular}
               <select name="profissionalId" defaultValue={serie.profissionalId ?? ''}
                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-                <option value="">, sem definir ,</option>
+                <option value="">Sem {rotulos.profissional.singular.toLowerCase()}</option>
                 {catalogo.profissionais.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
               </select>
             </label>
@@ -234,7 +234,7 @@ export function LinhaDaGrade({
               {rotulos.local.singular}
               <select name="localId" defaultValue={serie.localId ?? ''}
                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-                <option value="">, sem definir ,</option>
+                <option value="">Sem {rotulos.local.singular.toLowerCase()}</option>
                 {catalogo.locais.map((l) => <option key={l.id} value={l.id}>{l.nome}</option>)}
               </select>
             </label>

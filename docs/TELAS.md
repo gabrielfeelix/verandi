@@ -17,12 +17,12 @@ usuário. Ela lê o `vocabulario` da conta e escreve "Aluno", "Cliente" ou
 não como palavra fixa no layout, inclusive no plural e no cabeçalho de coluna.
 
 **A porta de entrada depende do papel.** `profissional` cai em **Hoje**;
-`dono` e `recepcao` caem em **Grade da semana**; `suporte` cai em **Contas
+`dono` e `recepcao` caem em **Agenda**; `suporte` cai em **Contas
 (4YU)**, a lista dos clientes — não em `/contas`, que é a troca de conta.
 Ninguém escolhe onde começar, o sistema já sabe.
 
 **Celular é o caso real, não o caso reduzido.** A tela de sessão é usada em pé,
-numa sala, com a mão ocupada. Grade da semana é a única que assume tela larga; em
+numa sala, com a mão ocupada. A Agenda é a única que assume tela larga; em
 celular ela vira um dia por vez. Todas as outras funcionam iguais nos três
 tamanhos.
 
@@ -199,7 +199,7 @@ precisa dizer **quantas pessoas serão avisadas**.
 
 ---
 
-## 6. Grade da semana
+## 6. Agenda da semana
 
 **Serve para** ver a operação inteira de uma vez. É a substituta direta da
 planilha, e é a tela que faz o cliente aceitar largar o Excel.

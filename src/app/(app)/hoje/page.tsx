@@ -5,6 +5,7 @@ import { sessoesDoIntervalo, type SessaoResumo } from '@/server/agenda/consultas
 import { listarPendencias } from '@/server/pendencias/consultas'
 import { somarDias } from '@/core/agenda/datas'
 import { agoraMs, hojeEm, horaEm, quantoFalta } from '@/server/agenda/fuso'
+import { BuscaRapida } from '@/components/hoje/busca-rapida'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Abas } from '@/components/ui/abas'
 import { Icone } from '@/components/ui/icones'
@@ -139,16 +140,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {/* A busca global do protótipo ainda não existe no sistema. O espaço
-                fica reservado, desabilitado e dizendo o porquê, inventar a
-                funcionalidade aqui seria pior do que deixá-la faltando. */}
-            <span
-              title="A busca geral entra no próximo marco"
-              className="hidden min-w-[210px] items-center gap-2 rounded-padrao border border-linha bg-superficie px-3.5 py-2.5 text-[13px] text-tinta-fraca lg:flex"
-            >
-              <span aria-hidden className="font-mono">/</span>
-              Buscar {rotulos.pessoa.singular.toLowerCase()} ou horário
-            </span>
+            <BuscaRapida rotuloPessoa={rotulos.pessoa.singular} />
 
             <NavegadorPeriodo
               antes={{ href: link(somarDias(dia, -1)), rotulo: 'Dia anterior' }}
@@ -202,7 +194,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         </div>
 
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_316px]">
-          <div className="flex flex-col gap-3.5">
+          <div className="flex min-w-0 flex-col gap-3.5">
             {proxima ? (
               <div data-guia="hoje-proxima">
                 <ProximaTurma
@@ -264,7 +256,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                   Pode ser domingo, feriado ou dia fechado na configuração de
                   funcionamento. Não é falha de carregamento.
                 </span>
-                <div className="flex gap-2 pt-1.5">
+                <div className="flex flex-wrap justify-center gap-2 pt-1.5">
                   <Link
                     href="/semana"
                     className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
@@ -314,7 +306,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             )}
           </div>
 
-          <div className="flex flex-col gap-3.5">
+          <div className="flex min-w-0 flex-col gap-3.5">
             {podeVerTodos ? (
               <Bloco
                 titulo="Pendências"

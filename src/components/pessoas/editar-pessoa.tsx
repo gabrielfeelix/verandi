@@ -1,8 +1,12 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { editarPessoa } from '@/server/pessoas/acoes'
 import { Botao } from '@/components/ui/botao'
+import { ModalFormulario } from '@/components/ui/modal'
+import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { useAviso } from '@/components/ui/desfazer'
 
 type Pessoa = {
   id: string
@@ -19,6 +23,25 @@ type Pessoa = {
   ativo: boolean
 }
 
+const CAMPOS = [
+  ['nome', 'Nome', 'text'],
+  ['telefone', 'Telefone', 'tel'],
+  ['email', 'E-mail', 'email'],
+  ['identificador', 'Identificador', 'text'],
+  ['nascimento', 'Nascimento', 'date'],
+  ['vencimento', 'Vencimento do plano', 'date'],
+] as const
+
+/**
+ * Editar a ficha **em modal**, não embutido no cartão.
+ *
+ * Embutido, o formulário nascia dentro do cabeçalho da ficha e empurrava tudo:
+ * o cartão esticava para uns novecentos pixels, o lado esquerdo virava um vazio
+ * branco do tamanho da tela e o botão "Marcar inativa" ficava órfão numa
+ * coluna sozinha. O modal resolve porque o formulário não precisa caber no
+ * lugar de onde nasceu — e a ficha continua inteira atrás, que é o contexto de
+ * quem está conferindo o que digitar.
+ */
 export function EditarPessoa({
   pessoa, className = '',
 }: {
@@ -27,117 +50,134 @@ export function EditarPessoa({
   className?: string
 }) {
   const [aberto, setAberto] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const [visivel, setVisivel] = useState(pessoa.observacaoVisivel)
+  const router = useRouter()
+  const avisar = useAviso()
 
-  if (!aberto) {
-    return (
-      <Botao tom="secundario" onClick={() => setAberto(true)} className={className}>
-        Editar dados
-      </Botao>
-    )
+  function fechar() {
+    setAberto(false)
+    setErro(null)
+  }
+
+  const valor: Record<string, string> = {
+    nome: pessoa.nome,
+    telefone: pessoa.telefone ?? '',
+    email: pessoa.email ?? '',
+    identificador: pessoa.identificadorExterno ?? '',
+    nascimento: pessoa.nascimento ?? '',
+    vencimento: pessoa.vencimentoPlano ?? '',
   }
 
   return (
-    <form
-      className="flex w-[min(420px,80vw)] flex-col gap-3 rounded-grande border border-linha-suave bg-superficie-suave p-3.5"
-      action={(f) => {
-        iniciar(async () => {
-          await editarPessoa(pessoa.id, {
-            nome: String(f.get('nome') ?? ''),
-            telefone: String(f.get('telefone') ?? ''),
-            email: String(f.get('email') ?? ''),
-            identificadorExterno: String(f.get('identificador') ?? ''),
-            nascimento: String(f.get('nascimento') ?? ''),
-            // data que avisa, não valor que cobra — financeiro é outro produto
-            vencimentoPlano: String(f.get('vencimento') ?? ''),
-            /*
-              * Restrita, a observação nem vai no pacote: mandar `''` daqui
-              * apagaria a anotação de quem atende, e o servidor recusaria a
-              * gravação inteira junto com o resto do formulário.
-              */
-            ...(pessoa.observacaoRestrita
-              ? {}
-              : {
-                  observacao: String(f.get('observacao') ?? ''),
-                  observacaoVisivel: visivel,
-                }),
-            ativo: f.get('ativo') === 'on',
-          })
-          setAberto(false)
-        })
-      }}
-    >
-      {([
-        ['nome', 'Nome', 'text', pessoa.nome],
-        ['telefone', 'Telefone', 'text', pessoa.telefone ?? ''],
-        ['email', 'E-mail', 'email', pessoa.email ?? ''],
-        ['identificador', 'Identificador', 'text', pessoa.identificadorExterno ?? ''],
-        ['nascimento', 'Nascimento', 'date', pessoa.nascimento ?? ''],
-        ['vencimento', 'Vencimento do plano', 'date', pessoa.vencimentoPlano ?? ''],
-      ] as const).map(([n, r, t, v]) => (
-        <div key={n} className="flex flex-col gap-1">
-          <label htmlFor={n}>{r}</label>
-          <input id={n} name={n} type={t} defaultValue={v}
-                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]" />
-        </div>
-      ))}
+    <>
+      <Botao tom="secundario" onClick={() => setAberto(true)} className={className}>
+        Editar dados
+      </Botao>
 
-      {pessoa.observacaoRestrita ? (
-        <p className="rounded-padrao border border-linha-suave bg-superficie px-3 py-2.5 text-[12.5px] leading-relaxed text-tinta-media">
-          A observação desta ficha foi escrita para quem atende. O resto dos
-          dados continua editável daqui.
-        </p>
-      ) : (
-        <div className="flex flex-col gap-1">
-          <label htmlFor="observacao">Observação</label>
-          <textarea
-            id="observacao" name="observacao" rows={3}
-            defaultValue={pessoa.observacao ?? ''}
-            className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
-          />
-          {/* quem escreve escolhe quem lê, na hora de escrever: é o único
-              momento em que a pessoa sabe se está anotando "prefere a maca do
-              fundo" ou "hérnia de disco". O padrão fecha, e é decisão. */}
-          <fieldset className="flex flex-col gap-1.5 pt-1.5">
-            <legend className="pb-1.5 text-[11px] font-semibold tracking-[.08em] text-tinta-media uppercase">
-              Visível para
-            </legend>
-            {([
-              ['profissionais', 'Só quem atende'],
-              ['todos', 'Todo mundo da conta'],
-            ] as const).map(([valor, texto]) => (
-              <label key={valor} className="flex items-center gap-2 text-[13px]">
+      {aberto ? (
+        <ModalFormulario
+          aberto
+          glifo="✎"
+          titulo="Editar dados"
+          sub={pessoa.nome}
+          primario="Salvar"
+          pendente={pendente}
+          aoFechar={fechar}
+          aoEnviar={(f) => iniciar(async () => {
+            setErro(null)
+            try {
+              await editarPessoa(pessoa.id, {
+                nome: String(f.get('nome') ?? ''),
+                telefone: String(f.get('telefone') ?? ''),
+                email: String(f.get('email') ?? ''),
+                identificadorExterno: String(f.get('identificador') ?? ''),
+                nascimento: String(f.get('nascimento') ?? ''),
+                // data que avisa, não valor que cobra — financeiro é outro produto
+                vencimentoPlano: String(f.get('vencimento') ?? ''),
+                /*
+                 * Restrita, a observação nem vai no pacote: mandar `''` daqui
+                 * apagaria a anotação de quem atende, e o servidor recusaria a
+                 * gravação inteira junto com o resto do formulário.
+                 */
+                ...(pessoa.observacaoRestrita
+                  ? {}
+                  : {
+                      observacao: String(f.get('observacao') ?? ''),
+                      observacaoVisivel: visivel,
+                    }),
+                ativo: f.get('ativo') === 'on',
+              })
+              avisar({ texto: 'Ficha salva' })
+              fechar()
+              router.refresh()
+            } catch (e) {
+              setErro(e instanceof Error ? e.message : 'não deu para salvar')
+            }
+          })}
+        >
+          <div className="flex flex-wrap gap-3">
+            {CAMPOS.map(([n, r, t]) => (
+              <Campo key={n} rotulo={r} htmlFor={`ep-${n}`}>
                 <input
-                  type="radio" name="observacaoVisivel" value={valor}
-                  checked={visivel === valor}
-                  onChange={() => setVisivel(valor)}
+                  id={`ep-${n}`} name={n} type={t} defaultValue={valor[n]}
+                  required={n === 'nome'}
+                  className={`${entrada} ${n === 'nome' ? 'w-full' : 'min-w-[168px]'}`}
                 />
-                {texto}
-              </label>
+              </Campo>
             ))}
-            <p className="text-[11.5px] text-tinta-media">
-              {visivel === 'profissionais'
-                ? 'A recepção não lê. É onde vai o que é de saúde.'
-                : 'Aparece para quem abrir esta ficha, inclusive a recepção.'}
-            </p>
-          </fieldset>
-        </div>
-      )}
+          </div>
 
-      <label className="flex items-center gap-2">
-        <input type="checkbox" name="ativo" defaultChecked={pessoa.ativo} />
-        Ativa
-      </label>
+          {pessoa.observacaoRestrita ? (
+            <Nota>
+              A observação desta ficha foi escrita para quem atende. O resto dos
+              dados continua editável daqui.
+            </Nota>
+          ) : (
+            <Campo rotulo="Observação" htmlFor="ep-observacao">
+              <textarea
+                id="ep-observacao" name="observacao" rows={3}
+                defaultValue={pessoa.observacao ?? ''}
+                className={entrada}
+              />
+              {/* quem escreve escolhe quem lê, na hora de escrever: é o único
+                  momento em que a pessoa sabe se está anotando "prefere a maca do
+                  fundo" ou "hérnia de disco". O padrão fecha, e é decisão. */}
+              <fieldset className="flex flex-col gap-1.5 pt-2">
+                <legend className="pb-1.5 text-[11px] font-semibold tracking-[.08em] text-tinta-media uppercase">
+                  Visível para
+                </legend>
+                {([
+                  ['profissionais', 'Só quem atende'],
+                  ['todos', 'Todo mundo da conta'],
+                ] as const).map(([v, texto]) => (
+                  <label key={v} className="flex items-center gap-2 text-[13px]">
+                    <input
+                      type="radio" name="observacaoVisivel" value={v}
+                      checked={visivel === v}
+                      onChange={() => setVisivel(v)}
+                    />
+                    {texto}
+                  </label>
+                ))}
+                <p className="text-[11.5px] text-tinta-media">
+                  {visivel === 'profissionais'
+                    ? 'A recepção não lê. É onde vai o que é de saúde.'
+                    : 'Aparece para quem abrir esta ficha, inclusive a recepção.'}
+                </p>
+              </fieldset>
+            </Campo>
+          )}
 
-      <div className="flex gap-2">
-        <button type="submit" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-          Salvar
-        </button>
-        <button type="button" onClick={() => setAberto(false)} className="px-2 underline">
-          Cancelar
-        </button>
-      </div>
-    </form>
+          <label className="flex items-center gap-2 text-[13px]">
+            <input type="checkbox" name="ativo" defaultChecked={pessoa.ativo} />
+            Ativa
+          </label>
+
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </ModalFormulario>
+      ) : null}
+    </>
   )
 }

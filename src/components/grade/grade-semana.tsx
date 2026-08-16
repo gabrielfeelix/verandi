@@ -86,7 +86,7 @@ export function GradeSemana({
 
   return (
     <section
-      aria-label="Grade da semana"
+      aria-label="Agenda da semana"
       className={`max-h-[calc(100vh-210px)] overflow-auto ${cartao} p-3.5`}
     >
       <div className="grid min-w-[920px] grid-cols-[58px_repeat(7,minmax(0,1fr))] gap-1.5">

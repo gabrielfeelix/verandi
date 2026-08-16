@@ -36,7 +36,12 @@ export function Abas({
     <div
       role={aoTrocar ? 'tablist' : undefined}
       aria-label={rotuloDoGrupo}
-      className={`inline-flex gap-[3px] rounded-media border border-linha bg-superficie p-1 ${className}`}
+      /*
+       * `max-w-full` + rolagem própria: quatro abas com `whitespace-nowrap`
+       * dão 383px, e num celular de 390px isso empurrava a página inteira para
+       * o lado. Quem rola é a fita de abas, nunca a tela.
+       */
+      className={`inline-flex max-w-full gap-[3px] overflow-x-auto rounded-media border border-linha bg-superficie p-1 ${className}`}
     >
       {itens.map((i) => {
         const ligado = i.id === ativo

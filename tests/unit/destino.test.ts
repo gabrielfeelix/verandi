@@ -6,7 +6,7 @@ describe('destinoDoPapel', () => {
     expect(destinoDoPapel('profissional')).toBe('/hoje')
   })
 
-  it('dono e recepção caem na Grade da semana', () => {
+  it('dono e recepção caem na Agenda da semana', () => {
     expect(destinoDoPapel('dono')).toBe('/semana')
     expect(destinoDoPapel('recepcao')).toBe('/semana')
   })

@@ -49,8 +49,12 @@ export function ModalEncaixe({
    * e `cancelado` protege contra a resposta velha chegar depois da nova e
    * repintar o resultado errado.
    */
+  // o que aparece é derivado do texto: com menos de duas letras não há lista,
+  // sem um setState dentro do efeito só para esvaziá-la
+  const lista = busca.trim().length < 2 ? [] : achados
+
   useEffect(() => {
-    if (busca.trim().length < 2) { setAchados([]); return }
+    if (busca.trim().length < 2) return
     let cancelado = false
     const t = setTimeout(async () => {
       const r = await buscarCandidatos(busca)
@@ -111,9 +115,9 @@ export function ModalEncaixe({
           className={entrada}
         />
 
-        {achados.length > 0 ? (
+        {lista.length > 0 ? (
           <ul className="flex flex-col gap-1.5">
-            {achados.map((c) => (
+            {lista.map((c) => (
               <li key={c.id}>
                 <button
                   type="button"

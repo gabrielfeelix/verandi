@@ -7,6 +7,7 @@ import {
 import { telefoneMascarado } from '@/core/pessoas/telefone'
 import { situacaoDe, DIAS_CURTOS } from '@/core/pessoas/situacao'
 import { NovaPessoa } from '@/components/pessoas/nova-pessoa'
+import { BuscaDePessoas } from '@/components/pessoas/busca'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { cartao, Chip, Paginacao, Vazio } from '@/components/ui/pecas'
 import { TINTA } from '@/components/ui/tintas'
@@ -105,28 +106,12 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <form className="relative flex items-center">
-            {filtros.map((x) => (
-              <input key={x} type="hidden" name="f" value={x} />
-            ))}
-            {tag ? <input type="hidden" name="t" value={tag} /> : null}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-3.5 font-mono text-[13px] text-tinta-fraca"
-            >
-              ⌕
-            </span>
-            <input
-              id="q" name="q" defaultValue={q ?? ''} aria-label="Buscar"
-              placeholder="Nome, telefone ou identificador"
-              className="min-h-11 min-w-[248px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[13px] placeholder:text-tinta-fraca"
-            />
-            {/* a busca acontece com Enter; o botão existe para quem navega por
-                teclado saber que existe uma, e para leitor de tela anunciá-la */}
-            <button type="submit" className="sr-only focus:not-sr-only focus:ml-2">
-              Buscar
-            </button>
-          </form>
+          <BuscaDePessoas
+            valorInicial={q ?? ''}
+            filtros={filtros}
+            tag={tag}
+            placeholder="Nome, telefone ou identificador"
+          />
 
           <a
             href={exportar}

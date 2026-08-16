@@ -164,7 +164,7 @@ export function EditorSerie({
               <div className="flex flex-wrap items-start gap-3">
                 <Campo rotulo={rotulos.profissional.singular} htmlFor="profissionalId">
                   <select id="profissionalId" name="profissionalId" className={entrada}>
-                    <option value="">, sem definir ,</option>
+                    <option value="">Sem {rotulos.profissional.singular.toLowerCase()}</option>
                     {catalogo.profissionais.map((p) => (
                       <option key={p.id} value={p.id}>{p.nome}</option>
                     ))}
@@ -172,7 +172,7 @@ export function EditorSerie({
                 </Campo>
                 <Campo rotulo={rotulos.local.singular} htmlFor="localId">
                   <select id="localId" name="localId" className={entrada}>
-                    <option value="">, sem definir ,</option>
+                    <option value="">Sem {rotulos.local.singular.toLowerCase()}</option>
                     {catalogo.locais.map((l) => (
                       <option key={l.id} value={l.id}>{l.nome}</option>
                     ))}
