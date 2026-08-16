@@ -11,15 +11,27 @@ import type { Colisao } from '@/core/agenda/serie'
 import type { Rotulos } from '@/core/vocabulario/padrao'
 import type { CatalogoGrade, SerieLinha } from '@/server/grade/consultas'
 import { mesCurto } from '@/core/agenda/mes-curto'
-import { BotaoIcone } from '@/components/ui/botao'
-import { Avatar } from '@/components/ui/pecas'
+import { Icone } from '@/components/ui/icones'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
+import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { Escolha } from '@/components/ui/escolha'
+import { CampoData } from '@/components/ui/campo-data'
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
 type Modo = null | 'editar' | 'duplicar' | 'encerrar' | 'ocupa'
 type Ocupante = { pessoaId: string; nome: string; desde: string }
 
+/**
+ * Um horário da grade fixa, como cartão.
+ *
+ * Era uma linha de tabela que abria sanfona: clicar em "editar" empurrava tudo
+ * o que estava embaixo para baixo, o formulário nascia com a largura que
+ * sobrava, e com trinta horários na tela ninguém achava de volta a linha que
+ * tinha aberto. Agora as quatro ações abrem modal, como o resto do sistema, e
+ * a linha vira cartão: hora em destaque à esquerda, quem atende e onde como
+ * etiquetas, e a ocupação com barra — que é o que se procura varrendo a grade.
+ */
 export function LinhaDaGrade({
   serie, catalogo, rotulos, podeEscrever,
 }: {
@@ -28,10 +40,6 @@ export function LinhaDaGrade({
   /*
    * O vocabulário inteiro. Antes vinham duas palavras soltas, e o formulário
    * de edição continuava rotulando "Serviço", "Profissional" e "Local" à mão.
-   *
-   * As duas formas de cada palavra importam: "1 aluno(s) ocupam" resolvia o
-   * plural com parêntese, que é o jeito de quem não sabe qual palavra vai cair
-   * ali. Aqui sabe-se, e o número decide.
    */
   rotulos: Rotulos
   podeEscrever: boolean
@@ -67,119 +75,163 @@ export function LinhaDaGrade({
     })
   }
 
-  return (
-    <li className="border-b border-linha-fina last:border-b-0">
-      <div className="flex flex-wrap items-center gap-3.5 px-4.5 py-3 hover:bg-superficie-tenue">
-        <span className="font-mono text-[14.5px]">{serie.horaInicio}</span>
+  const lotada = serie.ocupadas >= serie.capacidade
+  const proporcao = Math.min(1, serie.ocupadas / Math.max(1, serie.capacidade))
 
-        <span className="flex min-w-0 flex-1 flex-col leading-[1.35]">
+  return (
+    <li>
+      <div
+        className={`flex flex-wrap items-center gap-x-4 gap-y-3 rounded-grande border p-3.5 transition-colors duration-150 ${
+          serie.encerrada
+            ? 'border-linha-fina bg-superficie-tenue'
+            : 'border-linha-suave bg-superficie hover:border-linha hover:bg-superficie-tenue'
+        }`}
+      >
+        <span
+          className={`flex size-14 shrink-0 flex-col items-center justify-center rounded-media font-mono leading-none ${
+            serie.encerrada
+              ? 'bg-superficie-mais-suave text-tinta-inativa'
+              : 'bg-escuro text-tinta-clara'
+          }`}
+        >
+          <span className="text-[15px] font-semibold">{serie.horaInicio.slice(0, 2)}</span>
+          <span className="text-[12px] opacity-70">{serie.horaInicio.slice(3)}</span>
+        </span>
+
+        <span className="flex min-w-[160px] flex-1 flex-col gap-1.5">
           <span
-            className={`truncate text-[14px] font-medium ${
+            className={`truncate text-[14.5px] font-medium ${
               serie.encerrada ? 'text-tinta-media' : ''
             }`}
           >
             {serie.servico}
           </span>
-          <span className="truncate text-[12px] text-tinta-media">
-            {[
-              serie.profissional,
-              serie.local,
-              serie.encerrada
+          <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-tinta-media">
+            {serie.profissional ? (
+              <span className="flex items-center gap-1.5 rounded-peca bg-superficie-suave py-1 pr-2.5 pl-1">
+                <Avatar nome={serie.profissional} tamanho={24} decorativo />
+                {serie.profissional}
+              </span>
+            ) : null}
+            {serie.local ? (
+              <span className="rounded-peca bg-superficie-suave px-2.5 py-1">
+                {serie.local}
+              </span>
+            ) : null}
+            <span className="rounded-peca bg-superficie-suave px-2.5 py-1 font-mono text-[11.5px]">
+              {serie.duracaoMin} min
+            </span>
+            <span className="text-[11.5px] text-tinta-fraca">
+              {serie.encerrada
                 ? `${mesCurto(serie.vigenciaInicio)} – ${mesCurto(serie.vigenciaFim!)}`
-                : `desde ${mesCurto(serie.vigenciaInicio)}`,
-            ].filter(Boolean).join(' · ')}
-          </span>
-        </span>
-
-        {/* ocupadas/capacidade, sempre visível e nunca truncado */}
-        <span
-          className={`rounded-peca px-2.5 py-1 font-mono text-[12px] ${
-            serie.ocupadas > serie.capacidade
-              ? 'bg-alerta-fundo text-alerta'
-              : 'bg-superficie-mais-suave text-tinta-media'
-          }`}
-          title={`${serie.ocupadas} de ${serie.capacidade} ${rotulos.vaga.plural.toLowerCase()}`}
-        >
-          {serie.ocupadas}/{serie.capacidade}
-        </span>
-
-        {podeEscrever && !serie.encerrada ? (
-          <span className="flex shrink-0 items-center gap-2">
-            {/*
-              * "Quem ocupa" é texto e as outras três são ícone de propósito: ela
-              * é a única que só lê. Encerrar e editar mudam a grade de todo
-              * mundo, e ficam do tamanho de um alvo deliberado.
-              */}
-            <button
-              type="button"
-              disabled={pendente}
-              onClick={() => comErro(async () => {
-                setModo('ocupa')
-                setOcupantes(await quemOcupa(serie.id))
-              })}
-              className="min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
-            >
-              Quem ocupa
-            </button>
-            <span className="flex gap-1.5">
-              <BotaoIcone icone="lapis" titulo="Editar" onClick={() => setModo('editar')} />
-              <BotaoIcone icone="lista" titulo="Duplicar" onClick={() => setModo('duplicar')} />
-              <BotaoIcone
-                icone="fechar" titulo="Encerrar" perigo
-                onClick={() => setModo('encerrar')}
-                className="border-alerta-linha-forte bg-alerta-superficie text-alerta"
-              />
+                : `desde ${mesCurto(serie.vigenciaInicio)}`}
             </span>
           </span>
-        ) : null}
+        </span>
 
-        {podeEscrever && serie.encerrada ? (
-          <button
-            type="button"
-            onClick={() => setModo('duplicar')}
-            className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+        {/* ocupação em número e em barra: o número é a verdade, a barra é o que
+            se lê varrendo trinta horários de uma vez */}
+        <span className="flex w-[86px] shrink-0 flex-col gap-1.5">
+          <span
+            className={`text-right font-mono text-[12.5px] ${
+              serie.ocupadas > serie.capacidade ? 'text-alerta' : 'text-tinta-media'
+            }`}
+            title={`${serie.ocupadas} de ${serie.capacidade} ${rotulos.vaga.plural.toLowerCase()}`}
           >
-            Duplicar
-          </button>
+            {serie.ocupadas}/{serie.capacidade}
+          </span>
+          <span aria-hidden className="h-1.5 overflow-hidden rounded-full bg-superficie-mais-suave">
+            <span
+              className={`block h-full rounded-full ${
+                serie.ocupadas > serie.capacidade
+                  ? 'bg-alerta'
+                  : lotada ? 'bg-atencao' : 'bg-marca'
+              }`}
+              style={{ width: `${Math.max(4, proporcao * 100)}%` }}
+            />
+          </span>
+        </span>
+
+        {podeEscrever ? (
+          <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+            {!serie.encerrada ? (
+              <BotaoAcao
+                icone="pessoas" rotulo="Quem ocupa" pendente={pendente}
+                onClick={() => comErro(async () => {
+                  setModo('ocupa')
+                  setOcupantes(await quemOcupa(serie.id))
+                })}
+              />
+            ) : null}
+            {!serie.encerrada ? (
+              <BotaoAcao icone="lapis" rotulo="Editar" onClick={() => setModo('editar')} />
+            ) : null}
+            <BotaoAcao icone="lista" rotulo="Duplicar" onClick={() => setModo('duplicar')} />
+            {!serie.encerrada ? (
+              <BotaoAcao
+                icone="proibido" rotulo="Encerrar" perigo
+                onClick={() => setModo('encerrar')}
+              />
+            ) : null}
+          </span>
         ) : null}
       </div>
 
       {modo === 'ocupa' ? (
-        <div className="flex flex-col gap-2.5 border-t border-linha-fina bg-superficie-suave px-4.5 py-3.5">
+        <Modal
+          aberto
+          largura="lista"
+          glifo="◍"
+          titulo={`Quem ocupa ${serie.horaInicio}`}
+          sub={`${DIAS[serie.diaSemana]} · ${serie.servico}`}
+          secundario="Fechar"
+          aoFechar={fechar}
+        >
           {ocupantes === null ? (
             <p className="text-[12.5px] text-tinta-media">carregando…</p>
           ) : ocupantes.length === 0 ? (
-            <p className="text-[12.5px] text-tinta-media">
+            <Nota>
               Ninguém ocupa este horário. Encerrar não avisa ninguém.
-            </p>
+            </Nota>
           ) : (
-            <ul className="flex flex-wrap gap-2">
+            <ul className="flex flex-col gap-1.5">
               {ocupantes.map((o) => (
                 <li key={o.pessoaId}>
                   <Link
                     href={`/pessoas/${o.pessoaId}`}
-                    className="flex items-center gap-2 rounded-peca border border-linha-suave bg-superficie py-1.5 pr-3 pl-1.5 text-[12.5px] hover:border-marca"
+                    className="flex items-center gap-2.5 rounded-padrao border border-linha-suave bg-superficie-suave px-2.5 py-2 text-[13.5px] hover:border-marca hover:bg-superficie"
                   >
-                    <Avatar nome={o.nome} tamanho={24} decorativo />
-                    {o.nome}
-                    <span className="font-mono text-[11px] text-tinta-fraca">
-                      {mesCurto(o.desde)}
+                    <Avatar nome={o.nome} tamanho={32} decorativo />
+                    <span className="min-w-0 flex-1 truncate">{o.nome}</span>
+                    <span className="font-mono text-[11.5px] text-tinta-fraca">
+                      desde {mesCurto(o.desde)}
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
-          <button type="button" className="w-fit text-[12.5px] underline" onClick={fechar}>
-            Fechar
-          </button>
-        </div>
+        </Modal>
       ) : null}
 
       {modo === 'editar' ? (
-        <form
-          className="flex flex-col gap-3 border-t border-linha-fina bg-superficie-suave px-4.5 py-4"
-          action={(f) => {
+        <ModalFormulario
+          aberto
+          largura="lista"
+          glifo="✎"
+          titulo={`Editar ${rotulos.serie.singular.toLowerCase()}`}
+          sub={`${DIAS[serie.diaSemana]} ${serie.horaInicio} · ${serie.servico}`}
+          primario={preview && mudanca ? 'Confirmar' : 'Ver o que muda'}
+          pendente={pendente}
+          aoFechar={fechar}
+          aoEnviar={(f) => {
+            if (preview && mudanca) {
+              return comErro(async () => {
+                await editarSerie(serie.id, mudanca)
+                fechar()
+                router.refresh()
+              })
+            }
             const m: MudancaSerie = {
               diaSemana: Number(f.get('diaSemana')),
               horaInicio: String(f.get('horaInicio') ?? ''),
@@ -195,171 +247,149 @@ export function LinhaDaGrade({
             })
           }}
         >
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              Dia
-              <select name="diaSemana" defaultValue={serie.diaSemana} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-                {DIAS.map((d, i) => <option key={d} value={i}>{d}</option>)}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              Começa às
-              <input name="horaInicio" type="time" defaultValue={serie.horaInicio}
-                className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]" />
-            </label>
-            <label className="flex flex-col gap-1">
-              Duração (min)
-              <input name="duracaoMin" type="number" min={1} defaultValue={serie.duracaoMin}
-                className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] w-24" />
-            </label>
-            <label className="flex flex-col gap-1">
-              Capacidade
-              <input name="capacidade" type="number" min={1} defaultValue={serie.capacidade}
-                className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] w-24" />
-            </label>
-            <label className="flex min-w-[150px] flex-1 flex-col gap-1">
-              {rotulos.servico.singular}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo rotulo="Dia" htmlFor={`d-${serie.id}`}>
               <Escolha
-                nome="servicoId" valorInicial={serie.servicoId}
-                opcoes={catalogo.servicos.map((s) => ({ valor: s.id, rotulo: s.nome }))}
+                id={`d-${serie.id}`} nome="diaSemana"
+                valorInicial={String(serie.diaSemana)}
+                opcoes={DIAS.map((d, i) => ({ valor: String(i), rotulo: d }))}
               />
-            </label>
-            <label className="flex min-w-[150px] flex-1 flex-col gap-1">
-              {rotulos.profissional.singular}
+            </Campo>
+            <Campo rotulo="Começa às" htmlFor={`h-${serie.id}`}>
+              <input
+                id={`h-${serie.id}`} name="horaInicio" type="time" required
+                defaultValue={serie.horaInicio} className={`${entrada} w-full`}
+              />
+            </Campo>
+            <Campo rotulo="Duração (min)" htmlFor={`m-${serie.id}`}>
+              <input
+                id={`m-${serie.id}`} name="duracaoMin" type="number" min={1}
+                defaultValue={serie.duracaoMin} className={`${entrada} w-full`}
+              />
+            </Campo>
+            <Campo rotulo="Capacidade" htmlFor={`c-${serie.id}`}>
+              <input
+                id={`c-${serie.id}`} name="capacidade" type="number" min={1}
+                defaultValue={serie.capacidade} className={`${entrada} w-full`}
+              />
+            </Campo>
+          </div>
+
+          <Campo rotulo={rotulos.servico.singular} htmlFor={`s-${serie.id}`}>
+            <Escolha
+              id={`s-${serie.id}`} nome="servicoId" valorInicial={serie.servicoId}
+              opcoes={catalogo.servicos.map((s) => ({ valor: s.id, rotulo: s.nome }))}
+            />
+          </Campo>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo rotulo={rotulos.profissional.singular} htmlFor={`p-${serie.id}`}>
               <Escolha
-                nome="profissionalId" valorInicial={serie.profissionalId ?? ''}
-                placeholder={`Sem ${rotulos.profissional.singular.toLowerCase()}`}
+                id={`p-${serie.id}`} nome="profissionalId"
+                valorInicial={serie.profissionalId ?? ''}
                 opcoes={[
                   { valor: '', rotulo: `Sem ${rotulos.profissional.singular.toLowerCase()}` },
                   ...catalogo.profissionais.map((p) => ({ valor: p.id, rotulo: p.nome })),
                 ]}
               />
-            </label>
-            <label className="flex min-w-[150px] flex-1 flex-col gap-1">
-              {rotulos.local.singular}
+            </Campo>
+            <Campo rotulo={rotulos.local.singular} htmlFor={`l-${serie.id}`}>
               <Escolha
-                nome="localId" valorInicial={serie.localId ?? ''}
-                placeholder={`Sem ${rotulos.local.singular.toLowerCase()}`}
+                id={`l-${serie.id}`} nome="localId" valorInicial={serie.localId ?? ''}
                 opcoes={[
                   { valor: '', rotulo: `Sem ${rotulos.local.singular.toLowerCase()}` },
                   ...catalogo.locais.map((l) => ({ valor: l.id, rotulo: l.nome })),
                 ]}
               />
-            </label>
+            </Campo>
           </div>
 
           {/* A confusão mais provável do sistema inteiro é achar que editar a
               grade reescreve o passado. A tela diz o contrário em número. */}
           {preview ? (
-            <div className="flex flex-col gap-1 rounded-media border border-linha-suave bg-superficie p-3">
-              <p>A mudança vale daqui para frente. O que já passou fica como está.</p>
-              <p>{preview.sessoesAfetadas} futuro(s) mudam.</p>
-              {preview.sessoesPreservadas > 0 ? (
-                <p>
-                  {preview.sessoesPreservadas} ficam como estão, porque já têm
-                  decisão registrada.
-                </p>
-              ) : null}
-              {preview.sessoesCanceladas > 0 ? (
-                <p>
-                  {preview.sessoesCanceladas} saem da grade e ficam cancelados,
-                  com o motivo.
-                </p>
-              ) : null}
+            <Nota tom={preview.capacidadeMenorQueOcupacao ? 'atencao' : 'neutro'}>
+              A mudança vale daqui para frente; o que já passou fica como está.{' '}
+              {preview.sessoesAfetadas} mudam
+              {preview.sessoesPreservadas > 0
+                ? `, ${preview.sessoesPreservadas} ficam como estão porque já têm decisão registrada`
+                : ''}
+              {preview.sessoesCanceladas > 0
+                ? `, ${preview.sessoesCanceladas} saem da grade e ficam cancelados com o motivo`
+                : ''}
+              .
               {preview.capacidadeMenorQueOcupacao ? (
-                <p>
-                  Atenção: {preview.vagasAtivas}{' '}
+                <>
+                  {' '}Atenção: {preview.vagasAtivas}{' '}
                   {(preview.vagasAtivas === 1
                     ? rotulos.pessoa.singular
                     : rotulos.pessoa.plural).toLowerCase()}{' '}
-                  {preview.vagasAtivas === 1 ? 'ocupa' : 'ocupam'} este horário,
-                  e a capacidade nova é menor.
-                </p>
+                  {preview.vagasAtivas === 1 ? 'ocupa' : 'ocupam'} este horário, e
+                  a capacidade nova é menor.
+                </>
               ) : null}
-            </div>
+            </Nota>
           ) : null}
 
-          {erro ? <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">{erro}</p> : null}
-
-          <div className="flex gap-2">
-            {preview && mudanca ? (
-              <button
-                type="button" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
-                onClick={() => comErro(async () => {
-                  await editarSerie(serie.id, mudanca)
-                  fechar()
-                  router.refresh()
-                })}
-              >
-                Confirmar
-              </button>
-            ) : (
-              <button type="submit" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-                Ver o que muda
-              </button>
-            )}
-            <button type="button" className="px-2 py-2 underline" onClick={fechar}>
-              Cancelar
-            </button>
-          </div>
-        </form>
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </ModalFormulario>
       ) : null}
 
       {modo === 'duplicar' ? (
-        <div className="flex flex-col gap-3 border-t border-linha-fina bg-superficie-suave px-4.5 py-4">
-          <fieldset className="flex flex-wrap gap-3">
-            <legend className="mb-1">Repetir este horário em</legend>
-            {DIAS.map((d, i) => (
-              <label key={d} className="flex items-center gap-1">
-                <input
-                  type="checkbox" checked={diasDuplicar.includes(i)}
-                  onChange={(e) => setDiasDuplicar((atual) =>
-                    e.target.checked ? [...atual, i] : atual.filter((x) => x !== i))}
-                />
-                {d}
-              </label>
-            ))}
+        <Modal
+          aberto
+          glifo="⧉"
+          titulo={`Duplicar ${rotulos.serie.singular.toLowerCase()}`}
+          sub={`${serie.horaInicio} · ${serie.servico} · repete em outros dias`}
+          primario={colisoes.length > 0 ? 'Duplicar mesmo assim' : 'Duplicar'}
+          pendente={pendente || diasDuplicar.length === 0}
+          aoFechar={fechar}
+          aoConfirmar={() => comErro(async () => {
+            const r = await duplicarSerie(serie.id, diasDuplicar, {
+              confirmarColisao: colisoes.length > 0,
+            })
+            if (r.ok) { fechar(); router.refresh() } else setColisoes(r.colisoes)
+          })}
+        >
+          <fieldset className="flex flex-col gap-2">
+            <legend className="pb-2 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+              Repetir este horário em
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {DIAS.map((d, i) => (
+                <Chip
+                  key={d}
+                  ativo={diasDuplicar.includes(i)}
+                  onClick={() => setDiasDuplicar((atual) =>
+                    atual.includes(i) ? atual.filter((x) => x !== i) : [...atual, i])}
+                >
+                  {d}
+                </Chip>
+              ))}
+            </div>
           </fieldset>
 
           {colisoes.length > 0 ? (
-            <div className="rounded-media border border-linha-suave bg-superficie p-3 text-[12.5px] leading-relaxed">
-              <p className="font-medium">Esse horário já tem coisa marcada:</p>
-              <ul className="list-inside list-disc">
-                {colisoes.map((c, i) => (
-                  <li key={`${c.serieId}-${i}`}>
-                    {DIAS[c.diaSemana]} às {c.horaInicio}, {c.ocupadoPor} já ocupa
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <Nota tom="atencao">
+              Esse horário já tem coisa marcada:{' '}
+              {colisoes.map((c) => `${DIAS[c.diaSemana]} às ${c.horaInicio}, ${c.ocupadoPor}`).join('; ')}.
+              Dois na mesma sala pode ser real — quem opera é que sabe.
+            </Nota>
           ) : null}
 
-          {erro ? <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">{erro}</p> : null}
-
-          <div className="flex gap-2">
-            <button
-              type="button" disabled={pendente || diasDuplicar.length === 0}
-              className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]"
-              onClick={() => comErro(async () => {
-                const r = await duplicarSerie(serie.id, diasDuplicar, {
-                  confirmarColisao: colisoes.length > 0,
-                })
-                if (r.ok) { fechar(); router.refresh() } else setColisoes(r.colisoes)
-              })}
-            >
-              {colisoes.length > 0 ? 'Duplicar mesmo assim' : 'Duplicar nestes dias'}
-            </button>
-            <button type="button" className="px-2 py-2 underline" onClick={fechar}>
-              Cancelar
-            </button>
-          </div>
-        </div>
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </Modal>
       ) : null}
 
       {modo === 'encerrar' ? (
-        <form
-          className="flex flex-col gap-3 border-t border-linha-fina bg-superficie-suave px-4.5 py-4"
-          action={(f) => {
+        <ModalFormulario
+          aberto
+          perigo
+          titulo={`Encerrar ${rotulos.serie.singular.toLowerCase()}?`}
+          sub={`${DIAS[serie.diaSemana]} ${serie.horaInicio} · ${serie.servico}`}
+          primario={vagasNoCaminho !== null ? 'Encerrar mesmo assim' : 'Encerrar'}
+          pendente={pendente}
+          aoFechar={fechar}
+          aoEnviar={(f) => {
             const fim = String(f.get('fim') ?? hoje)
             comErro(async () => {
               const r = await encerrarSerie(serie.id, fim, {
@@ -369,38 +399,60 @@ export function LinhaDaGrade({
             })
           }}
         >
-          <label className="flex w-fit flex-col gap-1">
-            Encerrar a partir de
-            <input name="fim" type="date" defaultValue={hoje} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]" />
-          </label>
+          <Campo rotulo="Encerrar a partir de" htmlFor={`f-${serie.id}`}>
+            <CampoData id={`f-${serie.id}`} nome="fim" valorInicial={hoje} limpavel={false} />
+          </Campo>
 
-          <p className="text-sm opacity-70">
-            O histórico continua: encerrar não apaga o que já aconteceu.
-          </p>
+          <Nota>O histórico continua: encerrar não apaga o que já aconteceu.</Nota>
 
           {vagasNoCaminho !== null ? (
-            <p className="rounded-media border border-linha-suave bg-superficie p-3 text-[12.5px] leading-relaxed">
+            <Nota tom="atencao">
               {vagasNoCaminho}{' '}
               {(vagasNoCaminho === 1
                 ? rotulos.pessoa.singular
                 : rotulos.pessoa.plural).toLowerCase()}{' '}
-              {vagasNoCaminho === 1 ? 'ocupa' : 'ocupam'} este horário.
-              Encerrar tira o horário da grade daqui para frente.
-            </p>
+              {vagasNoCaminho === 1 ? 'ocupa' : 'ocupam'} este horário. Encerrar
+              tira o horário da grade daqui para frente.
+            </Nota>
           ) : null}
 
-          {erro ? <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">{erro}</p> : null}
-
-          <div className="flex gap-2">
-            <button type="submit" disabled={pendente} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-              {vagasNoCaminho !== null ? 'Encerrar mesmo assim' : 'Encerrar nesta data'}
-            </button>
-            <button type="button" className="px-2 py-2 underline" onClick={fechar}>
-              Cancelar
-            </button>
-          </div>
-        </form>
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </ModalFormulario>
       ) : null}
     </li>
+  )
+}
+
+/**
+ * Ação com ícone **e** palavra.
+ *
+ * Só o glifo é adivinhação: um X pode ser desativar, apagar ou fechar, e quem
+ * descobre parando o mouse em cima descobre tarde — no celular, nunca. Em tela
+ * estreita a palavra some e sobra o alvo de 44px, com o nome no `aria-label`.
+ */
+function BotaoAcao({
+  icone, rotulo, onClick, perigo = false, pendente = false,
+}: {
+  icone: 'pessoas' | 'lapis' | 'lista' | 'proibido'
+  rotulo: string
+  onClick: () => void
+  perigo?: boolean
+  pendente?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={pendente}
+      aria-label={rotulo}
+      className={`flex min-h-9 cursor-pointer items-center gap-1.5 rounded-peca border px-2.5 text-[12.5px] transition-colors duration-150 disabled:opacity-60 ${
+        perigo
+          ? 'border-alerta-linha-forte bg-alerta-superficie text-alerta hover:bg-alerta-fundo'
+          : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-suave hover:text-tinta'
+      }`}
+    >
+      <Icone nome={icone} tamanho={15} />
+      <span className="hidden sm:inline">{rotulo}</span>
+    </button>
   )
 }

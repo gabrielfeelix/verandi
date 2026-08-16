@@ -66,7 +66,15 @@ export function usePosicionar(
   return painel
 }
 
-/** Fecha ao clicar fora do campo e do painel — o gesto que todo mundo espera. */
+/**
+ * Fecha ao clicar fora e no `Esc` — os dois gestos que todo mundo espera.
+ *
+ * O `Esc` é interceptado na **captura**, antes de chegar ao `<dialog>`: sem
+ * isso, fechar o seletor fechava o modal inteiro junto, e quem só queria
+ * desistir da lista perdia o formulário preenchido. `preventDefault` é o que
+ * segura o fechamento nativo do diálogo; `stopPropagation` impede que outro
+ * painel aberto atrás reaja ao mesmo toque.
+ */
 export function useFecharFora(
   refs: Array<RefObject<HTMLElement | null>>,
   aberto: boolean,
@@ -82,8 +90,18 @@ export function useFecharFora(
       if (refs.some((r) => r.current?.contains(alvo))) return
       guardado.current()
     }
+    function escapou(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      e.stopPropagation()
+      guardado.current()
+    }
     document.addEventListener('pointerdown', fora)
-    return () => document.removeEventListener('pointerdown', fora)
+    document.addEventListener('keydown', escapou, true)
+    return () => {
+      document.removeEventListener('pointerdown', fora)
+      document.removeEventListener('keydown', escapou, true)
+    }
     // `refs` é um array literal recriado a cada render; o que importa aqui é
     // só abrir e fechar o ouvinte junto com o painel
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -320,6 +320,8 @@ export type Ficha = {
      * cadastro mal preenchido, e alguém "conserta" digitando o nome de volta.
      */
     anonimizadaEm: string | null
+    /** endereço assinado da foto, quando existe; o balde é privado */
+    fotoUrl: string | null
     /** desde quando existe: é o denominador de "veio 92% das vezes" */
     criadoEm: string
   }
@@ -347,6 +349,7 @@ export async function fichaDaPessoa(
     .maybeSingle<LinhaResumo & { email: string | null; nascimento: string | null
                                  observacao: string | null; criado_em: string
                                  observacao_visivel: 'profissionais' | 'todos'
+                                 foto_path: string | null
                                  anonimizada_em: string | null }>()
   if (!p) return null
 
@@ -358,6 +361,14 @@ export async function fichaDaPessoa(
    * acesso registrado.
    */
   const podeLerObservacao = papel !== 'recepcao' || p.observacao_visivel === 'todos'
+
+  // o balde é privado: a foto só existe para a tela como endereço assinado
+  let fotoUrl: string | null = null
+  if (p.foto_path) {
+    const { data: assinada } = await db.storage
+      .from('foto-pessoa').createSignedUrl(p.foto_path, 60 * 60)
+    fotoUrl = assinada?.signedUrl ?? null
+  }
 
   const { data: contaRow } = await db
     .from('conta').select('fuso').eq('id', contaId).single()
@@ -412,6 +423,7 @@ export async function fichaDaPessoa(
 
   return {
     pessoa: { ...paraLinha(p), email: p.email, nascimento: p.nascimento,
+              fotoUrl,
               observacao: podeLerObservacao ? p.observacao : null,
               observacaoVisivel: p.observacao_visivel,
               observacaoRestrita: !podeLerObservacao && p.observacao !== null,

@@ -3,6 +3,19 @@ import type { SessaoResumo } from '@/server/agenda/consultas'
 import { AvatarProf } from '@/components/hoje/pecas'
 import { cartao } from '@/components/ui/pecas'
 
+/*
+ * A sombra branca que fecha as frestas do cabeçalho fixo.
+ *
+ * Cada dia é uma célula da grade, e entre elas há 6px de `gap`: por esse vão a
+ * aula rolava por baixo e ficava escrita por cima do número do dia. São 6px
+ * embaixo, 3px de cada lado (metade do `gap` de cada vizinho) e 16px em
+ * cima, que é o respiro do cartão por onde a linha de baixo aparecia.
+ *
+ * Em estilo, e não em classe: `shadow-[...]` com vírgula quebra o gerador do
+ * Tailwind, e o CSS inteiro deixa de ser produzido — a tela abre sem estilo.
+ */
+const FRESTA = '0 6px 0 #fff, 0 -16px 0 #fff, 3px 0 0 #fff, -3px 0 0 #fff'
+
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
 function diaDe(dataIso: string) {
@@ -90,7 +103,10 @@ export function GradeSemana({
       className={`max-h-[calc(100vh-210px)] overflow-auto ${cartao} p-3.5`}
     >
       <div className="grid min-w-[920px] grid-cols-[58px_repeat(7,minmax(0,1fr))] gap-1.5">
-        <div className="sticky top-0 z-3 bg-superficie" />
+        {/* a sombra branca fecha as frestas: 6px embaixo e 3px de cada lado,
+            que é a metade do `gap` — sem isso a aula rolava por dentro do vão
+            entre dois cabeçalhos e ficava escrita por cima do número do dia */}
+        <div className="sticky top-0 z-3 bg-superficie" style={{ boxShadow: FRESTA }} />
 
         {/*
           * O cabeçalho do dia carrega três coisas: qual dia é, quanto tem, e se
@@ -110,7 +126,8 @@ export function GradeSemana({
           return (
             <div
               key={d}
-              className={`sticky top-0 z-3 flex flex-col items-center gap-0.5 rounded-peca px-1 pt-1.5 pb-2.5 shadow-[0_6px_0_#fff] ${
+              style={{ boxShadow: FRESTA }}
+              className={`sticky top-0 z-3 flex flex-col items-center gap-0.5 rounded-peca px-1 pt-1.5 pb-2.5 ${
                 ehHoje
                   ? 'bg-escuro'
                   : feriado

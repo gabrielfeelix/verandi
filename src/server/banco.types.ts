@@ -734,6 +734,7 @@ export type Database = {
           conta_id: string
           criado_em: string
           email: string | null
+          foto_path: string | null
           id: string
           identificador_externo: string | null
           nascimento: string | null
@@ -750,6 +751,7 @@ export type Database = {
           conta_id: string
           criado_em?: string
           email?: string | null
+          foto_path?: string | null
           id?: string
           identificador_externo?: string | null
           nascimento?: string | null
@@ -766,6 +768,7 @@ export type Database = {
           conta_id?: string
           criado_em?: string
           email?: string | null
+          foto_path?: string | null
           id?: string
           identificador_externo?: string | null
           nascimento?: string | null
@@ -1268,6 +1271,7 @@ export type Database = {
           criado_em: string | null
           email: string | null
           faltas_recentes: number | null
+          foto_path: string | null
           id: string | null
           identificador_externo: string | null
           nascimento: string | null
@@ -1288,6 +1292,7 @@ export type Database = {
           criado_em?: string | null
           email?: string | null
           faltas_recentes?: never
+          foto_path?: string | null
           id?: string | null
           identificador_externo?: string | null
           nascimento?: string | null
@@ -1308,6 +1313,7 @@ export type Database = {
           criado_em?: string | null
           email?: string | null
           faltas_recentes?: never
+          foto_path?: string | null
           id?: string | null
           identificador_externo?: string | null
           nascimento?: string | null

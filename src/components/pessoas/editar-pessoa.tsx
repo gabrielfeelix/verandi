@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { editarPessoa } from '@/server/pessoas/acoes'
+import { editarPessoa, removerFotoDaPessoa, salvarFotoDaPessoa } from '@/server/pessoas/acoes'
 import { Botao } from '@/components/ui/botao'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import { CampoData } from '@/components/ui/campo-data'
 import { CampoTelefone } from '@/components/ui/campo-telefone'
+import { CampoFoto } from '@/components/ui/campo-foto'
 import { useAviso } from '@/components/ui/desfazer'
 
 type Pessoa = {
@@ -23,6 +24,7 @@ type Pessoa = {
   /** existe anotação de quem atende, e quem está lendo não pode vê-la */
   observacaoRestrita: boolean
   ativo: boolean
+  fotoUrl: string | null
 }
 
 /*
@@ -120,6 +122,12 @@ export function EditarPessoa({
                     }),
                 ativo: f.get('ativo') === 'on',
               })
+              // a foto vai por fora do pacote de campos: é arquivo, e sobe
+              // para o Storage, não para a linha da tabela
+              const foto = f.get('foto')
+              if (foto instanceof File && foto.size > 0) {
+                await salvarFotoDaPessoa(pessoa.id, foto)
+              }
               avisar({ texto: 'Ficha salva' })
               fechar()
               router.refresh()
@@ -128,6 +136,19 @@ export function EditarPessoa({
             }
           })}
         >
+          <Campo rotulo="Foto" dica="ajuda a recepção a reconhecer, e serve de antes e depois">
+            <CampoFoto
+              atual={pessoa.fotoUrl}
+              alt={pessoa.nome}
+              aoRemover={pessoa.fotoUrl
+                ? () => iniciar(async () => {
+                    await removerFotoDaPessoa(pessoa.id)
+                    router.refresh()
+                  })
+                : undefined}
+            />
+          </Campo>
+
           <div className="grid gap-3 sm:grid-cols-2">
             {CAMPOS.map(([n, r, t, largo]) => (
               <div key={n} className={largo ? 'sm:col-span-2' : ''}>

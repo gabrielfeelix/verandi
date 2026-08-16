@@ -162,3 +162,30 @@ test('os selects da grade dizem "sem professor", não ", sem definir ,"', async 
   await expect(page.getByRole('option').first()).toHaveText(/^Sem /)
   await expect(page.getByText(', sem definir ,')).toHaveCount(0)
 })
+
+test('Esc fecha só o painel aberto, não o modal inteiro', async ({ page }) => {
+  const c = await cenario()
+  const { email } = await usuarioDe(c.contaId, 'dono', c.marca)
+  await entrar(page, email)
+
+  await page.goto(`/pessoas/${c.pessoaId}`)
+  await page.getByRole('button', { name: 'Agendar' }).click()
+
+  // o `<dialog>` fecha no Esc por conta própria: sem interceptar, desistir da
+  // lista de horários levava junto o formulário inteiro
+  await page.locator('#vg-serie').click()
+  await expect(page.getByRole('listbox')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await expect(page.locator('dialog[open]')).toHaveCount(1)
+
+  await page.getByLabel('Abrir o calendário').click()
+  await expect(page.locator('[role=grid]')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.locator('[role=grid]')).toHaveCount(0)
+  await expect(page.locator('dialog[open]')).toHaveCount(1)
+
+  // sem painel aberto, o Esc volta a ser do modal
+  await page.keyboard.press('Escape')
+  await expect(page.locator('dialog[open]')).toHaveCount(0)
+})

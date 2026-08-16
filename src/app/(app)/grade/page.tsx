@@ -101,7 +101,7 @@ export default async function Grade() {
                 {rotulos.vaga.plural.toLowerCase()}
               </span>
             </div>
-            <ul aria-label={g.nome}>
+            <ul aria-label={g.nome} className="flex flex-col gap-2 p-2.5">
               {g.linhas.map((s) => (
                 <LinhaDaGrade
                   key={s.id} serie={s} catalogo={catalogo}
@@ -124,7 +124,7 @@ export default async function Grade() {
               continuam existindo no histórico
             </span>
           </div>
-          <ul aria-label="Encerradas">
+          <ul aria-label="Encerradas" className="flex flex-col gap-2 p-2.5">
             {encerradas.map((s) => (
               <LinhaDaGrade
                 key={s.id} serie={s} catalogo={catalogo}

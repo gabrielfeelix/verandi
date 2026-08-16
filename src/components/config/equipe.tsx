@@ -12,6 +12,7 @@ import { useAviso } from '@/components/ui/desfazer'
 import { CORES_PROFISSIONAL } from '@/components/ui/tintas'
 import { salvarProfissional, removerFoto } from '@/server/config/acoes'
 import type { ProfissionalLinha } from '@/server/config/equipe'
+import { CampoFoto } from '@/components/ui/campo-foto'
 
 type ServicoOpcao = { id: string; nome: string }
 
@@ -140,14 +141,15 @@ export function SecaoEquipe({
               <span className="flex gap-1.5">
                 <BotaoLinha onClick={() => setAberto(p.id)}>Editar</BotaoLinha>
                 {p.ativo ? (
+                  /* com a palavra: um × sozinho pode ser desativar, apagar ou
+                     fechar, e quem descobre parando o mouse em cima descobre
+                     tarde — no celular, nunca */
                   <BotaoLinha
-                    title={`Desativar ${p.nome}`}
                     aria-label={`Desativar ${p.nome}`}
                     disabled={pendente}
                     onClick={() => setADesativar(p)}
-                    className="px-0"
                   >
-                    <span aria-hidden className="block w-8 text-center">×</span>
+                    Desativar
                   </BotaoLinha>
                 ) : (
                   <span className="rounded-peca bg-neutro-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-tinta-media">
@@ -314,20 +316,13 @@ function Formulario({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <Campo rotulo="Foto" htmlFor="pf-foto" dica="JPEG, PNG ou WEBP, até 2 MB">
-          <input id="pf-foto" name="foto" type="file"
-            accept="image/jpeg,image/png,image/webp" className="text-[12.5px]" />
-        </Campo>
-        {profissional?.fotoUrl && aoRemoverFoto ? (
-          <>
-            <Avatar nome={profissional.nome} foto={profissional.fotoUrl} tamanho={40} decorativo />
-            <Botao type="button" tom="fantasma" miudo onClick={aoRemoverFoto}>
-              Remover foto
-            </Botao>
-          </>
-        ) : null}
-      </div>
+      <Campo rotulo="Foto">
+        <CampoFoto
+          atual={profissional?.fotoUrl}
+          alt={profissional?.nome ?? 'foto de quem atende'}
+          aoRemover={profissional?.fotoUrl && aoRemoverFoto ? aoRemoverFoto : undefined}
+        />
+      </Campo>
 
       <label className="flex items-center gap-2 text-[12.5px]">
         <input type="checkbox" name="ativo" defaultChecked={profissional?.ativo ?? true} />

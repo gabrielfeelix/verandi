@@ -210,7 +210,7 @@ export function ModalEncaixe({
             className={`${entrada} w-24 px-2.5 text-center font-mono`}
           />
         </div>
-        <Botao type="submit" tom="secundario" miudo disabled={pendente}>
+        <Botao type="submit" miudo disabled={pendente}>
           Salvar
         </Botao>
       </form>

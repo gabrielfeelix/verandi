@@ -113,6 +113,58 @@ export async function editarPessoa(id: string, campos: {
  * bem quanto o nome, e uma tabela ligada por `pessoa_id` é exatamente onde
  * ninguém olha quando pensa em dado pessoal.
  */
+const BALDE_FOTO_PESSOA = 'foto-pessoa'
+const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp']
+
+/**
+ * A foto da ficha.
+ *
+ * Em pilates e fisioterapia ela não é enfeite de cadastro: é o antes e depois
+ * da correção postural, e é como a recepção reconhece quem chegou. Vai num
+ * balde separado do da equipe, e o caminho começa pela conta — é por essa
+ * pasta que a política do Storage separa um cliente do outro.
+ */
+export async function salvarFotoDaPessoa(id: string, foto: File): Promise<void> {
+  const conta = await exigirConta()
+  const db = await clienteServidor()
+
+  if (!TIPOS_FOTO.includes(foto.type)) {
+    throw new Error('a foto precisa ser JPEG, PNG ou WEBP')
+  }
+  if (foto.size > 2 * 1024 * 1024) throw new Error('a foto precisa ter até 2 MB')
+
+  const ext = foto.type === 'image/png' ? 'png' : foto.type === 'image/webp' ? 'webp' : 'jpg'
+  const caminho = `${conta.contaId}/${id}.${ext}`
+
+  const envio = await db.storage.from(BALDE_FOTO_PESSOA)
+    .upload(caminho, foto, { upsert: true, contentType: foto.type })
+  if (envio.error) throw envio.error
+
+  const r = await db.from('pessoa').update({ foto_path: caminho })
+    .eq('id', id).eq('conta_id', conta.contaId)
+  if (r.error) throw r.error
+
+  revalidatePath(`/pessoas/${id}`)
+  revalidatePath('/pessoas')
+}
+
+export async function removerFotoDaPessoa(id: string): Promise<void> {
+  const conta = await exigirConta()
+  const db = await clienteServidor()
+
+  const { data } = await db.from('pessoa').select('foto_path')
+    .eq('id', id).eq('conta_id', conta.contaId).maybeSingle()
+  if (data?.foto_path) {
+    await db.storage.from(BALDE_FOTO_PESSOA).remove([data.foto_path])
+  }
+  const r = await db.from('pessoa').update({ foto_path: null })
+    .eq('id', id).eq('conta_id', conta.contaId)
+  if (r.error) throw r.error
+
+  revalidatePath(`/pessoas/${id}`)
+  revalidatePath('/pessoas')
+}
+
 export async function anonimizarPessoa(id: string): Promise<void> {
   const conta = await exigirConta()
   if (conta.papel !== 'dono' && conta.papel !== 'suporte') {

@@ -57,16 +57,30 @@ export function Escolha({
   const escolhida = opcoes.find((o) => o.valor === valor)
   const temFiltro = opcoes.length > 8
 
-  const visiveis = useMemo(() => {
+  const visiveis = useMemo<Array<OpcaoEscolha & { abreGrupo: boolean }>>(() => {
     const t = semAcento(filtro.trim())
-    if (!t) return opcoes
     // cada pedaço do que foi digitado precisa aparecer em algum lugar da linha:
     // "ter 11" acha "Terça 11:00", que uma busca por frase inteira perderia
     const partes = t.split(/\s+/)
-    return opcoes.filter((o) => {
-      const alvo = semAcento(`${o.grupo ?? ''} ${o.rotulo} ${o.detalhe ?? ''}`)
-      return partes.every((p) => alvo.includes(p))
-    })
+    const achadas = t
+      ? opcoes.filter((o) => {
+          const alvo = semAcento(`${o.grupo ?? ''} ${o.rotulo} ${o.detalhe ?? ''}`)
+          return partes.every((p) => alvo.includes(p))
+        })
+      : opcoes
+    /*
+     * O cabeçalho de grupo é decidido **aqui**, e não durante a renderização
+     * da lista.
+     *
+     * Antes era um `let grupoAtual` reatribuído dentro do `map`: mutação de
+     * variável durante a renderização, que o compilador do React proíbe. Em
+     * desenvolvimento passava; no build de produção o modal inteiro morria com
+     * "Minified React error #441" no lugar do formulário.
+     */
+    return achadas.map((o, i) => ({
+      ...o,
+      abreGrupo: Boolean(o.grupo) && o.grupo !== achadas[i - 1]?.grupo,
+    }))
   }, [opcoes, filtro])
 
   function abrir() {
@@ -90,8 +104,6 @@ export function Escolha({
     if (e.key === 'End') { e.preventDefault(); setFoco(visiveis.length - 1) }
     if (e.key === 'Enter' && visiveis[foco]) { e.preventDefault(); escolher(visiveis[foco]) }
   }
-
-  let grupoAtual: string | undefined
 
   return (
     <>
@@ -170,12 +182,9 @@ export function Escolha({
                 Nada com esse texto.
               </li>
             ) : (
-              visiveis.map((o, i) => {
-                const abreGrupo = o.grupo && o.grupo !== grupoAtual
-                grupoAtual = o.grupo
-                return (
+              visiveis.map((o, i) => (
                   <li key={o.valor}>
-                    {abreGrupo ? (
+                    {o.abreGrupo ? (
                       <p className="sticky top-0 z-10 bg-superficie px-2.5 pt-2 pb-1 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
                         {o.grupo}
                       </p>
@@ -203,8 +212,7 @@ export function Escolha({
                       ) : null}
                     </button>
                   </li>
-                )
-              })
+              ))
             )}
           </ul>
         </div>

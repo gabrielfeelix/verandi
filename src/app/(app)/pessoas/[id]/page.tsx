@@ -13,6 +13,7 @@ import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
 import { Etiqueta, Rotulo, Vazio, cartao } from '@/components/ui/pecas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
+import { Voltar } from '@/components/ui/voltar'
 import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
@@ -176,6 +177,11 @@ export default async function Pessoa({
     <ProvedorDeMatricula>
     <div className="flex flex-col gap-4">
       <nav className="flex items-center gap-2.5 text-[12.5px] text-tinta-apagada">
+        {/* voltar de verdade, e não só a trilha: quem chegou aqui pela agenda,
+            pela busca do Hoje ou por Pendências quer desfazer o passo que deu,
+            e a trilha só sabe levar para a lista */}
+        <Voltar />
+        <span aria-hidden className="font-mono">/</span>
         <Link href="/pessoas" className="font-medium text-marca">
           {rotulos.pessoa.plural}
         </Link>
@@ -190,13 +196,24 @@ export default async function Pessoa({
        */}
       <article className={`flex flex-wrap items-start justify-between gap-x-6 gap-y-4 ${cartao} px-[22px] py-5`}>
         <div className="flex min-w-0 flex-[1_1_380px] items-start gap-[18px]">
-          <span
-            aria-hidden
-            className="flex size-16 shrink-0 items-center justify-center rounded-full text-[20px] font-semibold"
-            style={{ background: fundo, color: frente, opacity: p.ativo ? 1 : 0.55 }}
-          >
-            {iniciaisDe(p.nome)}
-          </span>
+          {/* a foto quando existe, as iniciais quando não: reconhecer quem
+              chegou é metade do trabalho da recepção */}
+          {p.fotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={p.fotoUrl} alt={p.nome}
+              className="size-16 shrink-0 rounded-full object-cover"
+              style={{ opacity: p.ativo ? 1 : 0.55 }}
+            />
+          ) : (
+            <span
+              aria-hidden
+              className="flex size-16 shrink-0 items-center justify-center rounded-full text-[20px] font-semibold"
+              style={{ background: fundo, color: frente, opacity: p.ativo ? 1 : 0.55 }}
+            >
+              {iniciaisDe(p.nome)}
+            </span>
+          )}
 
           <div className="flex min-w-0 flex-col gap-2.5">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -253,6 +270,7 @@ export default async function Pessoa({
                 observacao: p.observacao,
                 observacaoVisivel: p.observacaoVisivel,
                 observacaoRestrita: p.observacaoRestrita,
+                fotoUrl: p.fotoUrl,
                 ativo: p.ativo,
               }}
             />

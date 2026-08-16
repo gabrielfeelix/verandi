@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Botao } from './botao'
+import { Icone } from './icones'
 import { TINTA, type Tinta } from './tintas'
 
 /** 452 para confirmar, 520 para formulário, 588 quando há lista dentro. */
@@ -113,14 +114,27 @@ function Casca({
        */
       style={{ animation: aberto ? 'vd-pop .26s var(--ease-pop) backwards' : undefined }}
     >
-      <div className={`flex ${ALTURA} flex-col`}>{children}</div>
+      <div className={`relative flex ${ALTURA} flex-col`}>
+        {/* o X no canto: fechar sem procurar o botão, como em todo modal que a
+            pessoa já usou na vida. O `Cancelar` do rodapé continua, porque ele
+            é o que diz "desisti" para quem estava preenchendo */}
+        <button
+          type="button"
+          onClick={aoFechar}
+          aria-label="Fechar"
+          className="absolute top-3 right-3 z-10 flex size-8 cursor-pointer items-center justify-center rounded-padrao text-tinta-fraca transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta"
+        >
+          <Icone nome="fechar" tamanho={16} />
+        </button>
+        {children}
+      </div>
     </dialog>
   )
 }
 
 function Titulo({ glifo = '+', tom = 'positivo', titulo, sub, perigo = false }: Cabecalho) {
   return (
-    <header className="flex shrink-0 items-start gap-3 px-6 pt-[22px] pb-4">
+    <header className="flex shrink-0 items-start gap-3 px-6 pt-[22px] pr-14 pb-4">
       <span
         aria-hidden
         className={`flex size-9 shrink-0 items-center justify-center rounded-padrao text-[15px] ${TINTA[perigo ? 'alerta' : tom]}`}
