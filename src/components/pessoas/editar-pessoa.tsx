@@ -6,6 +6,8 @@ import { editarPessoa } from '@/server/pessoas/acoes'
 import { Botao } from '@/components/ui/botao'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { CampoData } from '@/components/ui/campo-data'
+import { CampoTelefone } from '@/components/ui/campo-telefone'
 import { useAviso } from '@/components/ui/desfazer'
 
 type Pessoa = {
@@ -37,8 +39,8 @@ const CAMPOS = [
   ['telefone', 'Telefone', 'tel', false],
   ['email', 'E-mail', 'email', false],
   ['identificador', 'Identificador', 'text', false],
-  ['nascimento', 'Nascimento', 'date', false],
-  ['vencimento', 'Vencimento do plano', 'date', true],
+  ['nascimento', 'Nascimento', 'data', false],
+  ['vencimento', 'Vencimento do plano', 'data', true],
 ] as const
 
 /**
@@ -130,11 +132,17 @@ export function EditarPessoa({
             {CAMPOS.map(([n, r, t, largo]) => (
               <div key={n} className={largo ? 'sm:col-span-2' : ''}>
                 <Campo rotulo={r} htmlFor={`ep-${n}`}>
-                  <input
-                    id={`ep-${n}`} name={n} type={t} defaultValue={valor[n]}
-                    required={n === 'nome'}
-                    className={`${entrada} w-full`}
-                  />
+                  {t === 'data' ? (
+                    <CampoData id={`ep-${n}`} nome={n} valorInicial={valor[n]} />
+                  ) : t === 'tel' ? (
+                    <CampoTelefone id={`ep-${n}`} nome={n} valorInicial={valor[n]} />
+                  ) : (
+                    <input
+                      id={`ep-${n}`} name={n} type={t} defaultValue={valor[n]}
+                      required={n === 'nome'}
+                      className={`${entrada} w-full`}
+                    />
+                  )}
                 </Campo>
               </div>
             ))}

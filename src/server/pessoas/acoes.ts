@@ -5,6 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { inserirPessoa } from './registro'
 import type { Atualizacao } from '../banco'
+import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
 
 /**
  * Cadastrar pela tela.
@@ -63,7 +64,13 @@ export async function editarPessoa(id: string, campos: {
 
   const linha: Atualizacao<'pessoa'> = {}
   if (campos.nome !== undefined) linha.nome = campos.nome.trim()
-  if (campos.telefone !== undefined) linha.telefone = campos.telefone || null
+  if (campos.telefone !== undefined) {
+    // a mesma régua do cadastro: a ficha é justamente onde se conserta o
+    // telefone que veio incompleto da planilha antiga
+    const erroFone = erroDoTelefone(campos.telefone)
+    if (erroFone) throw new Error(erroFone)
+    linha.telefone = normalizarTelefone(campos.telefone)
+  }
   if (campos.email !== undefined) linha.email = campos.email || null
   if (campos.identificadorExterno !== undefined) {
     linha.identificador_externo = campos.identificadorExterno || null

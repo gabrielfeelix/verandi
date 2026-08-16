@@ -13,6 +13,7 @@ import type { CatalogoGrade, SerieLinha } from '@/server/grade/consultas'
 import { mesCurto } from '@/core/agenda/mes-curto'
 import { BotaoIcone } from '@/components/ui/botao'
 import { Avatar } from '@/components/ui/pecas'
+import { Escolha } from '@/components/ui/escolha'
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
@@ -216,27 +217,34 @@ export function LinhaDaGrade({
               <input name="capacidade" type="number" min={1} defaultValue={serie.capacidade}
                 className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px] w-24" />
             </label>
-            <label className="flex flex-col gap-1">
+            <label className="flex min-w-[150px] flex-1 flex-col gap-1">
               {rotulos.servico.singular}
-              <select name="servicoId" defaultValue={serie.servicoId} className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-                {catalogo.servicos.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
-              </select>
+              <Escolha
+                nome="servicoId" valorInicial={serie.servicoId}
+                opcoes={catalogo.servicos.map((s) => ({ valor: s.id, rotulo: s.nome }))}
+              />
             </label>
-            <label className="flex flex-col gap-1">
+            <label className="flex min-w-[150px] flex-1 flex-col gap-1">
               {rotulos.profissional.singular}
-              <select name="profissionalId" defaultValue={serie.profissionalId ?? ''}
-                className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-                <option value="">Sem {rotulos.profissional.singular.toLowerCase()}</option>
-                {catalogo.profissionais.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
-              </select>
+              <Escolha
+                nome="profissionalId" valorInicial={serie.profissionalId ?? ''}
+                placeholder={`Sem ${rotulos.profissional.singular.toLowerCase()}`}
+                opcoes={[
+                  { valor: '', rotulo: `Sem ${rotulos.profissional.singular.toLowerCase()}` },
+                  ...catalogo.profissionais.map((p) => ({ valor: p.id, rotulo: p.nome })),
+                ]}
+              />
             </label>
-            <label className="flex flex-col gap-1">
+            <label className="flex min-w-[150px] flex-1 flex-col gap-1">
               {rotulos.local.singular}
-              <select name="localId" defaultValue={serie.localId ?? ''}
-                className="min-h-11 rounded-padrao border border-linha bg-superficie px-3 text-[13px]">
-                <option value="">Sem {rotulos.local.singular.toLowerCase()}</option>
-                {catalogo.locais.map((l) => <option key={l.id} value={l.id}>{l.nome}</option>)}
-              </select>
+              <Escolha
+                nome="localId" valorInicial={serie.localId ?? ''}
+                placeholder={`Sem ${rotulos.local.singular.toLowerCase()}`}
+                opcoes={[
+                  { valor: '', rotulo: `Sem ${rotulos.local.singular.toLowerCase()}` },
+                  ...catalogo.locais.map((l) => ({ valor: l.id, rotulo: l.nome })),
+                ]}
+              />
             </label>
           </div>
 

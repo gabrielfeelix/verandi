@@ -5,14 +5,16 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
-import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { Campo, Nota } from '@/components/ui/pecas'
+import { Escolha } from '@/components/ui/escolha'
+import { CampoData } from '@/components/ui/campo-data'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarVaga, encerrarVaga } from '@/server/pessoas/acoes'
 
 type Props = {
   pessoaId: string
   vagas: Array<{ id: string; rotulo: string; desde: string; ate: string | null }>
-  series: Array<{ id: string; rotulo: string }>
+  series: Array<{ id: string; rotulo: string; detalhe?: string; grupo?: string }>
   rotuloVaga: string
   rotuloSerie: string
 }
@@ -170,22 +172,27 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
             </Nota>
           ) : (
             <>
-              <Campo rotulo="Horário" htmlFor="vg-serie">
-                <select id="vg-serie" name="serie" required autoFocus className={entrada}>
-                  <option value="">escolha o horário</option>
-                  {series.map((s) => (
-                    <option key={s.id} value={s.id}>{s.rotulo}</option>
-                  ))}
-                </select>
+              <Campo
+                rotulo="Qual horário?" htmlFor="vg-serie"
+                dica={`${series.length} na grade · a ocupação de cada um aparece na lista`}
+              >
+                <Escolha
+                  id="vg-serie"
+                  nome="serie"
+                  autoFocus
+                  opcoes={series.map((s) => ({
+                    valor: s.id, rotulo: s.rotulo, detalhe: s.detalhe, grupo: s.grupo,
+                  }))}
+                  placeholder="escolha o dia e a hora"
+                  aoTrocar={() => setErro(null)}
+                  invalido={erro !== null}
+                />
               </Campo>
               <Campo
-                rotulo="A partir de" htmlFor="vg-desde"
-                dica="o que já passou não muda"
+                rotulo="A partir de quando?" htmlFor="vg-desde"
+                dica="vale desta data em diante; o que já passou não muda"
               >
-                <input
-                  id="vg-desde" name="desde" type="date" defaultValue={hoje}
-                  className={`${entrada} w-[190px]`}
-                />
+                <CampoData id="vg-desde" nome="desde" valorInicial={hoje} limpavel={false} />
               </Campo>
             </>
           )}

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
+import { Escolha } from '@/components/ui/escolha'
+import { CampoData } from '@/components/ui/campo-data'
 import { criarSeries } from '@/server/grade/acoes'
 import type { Colisao, NovaSerie } from '@/core/agenda/serie'
 import type { Rotulos } from '@/core/vocabulario/padrao'
@@ -154,33 +156,43 @@ export function EditorSerie({
               </div>
 
               <Campo rotulo={rotulos.servico.singular} htmlFor="servicoId">
-                <select id="servicoId" name="servicoId" required className={entrada}>
-                  {catalogo.servicos.map((s) => (
-                    <option key={s.id} value={s.id}>{s.nome}</option>
-                  ))}
-                </select>
+                <Escolha
+                  id="servicoId" nome="servicoId"
+                  valorInicial={catalogo.servicos[0]?.id ?? ''}
+                  opcoes={catalogo.servicos.map((x) => ({
+                    valor: x.id,
+                    rotulo: x.nome,
+                    detalhe: `${x.duracaoMin} min · cabem ${x.capacidadePadrao}`,
+                  }))}
+                />
               </Campo>
 
-              <div className="flex flex-wrap items-start gap-3">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <Campo rotulo={rotulos.profissional.singular} htmlFor="profissionalId">
-                  <select id="profissionalId" name="profissionalId" className={entrada}>
-                    <option value="">Sem {rotulos.profissional.singular.toLowerCase()}</option>
-                    {catalogo.profissionais.map((p) => (
-                      <option key={p.id} value={p.id}>{p.nome}</option>
-                    ))}
-                  </select>
+                  <Escolha
+                    id="profissionalId" nome="profissionalId"
+                    placeholder={`Sem ${rotulos.profissional.singular.toLowerCase()}`}
+                    opcoes={[
+                      { valor: '', rotulo: `Sem ${rotulos.profissional.singular.toLowerCase()}` },
+                      ...catalogo.profissionais.map((x) => ({ valor: x.id, rotulo: x.nome })),
+                    ]}
+                  />
                 </Campo>
                 <Campo rotulo={rotulos.local.singular} htmlFor="localId">
-                  <select id="localId" name="localId" className={entrada}>
-                    <option value="">Sem {rotulos.local.singular.toLowerCase()}</option>
-                    {catalogo.locais.map((l) => (
-                      <option key={l.id} value={l.id}>{l.nome}</option>
-                    ))}
-                  </select>
+                  <Escolha
+                    id="localId" nome="localId"
+                    placeholder={`Sem ${rotulos.local.singular.toLowerCase()}`}
+                    opcoes={[
+                      { valor: '', rotulo: `Sem ${rotulos.local.singular.toLowerCase()}` },
+                      ...catalogo.locais.map((x) => ({ valor: x.id, rotulo: x.nome })),
+                    ]}
+                  />
                 </Campo>
                 <Campo rotulo="Vale a partir de" htmlFor="vigenciaInicio">
-                  <input id="vigenciaInicio" name="vigenciaInicio" type="date"
-                    defaultValue={hoje} className={entrada} />
+                  <CampoData
+                    id="vigenciaInicio" nome="vigenciaInicio"
+                    valorInicial={hoje} limpavel={false}
+                  />
                 </Campo>
               </div>
 

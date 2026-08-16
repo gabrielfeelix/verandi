@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { CampoTelefone } from '@/components/ui/campo-telefone'
 import { criarPessoa } from '@/server/pessoas/acoes'
 
 /**
@@ -74,12 +75,8 @@ export function NovaPessoa({
           </Campo>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Campo rotulo="Telefone" dica="opcional" htmlFor="np-fone">
-              <input
-                id="np-fone" name="telefone" type="tel" inputMode="tel"
-                placeholder="(11) 99999-9999"
-                className={`${entrada} w-full`}
-              />
+            <Campo rotulo="Telefone" dica="opcional, mas com DDD" htmlFor="np-fone">
+              <CampoTelefone id="np-fone" />
             </Campo>
             <Campo rotulo="Identificador" dica="opcional" htmlFor="np-id">
               <input

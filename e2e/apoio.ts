@@ -119,3 +119,15 @@ export async function criarPessoas(contaId: string, nomes: string[]) {
     'criar pessoas',
   )
 }
+
+/**
+ * Escolhe numa `<Escolha>`, o seletor da casa.
+ *
+ * Não é `selectOption`: o componente não é um `<select>` nativo — ele abre um
+ * painel próprio, com grupo e detalhe em cada linha, justamente porque o nativo
+ * não mostra nada disso. Aqui a interação é a mesma de quem usa: abre e clica.
+ */
+export async function escolher(page: Page, campo: string, opcao: string | RegExp) {
+  await page.getByLabel(campo, { exact: true }).click()
+  await page.getByRole('option', { name: opcao }).first().click()
+}

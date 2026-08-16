@@ -1,3 +1,4 @@
+import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
 import type { Db } from '../supabase'
 
 /**
@@ -21,10 +22,15 @@ export async function inserirPessoa(
   const nome = entrada.nome.trim()
   if (!nome) throw new Error('nome é obrigatório')
 
+  // telefone continua opcional; o que não se aceita é telefone pela metade —
+  // nove dígitos sem DDD é um número que não disca e ninguém adivinha depois
+  const erroFone = erroDoTelefone(entrada.telefone)
+  if (erroFone) throw new Error(erroFone)
+
   const { data, error } = await db.from('pessoa').insert({
     conta_id: contaId,
     nome,
-    telefone: entrada.telefone?.trim() || null,
+    telefone: normalizarTelefone(entrada.telefone),
     identificador_externo: entrada.identificadorExterno?.trim() || null,
   }).select('id').single()
 

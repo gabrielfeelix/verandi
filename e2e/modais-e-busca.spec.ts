@@ -77,9 +77,12 @@ test('agendar, no alto da ficha, abre o mesmo modal de matrícula', async ({ pag
 
   const modal = page.locator('dialog[open]')
   await expect(modal.getByRole('heading')).toContainText('Novo agendamento')
+
   // o horário da grade tem que estar oferecido: modal que abre vazio é o mesmo
   // beco da âncora que não levava a lugar nenhum
-  await expect(modal.locator('#vg-serie option')).toHaveCount(2)
+  await modal.locator('#vg-serie').click()
+  await expect(page.getByRole('option')).toHaveCount(1)
+  await expect(page.getByRole('option').first()).toContainText('09:00')
 })
 
 test('encerrar matrícula pergunta em modal, não no confirm do navegador', async ({ page }) => {
@@ -151,7 +154,11 @@ test('os selects da grade dizem "sem professor", não ", sem definir ,"', async 
   await page.getByRole('button', { name: /Criar/ }).first().click()
 
   const modal = page.locator('dialog[open]')
-  await expect(modal.locator('#profissionalId option').first()).toHaveText(/^Sem /)
-  await expect(modal.locator('#localId option').first()).toHaveText(/^Sem /)
-  await expect(modal.getByText(', sem definir ,')).toHaveCount(0)
+  await expect(modal.locator('#profissionalId')).toHaveText(/^Sem /)
+  await expect(modal.locator('#localId')).toHaveText(/^Sem /)
+
+  // e a lista aberta também: o vazio é uma opção com nome, não uma vírgula
+  await modal.locator('#profissionalId').click()
+  await expect(page.getByRole('option').first()).toHaveText(/^Sem /)
+  await expect(page.getByText(', sem definir ,')).toHaveCount(0)
 })

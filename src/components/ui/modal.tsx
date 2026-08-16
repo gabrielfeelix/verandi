@@ -97,7 +97,21 @@ function Casca({
       onClose={aoFechar}
       onClick={(e) => { if (e.target === ref.current) aoFechar() }}
       className={`m-auto ${ALTURA} overflow-hidden rounded-modal bg-superficie p-0 shadow-modal backdrop:bg-escuro/42 backdrop:backdrop-blur-[3px] ${LARGURA[largura]}`}
-      style={{ animation: aberto ? 'vd-pop .26s var(--ease-pop) both' : undefined }}
+      /*
+       * `backwards`, e não `both`.
+       *
+       * Com `both` a animação **continua aplicada** depois de terminar: o
+       * último quadro diz `transform: none`, mas o computado vira
+       * `matrix(1,0,0,1,0,0)` — e qualquer transform, mesmo a identidade, faz
+       * do elemento um bloco de contenção. Aí todo `position: fixed` dentro do
+       * modal passa a se posicionar contra o card em vez da tela, e o
+       * `overflow: hidden` daqui corta o que sair. Foi assim que o calendário
+       * do campo de data abriu 148px acima do topo da janela, invisível.
+       *
+       * `backwards` mantém a entrada igual (o quadro inicial vale antes de
+       * começar) e devolve o elemento ao estado dele quando acaba.
+       */
+      style={{ animation: aberto ? 'vd-pop .26s var(--ease-pop) backwards' : undefined }}
     >
       <div className={`flex ${ALTURA} flex-col`}>{children}</div>
     </dialog>

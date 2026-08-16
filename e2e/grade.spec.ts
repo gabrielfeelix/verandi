@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { admin, contaDeTeste, criarPessoas, entrar, usuarioDe } from './apoio'
+import { admin, contaDeTeste, criarPessoas, entrar, usuarioDe, escolher } from './apoio'
 
 /** Uma conta com catálogo pronto e grade vazia, o começo de todo cliente. */
 async function contaSemGrade() {
@@ -27,8 +27,8 @@ test('criar em três dias de uma vez cria três séries', async ({ page }) => {
   }
   await page.getByLabel('Começa às').fill('07:00')
   await page.getByLabel('Capacidade').fill('4')
-  await page.getByLabel('Serviço').selectOption({ label: 'Pilates solo' })
-  await page.getByLabel('Profissional').selectOption({ label: 'Marina' })
+  await escolher(page, 'Serviço', 'Pilates solo')
+  await escolher(page, 'Profissional', 'Marina')
   await page.getByRole('button', { name: 'Criar 3 horários' }).click()
 
   await expect.poll(async () => {
@@ -55,8 +55,8 @@ test('horário do mesmo profissional avisa a colisão e deixa seguir', async ({ 
   await page.getByRole('button', { name: /Criar/ }).click()
   await page.getByRole('button', { name: 'seg', exact: true }).click()
   await page.getByLabel('Começa às').fill('07:30')
-  await page.getByLabel('Serviço').selectOption({ label: 'Pilates solo' })
-  await page.getByLabel('Profissional').selectOption({ label: 'Marina' })
+  await escolher(page, 'Serviço', 'Pilates solo')
+  await escolher(page, 'Profissional', 'Marina')
   await page.getByRole('button', { name: 'Criar horário', exact: true }).click()
 
   await expect(page.getByText('Esse horário já tem coisa marcada')).toBeVisible()

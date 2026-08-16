@@ -107,17 +107,43 @@ export default async function Pessoa({
   const hoje = hojeEm(conta.fuso)
   const aba: Aba = ABAS.includes(abaBruta as Aba) ? (abaBruta as Aba) : 'agenda'
 
-  const { data: series } = await db
-    .from('serie')
-    .select('id, dia_semana, hora_inicio, servico:servico_id(nome)')
-    .eq('conta_id', conta.contaId).eq('ativo', true)
-    .order('dia_semana').order('hora_inicio')
-    
+  /*
+   * Os horários que a pessoa pode ocupar, com o que decide a escolha.
+   *
+   * Quem atende, onde, e **quantas vagas estão ocupadas** vêm junto porque a
+   * pergunta de quem agenda não é "qual horário existe", é "onde ainda cabe, e
+   * com quem". A contagem é uma consulta só, de todas as matrículas em vigor da
+   * conta: são poucas centenas, e evita um `count` por horário.
+   */
+  const [{ data: series }, { data: ocupacao }] = await Promise.all([
+    db.from('serie')
+      .select(`id, dia_semana, hora_inicio, capacidade,
+               servico:servico_id(nome), profissional:profissional_id(nome),
+               local:local_id(nome)`)
+      .eq('conta_id', conta.contaId).eq('ativo', true)
+      .order('dia_semana').order('hora_inicio'),
+    db.from('vaga').select('serie_id, fim').eq('conta_id', conta.contaId),
+  ])
 
-  const opcoesSerie = (series ?? []).map((s) => ({
-    id: s.id,
-    rotulo: `${DIAS[s.dia_semana]} ${String(s.hora_inicio).slice(0, 5)} · ${s.servico?.nome ?? 'sem registro'}`,
-  }))
+  const ocupadas = new Map<string, number>()
+  for (const v of ocupacao ?? []) {
+    if (v.fim !== null && v.fim < hoje) continue
+    ocupadas.set(v.serie_id, (ocupadas.get(v.serie_id) ?? 0) + 1)
+  }
+
+  const opcoesSerie = (series ?? []).map((s) => {
+    const cheias = ocupadas.get(s.id) ?? 0
+    return {
+      id: s.id,
+      grupo: DIAS[s.dia_semana],
+      rotulo: `${String(s.hora_inicio).slice(0, 5)} · ${s.servico?.nome ?? 'sem registro'}`,
+      detalhe: [
+        s.profissional?.nome,
+        s.local?.nome,
+        `${cheias}/${s.capacidade}${cheias >= s.capacidade ? ' · lotada' : ''}`,
+      ].filter(Boolean).join(' · '),
+    }
+  })
 
   const p = ficha.pessoa
   const [fundo, frente] = paresDe(p.nome)
