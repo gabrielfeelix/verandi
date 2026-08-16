@@ -743,6 +743,7 @@ export type Database = {
           observacao: string | null
           observacao_visivel: string
           telefone: string | null
+          telefone_disca: boolean | null
           vencimento_plano: string | null
         }
         Insert: {
@@ -760,6 +761,7 @@ export type Database = {
           observacao?: string | null
           observacao_visivel?: string
           telefone?: string | null
+          telefone_disca?: boolean | null
           vencimento_plano?: string | null
         }
         Update: {
@@ -777,6 +779,7 @@ export type Database = {
           observacao?: string | null
           observacao_visivel?: string
           telefone?: string | null
+          telefone_disca?: boolean | null
           vencimento_plano?: string | null
         }
         Relationships: [
@@ -1281,6 +1284,7 @@ export type Database = {
           observacao_visivel: string | null
           reposicoes_abertas: number | null
           telefone: string | null
+          telefone_disca: boolean | null
           ultima_presenca: string | null
           vagas_ativas: number | null
           vencimento_plano: string | null
@@ -1302,6 +1306,7 @@ export type Database = {
           observacao_visivel?: string | null
           reposicoes_abertas?: never
           telefone?: string | null
+          telefone_disca?: boolean | null
           ultima_presenca?: never
           vagas_ativas?: never
           vencimento_plano?: string | null
@@ -1323,6 +1328,7 @@ export type Database = {
           observacao_visivel?: string | null
           reposicoes_abertas?: never
           telefone?: string | null
+          telefone_disca?: boolean | null
           ultima_presenca?: never
           vagas_ativas?: never
           vencimento_plano?: string | null

@@ -51,7 +51,6 @@ export function NovaPessoa({
           aberto
           glifo="+"
           titulo={`Cadastrar ${rotulo}`}
-          sub="só o nome é obrigatório"
           primario="Cadastrar"
           pendente={pendente}
           aoFechar={fechar}
@@ -71,15 +70,15 @@ export function NovaPessoa({
             }
           })}
         >
-          <Campo rotulo="Nome" htmlFor="np-nome">
+          <Campo rotulo="Nome" htmlFor="np-nome" obrigatorio>
             <input id="np-nome" name="nome" required autoFocus className={entrada} />
           </Campo>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Campo rotulo="Telefone" dica="opcional, mas com DDD" htmlFor="np-fone">
+            <Campo rotulo="Telefone" dica="Opcional" htmlFor="np-fone">
               <CampoTelefone id="np-fone" />
             </Campo>
-            <Campo rotulo="Identificador" dica="opcional" htmlFor="np-id">
+            <Campo rotulo="Identificador" dica="Opcional" htmlFor="np-id">
               <input
                 id="np-id" name="identificador"
                 placeholder="número da ficha antiga"

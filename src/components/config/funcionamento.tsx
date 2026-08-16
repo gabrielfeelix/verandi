@@ -272,14 +272,14 @@ function ModalDia({
 
       {aberto ? (
         <div className="flex flex-wrap items-start gap-3">
-          <Campo rotulo="Abre" htmlFor="fn-abre" dica="primeiro horário">
+          <Campo rotulo="Abre" htmlFor="fn-abre" dica="Primeiro horário">
             <input
               id="fn-abre" name="abre" type="time" required
               defaultValue={dia.abre ?? '08:00'}
               className={`${entrada} w-36 font-mono`}
             />
           </Campo>
-          <Campo rotulo="Fecha" htmlFor="fn-fecha" dica="último horário">
+          <Campo rotulo="Fecha" htmlFor="fn-fecha" dica="Último horário">
             <input
               id="fn-fecha" name="fecha" type="time" required
               defaultValue={dia.fecha ?? '18:00'}
@@ -344,7 +344,7 @@ function ModalDataFechada({
           <input id="dt-data" name="data" type="date" required
             defaultValue={hoje} className={entrada} />
         </Campo>
-        <Campo rotulo="Nome" htmlFor="dt-desc" dica="aparece na agenda do dia">
+        <Campo rotulo="Nome" htmlFor="dt-desc" dica="Aparece na agenda do dia">
           <input id="dt-desc" name="descricao" className={entrada}
             placeholder="Natal" />
         </Campo>

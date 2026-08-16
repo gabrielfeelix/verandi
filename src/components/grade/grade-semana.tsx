@@ -199,7 +199,7 @@ export function GradeSemana({
                * porque as consequências são diferentes — sala repetida no mesmo
                * horário é conflito, professor diferente não é.
                */
-              const salas = new Set(celula.map((s) => s.local ?? 'sem registro'))
+              const salas = new Set(celula.map((s) => s.local ?? 'Sem registro'))
               const paralelo = celula.length < 2
                 ? null
                 : salas.size > 1

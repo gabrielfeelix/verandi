@@ -14,7 +14,10 @@ import { erroLegivel } from '@/core/erro-legivel'
 
 type Props = {
   pessoaId: string
-  vagas: Array<{ id: string; rotulo: string; desde: string; ate: string | null }>
+  vagas: Array<{
+    id: string; rotulo: string; desde: string; ate: string | null
+    dia: string; hora: string; servico: string; profissional: string | null
+  }>
   series: Array<{ id: string; rotulo: string; detalhe?: string; grupo?: string }>
   rotuloVaga: string
   rotuloSerie: string
@@ -91,20 +94,41 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
           horário toda semana.
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        /* cartão, não linha de tabela: o que se procura aqui é "que horário
+           é esse", e dia e hora eram a última coisa a aparecer numa frase
+           corrida separada por pontinhos */
+        <ul className="grid gap-2 sm:grid-cols-2">
           {ativas.map((v) => (
             <li
               key={v.id}
-              className="flex flex-wrap items-center gap-2.5 rounded-padrao border border-linha-suave bg-superficie-suave px-3 py-2.5"
+              className="flex items-center gap-3 rounded-grande border border-linha-suave bg-superficie p-3"
             >
-              <span className="text-[13.5px] font-medium">{v.rotulo}</span>
-              <span className="font-mono text-[11.5px] text-tinta-media">
-                desde {v.desde.slice(8)}/{v.desde.slice(5, 7)}/{v.desde.slice(2, 4)}
+              <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-media bg-escuro font-mono leading-none text-tinta-clara">
+                <span className="text-[10px] tracking-[.08em] uppercase opacity-70">
+                  {v.dia.slice(0, 3)}
+                </span>
+                <span className="pt-0.5 text-[13px] font-semibold">{v.hora}</span>
               </span>
+
+              <span className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
+                <span className="truncate text-[13.5px] font-medium">{v.servico}</span>
+                <span className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-tinta-media">
+                  {v.profissional ? (
+                    <span className="rounded-peca bg-superficie-suave px-2 py-0.5">
+                      {v.profissional}
+                    </span>
+                  ) : null}
+                  <span className="font-mono text-tinta-fraca">
+                    desde {v.desde.slice(8)}/{v.desde.slice(5, 7)}/{v.desde.slice(2, 4)}
+                  </span>
+                </span>
+              </span>
+
               <button
                 type="button"
                 disabled={pendente}
-                className="ml-auto min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
+                aria-label={`Encerrar ${v.rotulo}`}
+                className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-alerta-linha-forte bg-alerta-superficie px-3 text-[12.5px] text-alerta hover:bg-alerta-fundo"
                 onClick={() => setEncerrando({ id: v.id, rotulo: v.rotulo })}
               >
                 Encerrar
@@ -191,7 +215,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
               </Campo>
               <Campo
                 rotulo="A partir de quando?" htmlFor="vg-desde"
-                dica="vale desta data em diante; o que já passou não muda"
+                dica="Vale desta data em diante. O que já passou não muda"
               >
                 <CampoData id="vg-desde" nome="desde" valorInicial={hoje} limpavel={false} />
               </Campo>

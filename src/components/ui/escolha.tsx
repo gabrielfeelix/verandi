@@ -117,7 +117,21 @@ export function Escolha({
         aria-expanded={aberto}
         aria-controls={idLista}
         aria-haspopup="listbox"
-        onClick={() => (aberto ? setAberto(false) : abrir())}
+        /*
+         * Abre e fecha no `pointerdown`, não no `click`.
+         *
+         * O rótulo do campo aponta para este botão (`htmlFor`), então clicar em
+         * "Qual horário?" vira um clique aqui. Com `click`, a sequência era:
+         * o `pointerdown` fora fechava o painel, e o `click` do rótulo abria de
+         * novo — o painel piscava e parecia que não fechava nunca. No
+         * `pointerdown` os dois acontecem no mesmo instante, e o de dentro
+         * ganha.
+         */
+        onPointerDown={(e) => {
+          e.preventDefault()
+          if (aberto) setAberto(false)
+          else abrir()
+        }}
         onKeyDown={(e) => {
           if (!aberto && (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault()

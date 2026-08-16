@@ -34,25 +34,41 @@ export function CartaoNumero({
   valor: number | string
   sub: string
   glifo: string
-  tom?: 'neutro' | 'alerta' | 'positivo'
+  tom?: 'neutro' | 'info' | 'atencao' | 'alerta' | 'positivo'
 }) {
   const pele = {
     neutro: 'bg-superficie border-linha',
+    info: 'bg-superficie border-linha',
+    atencao: 'bg-superficie border-linha',
     alerta: 'bg-[#FDF0E9] border-alerta-linha',
     positivo: 'bg-[#E9F5F0] border-[#CBE5DB]',
   }[tom]
   const rotuloCor = {
     neutro: 'text-tinta-media',
+    info: 'text-tinta-media',
+    atencao: 'text-tinta-media',
     alerta: 'text-alerta',
     positivo: 'text-positivo',
   }[tom]
+  /*
+   * O glifo tem cor de significado, sempre.
+   *
+   * Cinza dentro de uma moldura arredondada lê como botão desabilitado — e
+   * alguém tenta clicar. Com a cor do assunto (azul para o que só informa,
+   * amarelo para o que espera ação, verde para o que já foi feito, vermelho
+   * para o que está atrasado) ele volta a ser o que é: um ícone.
+   */
   const chip = {
     neutro: 'bg-superficie-mais-suave text-tinta-fraca',
+    info: 'bg-info-fundo text-info',
+    atencao: 'bg-atencao-fundo text-atencao',
     alerta: 'bg-[#F7D9CA] text-alerta',
     positivo: 'bg-[#D3EAE1] text-positivo',
   }[tom]
   const valorCor = {
     neutro: 'text-tinta',
+    info: 'text-tinta',
+    atencao: 'text-tinta',
     alerta: 'text-alerta',
     positivo: 'text-positivo',
   }[tom]
@@ -193,7 +209,7 @@ export function LinhaAgenda({
   const nota = [
     sessao.local,
     cancelada
-      ? `cancelada, ${sessao.motivoCancelamento ?? 'sem motivo'}`
+      ? `cancelada, ${sessao.motivoCancelamento ?? 'Sem motivo'}`
       : agora
         ? 'próxima'
         : passou && sessao.chamada === 'feita'

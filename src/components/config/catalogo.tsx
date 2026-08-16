@@ -104,7 +104,7 @@ export function SecaoServicos({
             </>
           }
         >
-          <Dado>cap. {s.capacidadePadrao}</Dado>
+          <Dado>Capacidade {s.capacidadePadrao}</Dado>
           <Estado ativo />
           <BotaoLinha onClick={() => setEdicao(s)}>Editar</BotaoLinha>
         </LinhaConfig>
@@ -124,7 +124,7 @@ export function SecaoServicos({
               nome={s.nome}
               detalhe={`${s.duracaoMin} min${s.emUso > 0 ? ` · ${s.emUso} na grade` : ''}`}
             >
-              <Dado>cap. {s.capacidadePadrao}</Dado>
+              <Dado>Capacidade {s.capacidadePadrao}</Dado>
               <Estado ativo={false} />
               <BotaoLinha tom="marca" onClick={() => setEdicao(s)}>Editar</BotaoLinha>
             </LinhaConfig>
@@ -262,11 +262,11 @@ export function SecaoLocais({
             >
               {l.nome}
               <span className="font-mono text-[11.5px] font-normal text-tinta-fraca">
-                {l.emUso > 0 ? `${l.emUso} na grade` : 'sem uso'}
+                {l.emUso > 0 ? `${l.emUso} na grade` : 'Sem uso'}
               </span>
               {l.capacidade ? (
                 <span className="font-mono text-[11.5px] font-normal text-tinta-fraca">
-                  cabe {l.capacidade}
+                  Capacidade {l.capacidade}
                 </span>
               ) : null}
               {/* com a palavra: um lápis e um × sozinhos não dizem se aquilo
@@ -310,7 +310,7 @@ export function SecaoLocais({
           {inativos.map((l) => (
             <LinhaConfig key={l.id} apagado nome={l.nome}
               detalhe={l.emUso > 0 ? `${l.emUso} na grade` : undefined}>
-              {l.capacidade ? <Dado>cabe {l.capacidade}</Dado> : null}
+              {l.capacidade ? <Dado>Capacidade {l.capacidade}</Dado> : null}
               <Estado ativo={false} />
               <BotaoLinha tom="marca" onClick={() => setEdicao(l)}>Editar</BotaoLinha>
             </LinhaConfig>
@@ -404,7 +404,7 @@ export function SecaoLocais({
               defaultValue={emEdicao?.nome} className={entrada} />
           </Campo>
           <Campo rotulo="Capacidade" htmlFor="loc-cap"
-            dica="quantas pessoas cabem aqui (opcional)">
+            dica="Quantas pessoas cabem aqui. Opcional">
             <span className="block w-32">
               <CampoNumero id="loc-cap" nome="capacidade" min={1} max={999}
                 valorInicial={emEdicao?.capacidade ?? ''} />

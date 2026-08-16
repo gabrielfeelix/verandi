@@ -188,7 +188,7 @@ function Conteudo() {
 
       <Cartao titulo="Campo">
         <div className="flex flex-wrap gap-4">
-          <Campo rotulo="Nome" htmlFor="a-nome" dica="como aparece na grade">
+          <Campo rotulo="Nome" htmlFor="a-nome" dica="Como aparece na grade">
             <input id="a-nome" className={entrada} placeholder="Studio Aurora" />
           </Campo>
           <Campo rotulo="Começa às" htmlFor="a-hora">
@@ -197,7 +197,7 @@ function Conteudo() {
           <Campo rotulo="Vale a partir de" htmlFor="a-data">
             <input id="a-data" type="date" className={entrada} />
           </Campo>
-          <Campo rotulo="Capacidade" htmlFor="a-cap" dica="vagas por sessão">
+          <Campo rotulo="Capacidade" htmlFor="a-cap" dica="Vagas por sessão">
             <div className="flex items-center gap-2">
               <Botao tom="secundario" miudo aria-label="menos">−</Botao>
               <input id="a-cap" className={`${entrada} w-16 text-center`} defaultValue="4" />

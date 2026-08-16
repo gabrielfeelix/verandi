@@ -118,7 +118,7 @@ export function SecaoEquipe({
               detalhe={
                 <span className="flex flex-col">
                   {/* vazio explicado, nunca vazio mudo */}
-                  <span>{p.email ?? 'sem e-mail cadastrado'}</span>
+                  <span>{p.email ?? 'Sem e-mail cadastrado'}</span>
                   <span className="text-[11.5px] text-tinta-media">
                     {p.servicoIds.length === 0
                       ? 'atende qualquer serviço'
@@ -271,16 +271,16 @@ function Formulario({
       ))}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <Campo rotulo="Nome" htmlFor="pf-nome" dica="como aparece na grade" obrigatorio>
+        <Campo rotulo="Nome" htmlFor="pf-nome" dica="Como aparece na grade" obrigatorio>
           <input id="pf-nome" name="nome" required className={entrada}
             placeholder="Ex.: Carol" defaultValue={profissional?.nome} />
         </Campo>
-        <Campo rotulo="E-mail" htmlFor="pf-email" dica="opcional">
+        <Campo rotulo="E-mail" htmlFor="pf-email" dica="Opcional">
           <input id="pf-email" name="email" type="email" className={entrada}
             placeholder="carol@estudio.com.br"
             defaultValue={profissional?.email ?? ''} />
         </Campo>
-        <Campo rotulo="Telefone" htmlFor="pf-tel" dica="opcional, com DDD">
+        <Campo rotulo="Telefone" htmlFor="pf-tel" dica="Opcional">
           {/* aceitava "adqeewqeqwe": telefone é número, e o DDD é o que faz
               ele discar depois */}
           <CampoTelefone id="pf-tel" valorInicial={profissional?.telefone ?? ''} />

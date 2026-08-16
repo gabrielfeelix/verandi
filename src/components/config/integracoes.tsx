@@ -279,7 +279,7 @@ export function SecaoIntegracoes({
         >
           <Campo
             rotulo="Nome" htmlFor="ch-nome"
-            dica="aparece na lista, e é como você vai saber qual revogar"
+            dica="Aparece na lista, e é como você vai saber qual revogar"
           >
             <input
               id="ch-nome" name="nome" required autoFocus maxLength={60}
@@ -310,7 +310,7 @@ export function SecaoIntegracoes({
         >
           <Campo
             rotulo="Endereço" htmlFor="wh-url"
-            dica="precisa começar com https://"
+            dica="Precisa começar com https://"
           >
             <input
               id="wh-url" name="url" required autoFocus type="url"

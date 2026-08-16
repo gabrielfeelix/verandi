@@ -13,7 +13,7 @@ import { cartao, Chip, Paginacao, Vazio } from '@/components/ui/pecas'
 import { TINTA } from '@/components/ui/tintas'
 
 const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
-  { valor: 'sem_telefone',     rotulo: 'Sem telefone' },
+  { valor: 'sem_telefone',     rotulo: 'Telefone incompleto' },
   { valor: 'sem_horario_fixo', rotulo: 'Sem horário fixo' },
   { valor: 'plano_vencendo',   rotulo: 'Plano vencendo' },
   { valor: 'faltou_duas',      rotulo: 'Faltou nas últimas duas' },
@@ -32,7 +32,7 @@ const NOTA_INATIVA = 'quem está inativo não some, fica fora do padrão'
 type Busca = Promise<{ q?: string; f?: string | string[]; t?: string; p?: string }>
 
 function quando(iso: string | null) {
-  if (!iso) return 'sem presença'
+  if (!iso) return 'Sem presença'
   const dias = Math.floor((Date.parse(new Date().toDateString()) - Date.parse(iso)) / 864e5)
   if (dias <= 0) return 'hoje'
   if (dias === 1) return 'ontem'
@@ -209,18 +209,18 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         <span className="truncate text-[11.5px] text-tinta-media">
                           {p.identificadorExterno
                             ? `id ${p.identificadorExterno}`
-                            : 'sem identificador'}
+                            : 'Sem identificador'}
                         </span>
                       </span>
                     </span>
 
                     <span
-                      title={fone ? undefined : 'sem telefone cadastrado'}
+                      title={fone ? undefined : 'Sem telefone cadastrado'}
                       className={`font-mono text-[12.5px] ${
                         fone ? 'text-tinta-media' : 'text-alerta'
                       }`}
                     >
-                      {fone ?? 'sem registro'}
+                      {fone ?? 'Sem registro'}
                       {fone ? null : <span className="sr-only">sem telefone</span>}
                     </span>
 
@@ -236,7 +236,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                             <span className="text-tinta-fraca"> +{p.vagasAtivas - 1}</span>
                           ) : null}
                         </>
-                      ) : 'sem registro'}
+                      ) : 'Sem registro'}
                     </span>
 
                     <span className="hidden text-[13px] text-tinta-media md:block">

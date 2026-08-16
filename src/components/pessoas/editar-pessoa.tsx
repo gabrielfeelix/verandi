@@ -46,6 +46,13 @@ const CAMPOS = [
   ['vencimento', 'Vencimento do plano', 'data', true],
 ] as const
 
+/** O exemplo em cinza: campo vazio sem exemplo é campo que fica vazio. */
+const EXEMPLO: Record<string, string> = {
+  nome: 'Nome completo',
+  email: 'nome@email.com',
+  identificador: 'Número da ficha antiga',
+}
+
 /**
  * Editar a ficha **em modal**, não embutido no cartão.
  *
@@ -137,7 +144,7 @@ export function EditarPessoa({
             }
           })}
         >
-          <Campo rotulo="Foto" dica="ajuda a recepção a reconhecer, e serve de antes e depois">
+          <Campo rotulo="Foto" dica="Ajuda a recepção a reconhecer, e serve de antes e depois">
             <CampoFoto
               atual={pessoa.fotoUrl}
               alt={pessoa.nome}
@@ -153,7 +160,7 @@ export function EditarPessoa({
           <div className="grid gap-3 sm:grid-cols-2">
             {CAMPOS.map(([n, r, t, largo]) => (
               <div key={n} className={largo ? 'sm:col-span-2' : ''}>
-                <Campo rotulo={r} htmlFor={`ep-${n}`}>
+                <Campo rotulo={r} htmlFor={`ep-${n}`} obrigatorio={n === 'nome'}>
                   {t === 'data' ? (
                     <CampoData id={`ep-${n}`} nome={n} valorInicial={valor[n]} />
                   ) : t === 'tel' ? (
@@ -162,6 +169,7 @@ export function EditarPessoa({
                     <input
                       id={`ep-${n}`} name={n} type={t} defaultValue={valor[n]}
                       required={n === 'nome'}
+                      placeholder={EXEMPLO[n]}
                       className={`${entrada} w-full`}
                     />
                   )}

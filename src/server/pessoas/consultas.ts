@@ -93,7 +93,15 @@ function aplicarFiltros<T extends { eq: unknown }>(
   if (opts.busca && opts.busca.trim()) {
     q = q.like('nome_busca', `%${semAcento(opts.busca.trim())}%`)
   }
-  if (filtros.includes('sem_telefone')) q = q.is('telefone', null)
+  /*
+   * "Sem telefone" inclui o telefone que não disca.
+   *
+   * Nove dígitos sem DDD não avisam ninguém: o WhatsApp precisa de país e DDD.
+   * Para quem opera, um cadastro desses é tão inútil quanto o vazio, e é essa
+   * a lista que ela usa para correr atrás. `length(...)` conta só dígito porque
+   * a planilha antiga trouxe pontos e traços no meio.
+   */
+  if (filtros.includes('sem_telefone')) q = q.eq('telefone_disca', false)
   if (filtros.includes('sem_horario_fixo')) q = q.eq('vagas_ativas', 0)
   if (filtros.includes('faltou_duas')) q = q.gte('faltas_recentes', 2)
   if (filtros.includes('plano_vencendo')) {

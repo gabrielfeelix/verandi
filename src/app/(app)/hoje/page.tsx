@@ -177,28 +177,30 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           <CartaoNumero
             rotulo={`${rotulos.sessao.plural} hoje`}
             valor={vivas.length}
-            sub={ultima ? `até ${ultima.hora}` : 'nada marcado'}
+            sub={ultima ? `Até ${ultima.hora}` : 'Nada marcado'}
             glifo="≡"
+            tom="info"
           />
           <CartaoNumero
             rotulo="Chamadas pendentes"
             valor={pendentes}
-            sub="de turmas passadas"
+            sub="De turmas passadas"
             glifo="!"
-            tom={pendentes > 0 ? 'alerta' : 'neutro'}
+            tom={pendentes > 0 ? 'alerta' : 'atencao'}
           />
           <CartaoNumero
             rotulo="Presenças"
             valor={presencas}
-            sub="registradas no dia"
+            sub="Registradas no dia"
             glifo="✓"
-            tom={presencas > 0 ? 'positivo' : 'neutro'}
+            tom="positivo"
           />
           <CartaoNumero
             rotulo="Reposições em aberto"
             valor={reposicoes.length}
-            sub={maisAntiga ? `mais antiga: ${maisAntiga} dias` : 'nenhuma esperando'}
+            sub={maisAntiga ? `Mais antiga: ${maisAntiga} dias` : 'Nenhuma esperando'}
             glifo="↺"
+            tom={reposicoes.length > 0 ? 'alerta' : 'info'}
           />
         </div>
 

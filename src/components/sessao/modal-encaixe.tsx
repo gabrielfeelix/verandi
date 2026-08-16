@@ -116,8 +116,15 @@ export function ModalEncaixe({
           className={entrada}
         />
 
+        {/*
+          * A lista rola por dentro, com altura de três nomes e meio.
+          *
+          * Antes ela crescia com o resultado: digitar duas letras trazia oito
+          * pessoas, o modal esticava até o pé da janela e "Origem" saía da
+          * vista. Meio nome cortado na borda é o que diz que há mais para rolar.
+          */}
         {lista.length > 0 ? (
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex max-h-[216px] flex-col gap-1.5 overflow-y-auto">
             {lista.map((c) => (
               <li key={c.id}>
                 <button
@@ -191,6 +198,14 @@ export function ModalEncaixe({
         * que este modal está aberto. Fora dele, é um campo numérico pedindo para
         * ser mexido sem motivo.
         */}
+      {/*
+        * "Aplicar", e não "Salvar", e dentro de uma caixa com nome.
+        *
+        * Solto ao lado do campo, encostado no rodapé, ele parecia o botão que
+        * salva o modal inteiro — e o "Fechar" logo abaixo virava o par dele.
+        * São coisas diferentes: encaixar já acontece no toque do nome; isto
+        * aqui só muda o número de vagas deste dia.
+        */}
       <form
         action={(f) => {
           const n = Number(f.get('capacidade'))
@@ -199,21 +214,23 @@ export function ModalEncaixe({
             setAviso(null)
           })
         }}
-        className="flex items-end gap-2 border-t border-linha-fina pt-3.5"
+        className="flex flex-col gap-2 rounded-media border border-linha-suave bg-superficie-suave p-3"
       >
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="capacidade" className="text-[12.5px] font-medium">
-            Capacidade só deste dia
-          </label>
-          <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={ocupacao.capacidade} />
+        <label htmlFor="capacidade">
+          <Rotulo>Capacidade só deste dia</Rotulo>
+        </label>
+        <div className="flex items-center gap-2">
+          <span className="w-24">
+            <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={ocupacao.capacidade} />
+          </span>
+          <Botao type="submit" tom="secundario" miudo disabled={pendente}>
+            Aplicar
+          </Botao>
         </div>
-        <Botao type="submit" miudo disabled={pendente}>
-          Salvar
-        </Botao>
+        <p className="text-[11.5px] leading-relaxed text-tinta-media">
+          Muda só este horário. A grade fixa das outras semanas continua igual.
+        </p>
       </form>
-      <p className="pb-1 text-[11.5px] leading-relaxed text-tinta-media">
-        Muda só este horário. A grade fixa das outras semanas continua igual.
-      </p>
     </Modal>
   )
 }

@@ -50,7 +50,7 @@ export function AceitarConvite({ token }: { token: string }) {
     >
       {/* o e-mail já aparece na frase acima; repeti-lo num campo travado é
           formulário fingindo que dá para editar o que não dá */}
-      <Campo rotulo="Senha" htmlFor="c-senha" dica="ao menos 8 caracteres">
+      <Campo rotulo="Senha" htmlFor="c-senha" dica="Ao menos 8 caracteres">
         <input
           id="c-senha" name="senha" type="password" required minLength={8}
           autoFocus autoComplete="new-password"

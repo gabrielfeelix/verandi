@@ -15,15 +15,16 @@ import { Etiqueta, Rotulo, Vazio, cartao } from '@/components/ui/pecas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Voltar } from '@/components/ui/voltar'
 import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas'
+import { mascararTelefone, telefoneValido } from '@/core/telefone'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 
 const ROTULO_STATUS: Record<string, string> = {
   esperada: 'esperada',
   confirmada: 'confirmou',
-  presente: 'veio',
-  falta: 'faltou',
-  falta_avisada: 'avisou',
+  presente: 'Presente',
+  falta: 'Falta',
+  falta_avisada: 'Falta avisada',
   licenca: 'licença',
   cancelada: 'cancelada',
 }
@@ -137,7 +138,7 @@ export default async function Pessoa({
     return {
       id: s.id,
       grupo: DIAS[s.dia_semana],
-      rotulo: `${String(s.hora_inicio).slice(0, 5)} · ${s.servico?.nome ?? 'sem registro'}`,
+      rotulo: `${String(s.hora_inicio).slice(0, 5)} · ${s.servico?.nome ?? 'Sem registro'}`,
       detalhe: [
         s.profissional?.nome,
         s.local?.nome,
@@ -148,6 +149,7 @@ export default async function Pessoa({
 
   const p = ficha.pessoa
   const [fundo, frente] = paresDe(p.nome)
+  const telefoneCompleto = telefoneValido(p.telefone)
 
   const presencas = ficha.historico.filter((x) => x.status === 'presente').length
   const faltas = ficha.historico.filter(
@@ -163,10 +165,10 @@ export default async function Pessoa({
   // a ficha é a linha entre agenda e CRM: entra histórico, tag, observação e
   // contato. Não entra funil, proposta, valor nem cobrança.
   const dados: Array<[string, string, boolean?]> = [
-    ['Telefone', p.telefone ?? 'sem telefone', !p.telefone],
-    ['E-mail', p.email ?? 'sem e-mail'],
-    ['Identificador', p.identificadorExterno ?? 'sem identificador', !p.identificadorExterno],
-    ['Nascimento', p.nascimento ? curta(p.nascimento) : 'sem registro'],
+    ['Telefone', p.telefone ?? 'Sem telefone', !p.telefone],
+    ['E-mail', p.email ?? 'Sem e-mail'],
+    ['Identificador', p.identificadorExterno ?? 'Sem identificador', !p.identificadorExterno],
+    ['Nascimento', p.nascimento ? curta(p.nascimento) : 'Sem registro'],
     [`${rotulos.pessoa.singular} desde`, mesAno(p.criadoEm.slice(0, 10))],
   ]
 
@@ -328,6 +330,10 @@ export default async function Pessoa({
                             (v.profissional ? ` · ${v.profissional}` : ''),
                     desde: v.inicio,
                     ate: v.fim,
+                    dia: DIAS[v.diaSemana],
+                    hora: v.horaInicio,
+                    servico: v.servico,
+                    profissional: v.profissional,
                   }))}
                   series={opcoesSerie}
                   rotuloVaga={rotulos.vaga.singular}
@@ -376,7 +382,7 @@ export default async function Pessoa({
                 <h2 className="font-titulo text-[17px] font-semibold">Histórico</h2>
                 <span className="text-[12px] text-tinta-fraca">
                   {frequencia === null
-                    ? 'ainda sem presença registrada'
+                    ? 'Ainda sem presença registrada'
                     : `veio ${frequencia}% das vezes`}
                 </span>
               </div>
@@ -586,12 +592,23 @@ export default async function Pessoa({
             <div className="pb-3">
               <Rotulo>Contato</Rotulo>
             </div>
+            {/*
+              * Telefone sem DDD é telefone que não disca.
+              *
+              * O cadastro e a API já recusam, mas a base veio de planilha onde
+              * o número era anotado como se fala na recepção — "9.8109-1840".
+              * Mostrar isso como telefone bom é prometer um aviso que não vai
+              * sair: o `wa.me` precisa de país e DDD. Aqui ele aparece do jeito
+              * que está, marcado, com o caminho para consertar.
+              */}
             <p
-              className={`pb-3 font-mono text-[14px] ${p.telefone ? '' : 'text-alerta'}`}
+              className={`pb-3 font-mono text-[14px] ${
+                p.telefone && telefoneCompleto ? '' : 'text-alerta'
+              }`}
             >
-              {p.telefone ?? 'sem telefone'}
+              {p.telefone ? mascararTelefone(p.telefone) : 'Sem telefone'}
             </p>
-            {p.telefone ? (
+            {p.telefone && telefoneCompleto ? (
               <div className="flex gap-[7px]">
                 <a
                   href={`https://wa.me/55${p.telefone.replace(/\D/g, '')}`}
@@ -603,6 +620,12 @@ export default async function Pessoa({
                 </a>
                 <CopiarTelefone telefone={p.telefone} />
               </div>
+            ) : p.telefone ? (
+              <p className="rounded-media bg-alerta-superficie px-3 py-2.5 text-[12px] leading-[1.5] text-alerta">
+                Falta o DDD, então não dá para mandar mensagem por aqui. Abra
+                &quot;Editar dados&quot; e escreva o número completo:
+                (44) 99999-9999.
+              </p>
             ) : (
               <p className="text-[12px] leading-[1.5] text-tinta-fraca">
                 Sem telefone não dá para avisar de cancelamento nem cobrar
@@ -646,7 +669,7 @@ export default async function Pessoa({
             </div>
             <dl className="flex flex-col gap-2.5">
               {([
-                ['Presença', frequencia === null ? 'sem registro' : `${frequencia}%`,
+                ['Presença', frequencia === null ? 'Sem registro' : `${frequencia}%`,
                  frequencia !== null && frequencia >= 80 ? 'text-positivo' : 'text-tinta'],
                 ['Faltas nos últimos 30 dias', String(p.faltasRecentes),
                  p.faltasRecentes > 1 ? 'text-alerta' : 'text-tinta'],

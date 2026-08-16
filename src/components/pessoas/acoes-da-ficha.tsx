@@ -5,6 +5,7 @@ import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { Campo, ListaImpacto, entrada } from '@/components/ui/pecas'
 import { anonimizarPessoa, editarPessoa } from '@/server/pessoas/acoes'
+import { CampoData } from '@/components/ui/campo-data'
 
 /**
  * Marcar inativa: some do padrão das listas e **continua no histórico**.
@@ -126,7 +127,7 @@ export function AtenderPedidoDeExclusao({
           apagar de vez levaria junto a presença de todo mundo que estava na
           mesma aula. Fica registrado quem atendeu ao pedido e quando.
         </p>
-        <Campo rotulo={`Escreva ${nome} para confirmar`} htmlFor="confere-exclusao">
+        <Campo rotulo={`Escreva "${nome}" para confirmar`} htmlFor="confere-exclusao" obrigatorio>
           <input
             id="confere-exclusao"
             value={confere}
@@ -208,13 +209,12 @@ export function RegistrarRenovacao({
           iniciar(() => editarPessoa(pessoaId, { vencimentoPlano: data }))
         }}
       >
-        <Campo rotulo="Vence em" htmlFor="renovacao">
-          <input
-            id="renovacao"
-            type="date"
-            value={data}
-            onChange={(e) => setData(e.target.value)}
-            className={entrada}
+        <Campo rotulo="Vence em" htmlFor="renovacao" obrigatorio>
+          {/* o campo de data nativo aceitava ano de seis dígitos ("05/04/555555");
+              o nosso escreve as barras e para em quatro */}
+          <CampoData
+            id="renovacao" nome="vencimento" valorInicial={data}
+            aoTrocar={setData} limpavel={false}
           />
         </Campo>
       </Modal>
