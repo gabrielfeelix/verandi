@@ -32,7 +32,7 @@ const NOTA_INATIVA = 'quem está inativo não some, fica fora do padrão'
 type Busca = Promise<{ q?: string; f?: string | string[]; t?: string; p?: string }>
 
 function quando(iso: string | null) {
-  if (!iso) return 'nunca veio'
+  if (!iso) return 'sem presença'
   const dias = Math.floor((Date.parse(new Date().toDateString()) - Date.parse(iso)) / 864e5)
   if (dias <= 0) return 'hoje'
   if (dias === 1) return 'ontem'

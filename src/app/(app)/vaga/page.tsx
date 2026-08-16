@@ -115,7 +115,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
             Buscar vaga
           </h1>
           <p className="pt-[3px] text-[13.5px] text-tinta-media">
-            &quot;Quando tem horário?&quot;, a mesma resposta que o robô dá pela API
+            Onde ainda cabe alguém, nos próximos dias
           </p>
         </div>
         <span className="pb-1 text-[12px] text-tinta-fraca">

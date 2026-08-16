@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { Icone } from './icones'
 import { useFecharFora, usePosicionar } from './flutuante'
@@ -32,21 +32,68 @@ const GLIFO: Record<Notificacao['tipo'], string> = {
  * por pessoa é outra tabela, e o valor aqui é ver o que mudou, não zerar
  * caixa.
  */
+const CHAVE = 'verandi:notificacoes-lidas'
+
+/**
+ * O que já foi clicado, guardado no navegador.
+ *
+ * Clicar numa notificação navega para a tela dela, e navegar desmonta este
+ * componente: contar em memória zeraria a leitura no primeiro clique — a
+ * notificação voltaria a ser novidade ao voltar para o Hoje. Podia ser uma
+ * tabela `notificacao_lida` por usuário, e um dia será, quando existir "marcar
+ * todas como lidas" e alguém quiser a mesma leitura em dois aparelhos. Por
+ * enquanto isto é o certo pelo custo: o dado é descartável, a chave é o id que
+ * o servidor devolve, e as antigas somem sozinhas junto com os sete dias.
+ */
+const ouvintes = new Set<() => void>()
+
+function assinar(avisar: () => void) {
+  ouvintes.add(avisar)
+  // outra aba marcando lida conta como lida aqui também
+  window.addEventListener('storage', avisar)
+  return () => {
+    ouvintes.delete(avisar)
+    window.removeEventListener('storage', avisar)
+  }
+}
+
+/** o texto cru, e não o array: `useSyncExternalStore` compara por identidade */
+const noNavegador = () => localStorage.getItem(CHAVE) ?? '[]'
+const noServidor = () => '[]'
+
+function guardar(id: string) {
+  let atual: string[] = []
+  try { atual = JSON.parse(noNavegador()) as string[] } catch { atual = [] }
+  const nova = [...new Set([...atual, id])].slice(-200)
+  try { localStorage.setItem(CHAVE, JSON.stringify(nova)) } catch { /* sem espaço, paciência */ }
+  for (const avisar of ouvintes) avisar()
+}
+
 export function Sino({ itens }: { itens: Notificacao[] }) {
   const [aberto, setAberto] = useState(false)
-  const [visto, setVisto] = useState(false)
   const botao = useRef<HTMLButtonElement>(null)
   const painel = usePosicionar(botao, aberto, 340)
   useFecharFora([botao, painel], aberto, () => setAberto(false))
 
-  const novas = visto ? 0 : itens.length
+  /*
+   * `useSyncExternalStore` porque o `localStorage` é exatamente isto: um
+   * estado que mora fora do React. Ele resolve de uma vez a hidratação (o
+   * servidor rende com a lista vazia, sem discordar do cliente) e a leitura em
+   * outra aba, sem `setState` dentro de efeito.
+   */
+  const cru = useSyncExternalStore(assinar, noNavegador, noServidor)
+  const lidas = useMemo<string[]>(() => {
+    try { return JSON.parse(cru) as string[] } catch { return [] }
+  }, [cru])
+
+  const novas = itens.filter((n) => !lidas.includes(n.id)).length
 
   return (
     <>
       <button
         ref={botao}
         type="button"
-        onClick={() => { setAberto((a) => !a); setVisto(true) }}
+        onClick={() => setAberto((a) => !a)}
         aria-label={`Notificações${novas ? `, ${novas} novas` : ''}`}
         aria-expanded={aberto}
         className="relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-padrao border border-linha bg-superficie text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta"
@@ -82,8 +129,10 @@ export function Sino({ itens }: { itens: Notificacao[] }) {
                 <li key={n.id}>
                   <Link
                     href={n.href}
-                    onClick={() => setAberto(false)}
-                    className="flex items-start gap-2.5 rounded-padrao px-2.5 py-2.5 hover:bg-superficie-suave"
+                    onClick={() => { guardar(n.id); setAberto(false) }}
+                    className={`flex items-start gap-2.5 rounded-padrao px-2.5 py-2.5 hover:bg-superficie-suave ${
+                      lidas.includes(n.id) ? 'opacity-55' : ''
+                    }`}
                   >
                     <span
                       aria-hidden
@@ -92,7 +141,12 @@ export function Sino({ itens }: { itens: Notificacao[] }) {
                       {GLIFO[n.tipo]}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                      <span className="text-[13px] font-medium">{n.texto}</span>
+                      <span className="flex items-center gap-1.5 text-[13px] font-medium">
+                        {lidas.includes(n.id) ? null : (
+                          <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-marca" />
+                        )}
+                        {n.texto}
+                      </span>
                       {n.detalhe ? (
                         <span className="truncate text-[11.5px] text-tinta-fraca">
                           {n.detalhe}
