@@ -13,6 +13,7 @@ import { mesCurto } from '@/core/agenda/mes-curto'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarConta, entrarComoSuporte, suspenderConta } from '@/server/suporte/acoes'
 import type { AcessoSuporte, ContaSinais } from '@/server/suporte/consultas'
+import { erroLegivel } from '@/core/erro-legivel'
 
 /**
  * A tela da 4YU.
@@ -60,7 +61,7 @@ export function PainelContas({
         if (texto) avisar({ texto })
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para concluir')
+        setErro(erroLegivel(e))
       }
     })
   }

@@ -7,6 +7,7 @@ import { Nota } from '@/components/ui/pecas'
 import { PREDEFINICOES, type TipoDeNegocio } from '@/core/vocabulario/predefinicoes'
 import { concluir, marcarPasso, pular, escolherTipoDeNegocio } from '@/server/onboarding/acoes'
 import type { Cartao } from '@/core/onboarding/boas-vindas'
+import { erroLegivel } from '@/core/erro-legivel'
 
 /**
  * As boas-vindas, **por dentro do sistema**.
@@ -57,7 +58,7 @@ export function BoasVindas({
         // que está atrás deste modal
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+        setErro(erroLegivel(e))
       }
     })
   }

@@ -99,7 +99,7 @@ export function CampoFoto({
             aria-hidden
             className="flex size-14 shrink-0 items-center justify-center rounded-media border border-linha-tracejada bg-superficie text-tinta-fraca"
           >
-            <Icone nome="mais" tamanho={20} />
+            <Icone nome="clipe" tamanho={20} />
           </span>
         )}
 

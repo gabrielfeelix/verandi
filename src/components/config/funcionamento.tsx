@@ -10,6 +10,7 @@ import {
   salvarFuncionamento, salvarDataFechada, removerDataFechada,
 } from '@/server/config/acoes'
 import type { DataFechada, DiaFuncionamento } from '@/server/config/consultas'
+import { erroLegivel } from '@/core/erro-legivel'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -57,7 +58,7 @@ export function SecaoFuncionamento({
         aoFim?.()
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+        setErro(erroLegivel(e))
       }
     })
   }

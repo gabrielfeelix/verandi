@@ -7,6 +7,7 @@ import { cartao, Nota } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarVocabulario } from '@/server/config/acoes'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
+import { erroLegivel } from '@/core/erro-legivel'
 
 type Item = {
   chave: ChaveVocabulario
@@ -47,8 +48,8 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
     <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[19px] font-semibold">Vocabulário</h2>
       <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
-        Como este negócio chama cada coisa. Muda o texto de todas as telas, e só
-        o texto: nada nos dados é reescrito.
+        Escolha os nomes que combinam com o seu negócio. Nada é reescrito nos
+        dados: muda só o texto que aparece nas telas.
       </p>
 
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
@@ -118,7 +119,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
               avisar({ texto: 'Vocabulário atualizado em todas as telas' })
               router.refresh()
             } catch (e) {
-              setErro(e instanceof Error ? e.message : 'não deu para salvar')
+              setErro(erroLegivel(e))
             }
           })}
         >

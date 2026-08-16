@@ -166,7 +166,10 @@ function Corpo({ children }: { children: ReactNode }) {
  */
 function Rodape({ children }: { children: ReactNode }) {
   return (
-    <footer className="flex shrink-0 items-center gap-2 border-t border-linha-fina px-6 pt-4 pb-5">
+    /* `justify-end` e nada de `flex-1`: botão não cresce porque a frase dentro
+       dele é grande. "Cancelar" ao lado de "Ver o que muda" virava uma barra do
+       tamanho de meio modal, e o olho lia dois botões primários. */
+    <footer className="flex shrink-0 items-center justify-end gap-2 border-t border-linha-fina px-6 pt-4 pb-5">
       {children}
     </footer>
   )
@@ -202,7 +205,7 @@ export function Modal({
       <Titulo glifo={glifo} tom={tom} titulo={titulo} sub={sub} perigo={perigo} />
       {children ? <Corpo>{children}</Corpo> : null}
       <Rodape>
-        <Botao tom="secundario" onClick={aoFechar} className="flex-1">
+        <Botao tom="secundario" onClick={aoFechar} className="min-w-[120px]">
           {secundario}
         </Botao>
         {primario && aoConfirmar ? (
@@ -252,7 +255,7 @@ export function ModalFormulario({
       <form action={aoEnviar} className="flex min-h-0 flex-1 flex-col">
         <Corpo>{children}</Corpo>
         <Rodape>
-          <Botao type="button" tom="secundario" onClick={aoFechar} className="flex-1">
+          <Botao type="button" tom="secundario" onClick={aoFechar} className="min-w-[120px]">
             {secundario}
           </Botao>
           <Botao type="submit" tom={perigo ? 'perigo' : 'primario'} disabled={pendente}>

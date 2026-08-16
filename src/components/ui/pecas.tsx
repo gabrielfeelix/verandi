@@ -140,17 +140,24 @@ export function Rotulo({ children }: { children: ReactNode }) {
 }
 
 export function Campo({
-  rotulo, dica, children, htmlFor,
+  rotulo, dica, children, htmlFor, obrigatorio = false,
 }: {
   rotulo: string
   dica?: string
   children: ReactNode
   htmlFor?: string
+  /** marca com asterisco: a palavra "obrigatório" em cada campo é ruído */
+  obrigatorio?: boolean
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={htmlFor}>
-        <Rotulo>{rotulo}</Rotulo>
+        <Rotulo>
+          {rotulo}
+          {obrigatorio ? (
+            <span aria-hidden className="pl-0.5 text-alerta">*</span>
+          ) : null}
+        </Rotulo>
       </label>
       {children}
       {dica ? <span className="text-[12px] text-tinta-fraca">{dica}</span> : null}

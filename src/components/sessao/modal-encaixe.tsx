@@ -7,6 +7,7 @@ import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { Avatar, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
 import { useChamada } from './chamada'
+import { CampoNumero } from '@/components/ui/campo-numero'
 
 type Candidato = { id: string; nome: string; detalhe: string }
 
@@ -204,11 +205,7 @@ export function ModalEncaixe({
           <label htmlFor="capacidade" className="text-[12.5px] font-medium">
             Capacidade só deste dia
           </label>
-          <input
-            id="capacidade" name="capacidade" type="number" min={1}
-            defaultValue={ocupacao.capacidade}
-            className={`${entrada} w-24 px-2.5 text-center font-mono`}
-          />
+          <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={ocupacao.capacidade} />
         </div>
         <Botao type="submit" miudo disabled={pendente}>
           Salvar

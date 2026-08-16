@@ -12,6 +12,8 @@ import { useAviso } from '@/components/ui/desfazer'
 import { salvarServico, salvarLocal } from '@/server/config/acoes'
 import type { Rotulo } from '@/core/vocabulario/padrao'
 import type { ServicoLinha, LocalLinha } from '@/server/config/consultas'
+import { erroLegivel } from '@/core/erro-legivel'
+import { CampoNumero } from '@/components/ui/campo-numero'
 
 /**
  * Serviços e locais.
@@ -40,7 +42,7 @@ function useSalvar() {
         aoFim?.()
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+        setErro(erroLegivel(e))
       }
     })
   }
@@ -160,13 +162,16 @@ export function SecaoServicos({
             fechar,
           )}
         >
-          <Campo rotulo="Nome" htmlFor="srv-nome">
+          <Campo rotulo="Nome" htmlFor="srv-nome" obrigatorio>
             <input id="srv-nome" name="nome" required autoFocus
+              placeholder={`Ex.: ${rotulo.singular === 'Serviço' ? 'Pilates aparelho' : rotulo.singular}`}
               defaultValue={emEdicao?.nome} className={entrada} />
           </Campo>
-          <Campo rotulo="Duração (min)" htmlFor="srv-dur">
-            <input id="srv-dur" name="duracaoMin" type="number" min={1}
-              defaultValue={emEdicao?.duracaoMin ?? 50} className={`${entrada} w-28`} />
+          <Campo rotulo="Duração" htmlFor="srv-dur">
+            <span className="block w-32">
+              <CampoNumero id="srv-dur" nome="duracaoMin" min={1} max={600} sufixo="min"
+                valorInicial={emEdicao?.duracaoMin ?? 50} required />
+            </span>
           </Campo>
           <Campo
             rotulo="Capacidade padrão" htmlFor="srv-cap"
@@ -176,8 +181,10 @@ export function SecaoServicos({
                 : `cada ${rotuloSerie.singular.toLowerCase()} daqui nasce com esse número`
             }
           >
-            <input id="srv-cap" name="capacidade" type="number" min={1}
-              defaultValue={emEdicao?.capacidadePadrao ?? 4} className={`${entrada} w-28`} />
+            <span className="block w-32">
+              <CampoNumero id="srv-cap" nome="capacidade" min={1} max={999}
+                valorInicial={emEdicao?.capacidadePadrao ?? 4} required />
+            </span>
           </Campo>
           {emEdicao ? (
             <label className="flex items-center gap-2 text-[12.5px]">
@@ -262,21 +269,20 @@ export function SecaoLocais({
                   cabe {l.capacidade}
                 </span>
               ) : null}
-              <BotaoIcone
-                icone="lapis"
-                titulo={`Editar ${l.nome}`}
-                onClick={() => setEdicao(l)}
-              />
+              {/* com a palavra: um lápis e um × sozinhos não dizem se aquilo
+                  edita, apaga ou fecha o cartão */}
+              <BotaoLinha tom="marca" onClick={() => setEdicao(l)}>Editar</BotaoLinha>
               {/* desativar não acontece no clique: o protótipo desenha modal
                   destrutivo aqui, e é onde a pessoa fica sabendo quantas
                   séries e sessões dependem do que ela está tirando */}
-              <BotaoIcone
-                icone="fechar"
-                titulo={`Desativar ${l.nome}`}
-                perigo
+              <BotaoLinha
+                tom="perigo"
+                aria-label={`Desativar ${l.nome}`}
                 disabled={pendente}
                 onClick={() => setADesativar(l)}
-              />
+              >
+                Desativar
+              </BotaoLinha>
             </span>
           ))}
 
@@ -393,15 +399,16 @@ export function SecaoLocais({
             fechar,
           )}
         >
-          <Campo rotulo="Nome" htmlFor="loc-nome">
-            <input id="loc-nome" name="nome" required autoFocus
+          <Campo rotulo="Nome" htmlFor="loc-nome" obrigatorio>
+            <input id="loc-nome" name="nome" required autoFocus placeholder="Ex.: Sala 1"
               defaultValue={emEdicao?.nome} className={entrada} />
           </Campo>
           <Campo rotulo="Capacidade" htmlFor="loc-cap"
             dica="quantas pessoas cabem aqui (opcional)">
-            <input id="loc-cap" name="capacidade" type="number" min={1}
-              defaultValue={emEdicao?.capacidade ?? undefined}
-              className={`${entrada} w-28`} />
+            <span className="block w-32">
+              <CampoNumero id="loc-cap" nome="capacidade" min={1} max={999}
+                valorInicial={emEdicao?.capacidade ?? ''} />
+            </span>
           </Campo>
           {emEdicao ? (
             <>

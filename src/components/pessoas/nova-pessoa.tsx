@@ -6,6 +6,7 @@ import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import { CampoTelefone } from '@/components/ui/campo-telefone'
 import { criarPessoa } from '@/server/pessoas/acoes'
+import { erroLegivel } from '@/core/erro-legivel'
 
 /**
  * Cadastro com **nome apenas** como mínimo. Exigir telefone é o jeito mais
@@ -66,7 +67,7 @@ export function NovaPessoa({
               if (aoCriar) aoCriar(id)
               else router.push(`/pessoas/${id}`)
             } catch (e) {
-              setErro(e instanceof Error ? e.message : 'não deu para cadastrar')
+              setErro(erroLegivel(e))
             }
           })}
         >

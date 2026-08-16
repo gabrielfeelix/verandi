@@ -6,6 +6,8 @@ import { listarPendencias } from '@/server/pendencias/consultas'
 import { somarDias } from '@/core/agenda/datas'
 import { agoraMs, hojeEm, horaEm, quantoFalta } from '@/server/agenda/fuso'
 import { BuscaRapida } from '@/components/hoje/busca-rapida'
+import { Sino } from '@/components/ui/sino'
+import { notificacoesDaConta } from '@/server/notificacoes'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Abas } from '@/components/ui/abas'
 import { Icone } from '@/components/ui/icones'
@@ -69,6 +71,9 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
     .maybeSingle()
 
   const podeVerTodos = conta.papel !== 'profissional'
+  const notificacoes = podeVerTodos
+    ? await notificacoesDaConta(db, conta.contaId)
+    : []
   const verTodos = podeVerTodos && todos === '1'
   const filtro = !verTodos && eu ? { profissionalId: eu.id } : {}
 
@@ -141,6 +146,10 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
           <div className="flex items-center gap-2.5">
             <BuscaRapida rotuloPessoa={rotulos.pessoa.singular} />
+
+            {/* o sino fica ao lado da busca, e só para quem responde pelo
+                negócio: professor não precisa saber do encaixe da recepção */}
+            {podeVerTodos ? <Sino itens={notificacoes} /> : null}
 
             <NavegadorPeriodo
               antes={{ href: link(somarDias(dia, -1)), rotulo: 'Dia anterior' }}

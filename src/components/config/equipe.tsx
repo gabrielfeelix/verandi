@@ -13,6 +13,8 @@ import { CORES_PROFISSIONAL } from '@/components/ui/tintas'
 import { salvarProfissional, removerFoto } from '@/server/config/acoes'
 import type { ProfissionalLinha } from '@/server/config/equipe'
 import { CampoFoto } from '@/components/ui/campo-foto'
+import { erroLegivel } from '@/core/erro-legivel'
+import { CampoTelefone } from '@/components/ui/campo-telefone'
 
 type ServicoOpcao = { id: string; nome: string }
 
@@ -52,7 +54,7 @@ export function SecaoEquipe({
         aoFim?.()
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+        setErro(erroLegivel(e))
       }
     })
   }
@@ -145,6 +147,7 @@ export function SecaoEquipe({
                      fechar, e quem descobre parando o mouse em cima descobre
                      tarde — no celular, nunca */
                   <BotaoLinha
+                    tom="perigo"
                     aria-label={`Desativar ${p.nome}`}
                     disabled={pendente}
                     onClick={() => setADesativar(p)}
@@ -152,7 +155,7 @@ export function SecaoEquipe({
                     Desativar
                   </BotaoLinha>
                 ) : (
-                  <span className="rounded-peca bg-neutro-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-tinta-media">
+                  <span className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-alerta">
                     Desativado
                   </span>
                 )}
@@ -267,18 +270,20 @@ function Formulario({
         <input key={s} type="hidden" name="servicos" value={s} />
       ))}
 
-      <div className="flex flex-wrap items-start gap-3">
-        <Campo rotulo="Nome" htmlFor="pf-nome" dica="como aparece na grade">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Campo rotulo="Nome" htmlFor="pf-nome" dica="como aparece na grade" obrigatorio>
           <input id="pf-nome" name="nome" required className={entrada}
-            defaultValue={profissional?.nome} />
+            placeholder="Ex.: Carol" defaultValue={profissional?.nome} />
         </Campo>
         <Campo rotulo="E-mail" htmlFor="pf-email" dica="opcional">
           <input id="pf-email" name="email" type="email" className={entrada}
+            placeholder="carol@estudio.com.br"
             defaultValue={profissional?.email ?? ''} />
         </Campo>
-        <Campo rotulo="Telefone" htmlFor="pf-tel" dica="opcional">
-          <input id="pf-tel" name="telefone" className={entrada}
-            defaultValue={profissional?.telefone ?? ''} />
+        <Campo rotulo="Telefone" htmlFor="pf-tel" dica="opcional, com DDD">
+          {/* aceitava "adqeewqeqwe": telefone é número, e o DDD é o que faz
+              ele discar depois */}
+          <CampoTelefone id="pf-tel" valorInicial={profissional?.telefone ?? ''} />
         </Campo>
       </div>
 

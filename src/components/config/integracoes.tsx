@@ -12,6 +12,7 @@ import { ENDERECO_PUBLICO } from '@/core/legal'
 import { salvarWebhook, desligarWebhook } from '@/server/webhook/acoes'
 import type { AvisoDaConta } from '@/server/webhook/consultas'
 import type { ChaveLinha } from '@/server/api/chave'
+import { erroLegivel } from '@/core/erro-legivel'
 
 /**
  * A seção que lista **integrações**, e não chaves.
@@ -62,7 +63,7 @@ export function SecaoIntegracoes({
         if (texto) avisar({ texto })
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para concluir')
+        setErro(erroLegivel(e))
       }
     })
   }
@@ -142,7 +143,7 @@ export function SecaoIntegracoes({
         <div className="flex flex-wrap items-start justify-between gap-3 rounded-grande border border-linha-suave px-4 py-3.5">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2">
-              <span className="text-[12.5px] font-medium">Avisar quando algo mudar</span>
+              <span className="text-[12.5px] font-medium">Notificações</span>
               {aviso?.ativo ? <Etiqueta tinta="info">ligado</Etiqueta> : null}
             </span>
             <span className="text-[12.5px] leading-relaxed text-tinta-media">

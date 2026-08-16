@@ -14,6 +14,7 @@ import {
 import { recadoDaEntrega } from '@/core/email/entrega'
 import { PAPEIS_CONVIDAVEIS, NOME_PAPEL, type PapelConvidavel } from '@/core/acesso/papeis'
 import type { ConvitePendente, UsuarioLinha } from '@/server/usuarios/consultas'
+import { erroLegivel } from '@/core/erro-legivel'
 
 const TINTA_PAPEL: Record<string, 'positivo' | 'info' | 'atencao' | 'neutro'> = {
   dono: 'positivo',
@@ -66,7 +67,7 @@ export function SecaoUsuarios({
         if (texto) avisar({ texto })
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para concluir')
+        setErro(erroLegivel(e))
       }
     })
   }

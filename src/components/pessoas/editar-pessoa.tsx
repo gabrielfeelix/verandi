@@ -10,6 +10,7 @@ import { CampoData } from '@/components/ui/campo-data'
 import { CampoTelefone } from '@/components/ui/campo-telefone'
 import { CampoFoto } from '@/components/ui/campo-foto'
 import { useAviso } from '@/components/ui/desfazer'
+import { erroLegivel } from '@/core/erro-legivel'
 
 type Pessoa = {
   id: string
@@ -132,7 +133,7 @@ export function EditarPessoa({
               fechar()
               router.refresh()
             } catch (e) {
-              setErro(e instanceof Error ? e.message : 'não deu para salvar')
+              setErro(erroLegivel(e))
             }
           })}
         >

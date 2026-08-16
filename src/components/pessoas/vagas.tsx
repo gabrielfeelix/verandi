@@ -10,6 +10,7 @@ import { Escolha } from '@/components/ui/escolha'
 import { CampoData } from '@/components/ui/campo-data'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarVaga, encerrarVaga } from '@/server/pessoas/acoes'
+import { erroLegivel } from '@/core/erro-legivel'
 
 type Props = {
   pessoaId: string
@@ -160,7 +161,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
                 fechar()
                 router.refresh()
               } catch (e) {
-                setErro(e instanceof Error ? e.message : 'não deu para agendar')
+                setErro(erroLegivel(e))
               }
             })
           }}
@@ -217,7 +218,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
               fechar()
               router.refresh()
             } catch (e) {
-              setErro(e instanceof Error ? e.message : 'não deu para encerrar')
+              setErro(erroLegivel(e))
             }
           })}
         >

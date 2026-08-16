@@ -11,6 +11,8 @@ import { criarSeries } from '@/server/grade/acoes'
 import type { Colisao, NovaSerie } from '@/core/agenda/serie'
 import type { Rotulos } from '@/core/vocabulario/padrao'
 import type { CatalogoGrade } from '@/server/grade/consultas'
+import { erroLegivel } from '@/core/erro-legivel'
+import { CampoNumero } from '@/components/ui/campo-numero'
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
@@ -72,7 +74,7 @@ export function EditorSerie({
           setPedido(entrada)
         }
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+        setErro(erroLegivel(e))
       }
     })
   }
@@ -141,17 +143,15 @@ export function EditorSerie({
               </fieldset>
 
               <div className="flex flex-wrap items-start gap-3">
-                <Campo rotulo="Começa às" htmlFor="horaInicio">
+                <Campo rotulo="Começa às" htmlFor="horaInicio" obrigatorio>
                   <input id="horaInicio" name="horaInicio" type="time" required
                     className={`${entrada} w-32`} />
                 </Campo>
                 <Campo rotulo="Duração (min)" htmlFor="duracaoMin">
-                  <input id="duracaoMin" name="duracaoMin" type="number" min={1}
-                    defaultValue={60} className={`${entrada} w-24`} />
+                  <CampoNumero id="duracaoMin" nome="duracaoMin" min={1} max={600} sufixo="min" valorInicial={60} required />
                 </Campo>
                 <Campo rotulo="Capacidade" htmlFor="capacidade">
-                  <input id="capacidade" name="capacidade" type="number" min={1}
-                    defaultValue={1} className={`${entrada} w-24`} />
+                  <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={1} required />
                 </Campo>
               </div>
 

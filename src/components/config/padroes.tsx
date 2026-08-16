@@ -8,6 +8,26 @@ import { Icone } from '@/components/ui/icones'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarPadroes } from '@/server/config/acoes'
 import type { Padroes, UltimaAlteracao } from '@/server/config/consultas'
+import { erroLegivel } from '@/core/erro-legivel'
+
+/*
+ * O que o banco traz de fábrica, na `0037`. Repetido aqui de propósito: o botão
+ * de voltar ao padrão precisa do valor **antes** de qualquer ida ao servidor,
+ * senão ele só funcionaria depois de uma volta de rede para descobrir o que
+ * é o padrão. Se a migration mudar, muda aqui junto.
+ */
+const DE_FABRICA = {
+  capacidadePadrao: 4,
+  duracaoPadraoMin: 50,
+  intervaloMin: 10,
+  prazoReposicaoDias: 60,
+  encaixeAcima: true,
+  creditoFaltaAvisada: true,
+  horariosSugeridos: [
+    '07:00', '08:00', '09:00', '10:00', '11:00',
+    '17:00', '18:00', '19:00', '20:00',
+  ],
+}
 
 /**
  * A seção Padrões: os números que o resto do sistema assume quando ninguém diz
@@ -55,7 +75,7 @@ export function SecaoPadroes({
         avisar({ texto: 'Padrões salvos' })
         router.refresh()
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+        setErro(erroLegivel(e))
       }
     })
   }
@@ -212,7 +232,17 @@ export function SecaoPadroes({
             </>
           ) : null}
         </span>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {/* voltar ao que o sistema traz de fábrica: mexer em sete números e
+              não saber mais onde estava é o jeito mais rápido de ninguém mais
+              encostar nesta tela */}
+          <Botao
+            tom="fantasma" disabled={pendente}
+            className="min-h-10 rounded-padrao"
+            onClick={() => { setV(DE_FABRICA); setErro(null) }}
+          >
+            Voltar ao padrão
+          </Botao>
           <Botao
             tom="secundario" disabled={pendente || !sujo}
             className="min-h-10 rounded-padrao"

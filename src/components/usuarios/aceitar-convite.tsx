@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Campo, Nota } from '@/components/ui/pecas'
 import { aceitarConvite } from '@/server/usuarios/acoes'
+import { erroLegivel } from '@/core/erro-legivel'
 
 const RECUSA: Record<string, string> = {
   expirado: 'Este convite passou do prazo.',
@@ -43,7 +44,7 @@ export function AceitarConvite({ token }: { token: string }) {
           }
           router.push('/entrar?novo=1')
         } catch (e) {
-          setErro(e instanceof Error ? e.message : 'não deu para concluir')
+          setErro(erroLegivel(e))
         }
       })}
     >

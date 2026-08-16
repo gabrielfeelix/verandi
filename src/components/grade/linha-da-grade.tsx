@@ -16,8 +16,15 @@ import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { Escolha } from '@/components/ui/escolha'
 import { CampoData } from '@/components/ui/campo-data'
+import { erroLegivel } from '@/core/erro-legivel'
+import { CampoNumero } from '@/components/ui/campo-numero'
 
 const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+/* por extenso e com maiúscula na escolha: "seg" é abreviação de grade cheia,
+   não de campo de formulário, onde há espaço para a palavra inteira */
+const DIAS_INTEIROS = [
+  'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado',
+]
 
 type Modo = null | 'editar' | 'duplicar' | 'encerrar' | 'ocupa'
 type Ocupante = { pessoaId: string; nome: string; desde: string }
@@ -70,7 +77,7 @@ export function LinhaDaGrade({
     iniciar(async () => {
       setErro(null)
       try { await fn() } catch (e) {
-        setErro(e instanceof Error ? e.message : 'não deu para salvar')
+        setErro(erroLegivel(e))
       }
     })
   }
@@ -221,7 +228,7 @@ export function LinhaDaGrade({
           glifo="✎"
           titulo={`Editar ${rotulos.serie.singular.toLowerCase()}`}
           sub={`${DIAS[serie.diaSemana]} ${serie.horaInicio} · ${serie.servico}`}
-          primario={preview && mudanca ? 'Confirmar' : 'Ver o que muda'}
+          primario={preview && mudanca ? 'Confirmar e salvar' : 'Salvar'}
           pendente={pendente}
           aoFechar={fechar}
           aoEnviar={(f) => {
@@ -248,30 +255,24 @@ export function LinhaDaGrade({
           }}
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            <Campo rotulo="Dia" htmlFor={`d-${serie.id}`}>
+            <Campo rotulo="Dia da semana" htmlFor={`d-${serie.id}`} obrigatorio>
               <Escolha
                 id={`d-${serie.id}`} nome="diaSemana"
                 valorInicial={String(serie.diaSemana)}
-                opcoes={DIAS.map((d, i) => ({ valor: String(i), rotulo: d }))}
+                opcoes={DIAS_INTEIROS.map((d, i) => ({ valor: String(i), rotulo: d }))}
               />
             </Campo>
-            <Campo rotulo="Começa às" htmlFor={`h-${serie.id}`}>
+            <Campo rotulo="Começa às" htmlFor={`h-${serie.id}`} obrigatorio>
               <input
                 id={`h-${serie.id}`} name="horaInicio" type="time" required
                 defaultValue={serie.horaInicio} className={`${entrada} w-full`}
               />
             </Campo>
             <Campo rotulo="Duração (min)" htmlFor={`m-${serie.id}`}>
-              <input
-                id={`m-${serie.id}`} name="duracaoMin" type="number" min={1}
-                defaultValue={serie.duracaoMin} className={`${entrada} w-full`}
-              />
+              <CampoNumero id={`m-${serie.id}`} nome="duracaoMin" min={1} max={600} sufixo="min" valorInicial={serie.duracaoMin} required />
             </Campo>
             <Campo rotulo="Capacidade" htmlFor={`c-${serie.id}`}>
-              <input
-                id={`c-${serie.id}`} name="capacidade" type="number" min={1}
-                defaultValue={serie.capacidade} className={`${entrada} w-full`}
-              />
+              <CampoNumero id={`c-${serie.id}`} nome="capacidade" min={1} max={999} valorInicial={serie.capacidade} required />
             </Campo>
           </div>
 
@@ -308,7 +309,8 @@ export function LinhaDaGrade({
               grade reescreve o passado. A tela diz o contrário em número. */}
           {preview ? (
             <Nota tom={preview.capacidadeMenorQueOcupacao ? 'atencao' : 'neutro'}>
-              A mudança vale daqui para frente; o que já passou fica como está.{' '}
+              Confira antes de confirmar; dá para mudar os campos acima ou
+              cancelar. A mudança vale daqui para frente; o que já passou fica como está.{' '}
               {preview.sessoesAfetadas} mudam
               {preview.sessoesPreservadas > 0
                 ? `, ${preview.sessoesPreservadas} ficam como estão porque já têm decisão registrada`

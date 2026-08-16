@@ -88,7 +88,7 @@ export function Estado({ ativo }: { ativo: boolean }) {
   return (
     <span
       className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
-        ativo ? 'bg-positivo-fundo text-positivo' : 'bg-neutro-fundo text-tinta-media'
+        ativo ? 'bg-positivo-fundo text-positivo' : 'bg-alerta-fundo text-alerta'
       }`}
     >
       {ativo ? 'Ativo' : 'Desativado'}
@@ -101,16 +101,20 @@ export function BotaoLinha({
   children, tom = 'neutro', className = '', ...resto
 }: {
   children: ReactNode
-  tom?: 'neutro' | 'marca'
+  /* `perigo` é vermelho, e vermelho aqui é só o que tira algo do ar:
+     desativar, excluir. Fechar e cancelar não são perigo — são desistir. */
+  tom?: 'neutro' | 'marca' | 'perigo'
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
       {...resto}
-      className={`min-h-9 rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] whitespace-nowrap disabled:opacity-50 ${
+      className={`min-h-9 rounded-peca border px-3 text-[12.5px] whitespace-nowrap disabled:opacity-50 ${
         tom === 'marca'
-          ? 'text-marca hover:bg-positivo-superficie'
-          : 'text-tinta-media hover:bg-superficie-suave hover:text-tinta'
+          ? 'border-linha-suave bg-superficie text-marca hover:bg-positivo-superficie'
+          : tom === 'perigo'
+            ? 'border-alerta-linha-forte bg-alerta-superficie text-alerta hover:bg-alerta-fundo'
+            : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-suave hover:text-tinta'
       } ${className}`}
     >
       {children}
