@@ -18,6 +18,20 @@ Playwright.
 **Especificação:** [`13-administrativo.md`](13-administrativo.md), e o documento
 do cliente na raiz do repositório.
 
+> **Feito em 18/08, e o que ficou de fora.** As sete tarefas foram executadas e
+> a `0053` está aplicada em produção. **Três verificações não rodaram**, e não
+> por decisão: o Docker da máquina estava sem integração com o WSL, o Supabase
+> local não subia, e sem banco não há `npm run tipos`, nem teste de banco, nem
+> teste de navegador. Os dois arquivos de teste estão escritos e esperando.
+> Quem pegar isto com Docker de pé roda os três primeiro, antes de qualquer
+> coisa nova.
+>
+> Três coisas mudaram em relação ao que este plano dizia, e as três estão nos
+> commits: o comentário ao lado de elemento dentro de ramo de ternário quebra o
+> JSX e precisa de fragmento; o `<Chip>` escreve o próprio `className` depois do
+> spread, então `className` vindo de fora some calado; e `anonimizarPessoa`
+> tinha um defeito antigo, deixava a foto da ficha no balde desde a `0051`.
+
 ## Restrições que valem para todas as tarefas
 
 - Migration começa com `set search_path = app_verandi, extensions;` e usa o
@@ -77,7 +91,7 @@ da participação (ver `0043`).
 - Produz: tabelas `posicao_avaliacao`, `avaliacao`, `avaliacao_foto`; balde
   `foto-avaliacao`.
 
-- [ ] **Passo 1: escrever a migration**
+- [x] **Passo 1: escrever a migration**
 
 ```sql
 set search_path = app_verandi, extensions;
@@ -193,7 +207,7 @@ grant select, insert, update, delete on all tables in schema app_verandi to auth
 grant all on all tables in schema app_verandi to service_role;
 ```
 
-- [ ] **Passo 2: aplicar no banco local e gerar os tipos**
+- [x] **Passo 2: aplicar no banco local e gerar os tipos**
 
 ```bash
 npx supabase db reset && node scripts/semear-dev.mjs && npm run tipos
@@ -202,7 +216,7 @@ npx supabase db reset && node scripts/semear-dev.mjs && npm run tipos
 Esperado: `banco.types.ts` passa a ter `avaliacao`, `avaliacao_foto` e
 `posicao_avaliacao`.
 
-- [ ] **Passo 3: teste de que a conta vizinha não enxerga**
+- [x] **Passo 3: teste de que a conta vizinha não enxerga**
 
 ```ts
 // tests/avaliacao.test.ts
@@ -254,13 +268,13 @@ describe('avaliação, isolamento por conta', () => {
 })
 ```
 
-- [ ] **Passo 4: rodar e ver passar**
+- [x] **Passo 4: rodar e ver passar**
 
 ```bash
 npx vitest run tests/avaliacao.test.ts
 ```
 
-- [ ] **Passo 5: commit**
+- [x] **Passo 5: commit**
 
 ```bash
 git add supabase/migrations/0053_vr_avaliacao.sql tests/avaliacao.test.ts src/server/banco.types.ts
@@ -279,7 +293,7 @@ git commit -m "feat: o acompanhamento por foto ganha modelo e balde próprio"
 - Produz: `POSICOES_PADRAO: string[]`, `ordenarPosicoes(linhas)`,
   `proximaOrdem(linhas)`.
 
-- [ ] **Passo 1: escrever o teste que falha**
+- [x] **Passo 1: escrever o teste que falha**
 
 ```ts
 // tests/unit/avaliacao.test.ts
@@ -310,7 +324,7 @@ describe('posições da avaliação', () => {
 })
 ```
 
-- [ ] **Passo 2: rodar e ver falhar**
+- [x] **Passo 2: rodar e ver falhar**
 
 ```bash
 npx vitest run tests/unit/avaliacao.test.ts
@@ -318,7 +332,7 @@ npx vitest run tests/unit/avaliacao.test.ts
 
 Esperado: falha por não existir `@/core/avaliacao/posicoes`.
 
-- [ ] **Passo 3: escrever o mínimo**
+- [x] **Passo 3: escrever o mínimo**
 
 ```ts
 // src/core/avaliacao/posicoes.ts
@@ -357,13 +371,13 @@ export function proximaOrdem(linhas: readonly Posicao[]): number {
 }
 ```
 
-- [ ] **Passo 4: rodar e ver passar**
+- [x] **Passo 4: rodar e ver passar**
 
 ```bash
 npx vitest run tests/unit/avaliacao.test.ts
 ```
 
-- [ ] **Passo 5: commit**
+- [x] **Passo 5: commit**
 
 ```bash
 git add src/core/avaliacao/posicoes.ts tests/unit/avaliacao.test.ts
@@ -382,7 +396,7 @@ git commit -m "feat: as posições da avaliação são da conta, com seis de par
 - Consome: nada.
 - Produz: `parPadrao(datas: string[]): { antes: string; depois: string } | null`.
 
-- [ ] **Passo 1: escrever o teste que falha**
+- [x] **Passo 1: escrever o teste que falha**
 
 ```ts
 // acrescentar em tests/unit/avaliacao.test.ts
@@ -401,13 +415,13 @@ describe('par de comparação', () => {
 })
 ```
 
-- [ ] **Passo 2: rodar e ver falhar**
+- [x] **Passo 2: rodar e ver falhar**
 
 ```bash
 npx vitest run tests/unit/avaliacao.test.ts
 ```
 
-- [ ] **Passo 3: escrever o mínimo**
+- [x] **Passo 3: escrever o mínimo**
 
 ```ts
 // src/core/avaliacao/comparar.ts
@@ -425,9 +439,9 @@ export function parPadrao(datas: readonly string[]): { antes: string; depois: st
 }
 ```
 
-- [ ] **Passo 4: rodar e ver passar**
+- [x] **Passo 4: rodar e ver passar**
 
-- [ ] **Passo 5: commit**
+- [x] **Passo 5: commit**
 
 ```bash
 git add src/core/avaliacao/comparar.ts tests/unit/avaliacao.test.ts
@@ -453,7 +467,7 @@ git commit -m "feat: a comparação abre na primeira contra a última"
   - `salvarFotoDaAvaliacao(avaliacaoId, posicaoId, foto: File, observacao?)`
   - `criarPosicao(nome)`, `apagarAvaliacao(id)`
 
-- [ ] **Passo 1: escrever o teste que falha**
+- [x] **Passo 1: escrever o teste que falha**
 
 ```ts
 // acrescentar em tests/avaliacao.test.ts
@@ -469,9 +483,9 @@ describe('quem enxerga a avaliação', () => {
 })
 ```
 
-- [ ] **Passo 2: rodar e ver falhar**
+- [x] **Passo 2: rodar e ver falhar**
 
-- [ ] **Passo 3: escrever as consultas**
+- [x] **Passo 3: escrever as consultas**
 
 ```ts
 // src/server/avaliacao/consultas.ts
@@ -518,7 +532,7 @@ export async function posicoesDaConta() {
 }
 ```
 
-- [ ] **Passo 4: escrever as ações**
+- [x] **Passo 4: escrever as ações**
 
 ```ts
 // src/server/avaliacao/acoes.ts
@@ -593,13 +607,13 @@ export async function salvarFotoDaAvaliacao(
 }
 ```
 
-- [ ] **Passo 5: rodar tudo e ver passar**
+- [x] **Passo 5: rodar tudo e ver passar**
 
 ```bash
 npx vitest run tests/avaliacao.test.ts tests/unit/avaliacao.test.ts
 ```
 
-- [ ] **Passo 6: commit**
+- [x] **Passo 6: commit**
 
 ```bash
 git add src/server/avaliacao tests/avaliacao.test.ts
@@ -621,7 +635,7 @@ git commit -m "feat: criar avaliação e trocar a foto da posição, com a recep
 - Consome: `avaliacoesDaPessoa`, `posicoesDaConta` da Tarefa 4; `parPadrao` da
   Tarefa 3; `Modal`, `CampoFoto`, `Botao`, `Cartao` do design system.
 
-- [ ] **Passo 1: escrever o teste de navegador que falha**
+- [x] **Passo 1: escrever o teste de navegador que falha**
 
 ```ts
 // e2e/avaliacao.spec.ts
@@ -650,13 +664,13 @@ test('a recepção não enxerga a aba', async ({ page }) => {
 })
 ```
 
-- [ ] **Passo 2: rodar e ver falhar**
+- [x] **Passo 2: rodar e ver falhar**
 
 ```bash
 npx playwright test e2e/avaliacao.spec.ts
 ```
 
-- [ ] **Passo 3: a matriz**
+- [x] **Passo 3: a matriz**
 
 Grade de posição por data, com a miniatura de cada cruzamento e o botão de
 adicionar onde não houver foto. A célula abre a foto grande num modal, porque o
@@ -664,32 +678,32 @@ documento do cliente pede em letras maiúsculas que dê para ampliar. Segue o
 desenho aprovado: cartão de raio 20, cabeçalho com borda `#EFF3F1`, miniatura de
 76 por 96 com raio 11, e a coluna da última data com a borda da marca.
 
-- [ ] **Passo 4: o comparador**
+- [x] **Passo 4: o comparador**
 
 Duas colunas iguais, cada uma com o seletor de data da casa (o `<Escolha>` que
 já existe), a foto em 480px de altura, e a observação daquela foto embaixo. A
 linha de prumo é um traço tracejado na cor menta, por cima da foto, e liga e
 desliga num chip. Quem escolhe o par inicial é `parPadrao`.
 
-- [ ] **Passo 5: o modal de registro**
+- [x] **Passo 5: o modal de registro**
 
 Data, quem avaliou, observação da visita, e uma zona de foto por posição, com o
 `<CampoFoto>` que já existe. A nota do rodapé diz a consequência: "As fotos
 ficam visíveis para quem atende e para o responsável. A recepção não vê."
 
-- [ ] **Passo 6: ligar na ficha**
+- [x] **Passo 6: ligar na ficha**
 
 Acrescentar a aba `avaliacao` na lista de `<Abas>` de
 `src/app/(app)/pessoas/[id]/page.tsx`, **só quando `podeVerAvaliacao(papel)`**,
 e o bloco correspondente no corpo.
 
-- [ ] **Passo 7: rodar tudo**
+- [x] **Passo 7: rodar tudo**
 
 ```bash
 npm test && npm run build && npx playwright test e2e/avaliacao.spec.ts
 ```
 
-- [ ] **Passo 8: commit**
+- [x] **Passo 8: commit**
 
 ```bash
 git add src/components/avaliacao src/app/\(app\)/pessoas e2e/avaliacao.spec.ts
@@ -704,7 +718,7 @@ git commit -m "feat: a ficha ganha a aba de avaliação, com matriz e comparador
 - Modificar: `src/server/pessoas/acoes.ts` (`anonimizarPessoa`)
 - Modificar: `tests/avaliacao.test.ts`
 
-- [ ] **Passo 1: escrever o teste que falha**
+- [x] **Passo 1: escrever o teste que falha**
 
 ```ts
 // acrescentar em tests/avaliacao.test.ts
@@ -717,22 +731,22 @@ it('anonimizar apaga as fotos e as avaliações da pessoa', async () => {
 })
 ```
 
-- [ ] **Passo 2: rodar e ver falhar**
+- [x] **Passo 2: rodar e ver falhar**
 
-- [ ] **Passo 3: acrescentar em `anonimizarPessoa`**
+- [x] **Passo 3: acrescentar em `anonimizarPessoa`**
 
 Apagar os objetos do balde `foto-avaliacao` sob `${contaId}/${pessoaId}/`, e
 depois as linhas de `avaliacao`. A ordem importa: apagar a linha primeiro deixa
 o arquivo órfão no balde, sem ninguém que saiba que ele existe.
 
-- [ ] **Passo 4: rodar e ver passar**
+- [x] **Passo 4: rodar e ver passar**
 
-- [ ] **Passo 5: atualizar a documentação**
+- [x] **Passo 5: atualizar a documentação**
 
 `docs/ESTADO.md`: a tabela de "O que existe" ganha as três tabelas e o balde; a
 seção do direito do titular passa a dizer que a foto sai junto.
 
-- [ ] **Passo 6: commit**
+- [x] **Passo 6: commit**
 
 ```bash
 git add src/server/pessoas/acoes.ts tests/avaliacao.test.ts docs/ESTADO.md
@@ -743,14 +757,14 @@ git commit -m "feat: o pedido de exclusão passa a levar as fotos da avaliação
 
 ## Tarefa 7: produção
 
-- [ ] **Passo 1: conferir o que está pendente**
+- [x] **Passo 1: conferir o que está pendente**
 
 ```bash
 set -a && . ../.secrets/4yu.env && set +a
 node scripts/aplica-em-producao.mjs --dry
 ```
 
-- [ ] **Passo 2: os cinco passos da conferência do `HANDOFF.md`**
+- [x] **Passo 2: os cinco passos da conferência do `HANDOFF.md`**
 
 Em especial: a `0053` só toca `app_verandi`, e o balde `foto-avaliacao` é nome
 novo no projeto **que é dividido com o AutoFluxos**. Conferir antes:
@@ -759,7 +773,7 @@ novo no projeto **que é dividido com o AutoFluxos**. Conferir antes:
 select id from storage.buckets order by id;
 ```
 
-- [ ] **Passo 3: aplicar e provar fora do console**
+- [x] **Passo 3: aplicar e provar fora do console**
 
 ```bash
 node scripts/aplica-em-producao.mjs
@@ -768,7 +782,7 @@ node scripts/aplica-em-producao.mjs
 Depois: as três tabelas existem, as três com RLS, o balde é privado, e
 `https://verandi.4yu.com.br` responde.
 
-- [ ] **Passo 4: commit da documentação**
+- [x] **Passo 4: commit da documentação**
 
 ```bash
 git add docs/ESTADO.md docs/HANDOFF.md
