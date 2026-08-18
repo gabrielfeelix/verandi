@@ -17,3 +17,15 @@ export function somarDias(dataIso: string, n: number): string {
   d.setUTCDate(d.getUTCDate() + n)
   return d.toISOString().slice(0, 10)
 }
+
+/**
+ * `2026-07-13` vira `13/07/26`: data na tela é escrita como se lê.
+ *
+ * Mora aqui, e não em cada tela, porque a mesma data aparece na pendência, na
+ * avaliação e no recibo. Duas cópias da mesma regra divergem no dia em que uma
+ * delas passar a escrever o ano com quatro dígitos, e a tela fica com dois
+ * formatos sem ninguém ter decidido isso.
+ */
+export function dataCurta(iso: string): string {
+  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(2, 4)}`
+}

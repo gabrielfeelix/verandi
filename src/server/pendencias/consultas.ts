@@ -2,6 +2,7 @@ import type { Db } from '../supabase'
 import { hojeEm, instante, localDe } from '../agenda/fuso'
 import { estadoDaChamada } from '@/core/agenda/chamada'
 import { statusComCredito, type StatusParticipacao } from '@/core/agenda/ocupacao'
+import { dataCurta } from '@/core/agenda/datas'
 
 /**
  * O inbox de quem opera: o que exige ação humana hoje.
@@ -48,11 +49,6 @@ const MOTIVO_DO_CREDITO: Partial<Record<StatusParticipacao, string>> = {
   falta: 'Falta',
   falta_avisada: 'Falta avisada',
   cancelada: 'Horário cancelado pelo estúdio',
-}
-
-/** `2026-07-13` → `13/07/26`: data na tela é escrita como se lê. */
-function dataCurta(iso: string): string {
-  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(2, 4)}`
 }
 
 function diasDesde(iso: string): number {

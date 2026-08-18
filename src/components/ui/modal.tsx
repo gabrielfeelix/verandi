@@ -27,7 +27,14 @@ const ALTURA = 'max-h-[calc(100dvh-56px)]'
  */
 let abertos = 0
 
-function travarPagina() {
+/*
+ * As duas funções abaixo são exportadas porque o visor de foto da avaliação
+ * também trava a página, e **precisa compartilhar este contador**. Dois
+ * contadores separados destravariam a rolagem ao fechar o visor com o modal
+ * que o abriu ainda de pé.
+ */
+
+export function travarPagina() {
   abertos++
   if (abertos > 1) return
   const corpo = document.body
@@ -40,7 +47,7 @@ function travarPagina() {
   if (folga > 0) corpo.style.paddingRight = `${folga}px`
 }
 
-function destravarPagina() {
+export function destravarPagina() {
   abertos = Math.max(0, abertos - 1)
   if (abertos > 0) return
   const corpo = document.body

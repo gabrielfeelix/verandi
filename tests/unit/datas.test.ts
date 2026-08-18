@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { diaDaSemanaDe, somarDias } from '@/core/agenda/datas'
+import { diaDaSemanaDe, somarDias, dataCurta } from '@/core/agenda/datas'
 
 describe('diaDaSemanaDe', () => {
   it('domingo é 0 e sábado é 6', () => {
@@ -29,5 +29,12 @@ describe('somarDias', () => {
 
   it('anda para trás', () => {
     expect(somarDias('2026-03-01', -1)).toBe('2026-02-28')
+  })
+})
+
+describe('data na tela', () => {
+  it('escreve o dia como se lê, e não como o banco guarda', () => {
+    expect(dataCurta('2026-07-13')).toBe('13/07/26')
+    expect(dataCurta('2020-11-30')).toBe('30/11/20')
   })
 })
