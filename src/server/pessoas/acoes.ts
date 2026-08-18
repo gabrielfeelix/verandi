@@ -6,6 +6,7 @@ import { registrar } from '../log'
 import { inserirPessoa } from './registro'
 import type { Atualizacao } from '../banco'
 import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
+import { limparAvaliacoesDaPessoa } from '../avaliacao/registro'
 
 /**
  * Cadastrar pela tela.
@@ -172,6 +173,24 @@ export async function anonimizarPessoa(id: string): Promise<void> {
   }
   const db = await clienteServidor()
 
+  /*
+   * As imagens saem antes das colunas, e são duas famílias delas.
+   *
+   * A foto da ficha identifica melhor que o nome: zerar o nome e deixar o
+   * rosto no balde é anonimizar no papel e não no fato. As fotos de avaliação
+   * são dado de saúde do titular, e o pedido de exclusão alcança as duas.
+   *
+   * O arquivo primeiro, a linha depois: ao contrário, a imagem fica no balde
+   * sem ninguém que saiba que ela existe.
+   */
+  const { data: comFoto } = await db.from('pessoa')
+    .select('foto_path').eq('id', id).eq('conta_id', conta.contaId)
+    .maybeSingle<{ foto_path: string | null }>()
+  if (comFoto?.foto_path) {
+    await db.storage.from(BALDE_FOTO_PESSOA).remove([comFoto.foto_path])
+  }
+  await limparAvaliacoesDaPessoa(db, conta.contaId, id)
+
   const { error } = await db.from('pessoa').update({
     nome: 'Pessoa removida',
     telefone: null,
@@ -179,6 +198,7 @@ export async function anonimizarPessoa(id: string): Promise<void> {
     identificador_externo: null,
     nascimento: null,
     observacao: null,
+    foto_path: null,
     ativo: false,
     anonimizada_em: new Date().toISOString(),
   }).eq('id', id).eq('conta_id', conta.contaId)
