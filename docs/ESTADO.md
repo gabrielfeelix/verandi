@@ -12,7 +12,7 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 18/ago/2026 (segunda passagem: suíte verde) · **A Verandi está no ar em
+**Última atualização:** 18/ago/2026 (terceira passagem: administrativo 15 e 16 no ar) · **A Verandi está no ar em
 `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
 verdade, onboarding, a porta do bot aberta e o acompanhamento por foto.**
 
@@ -348,7 +348,9 @@ mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
 
 | O quê | Resultado |
 |---|---|
-| migrations aplicadas (`0030` a `0052`) | **as 23**, a última em 16/08 |
+| migrations aplicadas (`0030` a `0055`) | **as 26**, as duas últimas em 18/08 |
+| tabelas em `app_verandi` | **35**, as três novas (`plano`, `contrato`, `pausa`) com RLS ligada |
+| tabelas em `public` (AutoFluxos) | **22**, intactas depois da aplicação |
 | `0051` e `0052` lá | `pessoa.foto_path` e `pessoa.telefone_disca` na tabela **e em `pessoa_resumo`** |
 | balde privado `foto-pessoa` | existe, não público |
 | tabelas em `app_verandi` | **28**, todas com RLS ligada, **43** políticas |
@@ -357,18 +359,23 @@ mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
 | contas de cliente | **1** (MGM Pilates) |
 | `https://verandi.4yu.com.br` | raiz responde 307 para `/entrar`, que responde 200; `/termos` 200 |
 
-**Rodando a suíte, em 18/08, no commit `9fc000d`:**
+**Rodando a suíte, em 18/08, no commit `b3e3400`:**
 
 | O quê | Resultado |
 |---|---|
-| `npm test` | **391 passaram** |
-| `npm run test:e2e` | **175 passaram** |
+| `npm test` | **450 passaram** |
+| `npm run test:e2e` | **não completou** · ver abaixo |
 | `npm run build` | passou |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
+| `tsc --noEmit` | passou |
 
-Os números são retrato, e não piso: a suíte rodou depois do último commit de
-tela. O que ela cobrava eram nomes de botão e de aviso trocados na revisão de
-linguagem de 16/ago, corrigidos no mesmo commit em que esta linha mudou.
+**A suíte de navegador não rodou inteira depois dos módulos 15 e 16**, e isso é
+a única coisa em aberto do dia. Ela foi disparada três vezes e as três pararam
+por queda da sessão, nunca por teste vermelho: a última parou aos 3,7 minutos
+com 23 verdes e nenhum vermelho. Os arquivos tocados rodaram verdes um a um:
+7 de `planos.spec.ts`, 7 de `matricula.spec.ts`, 14 de `grade.spec.ts` e 5 de
+`lgpd.spec.ts`. Quem pegar isto roda `npx playwright test` inteiro antes de
+qualquer coisa nova, e corrige o número desta tabela.
 
 **Medido antes, e sem motivo para ter mudado:**
 

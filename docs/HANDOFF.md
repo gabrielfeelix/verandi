@@ -24,17 +24,28 @@ a cada push na `main`.
 | | | |
 |---|---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) | conferido 18/08 |
-| Migrations aplicadas | **24**, da `0030` à `0053` | conferido 18/08 |
-| Tabelas em `app_verandi` | **31**, todas com RLS, 46 políticas | conferido 18/08 |
-| Tabelas em `public` (AutoFluxos) | **19**, intactas | conferido 18/08 |
+| Migrations aplicadas | **26**, da `0030` à `0055` | aplicadas e conferidas em 18/08 |
+| Tabelas em `app_verandi` | **35**, todas com RLS | conferido em produção 18/08 |
+| Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção 18/08 |
 | Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | 391 de unidade e banco · **175** de navegador | todos passam, rodados em 18/08 no commit `9fc000d` |
+| Testes | 450 de unidade e banco · **~198** de navegador | unidade verde em 18/08; **a suíte de navegador não rodou inteira** desde os módulos 15 e 16, ver abaixo |
 | API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
 
-**A linha dos testes é retrato, e de hoje.** A suíte inteira rodou em 18/08 com
-o banco local de pé: 391 de unidade e 175 de navegador, todos verdes. Os
-dezesseis que falhavam procuravam texto renomeado pela revisão de linguagem de
-16/ago, e nenhum era falha de comportamento.
+> **PEGUE POR AQUI: a suíte de navegador não rodou inteira depois dos módulos
+> 15 e 16.** Os 450 de unidade estão verdes, e os arquivos tocados rodaram
+> verdes um a um (14 de planos e contrato, 5 de LGPD). A rodada completa foi
+> interrompida duas vezes por queda de sessão, e a última completa antes disso
+> deu 191 verdes com uma falha, que foi corrigida e reverificada. **É o item
+> mais barato desta página, e o primeiro a fazer:**
+>
+> ```bash
+> npx supabase start && npx supabase db reset
+> npx vitest run && npx playwright test
+> ```
+>
+> Se algo falhar, é quase certo que seja **nome de rótulo**, não comportamento:
+> o vocabulário mudou de "matrícula" e "turma" para "contrato" e "horário" em
+> 18/08, e a ficha ganhou catorze campos que deixaram "Telefone" ambíguo.
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
@@ -48,6 +59,12 @@ funcionalidade. Está na seção seguinte, em ordem.
 ---
 
 ## Comece por aqui
+
+**Os módulos 15 e 16 do administrativo estão no ar desde 18/08**, com as
+migrations `0054` e `0055` aplicadas em produção e conferidas: as três tabelas
+novas (`plano`, `contrato`, `pausa`) nasceram com RLS, e `public` continua
+intacto com as 22 do AutoFluxos. O que falta é rodar a suíte de navegador
+inteira, no quadro acima.
 
 **As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
 tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do
