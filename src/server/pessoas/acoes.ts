@@ -6,6 +6,7 @@ import { registrar } from '../log'
 import { inserirPessoa } from './registro'
 import type { Atualizacao } from '../banco'
 import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
+import { cpfValido, soDigitosCpf } from '@/core/pessoas/documento'
 import { LIMITE_ENVIO_MB, MB } from '@/core/foto'
 import { limparAvaliacoesDaPessoa } from '../avaliacao/registro'
 
@@ -39,6 +40,25 @@ export async function editarPessoa(id: string, campos: {
   /** quem lê a observação da ficha; ver `0044` e a barreira logo abaixo */
   observacaoVisivel?: 'profissionais' | 'todos'
   ativo?: boolean
+  /*
+   * Os campos que o formulário de matrícula do cliente pede. Todos opcionais:
+   * ninguém é obrigado a preencher nada, e exigir documento é o jeito mais
+   * rápido de a recepção inventar número.
+   */
+  cpf?: string | null
+  rg?: string | null
+  endereco?: string | null
+  enderecoNumero?: string | null
+  complemento?: string | null
+  bairro?: string | null
+  cidade?: string | null
+  uf?: string | null
+  cep?: string | null
+  sexo?: string | null
+  estadoCivil?: string | null
+  profissao?: string | null
+  telefoneResidencial?: string | null
+  telefoneComercial?: string | null
 }): Promise<void> {
   const conta = await exigirConta()
   const db = await clienteServidor()
@@ -87,8 +107,52 @@ export async function editarPessoa(id: string, campos: {
   }
   if (campos.ativo !== undefined) linha.ativo = campos.ativo
 
+  /*
+   * O CPF confere dígito antes de entrar. É o único documento aqui que tem
+   * conferência possível, e o erro dele só apareceria na hora de emitir um
+   * recibo, com a pessoa já de saída.
+   */
+  if (campos.cpf !== undefined) {
+    const digitos = soDigitosCpf(campos.cpf ?? '')
+    if (digitos && !cpfValido(digitos)) {
+      throw new Error('Esse CPF não confere. Verifique os números.')
+    }
+    linha.cpf = digitos || null
+  }
+
+  if (campos.rg !== undefined) linha.rg = campos.rg || null
+  if (campos.endereco !== undefined) linha.endereco = campos.endereco || null
+  if (campos.enderecoNumero !== undefined) {
+    linha.endereco_numero = campos.enderecoNumero || null
+  }
+  if (campos.complemento !== undefined) linha.complemento = campos.complemento || null
+  if (campos.bairro !== undefined) linha.bairro = campos.bairro || null
+  if (campos.cidade !== undefined) linha.cidade = campos.cidade || null
+  if (campos.cep !== undefined) linha.cep = campos.cep || null
+  if (campos.sexo !== undefined) linha.sexo = campos.sexo || null
+  if (campos.estadoCivil !== undefined) linha.estado_civil = campos.estadoCivil || null
+  if (campos.profissao !== undefined) linha.profissao = campos.profissao || null
+  if (campos.telefoneResidencial !== undefined) {
+    linha.telefone_residencial = campos.telefoneResidencial || null
+  }
+  if (campos.telefoneComercial !== undefined) {
+    linha.telefone_comercial = campos.telefoneComercial || null
+  }
+  // a UF é guardada em duas letras maiúsculas, e o banco recusa o resto
+  if (campos.uf !== undefined) {
+    linha.uf = campos.uf ? campos.uf.trim().toUpperCase().slice(0, 2) : null
+  }
+
   const { error } = await db.from('pessoa').update(linha).eq('id', id)
-  if (error) throw error
+  if (error) {
+    // CPF repetido é a mesma pessoa cadastrada duas vezes, e quem está na tela
+    // é quem pode resolver isso
+    const e = error as { code?: string }
+    if (e.code === '23505') {
+      throw new Error('Já existe uma ficha nesta conta com esse CPF.')
+    }
+    throw error
+  }
 
   revalidatePath(`/pessoas/${id}`)
   revalidatePath('/pessoas')

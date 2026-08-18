@@ -328,6 +328,31 @@ export type Ficha = {
      * cadastro mal preenchido, e alguém "conserta" digitando o nome de volta.
      */
     anonimizadaEm: string | null
+    /*
+     * Os campos do formulário de matrícula do cliente.
+     *
+     * Vêm da tabela, e não de `pessoa_resumo`: a view é lida pela lista inteira
+     * de pessoas, e acrescentar catorze colunas de texto a ela para servir uma
+     * ficha por vez é pagar em toda listagem o preço de uma tela. `create or
+     * replace view` também só aceita acréscimo no fim, o que já mordeu na 0043
+     * e na 0044.
+     */
+    cadastrais: {
+      cpf: string | null
+      rg: string | null
+      endereco: string | null
+      enderecoNumero: string | null
+      complemento: string | null
+      bairro: string | null
+      cidade: string | null
+      uf: string | null
+      cep: string | null
+      sexo: string | null
+      estadoCivil: string | null
+      profissao: string | null
+      telefoneResidencial: string | null
+      telefoneComercial: string | null
+    }
     /** endereço assinado da foto, quando existe; o balde é privado */
     fotoUrl: string | null
     /** desde quando existe: é o denominador de "veio 92% das vezes" */
@@ -369,6 +394,12 @@ export async function fichaDaPessoa(
    * acesso registrado.
    */
   const podeLerObservacao = papel !== 'recepcao' || p.observacao_visivel === 'todos'
+
+  const { data: extras } = await db.from('pessoa')
+    .select(`cpf, rg, endereco, endereco_numero, complemento, bairro, cidade,
+             uf, cep, sexo, estado_civil, profissao, telefone_residencial,
+             telefone_comercial`)
+    .eq('id', pessoaId).eq('conta_id', contaId).maybeSingle()
 
   // o balde é privado: a foto só existe para a tela como endereço assinado
   let fotoUrl: string | null = null
@@ -436,7 +467,23 @@ export async function fichaDaPessoa(
               observacaoVisivel: p.observacao_visivel,
               observacaoRestrita: !podeLerObservacao && p.observacao !== null,
               criadoEm: p.criado_em,
-              anonimizadaEm: p.anonimizada_em },
+              anonimizadaEm: p.anonimizada_em,
+              cadastrais: {
+                cpf: extras?.cpf ?? null,
+                rg: extras?.rg ?? null,
+                endereco: extras?.endereco ?? null,
+                enderecoNumero: extras?.endereco_numero ?? null,
+                complemento: extras?.complemento ?? null,
+                bairro: extras?.bairro ?? null,
+                cidade: extras?.cidade ?? null,
+                uf: extras?.uf ?? null,
+                cep: extras?.cep ?? null,
+                sexo: extras?.sexo ?? null,
+                estadoCivil: extras?.estado_civil ?? null,
+                profissao: extras?.profissao ?? null,
+                telefoneResidencial: extras?.telefone_residencial ?? null,
+                telefoneComercial: extras?.telefone_comercial ?? null,
+              } },
     tags: (tags ?? []).map((t) => t.tag),
     vagas: (vagas ?? []).filter((v) => v.serie !== null).map((v) => ({
       id: v.id,

@@ -11,6 +11,7 @@ import { CampoTelefone } from '@/components/ui/campo-telefone'
 import { CampoFoto } from '@/components/ui/campo-foto'
 import { useAviso } from '@/components/ui/desfazer'
 import { erroLegivel } from '@/core/erro-legivel'
+import { cpfValido } from '@/core/pessoas/documento'
 
 type Pessoa = {
   id: string
@@ -26,7 +27,47 @@ type Pessoa = {
   observacaoRestrita: boolean
   ativo: boolean
   fotoUrl: string | null
+  /* os campos do formulário de matrícula do cliente, todos opcionais */
+  cpf: string | null
+  rg: string | null
+  endereco: string | null
+  enderecoNumero: string | null
+  complemento: string | null
+  bairro: string | null
+  cidade: string | null
+  uf: string | null
+  cep: string | null
+  sexo: string | null
+  estadoCivil: string | null
+  profissao: string | null
+  telefoneResidencial: string | null
+  telefoneComercial: string | null
 }
+
+/*
+ * Os campos que abrem no grupo, e não na cara de quem cadastra.
+ *
+ * O documento do cliente pede vinte campos. Todos abertos, o formulário do dia
+ * a dia (nome e telefone, que é o que a recepção tem em mãos) fica no fim de
+ * uma tela de rolagem, e o cadastro rápido deixa de ser rápido. O que quase
+ * ninguém preenche na hora fica atrás de um clique.
+ */
+const EXTRAS = [
+  ['cpf', 'CPF', 'text'],
+  ['rg', 'RG', 'text'],
+  ['sexo', 'Sexo', 'text'],
+  ['estadoCivil', 'Estado civil', 'text'],
+  ['profissao', 'Profissão', 'text'],
+  ['telefoneResidencial', 'Telefone residencial', 'tel'],
+  ['telefoneComercial', 'Telefone comercial', 'tel'],
+  ['cep', 'CEP', 'text'],
+  ['endereco', 'Endereço', 'text'],
+  ['enderecoNumero', 'Número', 'text'],
+  ['complemento', 'Complemento', 'text'],
+  ['bairro', 'Bairro', 'text'],
+  ['cidade', 'Cidade', 'text'],
+  ['uf', 'UF', 'text'],
+] as const
 
 /*
  * Duas colunas de largura igual, e o campo ocupa a coluna inteira.
@@ -51,6 +92,10 @@ const EXEMPLO: Record<string, string> = {
   nome: 'Nome completo',
   email: 'nome@email.com',
   identificador: 'Número da ficha antiga',
+  cpf: '000.000.000-00',
+  cep: '00000-000',
+  uf: 'PR',
+  sexo: 'como a pessoa se identifica',
 }
 
 /**
@@ -89,6 +134,20 @@ export function EditarPessoa({
     identificador: pessoa.identificadorExterno ?? '',
     nascimento: pessoa.nascimento ?? '',
     vencimento: pessoa.vencimentoPlano ?? '',
+    cpf: pessoa.cpf ?? '',
+    rg: pessoa.rg ?? '',
+    endereco: pessoa.endereco ?? '',
+    enderecoNumero: pessoa.enderecoNumero ?? '',
+    complemento: pessoa.complemento ?? '',
+    bairro: pessoa.bairro ?? '',
+    cidade: pessoa.cidade ?? '',
+    uf: pessoa.uf ?? '',
+    cep: pessoa.cep ?? '',
+    sexo: pessoa.sexo ?? '',
+    estadoCivil: pessoa.estadoCivil ?? '',
+    profissao: pessoa.profissao ?? '',
+    telefoneResidencial: pessoa.telefoneResidencial ?? '',
+    telefoneComercial: pessoa.telefoneComercial ?? '',
   }
 
   return (
@@ -106,7 +165,18 @@ export function EditarPessoa({
           primario="Salvar"
           pendente={pendente}
           aoFechar={fechar}
-          aoEnviar={(f) => iniciar(async () => {
+          aoEnviar={(f) => {
+            /*
+             * O CPF é conferido aqui, e não só no servidor: mensagem lançada
+             * dentro de uma Server Action não atravessa com o texto que
+             * escrevemos, e quem digitou é quem precisa saber que o número não
+             * fecha. O servidor confere de novo, porque tela não é barreira.
+             */
+            const cpf = String(f.get('cpf') ?? '')
+            if (cpf.trim() && !cpfValido(cpf)) {
+              return setErro('Esse CPF não confere. Verifique os números.')
+            }
+            iniciar(async () => {
             setErro(null)
             try {
               await editarPessoa(pessoa.id, {
@@ -129,6 +199,20 @@ export function EditarPessoa({
                       observacaoVisivel: visivel,
                     }),
                 ativo: f.get('ativo') === 'on',
+                cpf: String(f.get('cpf') ?? ''),
+                rg: String(f.get('rg') ?? ''),
+                endereco: String(f.get('endereco') ?? ''),
+                enderecoNumero: String(f.get('enderecoNumero') ?? ''),
+                complemento: String(f.get('complemento') ?? ''),
+                bairro: String(f.get('bairro') ?? ''),
+                cidade: String(f.get('cidade') ?? ''),
+                uf: String(f.get('uf') ?? ''),
+                cep: String(f.get('cep') ?? ''),
+                sexo: String(f.get('sexo') ?? ''),
+                estadoCivil: String(f.get('estadoCivil') ?? ''),
+                profissao: String(f.get('profissao') ?? ''),
+                telefoneResidencial: String(f.get('telefoneResidencial') ?? ''),
+                telefoneComercial: String(f.get('telefoneComercial') ?? ''),
               })
               // a foto vai por fora do pacote de campos: é arquivo, e sobe
               // para o Storage, não para a linha da tabela
@@ -142,7 +226,8 @@ export function EditarPessoa({
             } catch (e) {
               setErro(erroLegivel(e))
             }
-          })}
+            })
+          }}
         >
           <Campo rotulo="Foto" dica="Ajuda a recepção a reconhecer, e serve de antes e depois">
             <CampoFoto
@@ -177,6 +262,34 @@ export function EditarPessoa({
               </div>
             ))}
           </div>
+
+          {/*
+            * Vinte campos abertos empurram nome e telefone, que é o que a
+            * recepção tem em mãos, para o fim de uma tela de rolagem. O resto
+            * do formulário do cliente fica a um clique.
+            */}
+          <details className="rounded-media border border-linha-fina bg-superficie-tenue">
+            <summary className="cursor-pointer px-3.5 py-2.5 text-[12.5px] text-tinta-media">
+              Documento e endereço
+            </summary>
+            <div className="grid gap-3 px-3.5 pt-1 pb-3.5 sm:grid-cols-2">
+              {EXTRAS.map(([n, r, t]) => (
+                <Campo key={n} rotulo={r} htmlFor={`ep-${n}`}>
+                  {t === 'tel' ? (
+                    <CampoTelefone id={`ep-${n}`} nome={n} valorInicial={valor[n]} />
+                  ) : (
+                    <input
+                      id={`ep-${n}`} name={n} defaultValue={valor[n]}
+                      maxLength={n === 'uf' ? 2 : 120}
+                      inputMode={n === 'cpf' || n === 'cep' ? 'numeric' : undefined}
+                      placeholder={EXEMPLO[n]}
+                      className={`${entrada} w-full`}
+                    />
+                  )}
+                </Campo>
+              ))}
+            </div>
+          </details>
 
           {pessoa.observacaoRestrita ? (
             <Nota>
