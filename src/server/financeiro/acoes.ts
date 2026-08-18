@@ -143,6 +143,22 @@ export async function estornarPagamento(
     }).eq('id', pagamentoId)
     if (error) throw error
 
+    /*
+     * O recibo daquele pagamento cai junto, e com o motivo copiado.
+     *
+     * O papel que saiu continua existindo no mundo, e é justamente por isso que
+     * ele precisa constar como cancelado aqui dentro: estorno sem cancelar o
+     * comprovante deixa no ar um documento que diz que entrou dinheiro que
+     * voltou. É também o que faz "estornos" e "recibos cancelados", os
+     * relatórios 4 e 3 do item 4 do documento, contarem a mesma história.
+     */
+    await db.from('recibo').update({
+      status: 'cancelado',
+      motivo: `pagamento estornado: ${motivo.trim()}`,
+      cancelado_em: new Date().toISOString(),
+    }).eq('conta_id', conta.contaId).eq('pagamento_id', pagamentoId)
+      .eq('status', 'valido')
+
     await registrar(db, {
       contaId: conta.contaId, entidade: 'pagamento', entidadeId: pagamentoId,
       acao: 'removeu', detalhe: { motivo: motivo.trim() },

@@ -150,3 +150,79 @@ describe('recibo no banco', () => {
     expect(data![0].corpo).toBeTruthy()
   })
 })
+
+/**
+ * O relatório que faltava dos sete: recibos emitidos e cancelados no período.
+ *
+ * Emitido conta pela emissão, cancelado conta pelo cancelamento: o recibo de
+ * março cancelado em abril é um cancelamento de abril, e quem fechou março já
+ * conferiu aquele número.
+ */
+describe('recibos do período', () => {
+  const db = admin()
+  let contaId: string, pessoaId: string
+
+  beforeAll(async () => {
+    const m = Date.now()
+    const { data: c } = await db.from('conta')
+      .insert({ nome: 'Estúdio do relatório', slug: `rel-${m}` }).select().single()
+    contaId = c!.id
+    const { data: p } = await db.from('pessoa')
+      .insert({ conta_id: contaId, nome: 'Joana Prado' }).select().single()
+    pessoaId = p!.id
+
+    const corpo = { pagadorNome: 'Joana Prado' }
+    /*
+     * As três linhas com as mesmas chaves de propósito: num `insert` em lote, o
+     * PostgREST usa as colunas da primeira linha e manda `null` explícito nas
+     * que faltarem nas outras. Omitir `status` numa e escrevê-lo noutra derruba
+     * o `not null` da tabela, e o erro fala de coluna nula sem dizer por quê.
+     */
+    const semeado = await db.from('recibo').insert([
+      { conta_id: contaId, serie: 'A', numero: 1, pessoa_id: pessoaId,
+        valor_cent: 45000, corpo, emitido_em: '2026-03-10T12:00:00Z',
+        status: 'valido', motivo: null, cancelado_em: null },
+      { conta_id: contaId, serie: 'A', numero: 2, pessoa_id: pessoaId,
+        valor_cent: 73500, corpo, emitido_em: '2026-04-05T12:00:00Z',
+        status: 'valido', motivo: null, cancelado_em: null },
+      { conta_id: contaId, serie: 'A', numero: 3, pessoa_id: pessoaId,
+        valor_cent: 20000, corpo, emitido_em: '2026-03-20T12:00:00Z',
+        status: 'cancelado', motivo: 'valor errado',
+        cancelado_em: '2026-04-02T12:00:00Z' },
+    ])
+    if (semeado.error) throw semeado.error
+  })
+
+  it('conta o emitido pela emissão e o cancelado pelo cancelamento', async () => {
+    const { recibosDoPeriodo } = await import('../src/server/recibo/consultas')
+
+    const marco = await recibosDoPeriodo(db, contaId, '2026-03-01', '2026-03-31')
+    expect(marco).toEqual({
+      emitidos: 2, emitidoCent: 65000, cancelados: 0, canceladoCent: 0,
+    })
+
+    const abril = await recibosDoPeriodo(db, contaId, '2026-04-01', '2026-04-30')
+    expect(abril).toEqual({
+      emitidos: 1, emitidoCent: 73500, cancelados: 1, canceladoCent: 20000,
+    })
+  })
+
+  it('a busca acha pelo número e pelo nome de quem pagou', async () => {
+    const { listarRecibos } = await import('../src/server/recibo/consultas')
+
+    const porNumero = await listarRecibos(db, contaId, { busca: '2' })
+    expect(porNumero.linhas.map((r) => r.numero)).toEqual([2])
+
+    // o nome vem de dentro do corpo congelado, e não de uma junção com a ficha:
+    // quem pediu exclusão continua nomeado no documento contábil
+    const porNome = await listarRecibos(db, contaId, { busca: 'Joana' })
+    expect(porNome.total).toBe(3)
+  })
+
+  it('a lista de cancelados é o relatório que o documento pede', async () => {
+    const { listarRecibos } = await import('../src/server/recibo/consultas')
+    const r = await listarRecibos(db, contaId, { filtro: 'cancelados' })
+    expect(r.linhas).toHaveLength(1)
+    expect(r.linhas[0].motivo).toBe('valor errado')
+  })
+})
