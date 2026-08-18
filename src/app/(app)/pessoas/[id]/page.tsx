@@ -15,7 +15,7 @@ import { Etiqueta, Rotulo, Vazio, cartao } from '@/components/ui/pecas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Voltar } from '@/components/ui/voltar'
 import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas'
-import { mascararTelefone, telefoneValido } from '@/core/telefone'
+import { erroDoTelefone, exibirTelefone, telefoneValido } from '@/core/telefone'
 import { Matriz } from '@/components/avaliacao/matriz'
 import { Comparador } from '@/components/avaliacao/comparador'
 import { NovaAvaliacao } from '@/components/avaliacao/nova-avaliacao'
@@ -672,7 +672,7 @@ export default async function Pessoa({
                 p.telefone && telefoneCompleto ? '' : 'text-alerta'
               }`}
             >
-              {p.telefone ? mascararTelefone(p.telefone) : 'Sem telefone'}
+              {p.telefone ? exibirTelefone(p.telefone) : 'Sem telefone'}
             </p>
             {p.telefone && telefoneCompleto ? (
               <div className="flex gap-[7px]">
@@ -688,9 +688,12 @@ export default async function Pessoa({
               </div>
             ) : p.telefone ? (
               <p className="rounded-media bg-alerta-superficie px-3 py-2.5 text-[12px] leading-[1.5] text-alerta">
-                Falta o DDD, então não dá para mandar mensagem por aqui. Abra
-                &quot;Editar dados&quot; e escreva o número completo:
-                (44) 99999-9999.
+                {/* o defeito é dito por quem sabe qual é: número curto, DDD que
+                    não existe e celular sem o 9 são três problemas diferentes,
+                    e "falta o DDD" só acertava o primeiro */}
+                {erroDoTelefone(p.telefone)} Sem isso não dá para mandar
+                mensagem por aqui: abra &quot;Editar dados&quot; e escreva o
+                número completo.
               </p>
             ) : (
               <p className="text-[12px] leading-[1.5] text-tinta-fraca">

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
-  erroDoTelefone, mascararTelefone, normalizarTelefone, telefoneValido,
+  erroDoTelefone, exibirTelefone, mascararTelefone, normalizarTelefone,
+  telefoneValido,
 } from '@/core/telefone'
 
 describe('telefone', () => {
@@ -44,5 +45,29 @@ describe('telefone', () => {
   it('guarda só dígitos, porque a máscara é da tela', () => {
     expect(normalizarTelefone('(44) 98877-6655')).toBe('44988776655')
     expect(normalizarTelefone('')).toBeNull()
+  })
+})
+
+/**
+ * A ficha mostrava `(98) 5285-028` e, logo abaixo, "Falta o DDD". As duas
+ * coisas não podem ser verdade ao mesmo tempo: os parênteses afirmam que 98 é
+ * DDD, e a nota afirma que não há DDD nenhum. Quem lê conclui que o sistema
+ * está errado sobre um número que ele mesmo escreveu.
+ */
+describe('exibirTelefone', () => {
+  it('põe DDD entre parênteses quando ele existe de verdade', () => {
+    expect(exibirTelefone('44999999999')).toBe('(44) 99999-9999')
+    expect(exibirTelefone('4433334444')).toBe('(44) 3333-4444')
+  })
+
+  it('marca o DDD que falta com XX, em vez de promover os dois primeiros dígitos', () => {
+    // nove dígitos é celular sem DDD: 98528-5028, e não DDD 98
+    expect(exibirTelefone('985285028')).toBe('(XX) 98528-5028')
+    expect(exibirTelefone('33334444')).toBe('(XX) 3333-4444')
+  })
+
+  it('não inventa formato para número de tamanho impossível', () => {
+    expect(exibirTelefone('123')).toBe('123')
+    expect(exibirTelefone('')).toBe('')
   })
 })

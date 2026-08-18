@@ -74,3 +74,27 @@ export const telefoneValido = (bruto: string | null | undefined): boolean =>
 export function normalizarTelefone(bruto: string | null | undefined): string | null {
   return soDigitos(bruto ?? '') || null
 }
+
+/**
+ * O número **guardado**, para ler na tela. Não é o mesmo que `mascararTelefone`.
+ *
+ * A máscara serve para quem digita, e por isso vai formatando o que chega: com
+ * três dígitos ela já abre parênteses, porque quem está digitando sabe que
+ * ainda falta o resto. Aplicada a um número salvo pela metade, ela mente. Um
+ * cadastro com `985285028` aparecia como `(98) 5285-028`, e a ficha dizia
+ * "falta o DDD" logo embaixo: os parênteses promoviam a dezena do celular a
+ * DDD do Maranhão, e a tela passava a discordar de si mesma.
+ *
+ * Aqui o DDD só ganha parênteses quando ele existe. Quando não existe, o lugar
+ * dele aparece vazio, como `XX`, que é o que a nota abaixo pede para preencher.
+ */
+export function exibirTelefone(bruto: string | null | undefined): string {
+  const n = soDigitos(bruto ?? '')
+
+  if ((n.length === 10 || n.length === 11) && DDDS.has(Number(n.slice(0, 2)))) {
+    return mascararTelefone(n)
+  }
+  if (n.length === 9) return `(XX) ${n.slice(0, 5)}-${n.slice(5)}`
+  if (n.length === 8) return `(XX) ${n.slice(0, 4)}-${n.slice(4)}`
+  return n
+}
