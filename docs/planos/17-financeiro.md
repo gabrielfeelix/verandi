@@ -94,6 +94,15 @@ jeito, ao abrir `/financeiro` e ao criar um contrato, e são idempotentes por
 `unique (contrato_id, competencia)`. Duas abas abertas ao mesmo tempo não
 cobram duas vezes, e não existe job para alguém esquecer de rodar.
 
+**O sistema não inventa dívida de antes de conhecer o contrato.** O MGM vai
+digitar as matrículas em curso com a data real de início, para o histórico e as
+vagas ficarem certos. Sem uma régua, cadastrar um contrato que começou em
+janeiro faria nascer quinze cobranças vencidas numa tela cuja primeira aba é "em
+atraso", e o sistema abriria acusando o cliente inteiro de caloteiro na frente
+da recepção. A régua é: a cobrança existe a partir do mês em que o contrato
+entrou no sistema, ou do começo dele, o que vier depois. O que ficou para trás é
+conversa do estúdio com o aluno, fora daqui.
+
 **O horizonte é o mês aberto mais um.** Materializar até o fim de um contrato
 anual põe doze linhas na tela de quem quer saber o que vence esta semana, e
 transforma "a receber" num número que ninguém consegue ler. Um mês à frente é o

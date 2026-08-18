@@ -151,3 +151,23 @@ create policy cobranca_conta on cobranca for all
 create policy pagamento_conta on pagamento for all
   using (conta_id in (select app_verandi.contas_do_usuario()))
   with check (conta_id in (select app_verandi.contas_do_usuario()));
+
+/*
+ * O log volta a aceitar o que os módulos 15 e 16 já escrevem, e passa a aceitar
+ * os deste.
+ *
+ * `registrar()` grava "quem criou o contrato da Marina, e por que aquele
+ * preço", e a lista permitida parou na `0048`, antes de `plano` e `contrato`
+ * existirem. O insert falhava na checagem, e `registrar()` não olha o erro de
+ * propósito (perder a linha de log é ruim, derrubar a ação já gravada é pior).
+ * Resultado: desde 18/08 nenhuma criação de plano ou de contrato foi registrada,
+ * e ninguém tinha como perceber.
+ *
+ * É o defeito da casa: o silêncio. Ver a lição 1 do HANDOFF.
+ */
+alter table log_configuracao drop constraint if exists log_configuracao_entidade_check;
+alter table log_configuracao
+  add constraint log_configuracao_entidade_check check (entidade in
+    ('serie','servico','profissional','local','vocabulario',
+     'funcionamento','excecao_calendario','usuario_conta','convite','conta',
+     'pessoa','chave_api','webhook','plano','contrato','cobranca','pagamento'));

@@ -130,3 +130,156 @@ describe('financeiro no banco', () => {
     expect(error?.code).toBe('23503')
   })
 })
+
+/**
+ * A materialização, que é o coração do módulo: ela roda em toda abertura de
+ * tela, e errar aqui cobra duas vezes de quem já pagou.
+ *
+ * Não passa pelas Server Actions de propósito: o que se prova é a regra sobre o
+ * banco, e ação de tela precisa de sessão, cookie e papel, que são outra
+ * pergunta e já têm teste próprio.
+ */
+const hojeDeVerdade = () => new Date().toISOString().slice(0, 10)
+
+describe('a materialização das cobranças', () => {
+  const db = admin()
+  let contaId: string, pessoaId: string, planoId: string, contratoId: string
+
+  beforeAll(async () => {
+    const m = Date.now()
+    const { data: c } = await db.from('conta')
+      .insert({ nome: 'Estúdio da materialização', slug: `mat-${m}` })
+      .select().single()
+    contaId = c!.id
+
+    const { data: p } = await db.from('pessoa')
+      .insert({ conta_id: contaId, nome: 'Joana Prado' }).select().single()
+    pessoaId = p!.id
+
+    const { data: s } = await db.from('servico')
+      .insert({ conta_id: contaId, nome: 'Pilates solo' }).select().single()
+
+    const { data: pl } = await db.from('plano').insert({
+      conta_id: contaId, servico_id: s!.id, codigo: '010',
+      nome: 'Mensal, 1x por semana', recorrencia: 'mensal',
+      frequencia_semanal: 1, preco_vinculado_cent: 45000,
+      preco_avulso_cent: 45000,
+    }).select().single()
+    planoId = pl!.id
+
+    const { data: ct } = await db.from('contrato').insert({
+      conta_id: contaId, pessoa_id: pessoaId, plano_id: planoId,
+      inicio: '2026-01-10', dia_vencimento: 5, preco_aplicado_cent: 45000,
+      // o contrato entrou no sistema no dia em que começou: é o caso comum, e
+      // é o que faz as datas fixas deste teste continuarem valendo
+      criado_em: '2026-01-10T09:00:00Z',
+    }).select().single()
+    contratoId = ct!.id
+  })
+
+  it('cria do começo do contrato até o mês seguinte ao aberto, e nada além', async () => {
+    const { materializarCobrancas } = await import('../src/server/financeiro/materializar')
+    const criadas = await materializarCobrancas(db, contaId, '2026-03-12')
+    expect(criadas).toBe(4)
+
+    const { data } = await db.from('cobranca')
+      .select('competencia, vencimento, valor_cent')
+      .eq('contrato_id', contratoId).order('competencia')
+    expect(data!.map((c) => c.competencia))
+      .toEqual(['2026-01-01', '2026-02-01', '2026-03-01', '2026-04-01'])
+    // a primeira não vence antes de o contrato começar
+    expect(data![0].vencimento).toBe('2026-01-10')
+  })
+
+  it('contrato antigo digitado hoje não nasce devendo o ano inteiro', async () => {
+    const { materializarCobrancas } = await import('../src/server/financeiro/materializar')
+    // o MGM vai digitar as matrículas em curso com a data real de início; sem
+    // a régua, a primeira tela que a recepção abre acusa todo mundo de caloteiro
+    const { data: ct } = await db.from('contrato').insert({
+      conta_id: contaId, pessoa_id: pessoaId, plano_id: planoId,
+      inicio: '2025-02-01', dia_vencimento: 5, preco_aplicado_cent: 45000,
+    }).select().single()
+
+    await materializarCobrancas(db, contaId, hojeDeVerdade(), ct!.id)
+
+    const { data } = await db.from('cobranca').select('competencia')
+      .eq('contrato_id', ct!.id).order('competencia')
+    const mesDoCadastro = `${hojeDeVerdade().slice(0, 7)}-01`
+    expect(data!.length).toBeLessThanOrEqual(2)
+    expect(data![0].competencia).toBe(mesDoCadastro)
+  })
+
+  it('a segunda passada não cria nada, e é o caso comum', async () => {
+    const { materializarCobrancas } = await import('../src/server/financeiro/materializar')
+    expect(await materializarCobrancas(db, contaId, '2026-03-12')).toBe(0)
+  })
+
+  it('trancar cancela o mês que já tinha nascido à frente, e retomar reabre', async () => {
+    const { sincronizarCobrancas } = await import('../src/server/financeiro/materializar')
+
+    // a licença começa em março e ainda não tem volta marcada: abril inteiro
+    // cai dentro dela
+    const { data: pausa } = await db.from('pausa').insert({
+      conta_id: contaId, contrato_id: contratoId, inicio: '2026-03-20',
+    }).select().single()
+    await db.from('contrato').update({ status: 'pausado' }).eq('id', contratoId)
+    await sincronizarCobrancas(db, contaId, contratoId, '2026-03-20')
+
+    const abril = async () => (await db.from('cobranca')
+      .select('status, motivo_cancelamento')
+      .eq('contrato_id', contratoId).eq('competencia', '2026-04-01').single()).data!
+
+    expect((await abril()).status).toBe('cancelada')
+    expect((await abril()).motivo_cancelamento).toBe('licença do contrato')
+
+    // março fica: o mês em que a licença começou foi entregue pela metade, e
+    // proporcional é decisão comercial do estúdio
+    const { data: marco } = await db.from('cobranca').select('status')
+      .eq('contrato_id', contratoId).eq('competencia', '2026-03-01').single()
+    expect(marco!.status).toBe('aberta')
+
+    await db.from('pausa').update({ fim: '2026-04-10' }).eq('id', pausa!.id)
+    await db.from('contrato').update({ status: 'ativo' }).eq('id', contratoId)
+    await sincronizarCobrancas(db, contaId, contratoId, '2026-04-10')
+
+    expect((await abril()).status).toBe('aberta')
+    expect((await abril()).motivo_cancelamento).toBeNull()
+  })
+
+  it('cancelamento escrito à mão não é reaberto pela sincronização', async () => {
+    const { sincronizarCobrancas } = await import('../src/server/financeiro/materializar')
+    await db.from('cobranca').update({
+      status: 'cancelada', motivo_cancelamento: 'cortesia de aniversário',
+    }).eq('contrato_id', contratoId).eq('competencia', '2026-02-01')
+
+    await sincronizarCobrancas(db, contaId, contratoId, '2026-04-10')
+
+    const { data } = await db.from('cobranca').select('status')
+      .eq('contrato_id', contratoId).eq('competencia', '2026-02-01').single()
+    expect(data!.status).toBe('cancelada')
+  })
+
+  it('encerrar cancela o que ainda não venceu, e deixa a dívida velha de pé', async () => {
+    const { cancelarCobrancasFuturas } = await import('../src/server/financeiro/materializar')
+    await cancelarCobrancasFuturas(db, contaId, contratoId, '2026-03-31')
+
+    const { data } = await db.from('cobranca')
+      .select('competencia, status').eq('contrato_id', contratoId)
+      .order('competencia')
+    const porMes = Object.fromEntries(data!.map((c) => [c.competencia, c.status]))
+    // janeiro venceu e não foi pago: quem saiu devendo continua devendo
+    expect(porMes['2026-01-01']).toBe('aberta')
+    expect(porMes['2026-04-01']).toBe('cancelada')
+  })
+
+  it('o log aceita as entidades do financeiro, e as dos módulos 15 e 16', async () => {
+    // a lista permitida parou na 0048, e por isso nenhuma criação de plano ou
+    // de contrato foi registrada desde 18/08: o insert falhava e `registrar`
+    // não olha o erro
+    for (const entidade of ['plano', 'contrato', 'cobranca', 'pagamento']) {
+      const { error } = await db.from('log_configuracao')
+        .insert({ conta_id: contaId, entidade, acao: 'criou' })
+      expect(error, entidade).toBeNull()
+    }
+  })
+})

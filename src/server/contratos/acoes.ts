@@ -7,6 +7,9 @@ import { hojeEm } from '../agenda/fuso'
 import { temVinculo } from './consultas'
 import { precoAplicado, type Recorrencia } from '@/core/planos/plano'
 import { fimDoContrato, fimProrrogado } from '@/core/contratos/contrato'
+import {
+  cancelarCobrancasFuturas, materializarCobrancas, sincronizarCobrancas,
+} from '../financeiro/materializar'
 import { DIAS_INTEIROS } from '@/core/agenda/datas'
 
 /**
@@ -122,6 +125,14 @@ export async function criarContrato(
 
     await escreverVencimentoNaFicha(db, conta.contaId, novo.pessoaId)
 
+    /*
+     * A primeira cobrança nasce agora, e não na próxima vez que alguém abrir o
+     * financeiro. Quem acabou de matricular está com a pessoa na frente e vai
+     * receber o primeiro mês ali mesmo; achar a cobrança só amanhã seria pedir
+     * para a recepção anotar num papel o que o sistema existe para guardar.
+     */
+    await materializarCobrancas(db, conta.contaId, hoje, contrato.id)
+
     await registrar(db, {
       contaId: conta.contaId, entidade: 'contrato', entidadeId: contrato.id,
       acao: 'criou',
@@ -131,6 +142,7 @@ export async function criarContrato(
     revalidatePath(`/pessoas/${novo.pessoaId}`)
     revalidatePath('/grade')
     revalidatePath('/semana')
+    revalidatePath('/financeiro')
     return { ok: true, valor: contrato.id }
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : 'Não foi possível matricular.' }
@@ -238,12 +250,17 @@ export async function trancarContrato(
     await db.from('vaga').update({ fim: inicio })
       .eq('contrato_id', contratoId).is('fim', null)
 
+    // a cobrança do mês que já nasceu à frente não pode virar dívida de um mês
+    // em que a pessoa não pode entrar na sala
+    await sincronizarCobrancas(db, conta.contaId, contratoId, hojeEm(conta.fuso))
+
     await registrar(db, {
       contaId: conta.contaId, entidade: 'contrato', entidadeId: contratoId,
       acao: 'encerrou', detalhe: { pausa: inicio, motivo },
     })
 
     revalidatePath(`/pessoas/${c.pessoa_id}`)
+    revalidatePath('/financeiro')
     return { ok: true }
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : 'Não foi possível trancar.' }
@@ -301,6 +318,8 @@ export async function retomarContrato(
 
     await db.from('contrato').update({ status: 'ativo' }).eq('id', contratoId)
     await escreverVencimentoNaFicha(db, conta.contaId, c.pessoa_id)
+    // o caminho de volta: os meses que voltaram a ser devidos reabrem
+    await sincronizarCobrancas(db, conta.contaId, contratoId, hoje)
 
     await registrar(db, {
       contaId: conta.contaId, entidade: 'contrato', entidadeId: contratoId,
@@ -308,6 +327,7 @@ export async function retomarContrato(
     })
 
     revalidatePath(`/pessoas/${c.pessoa_id}`)
+    revalidatePath('/financeiro')
     return { ok: true }
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : 'Não foi possível retomar.' }
@@ -340,6 +360,14 @@ export async function encerrarContrato(
     await db.from('vaga').update({ fim })
       .eq('contrato_id', contratoId).is('fim', null)
 
+    /*
+     * O que ainda não venceu é cancelado; o que venceu e não foi pago fica.
+     * Quem saiu devendo continua devendo, e apagar a dívida no ato do
+     * encerramento é o jeito mais rápido de o sistema perder dinheiro do
+     * cliente sem ninguém perceber.
+     */
+    await cancelarCobrancasFuturas(db, conta.contaId, contratoId, fim)
+
     await escreverVencimentoNaFicha(db, conta.contaId, c.pessoa_id)
 
     await registrar(db, {
@@ -349,6 +377,7 @@ export async function encerrarContrato(
 
     revalidatePath(`/pessoas/${c.pessoa_id}`)
     revalidatePath('/grade')
+    revalidatePath('/financeiro')
     return { ok: true }
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : 'Não foi possível encerrar.' }
