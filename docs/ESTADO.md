@@ -12,7 +12,7 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 18/ago/2026 · **A Verandi está no ar em
+**Última atualização:** 18/ago/2026 (segunda passagem: suíte verde) · **A Verandi está no ar em
 `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
 verdade, onboarding, a porta do bot aberta e o acompanhamento por foto.**
 
@@ -218,13 +218,10 @@ Foto de rosto identifica melhor que nome, então aquilo era anonimizar no papel 
 não no fato, e estava assim desde a `0051`. Agora saem as duas famílias de
 imagem, e o arquivo sempre antes da linha.
 
-**O que ficou por fazer, e por quê:** os testes de banco e de navegador estão
-escritos e **não rodaram**. O Docker da máquina onde isto foi feito está sem
-integração com o WSL, o Supabase local não sobe, e a suíte de banco falha na
-conexão, não no código. Pelo mesmo motivo, `npm run tipos` não rodou: as três
-tabelas foram escritas à mão em `banco.types.ts` e depois **conferidas contra
-produção**, coluna por coluna. Quem pegar isto com Docker de pé roda os três e
-corrige o que aparecer.
+**O que tinha ficado por fazer foi feito em 18/08.** Com o Docker de pé, os
+testes de banco e de navegador rodaram e passam, e `npm run tipos` reescreveu
+`banco.types.ts` inteiro: as três tabelas deixaram de ser escritas à mão. O
+arquivo gerado bateu com o que tinha sido conferido contra produção.
 
 ## O próximo passo, em ordem
 
@@ -257,9 +254,10 @@ falta para a Verandi ficar de pé". Em ordem de risco:
    quando um evento novo é enfileirado, porque o plano gratuito da Vercel não dá
    cron de minuto.
 7. **O que depende do Gabriel:** ilustrações do onboarding e "vida nas telas".
-8. **Rodar a suíte inteira**, que não roda desde `a02a743`, em 16/08. Não é
-   suspeita de defeito, é higiene: oito commits mexeram em tela depois disso, e
-   o número que este arquivo publica precisa ser de verdade.
+8. **Feito em 18/08.** A suíte inteira rodou: 391 de unidade e 175 de
+   navegador, todos verdes. Dezesseis testes de navegador falhavam por procurar
+   texto que a revisão de linguagem de 16/ago renomeou, e nenhum era falha de
+   comportamento.
 
 ## O papel, e onde ele mora
 
@@ -359,18 +357,18 @@ mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
 | contas de cliente | **1** (MGM Pilates) |
 | `https://verandi.4yu.com.br` | raiz responde 307 para `/entrar`, que responde 200; `/termos` 200 |
 
-**Rodando a suíte, em 16/08, no commit `a02a743`:**
+**Rodando a suíte, em 18/08, no commit `9fc000d`:**
 
 | O quê | Resultado |
 |---|---|
-| `npm test` | **370 passaram** |
-| `npm run test:e2e` | **172 passaram** |
+| `npm test` | **391 passaram** |
+| `npm run test:e2e` | **175 passaram** |
+| `npm run build` | passou |
+| `npm run segredos` | nenhuma credencial de produção no repositório |
 
-Os oito commits depois daquele acrescentaram teste e mexeram em tela, e **a
-suíte não foi rodada desde então**: os números acima são piso, não retrato. Quem
-tiver Docker de pé, rode e corrija esta linha, que é barato. Hoje há **516 casos
-declarados** em `tests/` e `e2e/`, contados no arquivo, que é outro número e não
-substitui rodar.
+Os números são retrato, e não piso: a suíte rodou depois do último commit de
+tela. O que ela cobrava eram nomes de botão e de aviso trocados na revisão de
+linguagem de 16/ago, corrigidos no mesmo commit em que esta linha mudou.
 
 **Medido antes, e sem motivo para ter mudado:**
 

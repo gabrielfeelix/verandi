@@ -28,12 +28,13 @@ a cada push na `main`.
 | Tabelas em `app_verandi` | **31**, todas com RLS, 46 políticas | conferido 18/08 |
 | Tabelas em `public` (AutoFluxos) | **19**, intactas | conferido 18/08 |
 | Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | 370 de unidade e banco · **172** de navegador | rodados em 16/08, no commit `a02a743` |
+| Testes | 391 de unidade e banco · **175** de navegador | todos passam, rodados em 18/08 no commit `9fc000d` |
 | API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
 
-**A linha dos testes é piso, não retrato.** Oito commits mexeram em tela depois
-que a suíte rodou pela última vez. Se você tem Docker de pé, rode e corrija o
-número; é o item mais barato desta página.
+**A linha dos testes é retrato, e de hoje.** A suíte inteira rodou em 18/08 com
+o banco local de pé: 391 de unidade e 175 de navegador, todos verdes. Os
+dezesseis que falhavam procuravam texto renomeado pela revisão de linguagem de
+16/ago, e nenhum era falha de comportamento.
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
@@ -48,22 +49,10 @@ funcionalidade. Está na seção seguinte, em ordem.
 
 ## Comece por aqui
 
-**O que está pela metade, e é a primeira coisa a fazer:** o módulo de
-acompanhamento por foto (plano 14) está no ar, com a `0053` aplicada, mas
-**três verificações não rodaram** porque a máquina onde ele foi escrito estava
-sem Docker: `npm run tipos`, `tests/avaliacao.test.ts` e `e2e/avaliacao.spec.ts`.
-Com o banco local de pé, isso é meia hora:
-
-```bash
-npx supabase start && npx supabase db reset && node scripts/semear-dev.mjs
-npm run tipos
-npx vitest run tests/avaliacao.test.ts
-npx playwright test e2e/avaliacao.spec.ts
-```
-
-`npm run tipos` vai reescrever `banco.types.ts` inteiro e apagar as três
-entradas escritas à mão, que é exatamente o que se quer: elas já foram
-conferidas contra produção, mas gerado é melhor que conferido.
+**As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
+tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do
+acompanhamento por foto deixaram de ser escritas à mão. `tests/avaliacao.test.ts`
+e `e2e/avaliacao.spec.ts` passam. Não há verificação em aberto.
 
 **O que falta não é código de funcionalidade.** As Fases 3, 4 e 5 do Marco 2
 saíram em 15/08, e 16/08 foi um domingo inteiro corrigindo o que só aparece
