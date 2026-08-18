@@ -21,6 +21,8 @@ import { Comparador } from '@/components/avaliacao/comparador'
 import { NovaAvaliacao } from '@/components/avaliacao/nova-avaliacao'
 import { NovaMatricula, ContratosDaFicha } from '@/components/contratos/matricula'
 import { contratosDaPessoa } from '@/server/contratos/consultas'
+import { cobrancasDaPessoa } from '@/server/financeiro/consultas'
+import { ListaDeCobrancas } from '@/components/financeiro/lista'
 import { listarPlanos } from '@/server/planos/consultas'
 import { listarSeries } from '@/server/grade/consultas'
 import { avaliacoesDaPessoa, posicoesDaConta, podeVerAvaliacao } from '@/server/avaliacao/consultas'
@@ -133,9 +135,17 @@ export default async function Pessoa({
    */
   const operacional = conta.papel === 'dono' || conta.papel === 'recepcao'
     || conta.papel === 'suporte'
-  const contratos = operacional
-    ? await contratosDaPessoa(db, conta.contaId, id)
-    : []
+  /*
+   * Contrato e cobrança vêm juntos: "até quando vale" e "ela está em dia" são a
+   * mesma conversa no balcão, e mandar quem atende para outra tela no meio dela
+   * é o que faz a recepção voltar a anotar num papel.
+   */
+  const [contratos, cobrancas] = operacional
+    ? await Promise.all([
+        contratosDaPessoa(db, conta.contaId, id),
+        cobrancasDaPessoa(db, conta.contaId, id, hoje),
+      ])
+    : [[], []]
   const [avaliacoes, posicoes, quemAvalia] = vendoAvaliacao
     ? await Promise.all([
         avaliacoesDaPessoa(id),
@@ -602,6 +612,17 @@ export default async function Pessoa({
               </div>
 
               <ContratosDaFicha contratos={contratos} pessoaNome={ficha.pessoa.nome} />
+
+              <div className="flex flex-col gap-2.5">
+                <h3 className="font-titulo text-[17px] font-semibold">Cobranças</h3>
+                <ListaDeCobrancas
+                  linhas={cobrancas}
+                  vazio={{
+                    titulo: 'Nenhuma cobrança ainda',
+                    texto: 'Elas nascem do contrato, com a data de vencimento que ele diz. Sem contrato em vigor, não há o que cobrar.',
+                  }}
+                />
+              </div>
             </div>
           ) : null}
 

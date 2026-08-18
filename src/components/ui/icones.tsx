@@ -162,6 +162,17 @@ const TRACOS = {
    * ilegível dentro de um botão de 44px — foi exatamente o que apareceu na
    * tela. Círculo cortado é o sinal universal de "cancelado" e é um traço só.
    */
+  /*
+   * Cédula, e não cifrão: `$` é glifo de texto e não desenha em traço, e o
+   * símbolo de moeda muda de país para país. Retângulo com um círculo dentro é
+   * dinheiro em qualquer lugar.
+   */
+  dinheiro: (
+    <>
+      <rect x="2.6" y="5" width="14.8" height="10" rx="2" />
+      <circle cx="10" cy="10" r="2.3" />
+    </>
+  ),
   proibido: (
     <>
       <circle cx="10" cy="10" r="6.8" />

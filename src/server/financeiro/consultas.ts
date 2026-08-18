@@ -2,8 +2,8 @@ import type { Db } from '../supabase'
 import type { Recorrencia } from '@/core/planos/plano'
 import { fimProrrogado, type Pausa } from '@/core/contratos/contrato'
 import {
-  cobrancasPrevistas, competenciaDe, proximaCompetencia, situacaoDaCobranca,
-  diasDeAtraso, type SituacaoCobranca,
+  cobrancasPrevistas, competenciaDe, fimDaCompetencia, proximaCompetencia,
+  situacaoDaCobranca, diasDeAtraso, type SituacaoCobranca,
 } from '@/core/financeiro/cobranca'
 import type {
   CobrancaDoPeriodo, ContratoDoPeriodo, Forma, PagamentoRecebido,
@@ -193,6 +193,15 @@ export type Fechamento = {
   ate: string
   pagamentos: PagamentoRecebido[]
   cobrancas: CobrancaDoPeriodo[]
+  /**
+   * O atraso é de **hoje**, e não do período.
+   *
+   * Quem deve desde junho é exatamente quem se liga hoje, e um fechamento de
+   * agosto que esconde essa pessoa transforma a lista de ligação numa lista
+   * incompleta, que é pior do que não ter lista. O período fecha o que entrou;
+   * o atraso é uma pergunta sobre agora.
+   */
+  atrasadas: CobrancaDoPeriodo[]
   contratos: ContratoDoPeriodo[]
   /** o que os contratos em vigor vão gerar no mês seguinte ao período */
   previstoCent: number
@@ -206,9 +215,9 @@ export type Fechamento = {
  * o teste das somas não precisa de banco.
  */
 export async function materialDoFechamento(
-  db: Db, contaId: string, de: string, ate: string,
+  db: Db, contaId: string, de: string, ate: string, hoje: string,
 ): Promise<Fechamento> {
-  const [pagamentos, cobrancas, contratos] = await Promise.all([
+  const [pagamentos, cobrancas, contratos, atrasadas] = await Promise.all([
     db.from('pagamento')
       .select(`valor_cent, forma, recebido_em,
                cobranca(contrato(plano(nome, servico(nome))))`)
@@ -223,7 +232,16 @@ export async function materialDoFechamento(
     db.from('cobranca_resumo')
       .select(`id, pessoa_id, competencia, vencimento, valor_cent,
                valor_pago_cent, situacao, pessoa(nome, telefone)`)
-      .eq('conta_id', contaId).gte('vencimento', de).lte('vencimento', ate)
+      /*
+       * As cobranças vão até o fim do mês, e não até `ate`.
+       *
+       * "Quanto ainda vai vencer" com a janela terminando hoje é sempre zero,
+       * porque o que vence amanhã está fora dela. O período fecha o que
+       * **entrou**; o que está por vir precisa enxergar o resto do mês, senão o
+       * número existe e não responde nada.
+       */
+      .eq('conta_id', contaId).gte('vencimento', de)
+      .lte('vencimento', fimDaCompetencia(competenciaDe(ate)))
       .returns<Array<{
         id: string; pessoa_id: string; competencia: string; vencimento: string
         valor_cent: number; valor_pago_cent: number; situacao: string
@@ -243,6 +261,16 @@ export async function materialDoFechamento(
           recorrencia: string; parcelas: number
           preco_avulso_cent: number; preco_vinculado_cent: number
         } | null
+      }>>(),
+    db.from('cobranca_resumo')
+      .select(`id, pessoa_id, competencia, vencimento, valor_cent,
+               valor_pago_cent, situacao, pessoa(nome, telefone)`)
+      .eq('conta_id', contaId).in('situacao', ['aberta', 'parcial'])
+      .lt('vencimento', hoje)
+      .returns<Array<{
+        id: string; pessoa_id: string; competencia: string; vencimento: string
+        valor_cent: number; valor_pago_cent: number; situacao: string
+        pessoa: { nome: string; telefone: string | null } | null
       }>>(),
   ])
 
@@ -284,17 +312,8 @@ export async function materialDoFechamento(
       servicoNome: p.cobranca?.contrato?.plano?.servico?.nome ?? 'Sem registro',
       planoNome: p.cobranca?.contrato?.plano?.nome ?? 'Sem registro',
     })),
-    cobrancas: (cobrancas.data ?? []).map((c) => ({
-      id: c.id,
-      pessoaId: c.pessoa_id,
-      pessoaNome: c.pessoa?.nome ?? '',
-      telefone: c.pessoa?.telefone ?? null,
-      competencia: c.competencia,
-      vencimento: c.vencimento,
-      valorCent: c.valor_cent,
-      valorPagoCent: c.valor_pago_cent,
-      situacao: c.situacao,
-    })),
+    cobrancas: (cobrancas.data ?? []).map(paraPeriodo),
+    atrasadas: (atrasadas.data ?? []).map(paraPeriodo),
     contratos: (contratos.data ?? []).map((c) => ({
       inicio: c.inicio,
       fim: c.fim,
@@ -305,5 +324,23 @@ export async function materialDoFechamento(
       precoVinculadoCent: c.plano?.preco_vinculado_cent ?? 0,
     })),
     previstoCent,
+  }
+}
+
+function paraPeriodo(c: {
+  id: string; pessoa_id: string; competencia: string; vencimento: string
+  valor_cent: number; valor_pago_cent: number; situacao: string
+  pessoa: { nome: string; telefone: string | null } | null
+}): CobrancaDoPeriodo {
+  return {
+    id: c.id,
+    pessoaId: c.pessoa_id,
+    pessoaNome: c.pessoa?.nome ?? '',
+    telefone: c.pessoa?.telefone ?? null,
+    competencia: c.competencia,
+    vencimento: c.vencimento,
+    valorCent: c.valor_cent,
+    valorPagoCent: c.valor_pago_cent,
+    situacao: c.situacao,
   }
 }

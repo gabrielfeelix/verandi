@@ -65,7 +65,9 @@ test('contratar ocupa os horários escolhidos, e o contrato aparece na ficha', a
   // vezes na tela, uma no cartão do plano e outra na linha do contrato
   await expect(page.locator('dialog[open]')).toHaveCount(0)
   await expect(page.getByText('Em vigor', { exact: true })).toBeVisible()
-  await expect(page.getByText('R$ 735,00')).toBeVisible()
+  // o preço aparece três vezes desde o módulo 17: na linha do contrato e nas
+  // cobranças que ele acabou de gerar, logo abaixo, na mesma aba
+  await expect(page.getByText('R$ 735,00').first()).toBeVisible()
 
   // o contrato produz vaga: é o que a chamada e a reposição leem
   await expect.poll(async () => {

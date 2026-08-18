@@ -1,6 +1,8 @@
 import { exigirConta, clienteServidor, contasDoUsuario } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { estadoDoOnboarding, encerrado, contaVazia } from '@/server/onboarding/consultas'
+import { contarAtrasadas } from '@/server/financeiro/consultas'
+import { hojeEm } from '@/server/agenda/fuso'
 import { roteiroDe } from '@/core/onboarding/roteiro'
 import { boasVindas } from '@/core/onboarding/boas-vindas'
 import { aindaNeutro } from '@/core/vocabulario/predefinicoes'
@@ -69,6 +71,16 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
   const operacional = conta.papel === 'dono' || conta.papel === 'recepcao'
 
+  /*
+   * O número de cobranças em atraso vive no trilho porque é o único dado do
+   * financeiro que precisa alcançar quem não estava indo até lá. Uma consulta
+   * contada, com índice, e só para quem pode ver dinheiro: para a profissional
+   * ela nem é feita.
+   */
+  const atrasadas = operacional
+    ? await contarAtrasadas(db, conta.contaId, hojeEm(conta.fuso))
+    : 0
+
   const itens: ItemRail[] = [
     { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', icone: 'hoje', guia: 'rail-hoje' },
     ...(operacional
@@ -84,6 +96,15 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           },
           { href: '/vaga', rotulo: 'Buscar vaga', curto: 'Vaga', icone: 'vaga', guia: 'rail-vaga' },
           { href: '/grade', rotulo: 'Grade fixa', curto: 'Fixa', icone: 'grade', guia: 'rail-grade' },
+          {
+            href: '/financeiro',
+            rotulo: 'Financeiro',
+            curto: 'R$',
+            icone: 'dinheiro',
+            badge: atrasadas,
+            badgeRotulo: 'em atraso',
+            guia: 'rail-financeiro',
+          },
         ] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'dono' || conta.papel === 'suporte'

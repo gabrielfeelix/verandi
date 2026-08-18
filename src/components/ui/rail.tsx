@@ -14,6 +14,14 @@ export type ItemRail = {
   icone: NomeIcone
   /** número em laranja; `0` não desenha nada, porque zero não é pendência */
   badge?: number
+  /**
+   * O que o número significa, lido em voz alta depois dele.
+   *
+   * Cada destino tem o seu: "3 aguardando decisão" em Pendências e "14 em
+   * atraso" no Financeiro. Um texto fixo para os dois faz o leitor de tela
+   * anunciar dinheiro atrasado como se fosse fila de trabalho.
+   */
+  badgeRotulo?: string
   /** âncora do balão do onboarding; sumir daqui não quebra a navegação */
   guia?: string
 }
@@ -140,7 +148,7 @@ export function Rail({
                   }`}
                 >
                   {i.badge}
-                  <span className="sr-only"> aguardando decisão</span>
+                  <span className="sr-only"> {i.badgeRotulo ?? 'aguardando decisão'}</span>
                 </span>
               ) : null}
             </Link>
