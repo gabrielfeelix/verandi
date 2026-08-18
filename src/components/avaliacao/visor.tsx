@@ -98,6 +98,10 @@ export function Visor({
 
         {/* `object-contain`: cortar foto de postura é apagar justamente a
             perna que alguém foi conferir */}
+{/* `<img>` e não `next/image`: o endereço é assinado e expira, e o
+            otimizador do Next guardaria uma imagem privada de saúde atrás
+            de uma URL que não expira junto. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
           alt={`${posicao} em ${dataCurta(data)}`}

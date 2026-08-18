@@ -151,3 +151,39 @@ export async function apagarAvaliacao(id: string): Promise<void> {
 
   revalidatePath(`/pessoas/${av.pessoa_id}`)
 }
+
+/**
+ * O que o modal manda: a visita e as fotos dela, num envio só.
+ *
+ * O formulário traz um campo de arquivo por posição, chamado `foto-<id>`, e a
+ * observação daquela foto em `observacao-<id>`. Campo de arquivo vazio chega
+ * como `File` de tamanho zero, e não como ausência: sem a checagem, cada
+ * posição não fotografada viraria um arquivo vazio no balde.
+ *
+ * A visita nasce antes das fotos porque as fotos precisam do id dela no
+ * caminho. Se uma foto falhar, a visita fica de pé com as que subiram, e quem
+ * registrou tenta a que faltou pela matriz: perder as cinco que deram certo
+ * porque a sexta falhou seria pior.
+ */
+export async function registrarAvaliacao(dados: FormData): Promise<void> {
+  const pessoaId = String(dados.get('pessoaId') ?? '')
+  const data = String(dados.get('data') ?? '')
+  if (!pessoaId || !data) throw new Error('a avaliação precisa de pessoa e data')
+
+  const { id } = await criarAvaliacao({
+    pessoaId,
+    data,
+    profissionalId: String(dados.get('profissionalId') ?? '') || null,
+    observacao: String(dados.get('observacao') ?? '') || null,
+  })
+
+  for (const [chave, valor] of dados.entries()) {
+    if (!chave.startsWith('foto-')) continue
+    if (!(valor instanceof File) || valor.size === 0) continue
+    const posicaoId = chave.slice('foto-'.length)
+    const observacao = String(dados.get(`observacao-${posicaoId}`) ?? '')
+    await salvarFotoDaAvaliacao(id, posicaoId, valor, observacao)
+  }
+
+  revalidatePath(`/pessoas/${pessoaId}`)
+}

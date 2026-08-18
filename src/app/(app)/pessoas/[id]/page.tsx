@@ -16,6 +16,11 @@ import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Voltar } from '@/components/ui/voltar'
 import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas'
 import { mascararTelefone, telefoneValido } from '@/core/telefone'
+import { Matriz } from '@/components/avaliacao/matriz'
+import { Comparador } from '@/components/avaliacao/comparador'
+import { NovaAvaliacao } from '@/components/avaliacao/nova-avaliacao'
+import { avaliacoesDaPessoa, posicoesDaConta, podeVerAvaliacao } from '@/server/avaliacao/consultas'
+import { registrarAvaliacao, criarPosicao } from '@/server/avaliacao/acoes'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 
@@ -48,8 +53,8 @@ const PAR: Record<Tinta, string> = {
   neutro: 'bg-neutro-fundo text-tinta-media',
 }
 
-type Aba = 'agenda' | 'historico' | 'reposicoes' | 'perfil'
-const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'perfil']
+type Aba = 'agenda' | 'historico' | 'reposicoes' | 'avaliacao' | 'perfil'
+const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'avaliacao', 'perfil']
 
 function curta(data: string) {
   return `${data.slice(8)}/${data.slice(5, 7)}`
@@ -108,6 +113,24 @@ export default async function Pessoa({
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
   const hoje = hojeEm(conta.fuso)
   const aba: Aba = ABAS.includes(abaBruta as Aba) ? (abaBruta as Aba) : 'agenda'
+
+  /*
+   * A avaliação só é carregada quando a aba dela está aberta: são vinte e
+   * quatro endereços assinados no Storage para uma pessoa com quatro visitas, e
+   * pagar isso em toda abertura de ficha seria pagar pelo que quase ninguém
+   * abriu.
+   */
+  const vendoAvaliacao = aba === 'avaliacao' && podeVerAvaliacao(conta.papel)
+  const [avaliacoes, posicoes, quemAvalia] = vendoAvaliacao
+    ? await Promise.all([
+        avaliacoesDaPessoa(id),
+        posicoesDaConta(),
+        db.from('profissional').select('id, nome')
+          .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
+          .returns<Array<{ id: string; nome: string }>>()
+          .then((r) => r.data ?? []),
+      ])
+    : [[], [], []]
 
   /*
    * Os horários que a pessoa pode ocupar, com o que decide a escolha.
@@ -304,6 +327,15 @@ export default async function Pessoa({
             contagem: ficha.reposicoesAbertas.length || undefined,
             href: `/pessoas/${id}?aba=reposicoes`,
           },
+          // a recepção não vê: foto de corpo é dado de saúde, e quem marca
+          // aula não precisa dela para trabalhar
+          ...(podeVerAvaliacao(conta.papel)
+            ? [{
+                id: 'avaliacao',
+                rotulo: 'Avaliação',
+                href: `/pessoas/${id}?aba=avaliacao`,
+              }]
+            : []),
           { id: 'perfil', rotulo: 'Perfil', href: `/pessoas/${id}?aba=perfil` },
         ]}
       />
@@ -514,6 +546,40 @@ export default async function Pessoa({
                 falta pelo menu dela na tela do horário.
               </p>
             </section>
+          ) : null}
+
+          {aba === 'avaliacao' && vendoAvaliacao ? (
+            <div className="flex flex-col gap-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-titulo text-[19px] font-semibold">
+                  Acompanhamento por foto
+                </h2>
+                <NovaAvaliacao
+                  pessoaId={id}
+                  pessoaNome={ficha.pessoa.nome}
+                  posicoes={posicoes}
+                  profissionais={quemAvalia}
+                  aoRegistrar={registrarAvaliacao}
+                  aoAdicionarPosicao={async (nome: string) => {
+                    'use server'
+                    await criarPosicao(nome)
+                  }}
+                />
+              </div>
+
+              {avaliacoes.length === 0 ? (
+                <Vazio
+                  icone="pessoas"
+                  titulo="Nenhuma avaliação ainda"
+                  texto="A comparação aparece a partir da segunda. Não é falha de carregamento: ninguém registrou a primeira."
+                />
+              ) : (
+                <>
+                  <Comparador posicoes={posicoes} avaliacoes={avaliacoes} />
+                  <Matriz posicoes={posicoes} avaliacoes={avaliacoes} />
+                </>
+              )}
+            </div>
           ) : null}
 
           {aba === 'perfil' ? (

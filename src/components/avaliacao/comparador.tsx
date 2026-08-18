@@ -124,11 +124,19 @@ function Lado({
 
       <div className="relative flex h-[480px] items-center justify-center overflow-hidden rounded-grande border border-linha-suave bg-superficie-mais-suave">
         {foto ? (
-          <img
-            src={foto.url}
-            alt={`${nome} em ${dataCurta(data)}`}
-            className="size-full object-contain"
-          />
+          // um fragmento, e não a imagem solta: o ramo do ternário aceita uma
+          // expressão só, e o comentário ao lado da imagem já são duas
+          <>
+            {/* `<img>` e não `next/image`: o endereço é assinado e expira, e o
+                otimizador do Next guardaria uma imagem privada de saúde atrás
+                de uma URL que não expira junto. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={foto.url}
+              alt={`${nome} em ${dataCurta(data)}`}
+              className="size-full object-contain"
+            />
+          </>
         ) : (
           <p className="max-w-[240px] px-4 text-center text-[12.5px] text-tinta-media">
             Nesta avaliação ninguém fotografou {nome.toLowerCase()}. Não é falha

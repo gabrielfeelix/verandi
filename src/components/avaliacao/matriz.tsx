@@ -134,6 +134,10 @@ function LinhaDaPosicao({
             aria-label={`Ampliar ${posicao.nome} em ${dataCurta(a.data)}`}
             className="h-24 w-24 overflow-hidden rounded-padrao border border-linha-suave bg-superficie-mais-suave transition-[border-color] duration-150 hover:border-marca"
           >
+{/* `<img>` e não `next/image`: o endereço é assinado e expira, e o
+                otimizador do Next guardaria uma imagem privada de saúde atrás
+                de uma URL que não expira junto. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={foto.url}
               alt={`${posicao.nome} em ${dataCurta(a.data)}`}
