@@ -12,9 +12,14 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 15/ago/2026 · **A Verandi está no ar em
-`https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
+**Última atualização:** 18/ago/2026, conferindo produção · **A Verandi está no
+ar em `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
 verdade, onboarding e a porta do bot aberta.**
+
+O último trabalho de código é de 16/ago, e este arquivo tinha ficado em 15/ago:
+onze commits daquele domingo não estavam narrados em lugar nenhum, e os números
+aqui embaixo diziam 21 migrations quando produção já tinha 23. Se você chegou
+por um resumo escrito antes de 18/08, ele está errado.
 
 **O produto opera; o negócio ainda não pode vender.** Termos, privacidade e
 contrato de operador saíram como minuta em 15/08 e esperam assinatura; faltam
@@ -129,6 +134,60 @@ papel do banco. Aqui todo usuário logado é o mesmo `authenticated`, e "recepç
 filtra é `src/server`, que é o único caminho até o dado. Vira RLS de verdade no
 dia em que existir view por papel.
 
+## O que aconteceu em 16/ago: usar o sistema como quem trabalha nele
+
+Onze commits, todos nascidos da mesma coisa: alguém abriu o produto e tentou
+fazer o trabalho de um dia, em vez de conferir se a tela existia. O que apareceu
+não estava em plano nenhum, e nenhum teste reclamava de nada.
+
+1. **Cinco ações prometiam e não cumpriam.** "Cadastrar aluno" abria uma faixa
+   de campos dentro do cabeçalho da lista; "Editar dados" esticava o cartão da
+   ficha para novecentos pixels; "Agendar" era âncora para uma aba fechada e
+   não abria nada; "Adicionar" falhava calado sem horário escolhido; "Encerrar"
+   perguntava pelo `confirm()` do navegador, que o DESIGN-SYSTEM proíbe. Os
+   quatro primeiros passaram a abrir o modal que a Configuração já usava.
+2. **A suíte passou a perguntar se o modal abriu**, não só se a URL mudou. O
+   teste de `/contas` dava verde num laço de redirecionamento, porque a URL
+   fica certa enquanto o corpo vem vazio, e as quatro ações acima nunca tinham
+   sido cobertas: davam verde por ausência.
+3. **Seletor e calendário passaram a ser da casa.** Setenta horários no dropdown
+   do sistema operacional não dizem de quem é a turma, em que sala, nem se ainda
+   cabe alguém; o nosso agrupa por dia, mostra `Carol · Sala 1 · 3/4` e ganha
+   filtro acima de oito opções. O calendário nativo pinta o azul do Chrome e
+   pede três cliques para trocar de ano.
+4. **O DDD passou a ser cobrado**, na tela e na API. A planilha de origem
+   escrevia "9.8109-1840", porque quem anota e quem liga moram na mesma cidade,
+   e telefone sem DDD é telefone que o WhatsApp não disca. Não dá para adivinhar
+   depois: 11, 41, 44 e 55 são todos plausíveis. Migration `0052`, com coluna
+   gerada `telefone_disca`, porque o PostgREST só filtra por coluna e a
+   alternativa era trazer a conta inteira para contar dígito em memória.
+5. **A grade fixa virou cartão, com tudo em modal**, e a ficha ganhou **foto**
+   (migration `0051`, balde privado `foto-pessoa`). A foto existia para a equipe
+   desde a `0038` e faltava justamente onde vale mais: correção postural tem
+   antes e depois, e a recepção reconhece quem chegou sem perguntar o nome.
+6. **O sino.** Aula cancelada e falta avisada eram coisas que o dono descobria
+   pelo aluno na porta fechada. O sino fica no Hoje, só para quem responde pelo
+   negócio, e quem baixa o contador é o clique na notificação, não a abertura do
+   painel: quem espia perdia o rastro do que ainda não tinha visto.
+7. **Erro de framework virou frase em português.** "Minified React error #441"
+   apareceu para o dono de um estúdio no meio de cadastrar uma modalidade. Ele
+   não tem o que fazer com aquilo, nem sabe se salvou. Toda mensagem que não foi
+   escrita por nós vira uma frase que assume a culpa e dá o contato; as nossas
+   ("Faltou o DDD") passam inteiras, porque foram escritas para ser lidas.
+8. **A revisão de linguagem varreu os 339 trechos de texto que chegam à tela**,
+   não só o que aparecia em print. Sobrava informalidade em três formas:
+   minúscula onde a frase começa, palavra de conversa no lugar do termo
+   ("Esse horário já tem coisa marcada"), e **"o robô"**, que é como falamos
+   internamente do bot e tinha vazado para a Configuração do cliente. Virou
+   "atendimento automático", que é o que ele é para quem paga. Três commits
+   seguidos, porque a primeira varredura passou por cima da legenda do
+   histórico e das pendências, que são montadas no servidor e só aparecem quando
+   existe pendência de verdade.
+
+**O que isso ensina, e vale para o resto:** a varredura por print não alcança o
+texto montado no servidor, e teste que confere URL não confere trabalho feito.
+Onde o produto promete uma ação, o teste pergunta se ela aconteceu.
+
 ## O próximo passo, em ordem
 
 **O produto opera; o negócio não está pronto para vender.** A lista completa,
@@ -154,8 +213,15 @@ falta para a Verandi ficar de pé". Em ordem de risco:
 5. ~~**Marco 2, Fase 3:** escrever pela API.~~ **Feita em 15/08**, com a
    documentação pública em `/api-docs` e o desenho de até onde a automação vai
    em [`planos/12-api-que-escreve.md`](planos/12-api-que-escreve.md).
-6. **Marco 2, Fases 4 e 5:** o aviso de volta e a lista de espera.
+6. ~~**Marco 2, Fases 4 e 5:** o aviso de volta e a lista de espera.~~
+   **Feitas em 15/08.** Outbox, assinatura HMAC, reentrega em seis tentativas e
+   fila por horário. O limite conhecido: a reentrega do webhook só dispara
+   quando um evento novo é enfileirado, porque o plano gratuito da Vercel não dá
+   cron de minuto.
 7. **O que depende do Gabriel:** ilustrações do onboarding e "vida nas telas".
+8. **Rodar a suíte inteira**, que não roda desde `a02a743`, em 16/08. Não é
+   suspeita de defeito, é higiene: oito commits mexeram em tela depois disso, e
+   o número que este arquivo publica precisa ser de verdade.
 
 ## O papel, e onde ele mora
 
@@ -236,19 +302,43 @@ Um terceiro achado é atrito, não defeito, e ficou como está: o botão **"Entr
 na conta"** do convite não entra, leva a `/entrar?novo=1`, com o texto trocado
 mas sem o e-mail preenchido.
 
-## Verificado agora
+## Verificado
+
+Duas colunas, porque as duas coisas envelhecem em ritmos diferentes: o que se
+mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
+**suíte** vale para o commit em que rodou.
+
+**Contra produção, em 18/08:**
 
 | O quê | Resultado |
 |---|---|
-| `npm run build` | limpo |
+| migrations aplicadas (`0030` a `0052`) | **as 23**, a última em 16/08 |
+| `0051` e `0052` lá | `pessoa.foto_path` e `pessoa.telefone_disca` na tabela **e em `pessoa_resumo`** |
+| balde privado `foto-pessoa` | existe, não público |
+| tabelas em `app_verandi` | **28**, todas com RLS ligada, **43** políticas |
+| tabelas em `public` (AutoFluxos) | **19**, intactas; eram 12 em 14/08, e quem cresceu foi o vizinho |
+| tamanho do banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos |
+| contas de cliente | **1** (MGM Pilates) |
+| `https://verandi.4yu.com.br` | raiz responde 307 para `/entrar`, que responde 200; `/termos` 200 |
+
+**Rodando a suíte, em 16/08, no commit `a02a743`:**
+
+| O quê | Resultado |
+|---|---|
 | `npm test` | **370 passaram** |
-| `npm run test:e2e` | **165 passaram** |
+| `npm run test:e2e` | **172 passaram** |
+
+Os oito commits depois daquele acrescentaram teste e mexeram em tela, e **a
+suíte não foi rodada desde então**: os números acima são piso, não retrato. Quem
+tiver Docker de pé, rode e corrija esta linha, que é barato. Hoje há **516 casos
+declarados** em `tests/` e `e2e/`, contados no arquivo, que é outro número e não
+substitui rodar.
+
+**Medido antes, e sem motivo para ter mudado:**
+
+| O quê | Resultado |
+|---|---|
 | `npm run segredos` | nenhuma credencial de produção no repositório |
-| tabelas em `app_verandi` · em `public` | **28 · 0** (as 12 do AutoFluxos seguem intactas) |
-| RLS em produção | 20 de 20; `anon` não alcança nada |
-| `https://verandi.4yu.com.br` | 200, falando com o banco de produção |
-| migrations em produção (`0030` a `0050`) · onboarding abrindo lá | **as 21 aplicadas** · sim, sem 5xx |
-| migrations `0044` e `0045` em produção | aplicadas; a `0044` com a coluna na tabela **e na view**, a `0045` com RLS ligada, política única e `anon` sem alcance |
 | contraste dos tokens de texto | 15 pares medidos, todos em AA |
 | régua do vocabulário no `src/` inteiro | limpa, com lint guardando |
 | Tarefa 10, jornada inteira em banco virgem | 13 passos, terminou em "Chamada feita" |
@@ -260,8 +350,8 @@ mas sem o e-mail preenchido.
 
 ## O que existe
 
-**Banco:** vinte e uma migrations (`0030_vr_` a `0050_vr_`), RLS com política em todas as
-tabelas, provada por teste. **Tudo mora no schema `app_verandi`, não em
+**Banco:** vinte e três migrations (`0030_vr_` a `0052_vr_`), RLS com política em
+todas as tabelas, provada por teste e conferida em produção. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
 ```
@@ -276,8 +366,9 @@ pessoa.observacao_visivel (0044) · chave_api (0045)
 aceite_de_termos (0046) · pedido_idempotente (0047)
 webhook · evento_saida (0048, a fila de saída dos avisos)
 espera (0049) · alerta_enviado (0050, o que já foi avisado)
+pessoa.foto_path (0051) · pessoa.telefone_disca (0052, coluna gerada)
 view pessoa_resumo · função usuarios_da_conta (security definer)
-balde privado foto-profissional
+baldes privados foto-profissional e foto-pessoa
 ```
 
 **`core/`**, puro, testável sem subir nada. Aritmética de data, expansão de
@@ -315,7 +406,7 @@ em 1440 as duas caem na mesma dobra e viram dois "Marcar todos presentes".
 | `/esqueci` · `/enviado` | pedir senha nova, sem sessão | sim |
 | `/contas` | trocar de conta | sim |
 | `/hoje` | agenda do dia, com a próxima turma em destaque | sim |
-| `/semana` | grade da semana **e o modo Dia por recurso** | sim |
+| `/semana` | **Agenda** da semana (o nome mudou em 16/08) e o modo Dia por recurso | sim |
 | `/sessao/[id]` | a tela do produto, chamada, encaixe, capacidade, menu por pessoa | sim |
 | `/pessoas` · `/pessoas/[id]` | lista, busca e ficha | sim |
 | `/vaga` | busca de horário livre | sim |
@@ -324,11 +415,18 @@ em 1440 as duas caem na mesma dobra e viram dois "Marcar todos presentes".
 | `/pendencias` | o inbox de quem opera | sim |
 | `/contas-4yu` | contas dos clientes, com sinais de vida | sim |
 | `/convite/[token]` | aceitar convite e definir senha | sim |
-| `/amostra` | os primitivos do design system |, |
+| `/amostra` | os primitivos do design system | não se aplica |
+| `/termos` · `/privacidade` | documentos, públicos de propósito | sim |
+| `/api-docs` | a documentação da API v1, pública | sim |
 
-**API v1**, para o bot do AutoFluxos e para quem vier depois. Sete rotas, com
-`Authorization: Bearer vr_…`, e a referência em [`API.md`](API.md):
-`GET /api/v1/disponibilidade`, `/catalogo` e `/pessoas?busca=`. Sem sessão não
+**API v1**, para o bot do AutoFluxos e para quem vier depois. Oito arquivos de
+rota e **nove operações**, com `Authorization: Bearer vr_…`, documentação
+pública em `/api-docs` e a referência em [`API.md`](API.md). Lê:
+`GET /api/v1/disponibilidade`, `/catalogo`, `/pessoas?busca=` e `/pessoas/:id`.
+Escreve: `POST /pessoas`, `POST /participacoes`, `DELETE /participacoes/:id`,
+`POST /espera` e `DELETE /espera/:id`, toda escrita com `Idempotency-Key`.
+Quatro eventos saem de volta por webhook: `participacao.criada`,
+`participacao.cancelada`, `sessao.cancelada` e `vaga.aberta`. Sem sessão não
 há RLS para proteger, então **quem isola conta de conta é o `conta_id` na
 consulta da rota** — e é por isso que as rotas chamam as funções de `server/`
 em vez de montarem consulta própria.
@@ -489,6 +587,21 @@ e uma mudança errada pode tirar Verandi e AutoFluxos do ar ao mesmo tempo.
 
 ## Dívidas técnicas anotadas
 
+As três que 16/08 deixou anotadas, cada uma com o motivo de não ter sido feita
+na hora:
+
+- **Aviso de sucesso não usa a palavra do cliente.** "Horário criada" é o que
+  sai quando a palavra da conta é masculina, e a régua do vocabulário cobra
+  isso. Ficou de fora porque a correção certa não é trocar a frase: é a mensagem
+  passar a ser montada com o gênero da palavra, como o resto do produto já faz.
+- **O que já foi lido do sino mora no `localStorage`.** Clicar navega, navegar
+  desmonta o componente, e contar em memória faria a notificação voltar a ser
+  novidade no caminho de volta. É `useSyncExternalStore`, que resolve junto a
+  hidratação e a segunda aba. **Vira tabela** no dia em que existir "marcar
+  todas" ou alguém quiser a mesma leitura em dois aparelhos.
+- **`pessoa_resumo` recalcula quatro subconsultas por linha.** Vai bem com mil
+  pessoas por conta; não foi medido com dez mil.
+
 - ~~O aplicador de produção confunde qualquer falha de leitura com banco
   virgem.~~ **Resolvido.** Ele pergunta `to_regclass(...)` antes, que responde
   sem erro nos dois casos; só "a tabela não existe" segue como banco virgem, e
@@ -584,6 +697,31 @@ e pelo `otimiza-gestor`; a Verandi usa **56421** (API), **56422** (banco) e
 **56423** (studio).
 
 ## Armadilhas que já custaram tempo
+
+As cinco de 16/08 vêm primeiro, porque são as que ainda não morderam ninguém
+duas vezes:
+
+- **O compilador do React só roda no build de produção, e derruba componente que
+  reatribui variável durante a renderização.** Foi o `#441` que quebrou "Criar
+  turma" em produção: em desenvolvimento passava, e lá aparecia o erro
+  minificado no lugar do formulário. Se o `next dev` está bom e a produção não,
+  procure atribuição durante o render antes de procurar dado.
+- **`animation-fill-mode: both` faz do elemento bloco de contenção.** O último
+  quadro (`transform: none`) fica aplicado como `matrix(1,0,0,1,0,0)`, e
+  transform, mesmo identidade, prende todo `position: fixed` que estiver dentro.
+  No modal isso abria o calendário 148px acima do topo da janela, invisível,
+  cortado pelo `overflow: hidden`. `backwards` mantém a mesma entrada sem o
+  efeito.
+- **`shadow-[...]` com vírgula quebra o gerador do Tailwind, e o CSS inteiro
+  deixa de ser produzido.** Não é a sombra que some: é a folha de estilo. Sombra
+  de valor composto vai em `style`, não em classe.
+- **`<input type="number">` aceita `e`, `+` e `.`**, porque existe notação
+  científica no HTML. "50e2" numa duração de aula é cinco mil minutos. Campo que
+  quer dígito recusa o que não é dígito, no navegador e no servidor.
+- **Ícone sozinho é adivinhação, e `title` não existe no celular.** Um quadrado
+  com o sinal de proibido pode cancelar a aula, bloquear o aluno ou suspender a
+  conta. A palavra fica ao lado do traço em tela larga; no celular sobra o alvo
+  de 44px com o nome no `aria-label`.
 
 - **O `alter default privileges` da `0030` é cinto e é faca.** Ele concede a
   `authenticated` tudo que nascer em `app_verandi` depois, inclusive tabela

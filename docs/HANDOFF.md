@@ -12,7 +12,8 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 15/ago/2026.
+Última revisão: 18/ago/2026, conferindo produção. O código mais recente é de
+16/ago.
 
 ---
 
@@ -21,34 +22,54 @@ for fazer.
 A Verandi está **no ar** em `https://verandi.4yu.com.br`, com deploy automático
 a cada push na `main`.
 
-| | |
-|---|---|
-| Contas de cliente em produção | **1** (MGM Pilates) |
-| Migrations aplicadas | 21, da `0030` à `0050` |
-| Banco | 13 MB de 500 do plano gratuito, dividido com o AutoFluxos |
-| Testes | 370 de unidade e banco · 165 de navegador |
-| API v1 | nove rotas e quatro eventos de webhook, com documentação pública em `/api-docs` |
+| | | |
+|---|---|---|
+| Contas de cliente em produção | **1** (MGM Pilates) | conferido 18/08 |
+| Migrations aplicadas | **23**, da `0030` à `0052` | conferido 18/08 |
+| Tabelas em `app_verandi` | **28**, todas com RLS, 43 políticas | conferido 18/08 |
+| Tabelas em `public` (AutoFluxos) | **19**, intactas | conferido 18/08 |
+| Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
+| Testes | 370 de unidade e banco · **172** de navegador | rodados em 16/08, no commit `a02a743` |
+| API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
+
+**A linha dos testes é piso, não retrato.** Oito commits mexeram em tela depois
+que a suíte rodou pela última vez. Se você tem Docker de pé, rode e corrija o
+número; é o item mais barato desta página.
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
 e-mail, ensina quem chega pela primeira vez, e agora tem porta para o bot.
 
 **O produto não está pronto para vender.** O papel saiu em 15/08 e espera
-assinatura; faltam backup, monitoramento e uma página no site. Nada disso é
-código de funcionalidade. Está na seção seguinte, em ordem.
+assinatura, e o backup ainda não tem destino nem quem o dispare. Monitoramento e
+página no site foram feitos em 15/08. Nada do que falta é código de
+funcionalidade. Está na seção seguinte, em ordem.
 
 ---
 
 ## Comece por aqui
 
-Se você é a próxima sessão e quer uma coisa só: **leia o bloco "O que falta para
-a Verandi ficar de pé" abaixo e comece pelo item 2, o backup.**
+**O que falta não é código de funcionalidade.** As Fases 3, 4 e 5 do Marco 2
+saíram em 15/08, e 16/08 foi um domingo inteiro corrigindo o que só aparece
+usando o sistema como quem trabalha nele. O que sobrou está abaixo, em ordem de
+risco, e os dois primeiros dependem de decisão do Gabriel, não de trabalho de
+agente:
 
-O item 1, o papel, saiu em 15/08 como minuta e agora depende de decisão do
-Gabriel, não de trabalho de agente. O item 2 é o único que protege o que já
-existe. A Fase 3 do Marco 2 (a parte de código que sobrou) é o item 5, e está
-detalhada e destravada — se o Gabriel disser que quer código antes disso, pule
-para ela sem culpa.
+1. **O backup precisa de destino e de quem dispara** (item 2). O script existe e
+   foi provado restaurando; o que falta é escolher **onde a cópia mora**, e essa
+   escolha cria um lugar novo onde dado de saúde descansa, o que a torna decisão
+   de privacidade antes de ser de infraestrutura.
+2. **O papel espera assinatura** (item 1): CNPJ, prazos, a caixa
+   `privacidade@4yu.com.br` que ainda não existe, e virar `EM_REVISAO`.
+
+**Se você quer trabalho de agente e o Gabriel não estiver por perto**, há duas
+coisas honestas para fazer, nesta ordem:
+
+- **Rodar a suíte inteira e corrigir os números desta página.** Não roda desde
+  16/08, e oito commits mexeram em tela depois disso.
+- **A régua do vocabulário no aviso de sucesso** ("Horário criada" sai quando a
+  palavra da conta é masculina), que é a única dívida que 16/08 deixou por
+  escrito e sabe como resolver.
 
 ```bash
 npx supabase start           # local, no Docker, faixa 564xx
@@ -59,6 +80,32 @@ npm run dev
 
 Entrar com `dono@dev.local`, `prof@dev.local`, `recepcao@dev.local` ou
 `suporte@dev.local`, senha `senha-de-teste-123`.
+
+---
+
+## O que 16/08 fez, em uma tela
+
+Onze commits, e o detalhe de cada um está em [`ESTADO.md`](ESTADO.md). O resumo
+é este: alguém abriu o produto e tentou fazer o trabalho de um dia, em vez de
+conferir se a tela existia.
+
+- **Cinco ações prometiam e não cumpriam** e viraram modal: cadastrar pessoa,
+  editar ficha, agendar, criar matrícula, encerrar horário. "Encerrar"
+  perguntava pelo `confirm()` do navegador, que o DESIGN-SYSTEM proíbe.
+- **A suíte passou a perguntar se o modal abriu**, não só se a URL mudou. As
+  quatro ações acima nunca tinham sido cobertas: davam verde por ausência.
+- **Seletor, calendário e máscara de telefone passaram a ser da casa**, e o DDD
+  virou regra de tela e de API (migration `0052`, coluna gerada).
+- **Grade fixa em cartões, foto na ficha** (migration `0051`, balde privado
+  `foto-pessoa`), e **o sino** para quem responde pelo negócio.
+- **Erro de framework virou frase em português**, porque "Minified React error
+  #441" apareceu para o dono de um estúdio no meio de cadastrar uma modalidade.
+- **A linguagem foi varrida nos 339 trechos que chegam à tela**, em três commits
+  seguidos: a primeira passada não alcançou o texto montado no servidor, que só
+  aparece quando existe pendência de verdade na conta.
+
+**As duas lições, que valem para o resto:** varredura por print não alcança
+texto montado no servidor, e teste que confere URL não confere trabalho feito.
 
 ---
 
@@ -328,6 +375,9 @@ coluna ou tabela com dado de cliente).
 | Mexeu em migration | `npx supabase db reset` e depois **`npm run tipos`**. Sem isso o `tsc` segue passando com a forma antiga do banco. |
 | Tipo derivado do banco | mora em `src/server/banco.ts`. **Nunca** em `banco.types.ts`, que é reescrito inteiro a cada geração. |
 | Rota nova da API | chame a função de `server/`, que já recebe `contaId` e filtra por ele. Sem sessão não há RLS, e um `select` sem `conta_id` lê a conta de todo mundo. |
+| Build de produção | o compilador do React só roda nele, e derruba componente que reatribui variável durante o render. `next dev` bom e produção quebrada é isso até prova em contrário. |
+| Sombra de valor composto | vai em `style`, não em `shadow-[...]`: vírgula ali quebra o gerador do Tailwind e o CSS **inteiro** deixa de ser produzido. |
+| Campo numérico | `<input type="number">` aceita `e`, `+` e `.`. Recuse o que não é dígito, no navegador **e** no servidor. |
 | Prop de Server para Client Component | só valor. Função é recusada em **tempo de execução**, e nem o `tsc` nem o `build` avisam. |
 | `select` do supabase-js | string literal. Montado com `+` vira `string` e devolve `GenericStringError`, que fala de tudo menos do problema. |
 | Texto do produto | **Nada de travessão**. Vírgula, ponto ou dois-pontos. Há teste guardando os e-mails. |
