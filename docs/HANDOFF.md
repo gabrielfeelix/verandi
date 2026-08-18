@@ -12,7 +12,7 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 18/ago/2026, com o primeiro módulo do administrativo no ar.
+Última revisão: 18/ago/2026, com o financeiro (módulo 17) no ar.
 
 ---
 
@@ -24,28 +24,25 @@ a cada push na `main`.
 | | | |
 |---|---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) | conferido 18/08 |
-| Migrations aplicadas | **26**, da `0030` à `0055` | aplicadas e conferidas em 18/08 |
-| Tabelas em `app_verandi` | **35**, todas com RLS | conferido em produção 18/08 |
+| Migrations aplicadas | **27**, da `0030` à `0056` | aplicadas e conferidas em 18/08 |
+| Tabelas em `app_verandi` | **38**, todas com RLS | conferido em produção 18/08 |
 | Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção 18/08 |
 | Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | 450 de unidade e banco · **~198** de navegador | unidade verde em 18/08; **a suíte de navegador não rodou inteira** desde os módulos 15 e 16, ver abaixo |
+| Testes | **494** de unidade e banco · **200** de navegador | as duas suítes verdes em 18/08, depois do módulo 17 |
 | API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
 
-> **PEGUE POR AQUI: a suíte de navegador não rodou inteira depois dos módulos
-> 15 e 16.** Os 450 de unidade estão verdes, e os arquivos tocados rodaram
-> verdes um a um (14 de planos e contrato, 5 de LGPD). A rodada completa foi
-> interrompida duas vezes por queda de sessão, e a última completa antes disso
-> deu 191 verdes com uma falha, que foi corrigida e reverificada. **É o item
-> mais barato desta página, e o primeiro a fazer:**
+> **PEGUE POR AQUI: os sete relatórios do financeiro precisam da palavra do
+> Gabriel.** O documento original do cliente
+> (`SISTEMA ADMINISTRATIVO PARA STUDIO MGM PILATES.docx`) **não está no
+> repositório**, e o item 4 dele pedia sete relatórios que ninguém transcreveu.
+> Os sete que estão no ar foram reconstruídos a partir do que os planos 13, 15 e
+> 16 anotaram, e estão escritos como perguntas em
+> [`planos/17-financeiro.md`](planos/17-financeiro.md) justamente para o cliente
+> poder recusar a pergunta. **Antes de construir qualquer coisa em cima deles,
+> mostre a lista e pergunte.** Construir sete relatórios errados custa a mesma
+> semana que construir sete certos.
 >
-> ```bash
-> npx supabase start && npx supabase db reset
-> npx vitest run && npx playwright test
-> ```
->
-> Se algo falhar, é quase certo que seja **nome de rótulo**, não comportamento:
-> o vocabulário mudou de "matrícula" e "turma" para "contrato" e "horário" em
-> 18/08, e a ficha ganhou catorze campos que deixaram "Telefone" ambíguo.
+> E peça o `.docx` de volta: o módulo 18 vai precisar dele para o recibo.
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
@@ -60,11 +57,21 @@ funcionalidade. Está na seção seguinte, em ordem.
 
 ## Comece por aqui
 
-**Os módulos 15 e 16 do administrativo estão no ar desde 18/08**, com as
-migrations `0054` e `0055` aplicadas em produção e conferidas: as três tabelas
-novas (`plano`, `contrato`, `pausa`) nasceram com RLS, e `public` continua
-intacto com as 22 do AutoFluxos. O que falta é rodar a suíte de navegador
-inteira, no quadro acima.
+**Os módulos 15, 16 e 17 do administrativo estão no ar desde 18/08**, com as
+migrations `0054`, `0055` e `0056` aplicadas em produção e conferidas fora do
+console: as cinco tabelas novas (`plano`, `contrato`, `pausa`, `cobranca`,
+`pagamento`) nasceram com RLS e uma política cada, a view `cobranca_resumo` está
+com `security_invoker`, e `public` continua intacto com as 22 do AutoFluxos.
+
+**A suíte inteira rodou depois do 17**, e é o que fecha a pendência que o
+HANDOFF anterior deixou aberta: 494 de unidade e banco, 200 de navegador.
+
+**O próximo módulo é o 18, o recibo**, e o plano dele já está escrito em
+[`planos/18-recibo.md`](planos/18-recibo.md): numeração sem buraco alocada no
+banco, corpo congelado, correção por versão, cancelamento com motivo, os dados
+do emitente na Configuração, e as duas tarefas de LGPD que já estão decididas
+(o recibo sobrevive à anonimização por cinco anos, e a política precisa dizer
+isso, o que sobe a versão dela).
 
 **As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
 tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do
@@ -87,8 +94,9 @@ agente:
 **Se você quer trabalho de agente e o Gabriel não estiver por perto**, há duas
 coisas honestas para fazer, nesta ordem:
 
-- **Rodar a suíte inteira e corrigir os números desta página.** Não roda desde
-  16/08, e oito commits mexeram em tela depois disso.
+- **O módulo 18, o recibo**, cujo plano está escrito e não depende de decisão
+  nova, com uma ressalva: os dados do emitente (razão social, CNPJ, endereço)
+  são do Gabriel, e a Tarefa 4 constrói a tela que os pede, não os inventa.
 - **A régua do vocabulário no aviso de sucesso** ("Horário criada" sai quando a
   palavra da conta é masculina), que é a única dívida que 16/08 deixou por
   escrito e sabe como resolver.
@@ -306,7 +314,22 @@ está anotada no plano 12.
   Nove tokens de cor e umas vinte frases mudaram em 14/08, a suíte passou
   inteira, e ele avisa se algo ficar estranho.
 
-### 8. Higiene que pode esperar
+### 8. O financeiro está no ar, e três coisas ficaram anotadas
+
+Nenhuma delas impede vender, e as três estão no
+[`planos/17-financeiro.md`](planos/17-financeiro.md):
+
+- **Os sete relatórios esperam a palavra do cliente**, no quadro do topo desta
+  página.
+- **Cobrança manual não existe.** Toda venda gera contrato, inclusive a avulsa,
+  que é um contrato de um dia. A coluna `origem` já nasceu na tabela para a
+  exceção ter onde morar sem migration corretiva.
+- **O sistema não inventa dívida de antes de conhecer o contrato.** Quando o MGM
+  digitar as matrículas em curso, a cobrança começa no mês do cadastro. O que
+  ficou para trás é conversa do estúdio com o aluno, fora do sistema, e quem
+  fizer a migração dos dados precisa avisar isso ao cliente.
+
+### 9. Higiene que pode esperar
 
 - O botão **"Entrar na conta"** do convite não entra: leva a `/entrar?novo=1`
   sem preencher o e-mail. Atrito conhecido, não defeito.

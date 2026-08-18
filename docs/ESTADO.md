@@ -12,7 +12,7 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 18/ago/2026 (terceira passagem: administrativo 15 e 16 no ar) · **A Verandi está no ar em
+**Última atualização:** 18/ago/2026 (quarta passagem: o financeiro, módulo 17, no ar) · **A Verandi está no ar em
 `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
 verdade, onboarding, a porta do bot aberta e o acompanhamento por foto.**
 
@@ -223,6 +223,52 @@ testes de banco e de navegador rodaram e passam, e `npm run tipos` reescreveu
 `banco.types.ts` inteiro: as três tabelas deixaram de ser escritas à mão. O
 arquivo gerado bateu com o que tinha sido conferido contra produção.
 
+## O módulo 17, o financeiro, no ar em 18/08
+
+Migration `0056`: `cobranca`, `pagamento` e a view `cobranca_resumo`. A tela é
+`/financeiro`, no trilho de quem responde pelo negócio e da recepção, e as
+cobranças também aparecem na ficha da pessoa, junto dos contratos.
+
+**A cobrança nasce do contrato, e é materializada, não agendada.** O plano
+gratuito da Vercel não dá cron, e é a mesma escolha que a agenda fez com as
+sessões: as linhas nascem quando alguém abre a tela, e o `unique (contrato_id,
+competencia)` transforma corrida em conflito ignorado. Duas abas abertas ao
+mesmo tempo não cobram duas vezes.
+
+**"Paga" não é status, e "atrasada" não é coluna.** Pago é a soma dos
+pagamentos, lida na view; atrasada depende do dia de hoje no fuso da conta, e
+`current_date` no banco é o fuso do servidor. A mesma decisão de Pendências:
+grava-se o ato, lê-se o estado.
+
+**Pagamento é tabela, e estorno não apaga.** Quem recebe metade hoje e metade no
+dia 20 recebeu duas vezes, em duas datas e possivelmente em duas formas, e o
+fechamento do dia precisa das duas. Apagar um pagamento faria o fechamento de
+ontem, já conferido, mudar de valor sozinho.
+
+**Três amarrações com o módulo 16**, e sem elas os dois módulos se contradizem:
+trancar cancela a cobrança do mês que já tinha nascido à frente, retomar reabre
+o que voltou a ser devido sem tocar em cancelamento escrito à mão, e encerrar
+cancela o que ainda não venceu e deixa de pé o que venceu, porque quem saiu
+devendo continua devendo.
+
+**E uma régua que só apareceu escrevendo o teste:** o sistema não inventa dívida
+de antes de saber que o contrato existe. O MGM vai digitar as matrículas em
+curso com a data real de início, e sem essa régua a primeira tela que a recepção
+abrisse acusaria o estúdio inteiro de caloteiro.
+
+**Um defeito silencioso dos módulos 15 e 16 apareceu no caminho.** O `check` de
+`log_configuracao.entidade` parou na `0048`, antes de `plano` e `contrato`
+existirem, e `registrar()` não olha o erro do insert de propósito. Desde 18/08
+nenhuma criação de plano ou de contrato tinha sido registrada, e ninguém tinha
+como perceber. A `0056` corrige a lista, e o teste guarda.
+
+**Os sete relatórios do item 4 foram reconstruídos.** O documento original do
+cliente não está no repositório, e o que sobrou dele é o que os planos 13, 15 e
+16 anotaram. Eles estão escritos como perguntas em
+[`planos/17-financeiro.md`](planos/17-financeiro.md), e **a lista precisa ser
+confirmada com o Gabriel**: construir sete relatórios errados custa a mesma
+semana que construir sete certos.
+
 ## O próximo passo, em ordem
 
 **O produto opera; o negócio não está pronto para vender.** A lista completa,
@@ -254,10 +300,10 @@ falta para a Verandi ficar de pé". Em ordem de risco:
    quando um evento novo é enfileirado, porque o plano gratuito da Vercel não dá
    cron de minuto.
 7. **O que depende do Gabriel:** ilustrações do onboarding e "vida nas telas".
-8. **Feito em 18/08.** A suíte inteira rodou: 391 de unidade e 175 de
-   navegador, todos verdes. Dezesseis testes de navegador falhavam por procurar
-   texto que a revisão de linguagem de 16/ago renomeou, e nenhum era falha de
-   comportamento.
+8. **Feito em 18/08.** A suíte inteira rodou de novo depois do módulo 17: 494
+   de unidade e banco, 200 de navegador, todos verdes. Um teste da matrícula
+   precisou de ajuste, e não por comportamento: o preço passou a aparecer três
+   vezes na mesma aba, porque as cobranças do contrato nascem logo abaixo dele.
 
 ## O papel, e onde ele mora
 
@@ -359,23 +405,20 @@ mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
 | contas de cliente | **1** (MGM Pilates) |
 | `https://verandi.4yu.com.br` | raiz responde 307 para `/entrar`, que responde 200; `/termos` 200 |
 
-**Rodando a suíte, em 18/08, no commit `b3e3400`:**
+**Rodando a suíte, em 18/08, depois do módulo 17:**
 
 | O quê | Resultado |
 |---|---|
-| `npm test` | **450 passaram** |
-| `npm run test:e2e` | **não completou** · ver abaixo |
+| `npm test` | **494 passaram** |
+| `npm run test:e2e` | **200 passaram**, em 5,3 minutos |
 | `npm run build` | passou |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
 | `tsc --noEmit` | passou |
 
-**A suíte de navegador não rodou inteira depois dos módulos 15 e 16**, e isso é
-a única coisa em aberto do dia. Ela foi disparada três vezes e as três pararam
-por queda da sessão, nunca por teste vermelho: a última parou aos 3,7 minutos
-com 23 verdes e nenhum vermelho. Os arquivos tocados rodaram verdes um a um:
-7 de `planos.spec.ts`, 7 de `matricula.spec.ts`, 14 de `grade.spec.ts` e 5 de
-`lgpd.spec.ts`. Quem pegar isto roda `npx playwright test` inteiro antes de
-qualquer coisa nova, e corrige o número desta tabela.
+**A pendência que o HANDOFF anterior deixou está fechada.** A suíte de navegador
+rodou inteira, e a única falha foi de rótulo e não de comportamento: o preço
+passou a aparecer três vezes na aba de contratos, porque as cobranças do
+contrato nascem logo abaixo dele.
 
 **Medido antes, e sem motivo para ter mudado:**
 
