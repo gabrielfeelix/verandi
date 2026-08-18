@@ -155,7 +155,9 @@ test('observação da ficha escrita para quem atende não chega à recepção', 
   await expect(pagRec.getByText('foi escrita para quem atende')).toBeVisible()
 
   // editar o resto continua funcionando, e não apaga a anotação
-  await pagRec.getByLabel('Telefone').fill('11988887777')
+  // `exact`: a ficha ganhou telefone residencial e comercial, e sem isto o
+  // nome casa com os três
+  await pagRec.getByLabel('Telefone', { exact: true }).fill('11988887777')
   await pagRec.getByRole('button', { name: 'Salvar' }).click()
   await expect.poll(async () => {
     const { data } = await admin.from('pessoa')

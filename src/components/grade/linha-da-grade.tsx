@@ -103,7 +103,7 @@ export function LinhaDaGrade({
         >
           <span className="text-[15px] font-semibold">{serie.horaInicio.slice(0, 2)}</span>
           <span className="text-[12px] opacity-70">{serie.horaInicio.slice(3)}</span>
-          {/* conta que não numera turma não pode ganhar uma coluna vazia */}
+          {/* conta que não numera horário não pode ganhar uma coluna vazia */}
           {serie.codigo ? (
             <span className="pl-1.5 font-mono text-[11px] opacity-60">
               {serie.codigo}
@@ -276,7 +276,7 @@ export function LinhaDaGrade({
               />
             </Campo>
             <Campo
-              rotulo="Número da turma" htmlFor={`t-${serie.id}`}
+              rotulo="Número" htmlFor={`t-${serie.id}`}
               dica="opcional, e único na conta"
             >
               <input
@@ -368,7 +368,7 @@ export function LinhaDaGrade({
             })
             if (r.ok) { fechar(); router.refresh() }
             else if (r.colisoes) setColisoes(r.colisoes)
-            // duplicar não carrega número de turma, então a recusa por frase
+            // duplicar não carrega número de horário, então a recusa por frase
             // não acontece aqui; se um dia acontecer, ela é dita e não sumida
             else throw new Error(r.erro)
           })}

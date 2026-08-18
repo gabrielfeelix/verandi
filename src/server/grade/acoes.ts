@@ -107,7 +107,7 @@ export async function criarSeries(
   }
 
   /*
-   * O número da turma é único na conta, e quem repete precisa saber de quem é o
+   * O número do horário é único na conta, e quem repete precisa saber de quem é o
    * número. O erro do Postgres diz "duplicate key", que não ajuda ninguém a
    * escolher outro.
    */
@@ -120,7 +120,7 @@ export async function criarSeries(
     if (jaTem) {
       return {
         ok: false,
-        erro: `O número ${codigo} já é da turma de ${DIAS_INTEIROS[jaTem.dia_semana]} às ${jaTem.hora_inicio.slice(0, 5)}.`,
+        erro: `O número ${codigo} já é do horário de ${DIAS_INTEIROS[jaTem.dia_semana]} às ${jaTem.hora_inicio.slice(0, 5)}.`,
       }
     }
   }

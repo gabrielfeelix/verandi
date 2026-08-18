@@ -73,7 +73,7 @@ export function EditorSerie({
           setColisoes(r.colisoes)
           setPedido(entrada)
         } else {
-          // recusa que não é colisão, como número de turma repetido: ela é
+          // recusa que não é colisão, como número de horário repetido: ela é
           // frase, e a frase é o que a pessoa precisa para escolher outro
           setErro(r.erro)
         }
@@ -158,12 +158,12 @@ export function EditorSerie({
                 <Campo rotulo="Capacidade" htmlFor="capacidade">
                   <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={1} required />
                 </Campo>
-                {/* o número identifica uma turma, e criar três dias de uma vez
+                {/* o número identifica um horário, e criar três dias de uma vez
                     cria três: aí ele não teria a quem pertencer */}
                 {dias.length === 1 ? (
                   <Campo
-                    rotulo="Número da turma" htmlFor="codigo"
-                    dica="opcional, é como a recepção chama esta turma"
+                    rotulo="Número" htmlFor="codigo"
+                    dica="opcional, é como a recepção chama este horário no telefone"
                   >
                     <input id="codigo" name="codigo" maxLength={12}
                       placeholder="001" className={`${entrada} w-28 font-mono`} />

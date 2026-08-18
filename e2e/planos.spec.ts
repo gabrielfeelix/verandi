@@ -139,8 +139,8 @@ test('a recepção não alcança a tabela de preços', async ({ page }) => {
   await expect(page).not.toHaveURL(/\/config/)
 })
 
-test('a turma ganha número, e o repetido diz de quem é', async ({ page }) => {
-  const { contaId, marca } = await contaDeTeste('Estúdio das turmas numeradas')
+test('o horário ganha número, e o repetido diz de quem é', async ({ page }) => {
+  const { contaId, marca } = await contaDeTeste('Estúdio dos horários numerados')
   const { email } = await usuarioDe(contaId, 'dono', marca)
   await admin.from('servico').insert({ conta_id: contaId, nome: 'Pilates aparelho' })
 
@@ -150,19 +150,19 @@ test('a turma ganha número, e o repetido diz de quem é', async ({ page }) => {
   await page.getByRole('button', { name: /Criar/ }).click()
   await page.getByRole('button', { name: 'seg', exact: true }).click()
   await page.getByLabel('Começa às').fill('07:00')
-  await page.getByLabel('Número da turma').fill('001')
+  await page.getByLabel('Número').fill('001')
   await page.getByRole('button', { name: 'Criar horário', exact: true }).click()
 
   await expect(page.getByText('001').first()).toBeVisible()
 
-  // o mesmo número na mesma conta é recusado, e a recusa diz qual turma já o usa
+  // o mesmo número na mesma conta é recusado, dizendo qual horário já o usa
   await page.getByRole('button', { name: /Criar/ }).click()
   await page.getByRole('button', { name: 'ter', exact: true }).click()
   await page.getByLabel('Começa às').fill('08:00')
-  await page.getByLabel('Número da turma').fill('001')
+  await page.getByLabel('Número').fill('001')
   await page.getByRole('button', { name: 'Criar horário', exact: true }).click()
 
-  await expect(page.getByText(/O número 001 já é da turma de Segunda às 07:00/))
+  await expect(page.getByText(/O número 001 já é do horário de Segunda às 07:00/))
     .toBeVisible()
 })
 
@@ -173,12 +173,24 @@ test('criar vários dias de uma vez não pergunta número', async ({ page }) => 
 
   await entrar(page, email)
   await page.goto('/grade')
-  await page.getByRole('button', { name: /Criar/ }).click()
+
+  /*
+   * O clique é repetido até o modal abrir.
+   *
+   * O botão existe no HTML antes de o React assumir a página, e um clique que
+   * chega nessa janela não vira nada: o teste seguia para os chips que ainda
+   * não existiam. É o único ponto da suíte que abre um modal logo depois de um
+   * `goto` numa página pesada.
+   */
+  await expect(async () => {
+    await page.getByRole('button', { name: /Criar/ }).click()
+    await expect(page.locator('dialog[open]')).toBeVisible({ timeout: 2000 })
+  }).toPass({ timeout: 15_000 })
 
   await page.getByRole('button', { name: 'seg', exact: true }).click()
-  await expect(page.getByLabel('Número da turma')).toBeVisible()
+  await expect(page.getByLabel('Número')).toBeVisible()
 
-  // dois dias criam duas turmas, e um número só não serve para as duas
+  // dois dias criam dois horários, e um número só não serve para os dois
   await page.getByRole('button', { name: 'qua', exact: true }).click()
-  await expect(page.getByLabel('Número da turma')).toHaveCount(0)
+  await expect(page.getByLabel('Número')).toHaveCount(0)
 })
