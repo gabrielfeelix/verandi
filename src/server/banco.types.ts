@@ -946,6 +946,72 @@ export type Database = {
           },
         ]
       }
+      plano: {
+        Row: {
+          ativo: boolean
+          codigo: string
+          conta_id: string
+          criado_em: string
+          frequencia_semanal: number | null
+          id: string
+          nome: string
+          parcelas: number
+          preco_avulso_cent: number
+          preco_vinculado_cent: number
+          recorrencia: string
+          servico_id: string
+          sessoes_no_pacote: number | null
+          validade_meses: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          codigo: string
+          conta_id: string
+          criado_em?: string
+          frequencia_semanal?: number | null
+          id?: string
+          nome: string
+          parcelas?: number
+          preco_avulso_cent: number
+          preco_vinculado_cent: number
+          recorrencia: string
+          servico_id: string
+          sessoes_no_pacote?: number | null
+          validade_meses?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string
+          conta_id?: string
+          criado_em?: string
+          frequencia_semanal?: number | null
+          id?: string
+          nome?: string
+          parcelas?: number
+          preco_avulso_cent?: number
+          preco_vinculado_cent?: number
+          recorrencia?: string
+          servico_id?: string
+          sessoes_no_pacote?: number | null
+          validade_meses?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plano_servico_id_fkey"
+            columns: ["servico_id"]
+            isOneToOne: false
+            referencedRelation: "servico"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posicao_avaliacao: {
         Row: {
           ativo: boolean
@@ -1069,6 +1135,7 @@ export type Database = {
         Row: {
           ativo: boolean
           capacidade: number
+          codigo: string | null
           conta_id: string
           criado_em: string
           dia_semana: number
@@ -1084,6 +1151,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           capacidade: number
+          codigo?: string | null
           conta_id: string
           criado_em?: string
           dia_semana: number
@@ -1099,6 +1167,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           capacidade?: number
+          codigo?: string | null
           conta_id?: string
           criado_em?: string
           dia_semana?: number
@@ -1146,6 +1215,7 @@ export type Database = {
         Row: {
           ativo: boolean
           capacidade_padrao: number
+          categoria: string | null
           conta_id: string
           duracao_min: number
           id: string
@@ -1154,6 +1224,7 @@ export type Database = {
         Insert: {
           ativo?: boolean
           capacidade_padrao?: number
+          categoria?: string | null
           conta_id: string
           duracao_min?: number
           id?: string
@@ -1162,6 +1233,7 @@ export type Database = {
         Update: {
           ativo?: boolean
           capacidade_padrao?: number
+          categoria?: string | null
           conta_id?: string
           duracao_min?: number
           id?: string
