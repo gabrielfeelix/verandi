@@ -42,3 +42,6 @@ playwright-report/
 
 # prévia de e-mail, gerada por scripts/previa-email.ts
 .previa/
+
+# canvas de desenho das telas (mockup, não é produto)
+.desenho/
