@@ -179,7 +179,7 @@ test('Esc fecha só o painel aberto, não o modal inteiro', async ({ page }) => 
   await expect(page.getByRole('listbox')).toHaveCount(0)
   await expect(page.locator('dialog[open]')).toHaveCount(1)
 
-  await page.getByLabel('Abrir o calendário').click()
+  await page.locator('dialog[open]').getByLabel('Abrir o calendário').click()
   await expect(page.locator('[role=grid]')).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.locator('[role=grid]')).toHaveCount(0)

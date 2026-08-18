@@ -59,7 +59,7 @@ test('horário do mesmo profissional avisa a colisão e deixa seguir', async ({ 
   await escolher(page, 'Profissional', 'Marina')
   await page.getByRole('button', { name: 'Criar horário', exact: true }).click()
 
-  await expect(page.getByText('Esse horário já tem coisa marcada')).toBeVisible()
+  await expect(page.getByText('Já existe algo marcado neste horário')).toBeVisible()
   await expect(page.getByText(/Marina já atende/)).toBeVisible()
 
   // a série não foi criada enquanto o aviso não foi confirmado
@@ -190,10 +190,10 @@ test('editar mostra o que muda antes de salvar, e o passado não entra na conta'
 
   await page.getByRole('button', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('6')
-  await page.getByRole('button', { name: 'Ver o que muda' }).click()
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click()
 
   await expect(page.getByText('A mudança vale daqui para frente')).toBeVisible()
-  await expect(page.getByText(/\d+ futuro\(s\) mudam/)).toBeVisible()
+  await expect(page.getByText(/\d+ mudam/)).toBeVisible()
 
   await page.getByRole('button', { name: 'Confirmar' }).click()
 
@@ -213,8 +213,11 @@ test('mudar o dia cancela as sessões do dia antigo em vez de deixá-las órfãs
   await page.goto('/grade')
 
   await page.getByRole('button', { name: 'Editar' }).click()
-  await page.getByLabel('Dia').selectOption('5')
-  await page.getByRole('button', { name: 'Ver o que muda' }).click()
+  // por papel, e não por `escolher`: o campo é obrigatório, e o asterisco do
+  // rótulo derruba o `exact` do helper
+  await page.getByRole('combobox', { name: 'Dia da semana' }).click()
+  await page.getByRole('option', { name: 'Sexta' }).click()
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click()
 
   await expect(page.getByText(/saem da grade e ficam cancelados/)).toBeVisible()
   await page.getByRole('button', { name: 'Confirmar' }).click()
@@ -240,7 +243,7 @@ test('sessão já realizada não é tocada pela edição', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('9')
-  await page.getByRole('button', { name: 'Ver o que muda' }).click()
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click()
 
   await expect(page.getByText(/ficam como estão/)).toBeVisible()
   await page.getByRole('button', { name: 'Confirmar' }).click()
@@ -265,7 +268,7 @@ test('baixar a capacidade abaixo da ocupação avisa quantos ocupam', async ({ p
 
   await page.getByRole('button', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('1')
-  await page.getByRole('button', { name: 'Ver o que muda' }).click()
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click()
 
   await expect(page.getByText(/2 .*ocupam este horário, e a capacidade nova é menor/))
     .toBeVisible()
@@ -277,9 +280,10 @@ test('duplicar repete o horário em outros dias', async ({ page }) => {
   await page.goto('/grade')
 
   await page.getByRole('button', { name: 'Duplicar' }).click()
-  await page.getByRole('checkbox', { name: 'ter', exact: true }).check()
-  await page.getByRole('checkbox', { name: 'sáb', exact: true }).check()
-  await page.getByRole('button', { name: 'Duplicar nestes dias' }).click()
+  const dup = page.getByRole('dialog')
+  await dup.getByRole('button', { name: 'ter', exact: true }).click()
+  await dup.getByRole('button', { name: 'sáb', exact: true }).click()
+  await dup.getByRole('button', { name: 'Duplicar', exact: true }).click()
 
   await expect.poll(async () => {
     const { count } = await admin.from('serie')
@@ -300,7 +304,8 @@ test('encerrar pergunta quantos ocupam, e não apaga o passado', async ({ page }
   await page.goto('/grade')
 
   await page.getByRole('button', { name: 'Encerrar', exact: true }).click()
-  await page.getByRole('button', { name: 'Encerrar nesta data' }).click()
+  await page.getByRole('dialog')
+    .getByRole('button', { name: 'Encerrar', exact: true }).click()
 
   await expect(page.getByText(/1 .*ocupa este horário/)).toBeVisible()
   await page.getByRole('button', { name: 'Encerrar mesmo assim' }).click()
@@ -326,7 +331,7 @@ test('mexer na grade registra quem fez', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('5')
-  await page.getByRole('button', { name: 'Ver o que muda' }).click()
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click()
   await page.getByRole('button', { name: 'Confirmar' }).click()
 
   await expect.poll(async () => {

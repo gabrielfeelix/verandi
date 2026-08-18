@@ -14,7 +14,7 @@ test('cadastrar serviço e ele aparecer na grade', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Cadastrar serviço' }).click()
   await page.getByLabel('Nome').fill('Fáscia avançada')
-  await page.getByLabel('Duração (min)').fill('40')
+  await page.getByLabel('Duração').fill('40')
   await page.getByLabel('Capacidade padrão').fill('3')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
@@ -60,7 +60,7 @@ test('local guarda capacidade, e sem capacidade também vale', async ({ page }) 
   await page.getByLabel('Capacidade').fill('6')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
-  await expect(page.getByText('cabe 6')).toBeVisible()
+  await expect(page.getByText('Capacidade 6')).toBeVisible()
 })
 
 test('padrões salvam, inclusive os horários sugeridos', async ({ page }) => {
@@ -85,7 +85,7 @@ test('encaixe acima da capacidade é escolha, e a tela explica o limite dela', a
   await entrar(page, c.email)
   await page.goto('/config?s=padroes')
 
-  await expect(page.getByText(/A busca de vaga e o robô continuam sem enxergar horário cheio/))
+  await expect(page.getByText(/A busca de vaga e a API continuam sem oferecer horário cheio/))
     .toBeVisible()
 
   await page.getByRole('button', { name: 'Bloquear' }).click()
@@ -140,7 +140,8 @@ test('desativar local pede confirmação e diz quantos dependem dele', async ({ 
   // o número é o ponto do modal: confirmação sem ele é confirmação às cegas
   await expect(page.getByText('Desativar Sala 1?')).toBeVisible()
   await expect(page.getByText('Horários fixos na grade')).toBeVisible()
-  await expect(page.getByText('1, seguem apontando para cá')).toBeVisible()
+  await expect(page.getByText('Horários fixos na grade').locator('..'))
+    .toContainText('1, seguem apontando para cá')
 
   // fechar sem confirmar não desativa nada
   await page.getByRole('button', { name: 'Cancelar' }).click()
@@ -290,7 +291,7 @@ test('dia fechado deixa quem tinha lugar com reposição em aberto', async ({ pa
 
   await page.goto('/pendencias')
   await expect(page.getByText(`Bruna ${c.marca}`)).toBeVisible()
-  await expect(page.getByText('o negócio não abriu').first()).toBeVisible()
+  await expect(page.getByText('Horário cancelado pelo estúdio').first()).toBeVisible()
 })
 
 test('"só marcar como fechado" não cancela nada', async ({ page }) => {
@@ -391,7 +392,7 @@ test('a foto some do balde quando é removida, não só da coluna', async ({ pag
   await entrar(page, c.email)
   await page.goto('/config?s=equipe')
   await page.getByRole('button', { name: 'Editar' }).click()
-  await page.getByRole('button', { name: 'Remover foto' }).click()
+  await page.getByRole('button', { name: 'Remover a foto salva' }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.storage.from('foto-profissional').list(c.contaId)

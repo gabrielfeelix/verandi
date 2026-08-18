@@ -72,7 +72,9 @@ test('aumentar a capacidade do dia abre a vaga, e a série não muda', async ({ 
 
   const modal = await abrirEncaixe(page)
   await modal.getByLabel('Capacidade só deste dia').fill('3')
-  await modal.getByRole('button', { name: 'Salvar' }).click()
+  // o botão solto virou "Aplicar" dentro da caixa da capacidade: solto, ele
+  // parecia o que salva o modal inteiro (ver `modal-encaixe.tsx`)
+  await modal.getByRole('button', { name: 'Aplicar' }).click()
   await expect(modal.getByText('2/3, 1 livre(s)')).toBeVisible()
 
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
