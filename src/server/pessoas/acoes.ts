@@ -258,6 +258,18 @@ export async function anonimizarPessoa(id: string): Promise<void> {
   }
   await limparAvaliacoesDaPessoa(db, conta.contaId, id)
 
+  /*
+   * Os catorze campos da ficha ampliada saem junto, e este é o segundo defeito
+   * da mesma família: o módulo 14 deixou a foto de rosto no balde, e o módulo
+   * 16 deixou **CPF, RG e endereço completo** na linha. Zerar o nome e manter o
+   * documento é anonimizar no papel e não no fato, e o CPF é o identificador
+   * mais forte que este sistema guarda.
+   *
+   * A lista é escrita à mão de propósito. `update` com objeto montado por laço
+   * sobre as colunas da tabela pareceria mais seguro e seria o contrário: no
+   * dia em que alguém acrescentar uma coluna que **precisa** sobreviver (o
+   * `criado_em`, a `conta_id`), o laço a apagaria em silêncio.
+   */
   const { error } = await db.from('pessoa').update({
     nome: 'Pessoa removida',
     telefone: null,
@@ -266,6 +278,20 @@ export async function anonimizarPessoa(id: string): Promise<void> {
     nascimento: null,
     observacao: null,
     foto_path: null,
+    cpf: null,
+    rg: null,
+    endereco: null,
+    endereco_numero: null,
+    complemento: null,
+    bairro: null,
+    cidade: null,
+    uf: null,
+    cep: null,
+    sexo: null,
+    estado_civil: null,
+    profissao: null,
+    telefone_residencial: null,
+    telefone_comercial: null,
     ativo: false,
     anonimizada_em: new Date().toISOString(),
   }).eq('id', id).eq('conta_id', conta.contaId)

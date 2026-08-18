@@ -16,6 +16,11 @@ test('atender pedido de exclusão apaga quem a pessoa é e mantém o que acontec
   await admin.from('pessoa').update({
     telefone: '11999990000', email: 'larissa@exemplo.com',
     observacao: 'lesão no ombro',
+    // os campos que o módulo 16 trouxe: o CPF é o identificador mais forte que
+    // este sistema guarda, e ele sobrevivia à anonimização
+    cpf: '52998224725', rg: '123456789', endereco: 'Rua das Acácias',
+    endereco_numero: '204', bairro: 'Centro', cidade: 'Santos', uf: 'SP',
+    cep: '11010000', profissao: 'arquiteta', telefone_residencial: '1133334444',
   }).eq('id', pessoa.id)
   await admin.from('pessoa_tag')
     .insert({ conta_id: base.contaId, pessoa_id: pessoa.id, tag: 'gestante' })
@@ -45,7 +50,9 @@ test('atender pedido de exclusão apaga quem a pessoa é e mantém o que acontec
 
   await expect.poll(async () => {
     const { data } = await admin.from('pessoa')
-      .select('nome, telefone, email, observacao, ativo, anonimizada_em')
+      .select(`nome, telefone, email, observacao, ativo, anonimizada_em,
+               cpf, rg, endereco, endereco_numero, bairro, cidade, uf, cep,
+               profissao, telefone_residencial`)
       .eq('id', pessoa.id).single()
     return data && {
       ...data, anonimizada_em: data.anonimizada_em === null ? null : 'tem',
@@ -53,6 +60,9 @@ test('atender pedido de exclusão apaga quem a pessoa é e mantém o que acontec
   }).toEqual({
     nome: 'Pessoa removida', telefone: null, email: null, observacao: null,
     ativo: false, anonimizada_em: 'tem',
+    cpf: null, rg: null, endereco: null, endereco_numero: null, bairro: null,
+    cidade: null, uf: null, cep: null, profissao: null,
+    telefone_residencial: null,
   })
 
   /*
