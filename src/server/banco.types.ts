@@ -135,20 +135,6 @@ export type Database = {
         }
         Relationships: []
       }
-      /*
-       * As três tabelas da 0053 foram escritas à mão, e não geradas: o Docker
-       * da máquina onde elas nasceram estava sem integração com o WSL, e o
-       * Supabase local não subia para rodar `npm run tipos`.
-       *
-       * Elas **foram conferidas contra o banco de produção** depois da 0053
-       * aplicada, com `supabase gen types --project-id`, e as três linhas de
-       * `Row` batem coluna por coluna. O arquivo remoto inteiro não entrou
-       * porque produção declara `PostgrestVersion: "14.15"` e o CLI local gera
-       * `"12"`, e a diferença quebra a tipagem do repositório inteiro.
-       *
-       * Rode `npm run tipos` com o banco local de pé assim que houver um: este
-       * arquivo é reescrito inteiro, e esta nota some junto.
-       */
       avaliacao: {
         Row: {
           conta_id: string
@@ -180,7 +166,36 @@ export type Database = {
           pessoa_id?: string
           profissional_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avaliacao_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa_resumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_profissional_id_fkey"
+            columns: ["profissional_id"]
+            isOneToOne: false
+            referencedRelation: "profissional"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       avaliacao_foto: {
         Row: {
@@ -210,34 +225,29 @@ export type Database = {
           path?: string
           posicao_id?: string
         }
-        Relationships: []
-      }
-      posicao_avaliacao: {
-        Row: {
-          ativo: boolean
-          conta_id: string
-          criado_em: string
-          id: string
-          nome: string
-          ordem: number
-        }
-        Insert: {
-          ativo?: boolean
-          conta_id: string
-          criado_em?: string
-          id?: string
-          nome: string
-          ordem?: number
-        }
-        Update: {
-          ativo?: boolean
-          conta_id?: string
-          criado_em?: string
-          id?: string
-          nome?: string
-          ordem?: number
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "avaliacao_foto_avaliacao_id_fkey"
+            columns: ["avaliacao_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_foto_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_foto_posicao_id_fkey"
+            columns: ["posicao_id"]
+            isOneToOne: false
+            referencedRelation: "posicao_avaliacao"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chave_api: {
         Row: {
@@ -932,6 +942,41 @@ export type Database = {
             columns: ["pessoa_id"]
             isOneToOne: false
             referencedRelation: "pessoa_resumo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posicao_avaliacao: {
+        Row: {
+          ativo: boolean
+          conta_id: string
+          criado_em: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          ativo?: boolean
+          conta_id: string
+          criado_em?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          ativo?: boolean
+          conta_id?: string
+          criado_em?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posicao_avaliacao_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
             referencedColumns: ["id"]
           },
         ]
