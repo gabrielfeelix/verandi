@@ -370,8 +370,10 @@ export type Database = {
           capacidade_padrao: number
           credito_falta_avisada: boolean
           criado_em: string
+          documento: string | null
           duracao_padrao_min: number
           encaixe_acima: boolean
+          endereco_emitente: string | null
           fuso: string
           horarios_sugeridos: string[]
           id: string
@@ -379,15 +381,20 @@ export type Database = {
           intervalo_min: number
           nome: string
           prazo_reposicao_dias: number
+          razao_social: string | null
+          serie_recibo: string
           slug: string
+          telefone_emitente: string | null
         }
         Insert: {
           ativo?: boolean
           capacidade_padrao?: number
           credito_falta_avisada?: boolean
           criado_em?: string
+          documento?: string | null
           duracao_padrao_min?: number
           encaixe_acima?: boolean
+          endereco_emitente?: string | null
           fuso?: string
           horarios_sugeridos?: string[]
           id?: string
@@ -395,15 +402,20 @@ export type Database = {
           intervalo_min?: number
           nome: string
           prazo_reposicao_dias?: number
+          razao_social?: string | null
+          serie_recibo?: string
           slug: string
+          telefone_emitente?: string | null
         }
         Update: {
           ativo?: boolean
           capacidade_padrao?: number
           credito_falta_avisada?: boolean
           criado_em?: string
+          documento?: string | null
           duracao_padrao_min?: number
           encaixe_acima?: boolean
+          endereco_emitente?: string | null
           fuso?: string
           horarios_sugeridos?: string[]
           id?: string
@@ -411,9 +423,38 @@ export type Database = {
           intervalo_min?: number
           nome?: string
           prazo_reposicao_dias?: number
+          razao_social?: string | null
+          serie_recibo?: string
           slug?: string
+          telefone_emitente?: string | null
         }
         Relationships: []
+      }
+      contador_recibo: {
+        Row: {
+          conta_id: string
+          proximo: number
+          serie: string
+        }
+        Insert: {
+          conta_id: string
+          proximo?: number
+          serie: string
+        }
+        Update: {
+          conta_id?: string
+          proximo?: number
+          serie?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contador_recibo_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contrato: {
         Row: {
@@ -1443,6 +1484,106 @@ export type Database = {
           },
         ]
       }
+      recibo: {
+        Row: {
+          cancelado_em: string | null
+          conta_id: string
+          contrato_id: string | null
+          corpo: Json
+          emitido_em: string
+          emitido_por_usuario_id: string | null
+          id: string
+          motivo: string | null
+          numero: number
+          pagamento_id: string | null
+          pessoa_id: string | null
+          serie: string
+          status: string
+          substitui_id: string | null
+          valor_cent: number
+          versao: number
+        }
+        Insert: {
+          cancelado_em?: string | null
+          conta_id: string
+          contrato_id?: string | null
+          corpo: Json
+          emitido_em?: string
+          emitido_por_usuario_id?: string | null
+          id?: string
+          motivo?: string | null
+          numero: number
+          pagamento_id?: string | null
+          pessoa_id?: string | null
+          serie: string
+          status?: string
+          substitui_id?: string | null
+          valor_cent: number
+          versao?: number
+        }
+        Update: {
+          cancelado_em?: string | null
+          conta_id?: string
+          contrato_id?: string | null
+          corpo?: Json
+          emitido_em?: string
+          emitido_por_usuario_id?: string | null
+          id?: string
+          motivo?: string | null
+          numero?: number
+          pagamento_id?: string | null
+          pessoa_id?: string | null
+          serie?: string
+          status?: string
+          substitui_id?: string | null
+          valor_cent?: number
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recibo_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibo_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contrato"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibo_pagamento_id_fkey"
+            columns: ["pagamento_id"]
+            isOneToOne: false
+            referencedRelation: "pagamento"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibo_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibo_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa_resumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recibo_substitui_id_fkey"
+            columns: ["substitui_id"]
+            isOneToOne: false
+            referencedRelation: "recibo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       serie: {
         Row: {
           ativo: boolean
@@ -1966,6 +2107,10 @@ export type Database = {
     }
     Functions: {
       contas_do_usuario: { Args: never; Returns: string[] }
+      proximo_numero_recibo: {
+        Args: { p_conta: string; p_serie: string }
+        Returns: number
+      }
       sem_acento: { Args: { t: string }; Returns: string }
       tem_papel: {
         Args: {
