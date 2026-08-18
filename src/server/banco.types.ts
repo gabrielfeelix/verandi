@@ -135,6 +135,96 @@ export type Database = {
         }
         Relationships: []
       }
+      avaliacao: {
+        Row: {
+          conta_id: string
+          criado_em: string
+          criado_por_usuario_id: string | null
+          data: string
+          id: string
+          observacao: string | null
+          pessoa_id: string
+          profissional_id: string | null
+        }
+        Insert: {
+          conta_id: string
+          criado_em?: string
+          criado_por_usuario_id?: string | null
+          data: string
+          id?: string
+          observacao?: string | null
+          pessoa_id: string
+          profissional_id?: string | null
+        }
+        Update: {
+          conta_id?: string
+          criado_em?: string
+          criado_por_usuario_id?: string | null
+          data?: string
+          id?: string
+          observacao?: string | null
+          pessoa_id?: string
+          profissional_id?: string | null
+        }
+        Relationships: []
+      }
+      avaliacao_foto: {
+        Row: {
+          avaliacao_id: string
+          conta_id: string
+          criado_em: string
+          id: string
+          observacao: string | null
+          path: string
+          posicao_id: string
+        }
+        Insert: {
+          avaliacao_id: string
+          conta_id: string
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          path: string
+          posicao_id: string
+        }
+        Update: {
+          avaliacao_id?: string
+          conta_id?: string
+          criado_em?: string
+          id?: string
+          observacao?: string | null
+          path?: string
+          posicao_id?: string
+        }
+        Relationships: []
+      }
+      posicao_avaliacao: {
+        Row: {
+          ativo: boolean
+          conta_id: string
+          criado_em: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          ativo?: boolean
+          conta_id: string
+          criado_em?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          ativo?: boolean
+          conta_id?: string
+          criado_em?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       chave_api: {
         Row: {
           conta_id: string
