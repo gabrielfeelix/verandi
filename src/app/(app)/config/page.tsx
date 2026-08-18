@@ -11,6 +11,8 @@ import { hojeEm } from '@/server/agenda/fuso'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Icone, type NomeIcone } from '@/components/ui/icones'
 import { SecaoLocais, SecaoServicos } from '@/components/config/catalogo'
+import { SecaoPlanos } from '@/components/config/planos'
+import { listarPlanos } from '@/server/planos/consultas'
 import { SecaoPadroes } from '@/components/config/padroes'
 import { SecaoVocabulario } from '@/components/config/vocabulario'
 import { SecaoFuncionamento } from '@/components/config/funcionamento'
@@ -27,6 +29,7 @@ import { cartao } from '@/components/ui/pecas'
 // seção pelo canto do olho depois da terceira visita
 const SECOES = [
   { chave: 'servicos', icone: 'lista' },
+  { chave: 'planos', icone: 'regua' },
   { chave: 'equipe', icone: 'pessoas' },
   { chave: 'locais', icone: 'local' },
   { chave: 'padroes', icone: 'regua' },
@@ -51,9 +54,11 @@ function rotuloDaSecao(chave: Secao, r: Rotulos): string {
   if (chave === 'servicos') return r.servico.plural
   if (chave === 'equipe') return r.profissional.plural
   if (chave === 'locais') return r.local.plural
+  // "Planos e valores" é palavra nossa: todo negócio que cobra chama o que
+  // vende de plano, e o gênero não muda com o vocabulário da conta
   return { padroes: 'Padrões', vocabulario: 'Vocabulário',
            funcionamento: 'Funcionamento', usuarios: 'Usuários',
-           integracoes: 'Integrações' }[chave]
+           integracoes: 'Integrações', planos: 'Planos e valores' }[chave]
 }
 
 /** O que cada palavra do vocabulário nomeia, em uma linha. */
@@ -141,6 +146,14 @@ export default async function Config({
               rotuloSessoes={rotulos.sessao.plural}
             />
           </div>
+        ) : null}
+
+        {secao === 'planos' ? (
+          <SecaoPlanos
+            planos={await listarPlanos(db, conta.contaId)}
+            servicos={await listarServicos(db, conta.contaId)}
+            rotuloServico={rotulos.servico}
+          />
         ) : null}
 
         {secao === 'equipe' ? (
