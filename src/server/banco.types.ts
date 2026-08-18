@@ -293,6 +293,77 @@ export type Database = {
           },
         ]
       }
+      cobranca: {
+        Row: {
+          competencia: string
+          conta_id: string
+          contrato_id: string
+          criado_em: string
+          id: string
+          motivo_cancelamento: string | null
+          origem: string
+          pessoa_id: string
+          status: string
+          valor_cent: number
+          vencimento: string
+        }
+        Insert: {
+          competencia: string
+          conta_id: string
+          contrato_id: string
+          criado_em?: string
+          id?: string
+          motivo_cancelamento?: string | null
+          origem?: string
+          pessoa_id: string
+          status?: string
+          valor_cent: number
+          vencimento: string
+        }
+        Update: {
+          competencia?: string
+          conta_id?: string
+          contrato_id?: string
+          criado_em?: string
+          id?: string
+          motivo_cancelamento?: string | null
+          origem?: string
+          pessoa_id?: string
+          status?: string
+          valor_cent?: number
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cobranca_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobranca_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contrato"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobranca_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobranca_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa_resumo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conta: {
         Row: {
           ativo: boolean
@@ -757,6 +828,70 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "onboarding_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pagamento: {
+        Row: {
+          cobranca_id: string
+          conta_id: string
+          criado_em: string
+          estornado_em: string | null
+          forma: string
+          id: string
+          motivo_estorno: string | null
+          observacao: string | null
+          recebido_em: string
+          registrado_por_usuario_id: string | null
+          valor_cent: number
+        }
+        Insert: {
+          cobranca_id: string
+          conta_id: string
+          criado_em?: string
+          estornado_em?: string | null
+          forma: string
+          id?: string
+          motivo_estorno?: string | null
+          observacao?: string | null
+          recebido_em: string
+          registrado_por_usuario_id?: string | null
+          valor_cent: number
+        }
+        Update: {
+          cobranca_id?: string
+          conta_id?: string
+          criado_em?: string
+          estornado_em?: string | null
+          forma?: string
+          id?: string
+          motivo_estorno?: string | null
+          observacao?: string | null
+          recebido_em?: string
+          registrado_por_usuario_id?: string | null
+          valor_cent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagamento_cobranca_id_fkey"
+            columns: ["cobranca_id"]
+            isOneToOne: false
+            referencedRelation: "cobranca"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamento_cobranca_id_fkey"
+            columns: ["cobranca_id"]
+            isOneToOne: false
+            referencedRelation: "cobranca_resumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pagamento_conta_id_fkey"
             columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "conta"
@@ -1674,6 +1809,83 @@ export type Database = {
       }
     }
     Views: {
+      cobranca_resumo: {
+        Row: {
+          competencia: string | null
+          conta_id: string | null
+          contrato_id: string | null
+          criado_em: string | null
+          id: string | null
+          motivo_cancelamento: string | null
+          origem: string | null
+          pessoa_id: string | null
+          situacao: string | null
+          status: string | null
+          valor_cent: number | null
+          valor_pago_cent: number | null
+          vencimento: string | null
+        }
+        Insert: {
+          competencia?: string | null
+          conta_id?: string | null
+          contrato_id?: string | null
+          criado_em?: string | null
+          id?: string | null
+          motivo_cancelamento?: string | null
+          origem?: string | null
+          pessoa_id?: string | null
+          situacao?: never
+          status?: string | null
+          valor_cent?: number | null
+          valor_pago_cent?: never
+          vencimento?: string | null
+        }
+        Update: {
+          competencia?: string | null
+          conta_id?: string | null
+          contrato_id?: string | null
+          criado_em?: string | null
+          id?: string | null
+          motivo_cancelamento?: string | null
+          origem?: string | null
+          pessoa_id?: string | null
+          situacao?: never
+          status?: string | null
+          valor_cent?: number | null
+          valor_pago_cent?: never
+          vencimento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cobranca_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobranca_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contrato"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobranca_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cobranca_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa_resumo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pessoa_resumo: {
         Row: {
           anonimizada_em: string | null
