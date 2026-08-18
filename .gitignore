@@ -45,3 +45,7 @@ playwright-report/
 
 # canvas de desenho das telas (mockup, não é produto)
 .desenho/
+
+# documento do cliente: tabela de preços e dados do negócio dele, e este repo é
+# público. Fica na raiz, fora do git, como o `.desenho/` e o `.prototipo/`.
+*.docx
