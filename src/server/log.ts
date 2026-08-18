@@ -4,7 +4,7 @@ import type { Json } from './banco.types'
 export type EntidadeConfig =
   | 'serie' | 'servico' | 'profissional' | 'local' | 'vocabulario'
   | 'funcionamento' | 'excecao_calendario' | 'usuario_conta' | 'convite' | 'conta'
-  | 'pessoa' | 'chave_api' | 'webhook'
+  | 'pessoa' | 'chave_api' | 'webhook' | 'plano'
 
 export type AcaoConfig =
   | 'criou' | 'editou' | 'duplicou' | 'encerrou' | 'desativou' | 'reativou' | 'removeu'
