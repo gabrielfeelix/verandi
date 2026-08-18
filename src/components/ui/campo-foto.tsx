@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useRef, useState } from 'react'
 import { Icone } from './icones'
+import { erroDaFoto, LIMITE_FOTO_MB } from '@/core/foto'
+import { comprimirFoto, grandeDemaisParaEnviar } from './comprimir-foto'
 
 /**
  * A área de foto: arrasta, ou clica e escolhe.
@@ -19,7 +21,8 @@ import { Icone } from './icones'
  * o `FormData` do formulário chega ao servidor igual ao que já existia.
  */
 export function CampoFoto({
-  nome = 'foto', atual, alt, aoRemover, dica = 'JPEG, PNG ou WEBP, até 2 MB',
+  nome = 'foto', atual, alt, aoRemover,
+  dica = `JPEG, PNG ou WEBP, até ${LIMITE_FOTO_MB} MB`,
 }: {
   nome?: string
   /** a foto já salva, quando existe */
@@ -32,6 +35,7 @@ export function CampoFoto({
   const [previa, setPrevia] = useState<string | null>(null)
   const [sobre, setSobre] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [ocupado, setOcupado] = useState(false)
   const campo = useRef<HTMLInputElement>(null)
   const id = useId()
 
@@ -39,16 +43,46 @@ export function CampoFoto({
   // o arquivo inteiro pendurado no navegador
   useEffect(() => () => { if (previa) URL.revokeObjectURL(previa) }, [previa])
 
-  function receber(arquivo: File | undefined) {
+  /** tira do input o que foi recusado: recusado que continua lá sobe junto */
+  function limpar() {
+    if (campo.current) campo.current.value = ''
+  }
+
+  /*
+   * A foto entra, é conferida, e **é encolhida antes de virar o que o
+   * formulário manda**. Sem isso, o arquivo de 8 MB do celular atravessa a
+   * rede inteira para o servidor recusá-lo no fim, e a recusa chega como erro
+   * sem texto porque o corte acontece antes do nosso código rodar.
+   */
+  async function receber(arquivo: File | undefined) {
     if (!arquivo) return
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(arquivo.type)) {
-      return setErro('A foto precisa ser JPEG, PNG ou WEBP.')
-    }
-    if (arquivo.size > 2 * 1024 * 1024) {
-      return setErro('A foto precisa ter até 2 MB.')
-    }
+
+    const problema = erroDaFoto(arquivo)
+    if (problema) { limpar(); return setErro(problema) }
+
     setErro(null)
-    setPrevia((velha) => { if (velha) URL.revokeObjectURL(velha); return URL.createObjectURL(arquivo) })
+    setOcupado(true)
+    try {
+      const pronta = await comprimirFoto(arquivo)
+      if (grandeDemaisParaEnviar(pronta)) {
+        limpar()
+        return setErro(
+          'Não foi possível reduzir esta foto o bastante para enviar. Tente outra, ou salve-a de novo pelo celular antes.',
+        )
+      }
+      // é a comprimida que vai no formulário, não a que a pessoa escolheu
+      const lista = new DataTransfer()
+      lista.items.add(pronta)
+      if (campo.current) campo.current.files = lista.files
+      setPrevia((velha) => { if (velha) URL.revokeObjectURL(velha); return URL.createObjectURL(pronta) })
+    } catch {
+      // navegador sem `createImageBitmap` ou arquivo corrompido: melhor dizer
+      // agora do que deixar o envio falhar depois
+      limpar()
+      setErro('Não foi possível ler esta foto. Tente outra.')
+    } finally {
+      setOcupado(false)
+    }
   }
 
   function soltou(e: React.DragEvent) {
@@ -107,7 +141,9 @@ export function CampoFoto({
           <span className="text-[13.5px] font-medium">
             {mostra ? 'Trocar a foto' : 'Arraste a foto aqui, ou clique para escolher'}
           </span>
-          <span className="text-[12px] text-tinta-fraca">{dica}</span>
+          <span className="text-[12px] text-tinta-fraca">
+            {ocupado ? 'Preparando a foto…' : dica}
+          </span>
         </span>
       </label>
 
@@ -119,7 +155,7 @@ export function CampoFoto({
             <button
               type="button"
               onClick={() => {
-                if (campo.current) campo.current.value = ''
+                limpar()
                 setPrevia((v) => { if (v) URL.revokeObjectURL(v); return null })
               }}
               className="cursor-pointer text-[12.5px] text-tinta-media underline underline-offset-2 hover:text-tinta"

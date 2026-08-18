@@ -5,8 +5,9 @@ import { clienteServidor, exigirConta } from '../conta'
 import { BALDE_AVALIACAO, podeVerAvaliacao } from './consultas'
 import { proximaOrdem } from '@/core/avaliacao/posicoes'
 
-const TIPOS = ['image/jpeg', 'image/png', 'image/webp']
-const LIMITE = 5 * 1024 * 1024
+import { TIPOS_DE_FOTO, LIMITE_ENVIO_MB, MB } from '@/core/foto'
+
+const LIMITE = LIMITE_ENVIO_MB * MB
 
 async function exigirQuemAtende() {
   const conta = await exigirConta()
@@ -59,8 +60,8 @@ export async function salvarFotoDaAvaliacao(
   avaliacaoId: string, posicaoId: string, foto: File, observacao?: string,
 ): Promise<void> {
   const conta = await exigirQuemAtende()
-  if (!TIPOS.includes(foto.type)) throw new Error('a foto precisa ser JPEG, PNG ou WEBP')
-  if (foto.size > LIMITE) throw new Error('a foto precisa ter até 5 MB')
+  if (!TIPOS_DE_FOTO.includes(foto.type)) throw new Error('a foto precisa ser JPEG, PNG ou WEBP')
+  if (foto.size > LIMITE) throw new Error(`a foto precisa ter até ${LIMITE_ENVIO_MB} MB depois de reduzida`)
 
   const db = await clienteServidor()
   const { data: av } = await db.from('avaliacao')
@@ -115,6 +116,16 @@ export async function criarPosicao(nome: string): Promise<{ id: string }> {
   // mensagem do Postgres não diz o que fazer
   if (error?.code === '23505') throw new Error(`Esta conta já tem a posição ${limpo}.`)
   if (error) throw error
+
+  /*
+   * Sem isto a posição entra no banco e não aparece na tela: quem acabou de
+   * criá-la conclui que o botão não funciona, clica de novo, e recebe o erro
+   * de nome repetido por algo que já tinha dado certo.
+   *
+   * `layout` porque a lista de posições é lida no servidor da ficha inteira,
+   * e não só do pedaço que mostra a matriz.
+   */
+  revalidatePath('/pessoas/[id]', 'page')
 
   return { id: data.id }
 }

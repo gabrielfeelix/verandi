@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    /*
+     * O padrão é 1 MB, e ele cortava o envio antes de qualquer validação
+     * nossa rodar: a foto sumia com erro 500 sem texto, e nada era salvo.
+     *
+     * A avaliação manda até seis fotos num envio só. Cada uma chega reduzida
+     * pelo navegador (ver `comprimir-foto.ts`), com 200 a 500 KB, então seis
+     * cabem aqui com folga. O teto da Vercel para o corpo da requisição é de
+     * 4,5 MB, e é por isso que este número não sobe mais: acima disso o corte
+     * volta a acontecer fora do nosso alcance, na plataforma.
+     */
+    serverActions: { bodySizeLimit: '4mb' },
+  },
+
   async headers() {
     return [
       {

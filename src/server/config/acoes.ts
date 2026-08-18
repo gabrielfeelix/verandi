@@ -6,6 +6,7 @@ import { registrar } from '../log'
 import { hojeEm, instante } from '../agenda/fuso'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
 import { BALDE_FOTO } from './equipe'
+import { LIMITE_ENVIO_MB, MB } from '@/core/foto'
 
 /**
  * Configuração é de quem manda na conta. A RLS recusa igual; aqui a recusa
@@ -338,7 +339,7 @@ export async function removerDataFechada(id: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp']
-const TAMANHO_MAX = 2 * 1024 * 1024
+const TAMANHO_MAX = LIMITE_ENVIO_MB * MB
 
 /**
  * Cria ou edita um profissional, com foto opcional.
@@ -375,7 +376,9 @@ export async function salvarProfissional(entrada: FormData): Promise<{ id: strin
     if (!TIPOS_FOTO.includes(foto.type)) {
       throw new Error('a foto precisa ser JPEG, PNG ou WEBP')
     }
-    if (foto.size > TAMANHO_MAX) throw new Error('a foto precisa ter até 2 MB')
+    if (foto.size > TAMANHO_MAX) {
+      throw new Error(`a foto precisa ter até ${LIMITE_ENVIO_MB} MB depois de reduzida`)
+    }
 
     // a primeira pasta é a conta: é por ela que a política do balde separa um
     // cliente do outro

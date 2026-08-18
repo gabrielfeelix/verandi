@@ -6,6 +6,7 @@ import { registrar } from '../log'
 import { inserirPessoa } from './registro'
 import type { Atualizacao } from '../banco'
 import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
+import { LIMITE_ENVIO_MB, MB } from '@/core/foto'
 import { limparAvaliacoesDaPessoa } from '../avaliacao/registro'
 
 /**
@@ -132,7 +133,9 @@ export async function salvarFotoDaPessoa(id: string, foto: File): Promise<void> 
   if (!TIPOS_FOTO.includes(foto.type)) {
     throw new Error('a foto precisa ser JPEG, PNG ou WEBP')
   }
-  if (foto.size > 2 * 1024 * 1024) throw new Error('a foto precisa ter até 2 MB')
+  if (foto.size > LIMITE_ENVIO_MB * MB) {
+    throw new Error(`a foto precisa ter até ${LIMITE_ENVIO_MB} MB depois de reduzida`)
+  }
 
   const ext = foto.type === 'image/png' ? 'png' : foto.type === 'image/webp' ? 'webp' : 'jpg'
   const caminho = `${conta.contaId}/${id}.${ext}`
