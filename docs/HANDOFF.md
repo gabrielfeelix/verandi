@@ -12,8 +12,7 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 18/ago/2026, conferindo produção. O código mais recente é de
-16/ago.
+Última revisão: 18/ago/2026, com o primeiro módulo do administrativo no ar.
 
 ---
 
@@ -25,8 +24,8 @@ a cada push na `main`.
 | | | |
 |---|---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) | conferido 18/08 |
-| Migrations aplicadas | **23**, da `0030` à `0052` | conferido 18/08 |
-| Tabelas em `app_verandi` | **28**, todas com RLS, 43 políticas | conferido 18/08 |
+| Migrations aplicadas | **24**, da `0030` à `0053` | conferido 18/08 |
+| Tabelas em `app_verandi` | **31**, todas com RLS, 46 políticas | conferido 18/08 |
 | Tabelas em `public` (AutoFluxos) | **19**, intactas | conferido 18/08 |
 | Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
 | Testes | 370 de unidade e banco · **172** de navegador | rodados em 16/08, no commit `a02a743` |
@@ -48,6 +47,23 @@ funcionalidade. Está na seção seguinte, em ordem.
 ---
 
 ## Comece por aqui
+
+**O que está pela metade, e é a primeira coisa a fazer:** o módulo de
+acompanhamento por foto (plano 14) está no ar, com a `0053` aplicada, mas
+**três verificações não rodaram** porque a máquina onde ele foi escrito estava
+sem Docker: `npm run tipos`, `tests/avaliacao.test.ts` e `e2e/avaliacao.spec.ts`.
+Com o banco local de pé, isso é meia hora:
+
+```bash
+npx supabase start && npx supabase db reset && node scripts/semear-dev.mjs
+npm run tipos
+npx vitest run tests/avaliacao.test.ts
+npx playwright test e2e/avaliacao.spec.ts
+```
+
+`npm run tipos` vai reescrever `banco.types.ts` inteiro e apagar as três
+entradas escritas à mão, que é exatamente o que se quer: elas já foram
+conferidas contra produção, mas gerado é melhor que conferido.
 
 **O que falta não é código de funcionalidade.** As Fases 3, 4 e 5 do Marco 2
 saíram em 15/08, e 16/08 foi um domingo inteiro corrigindo o que só aparece

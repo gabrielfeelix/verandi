@@ -12,9 +12,9 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 18/ago/2026, conferindo produção · **A Verandi está no
-ar em `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
-verdade, onboarding e a porta do bot aberta.**
+**Última atualização:** 18/ago/2026 · **A Verandi está no ar em
+`https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
+verdade, onboarding, a porta do bot aberta e o acompanhamento por foto.**
 
 O último trabalho de código é de 16/ago, e este arquivo tinha ficado em 15/ago:
 onze commits daquele domingo não estavam narrados em lugar nenhum, e os números
@@ -188,6 +188,44 @@ não estava em plano nenhum, e nenhum teste reclamava de nada.
 texto montado no servidor, e teste que confere URL não confere trabalho feito.
 Onde o produto promete uma ação, o teste pergunta se ela aconteceu.
 
+## O que aconteceu em 18/ago: o administrativo começou
+
+O Studio MGM Pilates mandou por escrito o que precisa para gerir o negócio.
+Lido com a régua da Verandi, aquilo virou cinco módulos, e o guarda-chuva com as
+decisões está em [`planos/13-administrativo.md`](planos/13-administrativo.md).
+As oito telas foram desenhadas e aprovadas antes de qualquer código.
+
+**O primeiro módulo está no ar: acompanhamento por foto**, migration `0053`.
+Uma avaliação é a visita, com data, quem avaliou e observação; cada foto é uma
+posição dentro dela. As posições são linhas da conta, não lista no código: as
+seis do pilates (frente, as duas laterais, costas, flexão de coluna e pés) são
+ponto de partida, e a ortodontia que fotografa arcada escreve as dela.
+
+A tela tem duas leituras que não se substituem. O **comparador** põe a mesma
+posição em duas datas lado a lado, com linha de prumo, e abre na primeira contra
+a última, porque é onde a diferença aparece. A **matriz** é posição por data, e
+existe por causa do buraco: a visita em que ninguém fotografou as costas precisa
+aparecer vazia na coluna dela, senão as colunas deixam de bater com as datas.
+
+**Foto de corpo é dado de saúde, e isso está escrito em três lugares**: a
+política do balde no Storage, a consulta do servidor e a lista de abas. A
+recepção não enxerga. Esconder a aba sem barrar o servidor seria proteger a
+vista e deixar o dado aberto.
+
+**Um defeito antigo apareceu no caminho.** `anonimizarPessoa` zerava nome,
+telefone, e-mail e marcações, e deixava a **foto da ficha** intacta no balde.
+Foto de rosto identifica melhor que nome, então aquilo era anonimizar no papel e
+não no fato, e estava assim desde a `0051`. Agora saem as duas famílias de
+imagem, e o arquivo sempre antes da linha.
+
+**O que ficou por fazer, e por quê:** os testes de banco e de navegador estão
+escritos e **não rodaram**. O Docker da máquina onde isto foi feito está sem
+integração com o WSL, o Supabase local não sobe, e a suíte de banco falha na
+conexão, não no código. Pelo mesmo motivo, `npm run tipos` não rodou: as três
+tabelas foram escritas à mão em `banco.types.ts` e depois **conferidas contra
+produção**, coluna por coluna. Quem pegar isto com Docker de pé roda os três e
+corrige o que aparecer.
+
 ## O próximo passo, em ordem
 
 **O produto opera; o negócio não está pronto para vender.** A lista completa,
@@ -350,7 +388,7 @@ substitui rodar.
 
 ## O que existe
 
-**Banco:** vinte e três migrations (`0030_vr_` a `0052_vr_`), RLS com política em
+**Banco:** vinte e quatro migrations (`0030_vr_` a `0053_vr_`), RLS com política em
 todas as tabelas, provada por teste e conferida em produção. **Tudo mora no schema `app_verandi`, não em
 `public`**, o porquê está inteiro em `migrations/0030_vr_schema_app_verandi.sql`.
 
@@ -367,8 +405,9 @@ aceite_de_termos (0046) · pedido_idempotente (0047)
 webhook · evento_saida (0048, a fila de saída dos avisos)
 espera (0049) · alerta_enviado (0050, o que já foi avisado)
 pessoa.foto_path (0051) · pessoa.telefone_disca (0052, coluna gerada)
+avaliacao · avaliacao_foto · posicao_avaliacao (0053, o acompanhamento por foto)
 view pessoa_resumo · função usuarios_da_conta (security definer)
-baldes privados foto-profissional e foto-pessoa
+baldes privados foto-profissional, foto-pessoa e foto-avaliacao
 ```
 
 **`core/`**, puro, testável sem subir nada. Aritmética de data, expansão de
