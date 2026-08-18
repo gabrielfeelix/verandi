@@ -135,6 +135,20 @@ export type Database = {
         }
         Relationships: []
       }
+      /*
+       * As três tabelas da 0053 foram escritas à mão, e não geradas: o Docker
+       * da máquina onde elas nasceram estava sem integração com o WSL, e o
+       * Supabase local não subia para rodar `npm run tipos`.
+       *
+       * Elas **foram conferidas contra o banco de produção** depois da 0053
+       * aplicada, com `supabase gen types --project-id`, e as três linhas de
+       * `Row` batem coluna por coluna. O arquivo remoto inteiro não entrou
+       * porque produção declara `PostgrestVersion: "14.15"` e o CLI local gera
+       * `"12"`, e a diferença quebra a tipagem do repositório inteiro.
+       *
+       * Rode `npm run tipos` com o banco local de pé assim que houver um: este
+       * arquivo é reescrito inteiro, e esta nota some junto.
+       */
       avaliacao: {
         Row: {
           conta_id: string
