@@ -7,6 +7,7 @@ import { CampoData } from '../ui/campo-data'
 import { CampoFoto } from '../ui/campo-foto'
 import { Escolha } from '../ui/escolha'
 import { Botao } from '../ui/botao'
+import { LIMITE_FOTO_MB } from '@/core/foto'
 import type { PosicaoNaTela } from './tipos'
 
 /**
@@ -110,7 +111,7 @@ export function NovaAvaliacao({
                 <CampoFoto
                   nome={`foto-${p.id}`}
                   alt={`Foto de ${p.nome.toLowerCase()}`}
-                  dica="JPEG, PNG ou WEBP, até 5 MB"
+                  dica={`JPEG, PNG ou WEBP, até ${LIMITE_FOTO_MB} MB`}
                 />
                 <input
                   name={`observacao-${p.id}`}
@@ -122,7 +123,11 @@ export function NovaAvaliacao({
           </div>
 
           <div className="flex flex-wrap items-end gap-2 rounded-media border border-dashed border-linha-tracejada p-3">
-            <Campo rotulo="Faltou uma posição?" htmlFor="nova-posicao">
+            <Campo
+              rotulo="Outra posição"
+              htmlFor="nova-posicao"
+              dica="entra nesta avaliação e nas próximas"
+            >
               <input
                 id="nova-posicao"
                 value={novaPosicao}
@@ -141,7 +146,7 @@ export function NovaAvaliacao({
                 setNovaPosicao('')
               })}
             >
-              Acrescentar
+              Adicionar
             </Botao>
           </div>
         </div>
