@@ -19,6 +19,10 @@ import { erroDoTelefone, exibirTelefone, telefoneValido } from '@/core/telefone'
 import { Matriz } from '@/components/avaliacao/matriz'
 import { Comparador } from '@/components/avaliacao/comparador'
 import { NovaAvaliacao } from '@/components/avaliacao/nova-avaliacao'
+import { NovaMatricula, ContratosDaFicha } from '@/components/contratos/matricula'
+import { contratosDaPessoa } from '@/server/contratos/consultas'
+import { listarPlanos } from '@/server/planos/consultas'
+import { listarSeries } from '@/server/grade/consultas'
 import { avaliacoesDaPessoa, posicoesDaConta, podeVerAvaliacao } from '@/server/avaliacao/consultas'
 import { registrarAvaliacao, criarPosicao } from '@/server/avaliacao/acoes'
 
@@ -53,8 +57,8 @@ const PAR: Record<Tinta, string> = {
   neutro: 'bg-neutro-fundo text-tinta-media',
 }
 
-type Aba = 'agenda' | 'historico' | 'reposicoes' | 'avaliacao' | 'perfil'
-const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'avaliacao', 'perfil']
+type Aba = 'agenda' | 'historico' | 'reposicoes' | 'contratos' | 'avaliacao' | 'perfil'
+const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'contratos', 'avaliacao', 'perfil']
 
 function curta(data: string) {
   return `${data.slice(8)}/${data.slice(5, 7)}`
@@ -121,6 +125,17 @@ export default async function Pessoa({
    * abriu.
    */
   const vendoAvaliacao = aba === 'avaliacao' && podeVerAvaliacao(conta.papel)
+
+  /*
+   * Quem atende não matricula ninguém. É a mesma linha que já separa a recepção
+   * da avaliação postural, do outro lado: contrato é dinheiro, e dinheiro é da
+   * recepção e de quem responde pelo negócio.
+   */
+  const operacional = conta.papel === 'dono' || conta.papel === 'recepcao'
+    || conta.papel === 'suporte'
+  const contratos = operacional
+    ? await contratosDaPessoa(db, conta.contaId, id)
+    : []
   const [avaliacoes, posicoes, quemAvalia] = vendoAvaliacao
     ? await Promise.all([
         avaliacoesDaPessoa(id),
@@ -292,6 +307,7 @@ export default async function Pessoa({
                 identificadorExterno: p.identificadorExterno,
                 nascimento: p.nascimento,
                 vencimentoPlano: p.vencimentoPlano,
+                ...p.cadastrais,
                 observacao: p.observacao,
                 observacaoVisivel: p.observacaoVisivel,
                 observacaoRestrita: p.observacaoRestrita,
@@ -334,6 +350,16 @@ export default async function Pessoa({
                 id: 'avaliacao',
                 rotulo: 'Avaliação',
                 href: `/pessoas/${id}?aba=avaliacao`,
+              }]
+            : []),
+          // quem atende não matricula ninguém: contrato é dinheiro, e dinheiro
+          // é da recepção e de quem responde pelo negócio
+          ...(operacional
+            ? [{
+                id: 'contratos',
+                rotulo: 'Contratos',
+                contagem: contratos.filter((c) => c.status !== 'encerrado').length || undefined,
+                href: `/pessoas/${id}?aba=contratos`,
               }]
             : []),
           { id: 'perfil', rotulo: 'Perfil', href: `/pessoas/${id}?aba=perfil` },
@@ -546,6 +572,37 @@ export default async function Pessoa({
                 falta pelo menu dela na tela do horário.
               </p>
             </section>
+          ) : null}
+
+          {aba === 'contratos' && operacional ? (
+            <div className="flex flex-col gap-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-titulo text-[19px] font-semibold">
+                  Contratos
+                </h2>
+                <NovaMatricula
+                  pessoaId={id}
+                  pessoaNome={ficha.pessoa.nome}
+                  planos={await listarPlanos(db, conta.contaId)}
+                  horarios={(await listarSeries(db, conta.contaId, conta.fuso))
+                    .filter((s) => !s.encerrada)
+                    .map((s) => ({
+                      id: s.id,
+                      diaSemana: s.diaSemana,
+                      horaInicio: s.horaInicio,
+                      codigo: s.codigo,
+                      servicoId: s.servicoId,
+                      servico: s.servico,
+                      profissional: s.profissional,
+                      local: s.local,
+                      capacidade: s.capacidade,
+                      ocupadas: s.ocupadas,
+                    }))}
+                />
+              </div>
+
+              <ContratosDaFicha contratos={contratos} pessoaNome={ficha.pessoa.nome} />
+            </div>
           ) : null}
 
           {aba === 'avaliacao' && vendoAvaliacao ? (
