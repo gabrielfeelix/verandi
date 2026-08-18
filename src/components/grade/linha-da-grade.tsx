@@ -103,6 +103,12 @@ export function LinhaDaGrade({
         >
           <span className="text-[15px] font-semibold">{serie.horaInicio.slice(0, 2)}</span>
           <span className="text-[12px] opacity-70">{serie.horaInicio.slice(3)}</span>
+          {/* conta que não numera turma não pode ganhar uma coluna vazia */}
+          {serie.codigo ? (
+            <span className="pl-1.5 font-mono text-[11px] opacity-60">
+              {serie.codigo}
+            </span>
+          ) : null}
         </span>
 
         <span className="flex min-w-[160px] flex-1 flex-col gap-1.5">
@@ -244,6 +250,7 @@ export function LinhaDaGrade({
               horaInicio: String(f.get('horaInicio') ?? ''),
               duracaoMin: Number(f.get('duracaoMin')),
               capacidade: Number(f.get('capacidade')),
+              codigo: String(f.get('codigo') ?? '') || null,
               servicoId: String(f.get('servicoId') ?? ''),
               profissionalId: String(f.get('profissionalId') ?? '') || null,
               localId: String(f.get('localId') ?? '') || null,
@@ -266,6 +273,16 @@ export function LinhaDaGrade({
               <input
                 id={`h-${serie.id}`} name="horaInicio" type="time" required
                 defaultValue={serie.horaInicio} className={`${entrada} w-full`}
+              />
+            </Campo>
+            <Campo
+              rotulo="Número da turma" htmlFor={`t-${serie.id}`}
+              dica="opcional, e único na conta"
+            >
+              <input
+                id={`t-${serie.id}`} name="codigo" maxLength={12}
+                defaultValue={serie.codigo ?? ''} placeholder="001"
+                className={`${entrada} w-full font-mono`}
               />
             </Campo>
             <Campo rotulo="Duração (min)" htmlFor={`m-${serie.id}`}>
@@ -349,7 +366,11 @@ export function LinhaDaGrade({
             const r = await duplicarSerie(serie.id, diasDuplicar, {
               confirmarColisao: colisoes.length > 0,
             })
-            if (r.ok) { fechar(); router.refresh() } else setColisoes(r.colisoes)
+            if (r.ok) { fechar(); router.refresh() }
+            else if (r.colisoes) setColisoes(r.colisoes)
+            // duplicar não carrega número de turma, então a recusa por frase
+            // não acontece aqui; se um dia acontecer, ela é dita e não sumida
+            else throw new Error(r.erro)
           })}
         >
           <fieldset className="flex flex-col gap-2">

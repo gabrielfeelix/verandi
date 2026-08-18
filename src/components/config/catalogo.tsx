@@ -155,6 +155,7 @@ export function SecaoServicos({
                 nome: String(f.get('nome') ?? ''),
                 duracaoMin: Number(f.get('duracaoMin')),
                 capacidadePadrao: Number(f.get('capacidade')),
+                categoria: String(f.get('categoria') ?? ''),
                 ativo: emEdicao ? f.get('ativo') === 'on' : true,
               })
             },
@@ -172,6 +173,14 @@ export function SecaoServicos({
               <CampoNumero id="srv-dur" nome="duracaoMin" min={1} max={600} sufixo="min"
                 valorInicial={emEdicao?.duracaoMin ?? 50} required />
             </span>
+          </Campo>
+          <Campo
+            rotulo="Categoria" htmlFor="srv-cat"
+            dica="junta modalidades parecidas na tabela de preços; deixe em branco se não precisar"
+          >
+            <input id="srv-cat" name="categoria" maxLength={60}
+              placeholder="Ex.: Terapias manuais"
+              defaultValue={emEdicao?.categoria ?? ''} className={entrada} />
           </Campo>
           <Campo
             rotulo="Capacidade padrão" htmlFor="srv-cap"

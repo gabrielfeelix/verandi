@@ -12,6 +12,8 @@ export type SerieLinha = {
   diaSemana: number
   /** hora local, `HH:MM` */
   horaInicio: string
+  /** o número pelo qual a recepção chama esta turma; opcional */
+  codigo: string | null
   duracaoMin: number
   servicoId: string
   servico: string
@@ -69,7 +71,7 @@ export async function listarSeries(
   const { data, error } = await db
     .from('serie')
     .select(`
-      id, dia_semana, hora_inicio, duracao_min, capacidade,
+      id, dia_semana, hora_inicio, duracao_min, capacidade, codigo,
       vigencia_inicio, vigencia_fim, servico_id, profissional_id, local_id,
       servico:servico_id(nome),
       profissional:profissional_id(nome),
@@ -88,6 +90,7 @@ export async function listarSeries(
     id: l.id,
     diaSemana: l.dia_semana,
     horaInicio: semSegundos(l.hora_inicio),
+    codigo: l.codigo,
     duracaoMin: l.duracao_min,
     servicoId: l.servico_id,
     servico: l.servico?.nome ?? 'sem registro',

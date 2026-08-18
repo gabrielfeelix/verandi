@@ -6,7 +6,7 @@ import {
   alcanceDaEdicao, colisoesDe, linhasDaSerie, sessoesOrfas,
   type Colisao, type NovaSerie, type SerieExistente, type SessaoParaReconciliar,
 } from '@/core/agenda/serie'
-import { diaDaSemanaDe } from '@/core/agenda/datas'
+import { diaDaSemanaDe, DIAS_INTEIROS } from '@/core/agenda/datas'
 import { hojeEm, localDe } from '../agenda/fuso'
 import { registrar } from '../log'
 import type { Atualizacao } from '../banco'
@@ -85,7 +85,11 @@ async function seriesQueDisputam(
 export async function criarSeries(
   nova: NovaSerie,
   opcoes?: { confirmarColisao?: boolean },
-): Promise<{ ok: true; ids: string[] } | { ok: false; colisoes: Colisao[] }> {
+): Promise<
+  | { ok: true; ids: string[] }
+  | { ok: false; colisoes: Colisao[] }
+  | { ok: false; colisoes?: undefined; erro: string }
+> {
   const conta = await exigirDono()
   const db = await clienteServidor()
 
@@ -102,10 +106,28 @@ export async function criarSeries(
     if (colisoes.length) return { ok: false, colisoes }
   }
 
+  /*
+   * O número da turma é único na conta, e quem repete precisa saber de quem é o
+   * número. O erro do Postgres diz "duplicate key", que não ajuda ninguém a
+   * escolher outro.
+   */
+  const codigo = dias.length === 1 ? (nova.codigo?.trim() || null) : null
+  if (codigo) {
+    const { data: jaTem } = await db.from('serie')
+      .select('hora_inicio, dia_semana')
+      .eq('conta_id', conta.contaId).eq('codigo', codigo)
+      .maybeSingle<{ hora_inicio: string; dia_semana: number }>()
+    if (jaTem) {
+      return {
+        ok: false,
+        erro: `O número ${codigo} já é da turma de ${DIAS_INTEIROS[jaTem.dia_semana]} às ${jaTem.hora_inicio.slice(0, 5)}.`,
+      }
+    }
+  }
+
   const { data, error } = await db.from('serie')
     .insert(linhasDaSerie({ ...nova, diasSemana: dias }, conta.contaId))
     .select('id')
-    
 
   if (error) throw error
 
@@ -133,6 +155,7 @@ export type MudancaSerie = {
   horaInicio?: string
   duracaoMin?: number
   capacidade?: number
+  codigo?: string | null
 }
 
 type SerieAtual = {
@@ -269,6 +292,7 @@ export async function editarSerie(serieId: string, mudanca: MudancaSerie): Promi
   if (mudanca.horaInicio !== undefined) linha.hora_inicio = mudanca.horaInicio
   if (mudanca.duracaoMin !== undefined) linha.duracao_min = mudanca.duracaoMin
   if (mudanca.capacidade !== undefined) linha.capacidade = mudanca.capacidade
+  if (mudanca.codigo !== undefined) linha.codigo = mudanca.codigo || null
   if (!Object.keys(linha).length) return
 
   const { orfas, atualiza } = separar(
@@ -319,7 +343,11 @@ async function cancelarOrfas(
  */
 export async function duplicarSerie(
   serieId: string, diasSemana: number[], opcoes?: { confirmarColisao?: boolean },
-): Promise<{ ok: true; ids: string[] } | { ok: false; colisoes: Colisao[] }> {
+): Promise<
+  | { ok: true; ids: string[] }
+  | { ok: false; colisoes: Colisao[] }
+  | { ok: false; colisoes?: undefined; erro: string }
+> {
   const conta = await exigirDono()
   const db = await clienteServidor()
   const atual = await carregarSerie(db, serieId)

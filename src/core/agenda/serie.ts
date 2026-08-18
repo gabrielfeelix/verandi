@@ -19,6 +19,14 @@ export type NovaSerie = {
   /** `YYYY-MM-DD` */
   vigenciaInicio: string
   vigenciaFim?: string | null
+  /**
+   * O número pelo qual a recepção chama a turma. Opcional, e único na conta.
+   *
+   * Criar segunda e quarta de uma vez são **duas** turmas, e um número só não
+   * serve para as duas: quando há mais de um dia, ele é ignorado, e a tela nem
+   * pergunta.
+   */
+  codigo?: string | null
 }
 
 /**
@@ -38,6 +46,7 @@ export type LinhaSerie = {
   capacidade: number
   vigencia_inicio: string
   vigencia_fim: string | null
+  codigo: string | null
   ativo: boolean
 }
 
@@ -65,6 +74,8 @@ export function linhasDaSerie(nova: NovaSerie, contaId: string): LinhaSerie[] {
     capacidade: nova.capacidade,
     vigencia_inicio: nova.vigenciaInicio,
     vigencia_fim: nova.vigenciaFim ?? null,
+    // número só quando a criação produz uma turma só
+    codigo: dias.length === 1 ? (nova.codigo?.trim() || null) : null,
     ativo: true,
   }))
 }

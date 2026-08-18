@@ -29,3 +29,14 @@ export function somarDias(dataIso: string, n: number): string {
 export function dataCurta(iso: string): string {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(2, 4)}`
 }
+
+/**
+ * Os dias por extenso, na ordem que `getUTCDay` devolve.
+ *
+ * Vive aqui, e não numa tela, porque o servidor também escreve frase com eles:
+ * "o número 001 já é da turma de Segunda às 07:00" é montado longe de qualquer
+ * componente.
+ */
+export const DIAS_INTEIROS = [
+  'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado',
+] as const

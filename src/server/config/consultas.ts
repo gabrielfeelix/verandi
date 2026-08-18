@@ -21,6 +21,8 @@ export type ServicoLinha = {
   nome: string
   duracaoMin: number
   capacidadePadrao: number
+  /** o grupo em que a tabela de preços mostra esta modalidade; opcional */
+  categoria: string | null
   ativo: boolean
   /** quantas séries vigentes usam este serviço — desativar sem saber é cego */
   emUso: number
@@ -80,7 +82,7 @@ export async function carregarPadroes(db: Db, contaId: string): Promise<Padroes>
 export async function listarServicos(db: Db, contaId: string): Promise<ServicoLinha[]> {
   const { data, error } = await db
     .from('servico')
-    .select('id, nome, duracao_min, capacidade_padrao, ativo, serie(id)')
+    .select('id, nome, duracao_min, capacidade_padrao, categoria, ativo, serie(id)')
     .eq('conta_id', contaId)
     .order('nome')
     
@@ -92,6 +94,7 @@ export async function listarServicos(db: Db, contaId: string): Promise<ServicoLi
     nome: s.nome,
     duracaoMin: s.duracao_min,
     capacidadePadrao: s.capacidade_padrao,
+    categoria: s.categoria,
     ativo: s.ativo,
     emUso: s.serie.length,
   }))

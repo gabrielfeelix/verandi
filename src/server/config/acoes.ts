@@ -71,6 +71,8 @@ export async function salvarServico(e: {
   nome: string
   duracaoMin: number
   capacidadePadrao: number
+  /** agrupa modalidades parecidas na tabela de preços; em branco vira nulo */
+  categoria?: string | null
   ativo: boolean
 }): Promise<{ id: string }> {
   const conta = await exigirDono()
@@ -86,6 +88,7 @@ export async function salvarServico(e: {
     nome,
     duracao_min: e.duracaoMin,
     capacidade_padrao: e.capacidadePadrao,
+    categoria: e.categoria?.trim() || null,
     ativo: e.ativo,
   }
 

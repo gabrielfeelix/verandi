@@ -69,9 +69,13 @@ export function EditorSerie({
         if (r.ok) {
           fechar()
           router.refresh()
-        } else {
+        } else if (r.colisoes) {
           setColisoes(r.colisoes)
           setPedido(entrada)
+        } else {
+          // recusa que não é colisão, como número de turma repetido: ela é
+          // frase, e a frase é o que a pessoa precisa para escolher outro
+          setErro(r.erro)
         }
       } catch (e) {
         setErro(erroLegivel(e))
@@ -89,6 +93,7 @@ export function EditorSerie({
       duracaoMin: Number(f.get('duracaoMin') ?? 60),
       capacidade: Number(f.get('capacidade') ?? 1),
       vigenciaInicio: String(f.get('vigenciaInicio') ?? hoje),
+      codigo: String(f.get('codigo') ?? '') || null,
     }
   }
 
@@ -153,6 +158,17 @@ export function EditorSerie({
                 <Campo rotulo="Capacidade" htmlFor="capacidade">
                   <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={1} required />
                 </Campo>
+                {/* o número identifica uma turma, e criar três dias de uma vez
+                    cria três: aí ele não teria a quem pertencer */}
+                {dias.length === 1 ? (
+                  <Campo
+                    rotulo="Número da turma" htmlFor="codigo"
+                    dica="opcional, é como a recepção chama esta turma"
+                  >
+                    <input id="codigo" name="codigo" maxLength={12}
+                      placeholder="001" className={`${entrada} w-28 font-mono`} />
+                  </Campo>
+                ) : null}
               </div>
 
               <Campo rotulo={rotulos.servico.singular} htmlFor="servicoId">
