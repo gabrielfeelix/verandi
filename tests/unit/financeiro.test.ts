@@ -5,9 +5,9 @@ import {
   situacaoDaCobranca, valorDaParcela, vencimentoDa,
 } from '@/core/financeiro/cobranca'
 import {
-  aReceber, carteira, descontoDeVinculo, emAtraso, faturamentoPor,
-  recebidoPorForma, type CobrancaDoPeriodo, type ContratoDoPeriodo,
-  type PagamentoRecebido,
+  aReceber, carteira, clientes, descontoDeVinculo, emAtraso, estornosDoPeriodo,
+  faturamentoPor, recebidoPorForma, type CobrancaDoPeriodo,
+  type ContratoDoPeriodo, type PagamentoRecebido,
 } from '@/core/financeiro/fechamento'
 
 const mensal = {
@@ -236,6 +236,27 @@ describe('o fechamento', () => {
     expect(carteira(contratos, '2026-09-01', '2026-09-30')).toEqual({
       novos: 1, encerrados: 1, emVigor: 2, recorrenteCent: 73500,
     })
+  })
+
+  it('os estornos somam o que voltou atrás, com o mais recente na frente', () => {
+    const r = estornosDoPeriodo([
+      { valorCent: 30000, estornadoEm: '2026-09-03T10:00:00Z', motivo: 'em dobro', pessoaNome: 'Marina' },
+      { valorCent: 73500, estornadoEm: '2026-09-20T10:00:00Z', motivo: 'cheque devolvido', pessoaNome: 'Joana' },
+    ])
+    expect(r).toMatchObject({ quantidade: 2, totalCent: 103500 })
+    expect(r.linhas[0].pessoaNome).toBe('Joana')
+  })
+
+  it('os clientes são contados por ficha, e quem pediu exclusão sai das três contas', () => {
+    const r = clientes([
+      { ativo: true, criadoEm: '2026-09-10T10:00:00Z', anonimizada: false },
+      { ativo: true, criadoEm: '2025-01-10T10:00:00Z', anonimizada: false },
+      { ativo: false, criadoEm: '2024-05-10T10:00:00Z', anonimizada: false },
+      // anonimizada: a ficha existe por causa do histórico, e não descreve
+      // mais ninguém
+      { ativo: true, criadoEm: '2026-09-11T10:00:00Z', anonimizada: true },
+    ], '2026-09-01', '2026-09-30')
+    expect(r).toEqual({ ativos: 2, inativos: 1, novos: 1 })
   })
 
   it('o desconto de vínculo soma a diferença de quem o usou', () => {

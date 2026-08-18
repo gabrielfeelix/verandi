@@ -19,21 +19,34 @@ documento do cliente, e o contrato do [plano 16](16-matricula-e-contrato.md).
 **Telas:** `/financeiro`, nova no rail, e as cobranças da pessoa dentro da aba
 Contratos da ficha, que já existe.
 
-## O documento original não está no repositório, e isso muda uma coisa
+## Os sete relatórios são os do documento, e não os que eu supus
 
-`SISTEMA ADMINISTRATIVO PARA STUDIO MGM PILATES.docx` não está mais na raiz, e
-o `.gitignore` não o cobre: ele simplesmente não foi commitado. O que sobrou
-dele é o que os planos 13, 15 e 16 anotaram por escrito enquanto ele estava à
-mão.
+Este plano foi escrito sem o `.docx` do cliente à mão, com os sete relatórios
+reconstruídos a partir do que os planos 13, 15 e 16 anotaram. **O documento
+apareceu depois, e a reconstrução acertou dois.** O que ele pede, com as
+palavras dele, no item 4:
 
-Consequência prática: **os sete relatórios abaixo foram reconstruídos**, a
-partir do que o plano 13 registrou do item 4 e do que uma recepção precisa
-responder num dia de trabalho. Cada um está escrito como a pergunta que ele
-responde, e não como um título de relatório, justamente para o cliente poder
-dizer "essa pergunta não é a minha" antes de alguém construir a tela.
+> O controle financeiro deverá oferecer relatórios: valores faturados por
+> dia/semana/mês/ano · faturamento por plano e por modalidade (serviços) ·
+> recibos emitidos / de recibos cancelados · estornos (cancelamentos) ·
+> clientes/alunos ativos · clientes/alunos inativos · novos clientes no mês
 
-**Quem executar confirma a lista com o Gabriel antes da Tarefa 6.** Construir
-sete relatórios errados custa a mesma semana que construir sete certos.
+Isto está registrado aqui, e não apagado, porque é a lição mais barata do
+módulo: **cinco dos sete relatórios do primeiro cliente pagante nasceriam
+errados**, e nenhum teste pegaria, porque todos eles somavam certo. O que
+faltava não era código, era o documento.
+
+Os dois que eu tinha acertado são faturamento por modalidade e por plano, e o
+que entrou no período. Os que faltavam e entraram: **estornos**, **clientes
+ativos**, **clientes inativos** e **novos clientes no período**. **Recibos
+emitidos e cancelados** é o terceiro da lista dele e depende do módulo 18, e
+chega com ele.
+
+Três números que eu tinha inventado ficaram, e num lugar menor: quanto ainda vai
+vencer, quanto o mês seguinte deve gerar, e quanto o preço de vínculo custa. Eles
+não estão entre os sete, mas a planilha do item 4 tem as colunas "Venc Plano" e
+"Novo Venc", e elas existem para responder a primeira. Estão numa linha de texto
+dentro do cartão da carteira, e não como número grande.
 
 ## O que vale para todas as tarefas
 
@@ -144,32 +157,43 @@ a avulsa, que é um contrato de um dia, e essa decisão do plano 13 é o que
 mantém recibo e relatório com um caso só. `origem` já nasce na tabela porque a
 exceção vai aparecer, e quando aparecer terá onde morar sem migration corretiva.
 
-## Os sete relatórios, escritos como perguntas
+## Os sete relatórios, e onde cada um mora
 
-Todos no mesmo lugar, a aba **Fechamento**, com um período no topo (hoje, esta
-semana, este mês, ou datas escolhidas) e um botão de planilha, como Pendências e
-Pessoas já têm.
+Todos na aba **Fechamento**, com o período no topo. As quatro janelas são as que
+o documento pede: **dia, semana, mês e ano**, mais datas escolhidas pela URL. Um
+botão de planilha ao lado, como Pendências e Pessoas já têm.
 
-1. **Quanto entrou no período, e por qual forma?** O fechamento do caixa do dia,
-   que é o único destes sete que se usa todo dia.
-2. **Quanto ainda vai vencer no período?** O que está por vir, para saber se o
-   mês fecha.
-3. **Quem está em atraso, há quantos dias, e qual o telefone?** Lista de
-   ligação, com nome e contato, ordenada pelo mais velho. Número sozinho não faz
-   ninguém ligar para ninguém.
-4. **Quanto cada modalidade faturou?** Por serviço e por plano, que é o que
-   responde "vale a pena manter a terapia às sextas".
-5. **Como está a carteira?** Contratos novos, encerrados e em vigor no período,
-   e o valor recorrente que eles representam.
-6. **Quanto está previsto para o mês que vem?** A soma do que os contratos em
-   vigor vão gerar, sem contar quem já avisou que sai.
-7. **Quanto o preço de vínculo custou?** A diferença entre o avulso e o
-   vinculado, somada no período. É a única regra de preço que o sistema aplica
-   sozinho, e o dono precisa poder ver o tamanho dela.
+| # | O documento pede | Onde está |
+|---|---|---|
+| 1 | valores faturados por dia/semana/mês/ano | número grande, com a divisão por forma de pagamento embaixo |
+| 2 | faturamento por plano e por modalidade | duas listas com barra, sobre o que **entrou** |
+| 3 | recibos emitidos e cancelados | **módulo 18**, chega com ele |
+| 4 | estornos (cancelamentos) | número grande, e a lista com pessoa, data e motivo |
+| 5 | clientes/alunos ativos | número grande |
+| 6 | clientes/alunos inativos | na linha do ativo, porque um só faz sentido ao lado do outro |
+| 7 | novos clientes no mês | número grande, contado no período escolhido |
+
+**O faturamento é sobre o que entrou, e não sobre o que foi cobrado.**
+Faturamento de mês que ninguém pagou é a conta que quebra estúdio.
+
+**Cliente é ficha, e não contrato.** Quem tem dois contratos é um cliente só, e
+"ativo" é a mesma marca que a lista de pessoas usa, para os dois números nunca
+discordarem. Quem pediu exclusão sai das três contagens: a ficha continua
+existindo por causa do histórico, e não descreve mais ninguém.
+
+**O estorno é filtrado pela data do estorno, e não pela do recebimento.** O
+dinheiro entrou em março e voltou em abril; quem fecha abril precisa ver a
+devolução em abril, e o março que já foi conferido não pode mudar de valor.
 
 Nenhum deles é gráfico. Todos são número grande com uma linha de explicação
-embaixo, e a lista quando a lista é o ponto (3 e 4). Gráfico entra quando
-alguém pedir para comparar dois períodos, e ninguém pediu.
+embaixo, e a lista quando a lista é o ponto. Gráfico entra quando alguém pedir
+para comparar dois períodos, e ninguém pediu.
+
+Fora dos sete, e num lugar menor, ficaram três números que a planilha do item 4
+pressupõe: quanto ainda vai vencer, quanto o mês seguinte deve gerar, e quanto o
+preço de vínculo custa. Eles moram numa linha de texto dentro do cartão da
+carteira, e não como número grande, porque não foram pedidos.
+
 
 ## As tarefas
 
@@ -192,8 +216,8 @@ alguém pedir para comparar dois períodos, e ninguém pediu.
 5. **As cobranças na ficha da pessoa**, dentro da aba Contratos que já existe,
    com o receber ali mesmo. É onde a pergunta nasce quando a pessoa está na
    frente do balcão.
-6. **Fechamento**, os sete números, com período e planilha. **Confirmar a lista
-   com o Gabriel antes de começar.**
+6. **Fechamento**, os sete do documento, com período e planilha. O terceiro
+   deles, recibos emitidos e cancelados, entra no módulo 18.
 7. **Jornada pela tela.** Matricular, ver a cobrança nascer, receber, ver o
    caixa do dia mudar, atrasar uma e vê-la no topo, e quem atende não alcançar
    nada disso.
@@ -205,7 +229,8 @@ alguém pedir para comparar dois períodos, e ninguém pediu.
 - Trancar não gera cobrança do período parado, e encerrar cancela o que ainda
   não venceu sem apagar o que já venceu.
 - O caixa do dia fecha por forma de pagamento.
-- Os sete relatórios respondem as sete perguntas, e saem em planilha.
+- Os seis relatórios que não dependem do recibo respondem o que o documento
+  pede, e saem em planilha. O sétimo entra com o módulo 18.
 - Suíte inteira verde.
 
 **O que este plano não faz:** emitir recibo (módulo 18), emitir nota fiscal

@@ -262,12 +262,17 @@ existirem, e `registrar()` não olha o erro do insert de propósito. Desde 18/08
 nenhuma criação de plano ou de contrato tinha sido registrada, e ninguém tinha
 como perceber. A `0056` corrige a lista, e o teste guarda.
 
-**Os sete relatórios do item 4 foram reconstruídos.** O documento original do
-cliente não está no repositório, e o que sobrou dele é o que os planos 13, 15 e
-16 anotaram. Eles estão escritos como perguntas em
-[`planos/17-financeiro.md`](planos/17-financeiro.md), e **a lista precisa ser
-confirmada com o Gabriel**: construir sete relatórios errados custa a mesma
-semana que construir sete certos.
+**Os sete relatórios do item 4 foram reconstruídos, e cinco estavam errados.**
+O documento do cliente voltou na mesma noite, e ele pede, com estas palavras:
+faturado por dia/semana/mês/ano, faturamento por plano e por modalidade, recibos
+emitidos e cancelados, estornos, clientes ativos, clientes inativos e novos
+clientes no mês. Seis foram corrigidos e estão no ar; o de recibos chega com o
+módulo 18. Os três números que tinham sido inventados (a vencer, previsto do mês
+seguinte e desconto de vínculo) continuam na tela, numa linha de texto dentro do
+cartão da carteira, porque a planilha do item 4 os pressupõe.
+
+**A lição vale mais que o módulo:** nenhum teste pegaria aquilo. Todas as somas
+estavam certas, e o que faltava não era código, era o documento.
 
 ## O próximo passo, em ordem
 

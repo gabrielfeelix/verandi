@@ -6,7 +6,8 @@ import {
   situacaoDaCobranca, diasDeAtraso, type SituacaoCobranca,
 } from '@/core/financeiro/cobranca'
 import type {
-  CobrancaDoPeriodo, ContratoDoPeriodo, Forma, PagamentoRecebido,
+  CobrancaDoPeriodo, ContratoDoPeriodo, EstornoDoPeriodo, Forma,
+  PagamentoRecebido, PessoaDaConta,
 } from '@/core/financeiro/fechamento'
 
 export const POR_PAGINA = 20
@@ -202,6 +203,10 @@ export type Fechamento = {
    * o atraso é uma pergunta sobre agora.
    */
   atrasadas: CobrancaDoPeriodo[]
+  /** o que voltou atrás no período, que é o quarto relatório do documento */
+  estornos: EstornoDoPeriodo[]
+  /** as fichas da conta, para contar cliente ativo, inativo e novo */
+  pessoas: PessoaDaConta[]
   contratos: ContratoDoPeriodo[]
   /** o que os contratos em vigor vão gerar no mês seguinte ao período */
   previstoCent: number
@@ -217,7 +222,8 @@ export type Fechamento = {
 export async function materialDoFechamento(
   db: Db, contaId: string, de: string, ate: string, hoje: string,
 ): Promise<Fechamento> {
-  const [pagamentos, cobrancas, contratos, atrasadas] = await Promise.all([
+  const [pagamentos, cobrancas, contratos, atrasadas, estornos, pessoas] =
+    await Promise.all([
     db.from('pagamento')
       .select(`valor_cent, forma, recebido_em,
                cobranca(contrato(plano(nome, servico(nome))))`)
@@ -272,6 +278,25 @@ export async function materialDoFechamento(
         valor_cent: number; valor_pago_cent: number; situacao: string
         pessoa: { nome: string; telefone: string | null } | null
       }>>(),
+    /*
+     * O estorno é filtrado por `estornado_em`, e não por `recebido_em`: o
+     * dinheiro entrou em março e voltou em abril, e quem fecha abril precisa
+     * ver a devolução em abril. Somar pelo recebimento esconderia o estorno no
+     * mês que já foi conferido.
+     */
+    db.from('pagamento')
+      .select('valor_cent, estornado_em, motivo_estorno, cobranca(pessoa(nome))')
+      .eq('conta_id', contaId).not('estornado_em', 'is', null)
+      .gte('estornado_em', `${de}T00:00:00Z`).lte('estornado_em', `${ate}T23:59:59Z`)
+      .returns<Array<{
+        valor_cent: number; estornado_em: string; motivo_estorno: string | null
+        cobranca: { pessoa: { nome: string } | null } | null
+      }>>(),
+    db.from('pessoa')
+      .select('ativo, criado_em, anonimizada_em').eq('conta_id', contaId)
+      .returns<Array<{
+        ativo: boolean; criado_em: string; anonimizada_em: string | null
+      }>>(),
   ])
 
   if (pagamentos.error) throw pagamentos.error
@@ -314,6 +339,17 @@ export async function materialDoFechamento(
     })),
     cobrancas: (cobrancas.data ?? []).map(paraPeriodo),
     atrasadas: (atrasadas.data ?? []).map(paraPeriodo),
+    estornos: (estornos.data ?? []).map((e) => ({
+      valorCent: e.valor_cent,
+      estornadoEm: e.estornado_em,
+      motivo: e.motivo_estorno,
+      pessoaNome: e.cobranca?.pessoa?.nome ?? '',
+    })),
+    pessoas: (pessoas.data ?? []).map((p) => ({
+      ativo: p.ativo,
+      criadoEm: p.criado_em,
+      anonimizada: p.anonimizada_em !== null,
+    })),
     contratos: (contratos.data ?? []).map((c) => ({
       inicio: c.inicio,
       fim: c.fim,

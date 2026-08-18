@@ -1,9 +1,15 @@
 import { diasDeAtraso, situacaoDaCobranca } from './cobranca'
 
 /**
- * As sete perguntas do fechamento, respondidas por função pura.
+ * Os sete relatórios do item 4 do documento do cliente, respondidos por função
+ * pura.
  *
- * Elas moram aqui, e não na consulta, por dois motivos. O primeiro é o de
+ * Eles estão escritos lá com estas palavras: valores faturados por
+ * dia/semana/mês/ano; faturamento por plano e por modalidade; recibos emitidos
+ * e cancelados; estornos; clientes ativos; clientes inativos; novos clientes no
+ * mês. O terceiro depende do módulo 18 e chega com ele.
+ *
+ * Eles moram aqui, e não na consulta, por dois motivos. O primeiro é o de
  * sempre: a tela e a planilha precisam do mesmo número, e duas somas escritas
  * em dois lugares divergem no dia em que só uma delas passar a ignorar o
  * estornado. O segundo é que soma de dinheiro é a coisa mais barata de testar e
@@ -44,7 +50,13 @@ export type CobrancaDoPeriodo = {
   situacao: string
 }
 
-/** 1. Quanto entrou no período, e por qual forma. */
+/**
+ * 1. Valores faturados no período, e por qual forma.
+ *
+ * O documento pede por dia, semana, mês e ano; quem escolhe o período é a tela,
+ * e esta função soma o que ela mandar. A forma de pagamento não foi pedida e
+ * fica: é ela que fecha o caixa contra o dinheiro na gaveta.
+ */
 export function recebidoPorForma(pagamentos: PagamentoRecebido[]): {
   totalCent: number
   porForma: Array<{ forma: Forma; rotulo: string; totalCent: number; quantidade: number }>
@@ -66,7 +78,10 @@ export function recebidoPorForma(pagamentos: PagamentoRecebido[]): {
 }
 
 /**
- * 2. Quanto ainda vai vencer no período.
+ * Quanto ainda vai vencer no período.
+ *
+ * Não está entre os sete, e fica: a planilha do item 4 tem as colunas "Venc
+ * Plano" e "Novo Venc", e elas existem para responder exatamente isto.
  *
  * O que falta, e não o valor cheio: uma cobrança de R$ 735 com R$ 300 pagos
  * ainda vai receber R$ 435, e somar os R$ 735 diria que o mês fecha melhor do
@@ -99,7 +114,10 @@ export type LinhaDeAtraso = {
 }
 
 /**
- * 3. Quem está em atraso, há quantos dias, e qual o telefone.
+ * Quem está em atraso, há quantos dias, e qual o telefone.
+ *
+ * Também não está entre os sete, e também fica, pelo mesmo motivo: sem ela, as
+ * colunas de vencimento da planilha do cliente viram enfeite.
  *
  * Por pessoa, e não por cobrança: quem deve três meses recebe uma ligação, não
  * três. E com telefone, porque a lista existe para alguém ligar; número sozinho
@@ -128,7 +146,7 @@ export function emAtraso(
 }
 
 /**
- * 4. Quanto cada modalidade faturou, e cada plano.
+ * 2. Faturamento por plano e por modalidade (serviços).
  *
  * Sobre o que **entrou**, e não sobre o que foi cobrado: faturamento de mês que
  * ninguém pagou é a conta que quebra estúdio.
@@ -161,7 +179,7 @@ export type ContratoDoPeriodo = {
 }
 
 /**
- * 5. Como está a carteira.
+ * A carteira, que o documento não pede e a planilha dele pressupõe.
  *
  * Novos e encerrados no período, e quantos seguem de pé, com o valor recorrente
  * que eles representam. É o número que responde "estamos crescendo", que
@@ -186,8 +204,67 @@ export function carteira(
   }
 }
 
+export type EstornoDoPeriodo = {
+  valorCent: number
+  estornadoEm: string
+  motivo: string | null
+  pessoaNome: string
+}
+
 /**
- * 7. Quanto o preço de vínculo custou.
+ * 4. Estornos (cancelamentos), com as palavras do documento.
+ *
+ * O que voltou atrás, e por quê. Sem esta linha, o "entrou no período" de um
+ * mês em que se estornou R$ 2.000 conta uma história incompleta, e a diferença
+ * só aparece quando alguém confere o extrato do banco contra a tela.
+ */
+export function estornosDoPeriodo(estornos: EstornoDoPeriodo[]): {
+  quantidade: number
+  totalCent: number
+  linhas: EstornoDoPeriodo[]
+} {
+  return {
+    quantidade: estornos.length,
+    totalCent: estornos.reduce((s, e) => s + e.valorCent, 0),
+    // o mais recente primeiro: estorno é sempre conversa fresca
+    linhas: [...estornos].sort((a, b) => b.estornadoEm.localeCompare(a.estornadoEm)),
+  }
+}
+
+export type PessoaDaConta = {
+  ativo: boolean
+  criadoEm: string
+  anonimizada: boolean
+}
+
+/**
+ * 5, 6 e 7. Clientes ativos, inativos, e os novos do período.
+ *
+ * Conta **pessoas**, e não contratos: o documento pede "clientes/alunos
+ * ativos", e quem tem dois contratos é um cliente só. Ativo é a marca da ficha,
+ * a mesma que a lista de pessoas usa, para os dois números nunca discordarem.
+ *
+ * Quem pediu exclusão sai das três contagens: a ficha continua existindo por
+ * causa do histórico, mas ela não descreve mais ninguém.
+ */
+export function clientes(pessoas: PessoaDaConta[], de: string, ate: string): {
+  ativos: number
+  inativos: number
+  novos: number
+} {
+  const vivas = pessoas.filter((p) => !p.anonimizada)
+  return {
+    ativos: vivas.filter((p) => p.ativo).length,
+    inativos: vivas.filter((p) => !p.ativo).length,
+    novos: vivas.filter((p) => {
+      const dia = p.criadoEm.slice(0, 10)
+      return dia >= de && dia <= ate
+    }).length,
+  }
+}
+
+/**
+ * Quanto o preço de vínculo custou.
  *
  * A diferença entre o que o plano cobra de quem não é cliente de outra
  * modalidade e o que foi de fato cobrado. É a única regra de preço que o

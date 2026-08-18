@@ -31,18 +31,16 @@ a cada push na `main`.
 | Testes | **494** de unidade e banco · **200** de navegador | as duas suítes verdes em 18/08, depois do módulo 17 |
 | API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
 
-> **PEGUE POR AQUI: os sete relatórios do financeiro precisam da palavra do
-> Gabriel.** O documento original do cliente
-> (`SISTEMA ADMINISTRATIVO PARA STUDIO MGM PILATES.docx`) **não está no
-> repositório**, e o item 4 dele pedia sete relatórios que ninguém transcreveu.
-> Os sete que estão no ar foram reconstruídos a partir do que os planos 13, 15 e
-> 16 anotaram, e estão escritos como perguntas em
-> [`planos/17-financeiro.md`](planos/17-financeiro.md) justamente para o cliente
-> poder recusar a pergunta. **Antes de construir qualquer coisa em cima deles,
-> mostre a lista e pergunte.** Construir sete relatórios errados custa a mesma
-> semana que construir sete certos.
+> **PEGUE POR AQUI: o documento do cliente voltou, e ele já corrigiu o módulo
+> 17.** `SISTEMA ADMINISTRATIVO PARA STUDIO MGM PILATES.docx` está na raiz de
+> novo (fora do git). Os sete relatórios do item 4 tinham sido reconstruídos de
+> memória, e **cinco dos sete estavam errados**: o que ele pede é faturado por
+> dia/semana/mês/ano, faturamento por plano e modalidade, recibos emitidos e
+> cancelados, estornos, clientes ativos, clientes inativos e novos clientes no
+> mês. Seis já estão no ar; o de recibos chega com o módulo 18.
 >
-> E peça o `.docx` de volta: o módulo 18 vai precisar dele para o recibo.
+> **A lição, para o próximo módulo:** nenhum teste pegaria aquilo, porque todas
+> as somas estavam certas. O que faltava não era código, era o documento.
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
@@ -66,12 +64,12 @@ com `security_invoker`, e `public` continua intacto com as 22 do AutoFluxos.
 **A suíte inteira rodou depois do 17**, e é o que fecha a pendência que o
 HANDOFF anterior deixou aberta: 494 de unidade e banco, 200 de navegador.
 
-**O próximo módulo é o 18, o recibo**, e o plano dele já está escrito em
-[`planos/18-recibo.md`](planos/18-recibo.md): numeração sem buraco alocada no
-banco, corpo congelado, correção por versão, cancelamento com motivo, os dados
-do emitente na Configuração, e as duas tarefas de LGPD que já estão decididas
-(o recibo sobrevive à anonimização por cinco anos, e a política precisa dizer
-isso, o que sobe a versão dela).
+**O próximo módulo é o 18, o recibo**, e o plano dele está em
+[`planos/18-recibo.md`](planos/18-recibo.md), revisto contra o documento:
+numeração sem buraco alocada no banco, corpo congelado, correção por versão,
+cancelamento com motivo, os dados do emitente na Configuração, e as duas tarefas
+de LGPD que já estão decididas (o recibo sobrevive à anonimização por cinco
+anos, e a política precisa dizer isso, o que sobe a versão dela).
 
 **As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
 tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do

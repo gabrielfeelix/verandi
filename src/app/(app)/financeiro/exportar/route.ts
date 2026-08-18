@@ -2,8 +2,8 @@ import { clienteServidor, exigirConta } from '@/server/conta'
 import { hojeEm } from '@/server/agenda/fuso'
 import { materialDoFechamento } from '@/server/financeiro/consultas'
 import {
-  aReceber, carteira, descontoDeVinculo, emAtraso, faturamentoPor,
-  recebidoPorForma,
+  aReceber, carteira, clientes, descontoDeVinculo, emAtraso, estornosDoPeriodo,
+  faturamentoPor, recebidoPorForma,
 } from '@/core/financeiro/fechamento'
 import { competenciaDe } from '@/core/financeiro/cobranca'
 
@@ -41,6 +41,8 @@ export async function GET(pedido: Request) {
   const atraso = emAtraso(m.atrasadas, hoje)
   const cart = carteira(m.contratos, de, ate)
   const vinculo = descontoDeVinculo(m.contratos)
+  const estornos = estornosDoPeriodo(m.estornos)
+  const gente = clientes(m.pessoas, de, ate)
 
   const linhas: Array<Array<string | number>> = [
     ['Fechamento', `de ${de} a ${ate}`],
@@ -67,8 +69,19 @@ export async function GET(pedido: Request) {
     ...faturamentoPor(m.pagamentos, 'planoNome')
       .map((f) => [f.nome, reais(f.totalCent), f.quantidade]),
     [],
+    ['Estornos no período', reais(estornos.totalCent), estornos.quantidade],
+    ['Pessoa', 'Estornado em', 'Motivo', 'Valor'],
+    ...estornos.linhas.map((e) => [
+      e.pessoaNome, e.estornadoEm.slice(0, 10), e.motivo ?? '', reais(e.valorCent),
+    ]),
+    [],
+    ['Clientes'],
+    ['Ativos', gente.ativos],
+    ['Inativos', gente.inativos],
+    ['Novos no período', gente.novos],
+    [],
     ['Carteira'],
-    ['Novos no período', cart.novos],
+    ['Contratos novos no período', cart.novos],
     ['Encerrados no período', cart.encerrados],
     ['Em vigor', cart.emVigor],
     ['Recorrente', reais(cart.recorrenteCent)],

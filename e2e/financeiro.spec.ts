@@ -211,6 +211,14 @@ test('o fechamento soma o dia por forma de pagamento', async ({ page }) => {
   await expect(page.getByText('R$ 735,00').first()).toBeVisible()
   await expect(page.getByText(/Pix: R\$ 500,00 · Dinheiro: R\$ 235,00/)).toBeVisible()
   await expect(page.getByText('Em vigor hoje')).toBeVisible()
+
+  // os quatro números do topo são os do documento do cliente: faturado,
+  // estornos, clientes ativos e novos no período
+  await expect(page.getByText('Estornos no período')).toBeVisible()
+  await expect(page.getByText('Clientes ativos')).toBeVisible()
+  await expect(page.getByText('Novos no período')).toBeVisible()
+  // e as quatro janelas que ele pede: dia, semana, mês e ano
+  await expect(page.getByRole('link', { name: 'Este ano' })).toBeVisible()
 })
 
 test('quem atende não alcança o financeiro', async ({ page }) => {

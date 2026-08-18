@@ -8,8 +8,8 @@ import {
   type FiltroCobranca,
 } from '@/server/financeiro/consultas'
 import {
-  aReceber, carteira, descontoDeVinculo, emAtraso, faturamentoPor,
-  recebidoPorForma,
+  aReceber, carteira, clientes, descontoDeVinculo, emAtraso, estornosDoPeriodo,
+  faturamentoPor, recebidoPorForma,
 } from '@/core/financeiro/fechamento'
 import { competenciaDe, competenciaPorExtenso } from '@/core/financeiro/cobranca'
 import { emReais } from '@/core/planos/plano'
@@ -232,6 +232,8 @@ async function Fechamento({
   const porPlano = faturamentoPor(material.pagamentos, 'planoNome')
   const cart = carteira(material.contratos, de, ate)
   const vinculo = descontoDeVinculo(material.contratos)
+  const estornos = estornosDoPeriodo(material.estornos)
+  const gente = clientes(material.pessoas, de, ate)
 
   const periodo = (rotulo: string, novoDe: string, novoAte: string) => (
     <Link
@@ -253,9 +255,11 @@ async function Fechamento({
       <Trilha aba="fechamento" atrasadas={atrasadas} />
 
       <div className="flex flex-wrap items-center gap-2">
+        {/* dia, semana, mês e ano são as quatro janelas que o documento pede */}
         {periodo('Hoje', hoje, hoje)}
-        {periodo('Últimos 7 dias', somarDias(hoje, -6), hoje)}
+        {periodo('Esta semana', somarDias(hoje, -6), hoje)}
         {periodo('Este mês', competenciaDe(hoje), hoje)}
+        {periodo('Este ano', `${hoje.slice(0, 4)}-01-01`, hoje)}
         <span className="text-[12px] text-tinta-fraca">
           de {dataCurta(de)} a {dataCurta(ate)}
         </span>
@@ -277,19 +281,21 @@ async function Fechamento({
             : 'nenhum pagamento registrado'}
         />
         <Numero
-          titulo="Ainda vai vencer no mês"
-          valor={emReais(receber.aVencerCent)}
-          nota={`vencido e não pago, hoje: ${emReais(vencido.vencidoCent)}`}
+          titulo="Estornos no período"
+          valor={emReais(estornos.totalCent)}
+          nota={estornos.quantidade === 0
+            ? 'nenhum pagamento voltou atrás'
+            : `${estornos.quantidade} ${estornos.quantidade === 1 ? 'pagamento devolvido' : 'pagamentos devolvidos'}`}
         />
         <Numero
-          titulo="Previsto para o mês seguinte"
-          valor={emReais(material.previstoCent)}
-          nota="o que os contratos em vigor vão gerar, sem os trancados"
+          titulo="Clientes ativos"
+          valor={String(gente.ativos)}
+          nota={`${gente.inativos} ${gente.inativos === 1 ? 'inativo' : 'inativos'}, que não somem e ficam fora do padrão`}
         />
         <Numero
-          titulo="Desconto de vínculo"
-          valor={emReais(vinculo.totalCent)}
-          nota={`${vinculo.contratos} ${vinculo.contratos === 1 ? 'contrato paga' : 'contratos pagam'} o preço de quem já é cliente de outra modalidade`}
+          titulo="Novos no período"
+          valor={String(gente.novos)}
+          nota={`cadastrados entre ${dataCurta(de)} e ${dataCurta(ate)}`}
         />
       </div>
 
@@ -360,16 +366,46 @@ async function Fechamento({
           <section className={`${cartao} p-4`}>
             <h2 className="pb-3 font-titulo text-[17px] font-semibold">A carteira</h2>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Par termo="Novos no período" valor={String(cart.novos)} />
+              <Par termo="Contratos novos" valor={String(cart.novos)} />
               <Par termo="Encerrados" valor={String(cart.encerrados)} />
               <Par termo="Em vigor hoje" valor={String(cart.emVigor)} />
               <Par termo="Recorrente" valor={emReais(cart.recorrenteCent)} />
             </dl>
             <p className="pt-3 text-[12px] text-tinta-media">
               Recorrente é a soma dos contratos em vigor, sem os trancados: quem
-              está em licença não paga o período parado.
+              está em licença não paga o período parado. Ainda vai vencer neste
+              mês: {emReais(receber.aVencerCent)}, e vencido e não pago hoje:{' '}
+              {emReais(vencido.vencidoCent)}. O mês seguinte deve gerar{' '}
+              {emReais(material.previstoCent)}, e o preço de vínculo custa{' '}
+              {emReais(vinculo.totalCent)} em {vinculo.contratos}{' '}
+              {vinculo.contratos === 1 ? 'contrato' : 'contratos'}.
             </p>
           </section>
+
+          {estornos.quantidade > 0 ? (
+            <section className={`${cartao} p-4`}>
+              <h2 className="pb-1 font-titulo text-[17px] font-semibold">
+                O que voltou atrás
+              </h2>
+              <p className="pb-3 text-[12.5px] text-tinta-media">
+                estornos do período, com o motivo que quem estornou escreveu
+              </p>
+              <ul className="flex flex-col gap-2">
+                {estornos.linhas.map((e, i) => (
+                  <li
+                    key={`${e.estornadoEm}-${i}`}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-linha-suave pb-2 text-[12.5px] last:border-0"
+                  >
+                    <span className="flex-1">{e.pessoaNome}</span>
+                    <span className="text-tinta-media">
+                      {dataCurta(e.estornadoEm.slice(0, 10))} · {e.motivo}
+                    </span>
+                    <span className="font-mono">{emReais(e.valorCent)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
       </div>
 
