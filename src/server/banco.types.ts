@@ -344,6 +344,86 @@ export type Database = {
         }
         Relationships: []
       }
+      contrato: {
+        Row: {
+          conta_id: string
+          criado_em: string
+          criado_por_usuario_id: string | null
+          dia_vencimento: number | null
+          fim: string | null
+          forma_pagamento: string | null
+          id: string
+          inicio: string
+          pessoa_id: string
+          plano_id: string
+          preco_aplicado_cent: number
+          sessoes_contratadas: number | null
+          status: string
+          vinculo_usado: boolean
+        }
+        Insert: {
+          conta_id: string
+          criado_em?: string
+          criado_por_usuario_id?: string | null
+          dia_vencimento?: number | null
+          fim?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          inicio: string
+          pessoa_id: string
+          plano_id: string
+          preco_aplicado_cent: number
+          sessoes_contratadas?: number | null
+          status?: string
+          vinculo_usado?: boolean
+        }
+        Update: {
+          conta_id?: string
+          criado_em?: string
+          criado_por_usuario_id?: string | null
+          dia_vencimento?: number | null
+          fim?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          inicio?: string
+          pessoa_id?: string
+          plano_id?: string
+          preco_aplicado_cent?: number
+          sessoes_contratadas?: number | null
+          status?: string
+          vinculo_usado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contrato_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contrato_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa_resumo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contrato_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "plano"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       convite: {
         Row: {
           aceito_em: string | null
@@ -687,6 +767,7 @@ export type Database = {
       participacao: {
         Row: {
           conta_id: string
+          contrato_id: string | null
           id: string
           observacao: string | null
           observacao_visivel: string
@@ -701,6 +782,7 @@ export type Database = {
         }
         Insert: {
           conta_id: string
+          contrato_id?: string | null
           id?: string
           observacao?: string | null
           observacao_visivel?: string
@@ -715,6 +797,7 @@ export type Database = {
         }
         Update: {
           conta_id?: string
+          contrato_id?: string | null
           id?: string
           observacao?: string | null
           observacao_visivel?: string
@@ -733,6 +816,13 @@ export type Database = {
             columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participacao_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contrato"
             referencedColumns: ["id"]
           },
           {
@@ -761,6 +851,51 @@ export type Database = {
             columns: ["sessao_id"]
             isOneToOne: false
             referencedRelation: "sessao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pausa: {
+        Row: {
+          conta_id: string
+          contrato_id: string
+          criado_em: string
+          fim: string | null
+          id: string
+          inicio: string
+          motivo: string | null
+        }
+        Insert: {
+          conta_id: string
+          contrato_id: string
+          criado_em?: string
+          fim?: string | null
+          id?: string
+          inicio: string
+          motivo?: string | null
+        }
+        Update: {
+          conta_id?: string
+          contrato_id?: string
+          criado_em?: string
+          fim?: string | null
+          id?: string
+          inicio?: string
+          motivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pausa_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pausa_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contrato"
             referencedColumns: ["id"]
           },
         ]
@@ -845,9 +980,17 @@ export type Database = {
         Row: {
           anonimizada_em: string | null
           ativo: boolean
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
           conta_id: string
+          cpf: string | null
           criado_em: string
           email: string | null
+          endereco: string | null
+          endereco_numero: string | null
+          estado_civil: string | null
           foto_path: string | null
           id: string
           identificador_externo: string | null
@@ -856,16 +999,30 @@ export type Database = {
           nome_busca: string | null
           observacao: string | null
           observacao_visivel: string
+          profissao: string | null
+          rg: string | null
+          sexo: string | null
           telefone: string | null
+          telefone_comercial: string | null
           telefone_disca: boolean | null
+          telefone_residencial: string | null
+          uf: string | null
           vencimento_plano: string | null
         }
         Insert: {
           anonimizada_em?: string | null
           ativo?: boolean
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           conta_id: string
+          cpf?: string | null
           criado_em?: string
           email?: string | null
+          endereco?: string | null
+          endereco_numero?: string | null
+          estado_civil?: string | null
           foto_path?: string | null
           id?: string
           identificador_externo?: string | null
@@ -874,16 +1031,30 @@ export type Database = {
           nome_busca?: string | null
           observacao?: string | null
           observacao_visivel?: string
+          profissao?: string | null
+          rg?: string | null
+          sexo?: string | null
           telefone?: string | null
+          telefone_comercial?: string | null
           telefone_disca?: boolean | null
+          telefone_residencial?: string | null
+          uf?: string | null
           vencimento_plano?: string | null
         }
         Update: {
           anonimizada_em?: string | null
           ativo?: boolean
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
           conta_id?: string
+          cpf?: string | null
           criado_em?: string
           email?: string | null
+          endereco?: string | null
+          endereco_numero?: string | null
+          estado_civil?: string | null
           foto_path?: string | null
           id?: string
           identificador_externo?: string | null
@@ -892,8 +1063,14 @@ export type Database = {
           nome_busca?: string | null
           observacao?: string | null
           observacao_visivel?: string
+          profissao?: string | null
+          rg?: string | null
+          sexo?: string | null
           telefone?: string | null
+          telefone_comercial?: string | null
           telefone_disca?: boolean | null
+          telefone_residencial?: string | null
+          uf?: string | null
           vencimento_plano?: string | null
         }
         Relationships: [
@@ -1365,6 +1542,7 @@ export type Database = {
       vaga: {
         Row: {
           conta_id: string
+          contrato_id: string | null
           criado_em: string
           fim: string | null
           id: string
@@ -1374,6 +1552,7 @@ export type Database = {
         }
         Insert: {
           conta_id: string
+          contrato_id?: string | null
           criado_em?: string
           fim?: string | null
           id?: string
@@ -1383,6 +1562,7 @@ export type Database = {
         }
         Update: {
           conta_id?: string
+          contrato_id?: string | null
           criado_em?: string
           fim?: string | null
           id?: string
@@ -1396,6 +1576,13 @@ export type Database = {
             columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vaga_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contrato"
             referencedColumns: ["id"]
           },
           {
