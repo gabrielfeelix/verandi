@@ -326,6 +326,90 @@ deles apareceria de tarde: o fechamento montava a janela do período com
 brasileiro. Recibo emitido às 21h30 sumia do fechamento de hoje. É a armadilha de
 UTC que o `core/` documenta desde o começo, chegando por uma porta nova.
 
+## O que a folha do recibo passou a dizer, em 19/08
+
+A folha renderizava e nenhum teste reclamava, e mesmo assim faltavam quatro dos
+cinco elementos que se espera de um recibo brasileiro: título em destaque, o
+valor em algarismos numa caixa que se ache de longe, **local e data de
+emissão**, e a assinatura com o nome de quem recebeu embaixo da linha. Só o
+valor por extenso estava lá, escondido dentro do parágrafo. Agora a folha é um
+talão: emitente e valor dividem o topo, a palavra RECIBO e o número ficam na
+faixa do meio, o parágrafo continua, e embaixo vêm o local, a data por extenso e
+a assinatura identificada.
+
+**A cidade é lida do endereço do emitente, e some quando não dá para ter
+certeza.** O endereço é campo de texto livre, e a cidade só se lê com segurança
+quando o fim é uma UF de duas letras. Cidade errada num recibo é pior que cidade
+ausente: a ausente é uma lacuna que alguém percebe, a errada é uma afirmação que
+ninguém confere.
+
+**O e-mail de quem emite saía impresso na via do aluno.** Quem responde pelo
+negócio raramente está cadastrado como profissional, e o caminho antigo caía em
+`user.email`: em produção, o endereço pessoal do dono do estúdio ia num papel
+por pagamento. A emissão nova nunca mais grava e-mail; `quemEmitiu()` resolve o
+que já está gravado, reconhecendo o e-mail e omitindo a linha, e o corpo
+congelado continua intacto. A auditoria sempre esteve em
+`emitido_por_usuario_id`, que é onde ela cabia melhor.
+
+**O trilho inteiro imprimia por baixo da folha.** `Rail`, `BarraInferior` e
+`RodapeLegal` nunca tiveram `data-imprimir="fora"`, e `[data-folha]` usava
+`position: absolute`, o que tirava a folha do fluxo e a punha flutuando por cima
+do menu em vez de ocupar a página. O nome das telas atravessava o texto do
+recibo que o aluno leva embora. Os dois estão corrigidos e guardados por lint em
+`tests/unit/impressao.test.ts`, porque `@media print` não roda em `jsdom` e este
+é o defeito que só aparece com uma folha na mão.
+
+**O carimbo de cancelado transbordava o cartão.** A rotação estava no elemento
+posicionado, e empurrava a palavra para fora à direita, cortada justamente na
+ponta em que se lê. Agora a rotação mora numa camada interna, e o rodapé ganhou
+a etiqueta "Cancelado" para quem olhar a folha de perto.
+
+## Receber adiantado, em 19/08
+
+O sistema materializa até o mês seguinte, e isso está certo para a tela: doze
+meses de dívida aberta transformam "a vencer" numa lista que ninguém lê. Mas a
+aluna que chega em agosto querendo pagar até dezembro não tinha o que pagar, e a
+recepção só conseguia receber dois meses.
+
+`anteciparCobrancas(contratoId, meses)` abre os próximos meses **de um contrato
+só**, a pedido de quem está no balcão, até doze. As cobranças nascem com o
+vencimento que o contrato manda, e cada mês pago fica com a competência dele: o
+fechamento de dezembro não vai achar que dezembro foi faturado em agosto. Não
+inventa mês além do contrato, porque `cobrancasPrevistas` já para no fim dele.
+
+Doze é o teto porque é o horizonte em que o preço do contrato ainda é o preço.
+
+## O gerenciador de blocos da tela inicial, em 19/08
+
+Migration `0058`: `preferencia_home`, com a ordem e a visibilidade dos blocos da
+`/hoje`. Um ícone no topo da própria tela abre o painel; setas movem, uma caixa
+liga e desliga, e há como voltar ao padrão.
+
+**É por usuário e conta, e não por conta.** O dono abre o dia para saber quanto
+entrou e a recepção para saber quem falta chamar; um arranjo só faria a última
+pessoa a mexer decidir pela outra, todo dia. É a **primeira tabela do produto em
+que a RLS passa da conta**: as outras param nela porque o dado é do negócio, e
+esta é da pessoa. Nem o dono escreve na tela da recepção, e há teste provando.
+
+**A faixa é do bloco, e não da pessoa.** A agenda do dia precisa da coluna
+larga e a lista de pendências não, então o que se arruma é a ordem dentro de
+cada coluna e o que aparece. Deixar arrastar de uma para a outra seria oferecer
+um arranjo que a tela não sabe desenhar.
+
+**Setas, e não arrastar.** Arrastar exige mão firme num balcão com alguém
+esperando na frente, e no celular briga com o rolar da página. Duas setas fazem
+o mesmo e já funcionam com teclado.
+
+**O que é gravado é só `id` e `visivel`.** Bloco que o arranjo salvo não conhece
+entra no fim e entra **visível**, porque nascer escondido faria a novidade não
+existir justamente para quem mais usa o produto; bloco salvo que não existe mais
+some; e a agenda do dia é fixa, porque tela inicial sem tela não é opção.
+
+**Um bloco novo entrou junto: o caixa.** O trilho já traz quantas cobranças
+estão em atraso, e isso responde "tem alguém para ligar?". O que ele não
+responde é "quanto", que é a pergunta que faz alguém abrir o Financeiro: dez
+linhas de R$ 90 e dez linhas de R$ 700 pedem manhãs diferentes.
+
 ## O módulo 19, aulas por professor, no ar em 18/08
 
 O item 7, e o último dos nove pedidos do documento. **Sem migration:** a
@@ -474,6 +558,17 @@ mas sem o e-mail preenchido.
 Duas colunas, porque as duas coisas envelhecem em ritmos diferentes: o que se
 mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
 **suíte** vale para o commit em que rodou.
+
+**Contra produção, em 19/08, depois de aplicar a `0058`:**
+
+| O quê | Resultado |
+|---|---|
+| migrations aplicadas (`0030` a `0058`) | **as 29**, a última em 19/08 |
+| tabelas de base em `app_verandi` | **39**, uma a mais que antes: `preferencia_home` |
+| `preferencia_home` lá | existe, com RLS ligada e a política de conta **e** usuário |
+| tabelas em `public` (AutoFluxos) | **33**, intactas depois da aplicação; eram 22 na contagem anterior, e quem cresceu foi o vizinho |
+| pendentes depois de aplicar | nenhuma: `--dry` diz "nada a fazer" |
+| `https://verandi.4yu.com.br/entrar` | 200 |
 
 **Contra produção, em 18/08:**
 

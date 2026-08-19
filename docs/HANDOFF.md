@@ -12,9 +12,12 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 19/ago/2026, na sessão em que a produção deixou de abrir vazia:
-a tabela de preços do cliente entrou, o ciclo administrativo passou de ponta a
-ponta, e as telas ganharam movimento financeiro para dar para olhar.
+Última revisão: 19/ago/2026, na sessão em que alguém percorreu o fluxo inteiro
+como usuário, na mão: cadastrar aluno, completar a ficha, contratar plano,
+receber em duas parcelas, emitir recibo, cancelar recibo, conferir o fechamento.
+O ciclo fechou. O que apareceu foi um recibo que faltava metade do que um recibo
+tem, o trilho do sistema imprimindo por baixo dele, e o e-mail de quem emite indo
+impresso na via do aluno.
 
 ---
 
@@ -26,15 +29,16 @@ a cada push na `main`.
 | | | |
 |---|---|---|
 | Contas de cliente | **1** (MGM Pilates) | conferido 18/08 |
-| Migrations aplicadas | **28**, da `0030` à `0057` | `aplica-em-producao --dry` diz "nada a fazer" |
-| Tabelas em `app_verandi` | **40**, todas com RLS | conferido em produção |
-| Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção |
+| Migrations aplicadas | **29**, da `0030` à `0058` | `aplica-em-producao --dry` diz "nada a fazer" |
+| Tabelas em `app_verandi` | **39** de base, todas com RLS | conferido 19/08, contando `pg_tables` |
+| Tabelas em `public` (AutoFluxos) | **33**, intactas | eram 22 na última contagem; o crescimento é do AutoFluxos, não nosso |
 | Banco | **16 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | **543** de unidade e banco · **223** de navegador | as duas suítes verdes em 19/08 |
+| Testes | **582** de unidade e banco · **226** de navegador | as duas suítes verdes em 19/08 |
 | Planos em produção | **29**, em 11 serviços | a tabela do cliente inteira, conferida linha a linha |
 | Movimento em produção | **18 contratos · 46 cobranças · 40 recibos** | **é ensaio, e sai com um comando**; ver o quadro abaixo |
 | API v1 | nove operações e quatro eventos de webhook, com documentação em `/api-docs` | |
 | Telas | 14 no sistema, mais acesso, legais e `/api-docs` | |
+| Blocos arrumáveis na `/hoje` | **7**, por usuário | migration `0058`, aplicada em produção em 19/08 |
 
 > ## PEGUE POR AQUI
 >
@@ -122,6 +126,64 @@ a cada push na `main`.
 separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
 
 ---
+
+> ## O CÓDIGO AINDA NÃO FOI AO AR
+>
+> **A migration `0058` já está em produção** (aplicada em 19/08, conferida fora
+> do console: `app_verandi` foi de 38 para 39 tabelas de base, `public` continua
+> 33, a tabela tem RLS e uma política, e `--dry` diz "nada a fazer"). O banco
+> está pronto e a tabela vazia não atrapalha ninguém.
+>
+> **O código desta sessão não foi commitado nem publicado.** Push na `main`
+> publica sozinho, então o que falta é decidir subir. A ordem certa já foi
+> respeitada: banco primeiro, código depois.
+
+## O que a sessão do fluxo na mão fez, em 19/ago
+
+Ninguém tinha percorrido o produto como quem usa. A suíte de navegador pergunta
+se a tela abriu e o ensaio geral pergunta se o dinheiro atravessa; nenhum dos
+dois pergunta se o papel que sai da impressora serve.
+
+| O quê | Onde |
+|---|---|
+| A folha do recibo virou talão | `src/components/recibo/folha.tsx`, `src/core/recibo/recibo.ts` |
+| O e-mail de quem emite saiu do papel | `src/server/recibo/acoes.ts`, `quemEmitiu()` no core |
+| O trilho parou de imprimir por baixo da folha | `src/app/(app)/layout.tsx`, `src/app/globals.css` |
+| O carimbo de cancelado parou de transbordar | `src/components/recibo/folha.tsx` |
+| A lista de recibos alinhou as colunas | `src/components/recibo/lista.tsx` |
+| Receber adiantado | `anteciparCobrancas` em `src/server/financeiro/acoes.ts` |
+| O gerenciador de blocos da `/hoje` | `src/core/home/blocos.ts`, `src/server/home/`, `src/components/hoje/arrumar.tsx`, migration `0058` |
+| O bloco de caixa na tela inicial | `resumoDoCaixa` em `src/server/financeiro/consultas.ts` |
+
+**Três defeitos silenciosos, todos da mesma família**, e nenhum deles quebrava
+teste nenhum:
+
+1. **O e-mail do dono ia impresso na via do aluno.** `emitidoPor` caía em
+   `user.email` quando quem emitia não era profissional cadastrado, e na MGM o
+   dono não é. Um papel por pagamento, com o endereço pessoal dele.
+2. **O trilho imprimia por baixo do recibo.** `Rail`, `BarraInferior` e
+   `RodapeLegal` nunca tiveram `data-imprimir="fora"`, e `[data-folha]` era
+   `position: absolute`. O nome das telas atravessava o texto do recibo.
+3. **Faltavam quatro dos cinco elementos de um recibo.** Título em destaque,
+   valor em algarismos destacado, local e data de emissão, assinatura
+   identificada. A folha renderizava, então nada reclamava.
+
+Os três viraram lint em `tests/unit/impressao.test.ts`: `@media print` não roda
+em `jsdom`, e o que dá para garantir é que a decisão não suma num refactor.
+
+**O que o fluxo na mão provou que funciona**, e vale escrever porque a próxima
+pessoa não precisa refazer: cadastro em três campos, ficha ampliada com CPF e
+endereço, contrato com validação de horários que dá a frase certa, cobrança
+nascendo com o vencimento do contrato, pagamento parcial virando "Pago em
+parte", segundo pagamento fechando, recibo por pagamento, cancelamento com
+motivo, e o fechamento somando. As seis formas de pagamento existem desde o
+módulo 17 e vêm sugeridas do contrato.
+
+**Três incômodos menores que saíram junto:** o cartão PLANO da ficha dizia
+"valor e cobrança são de outro sistema" numa tela que hoje tem os dois uma aba
+ao lado; o cabeçalho da ficha mostrava o telefone cru a três centímetros do
+mesmo telefone formatado; e os modais de cancelar tinham dois botões "Cancelar",
+um para desistir e outro para executar.
 
 ## O que a sessão de 19/ago fez
 
@@ -287,6 +349,13 @@ O recibo, que é do estúdio e sai na hora, já existe e não depende de nada di
   consulta, é falta de estado de espera. `useLinkStatus` resolve.
 - A **busca global** do cabeçalho é uma caixa desabilitada dizendo que entra no
   próximo marco.
+- **A razão social provisória agora aparece em mais lugares.** A folha nova
+  imprime o nome do emitente duas vezes por via: no topo e embaixo da linha de
+  assinatura. Enquanto for `MGM Pilates` em vez do texto do cartão de CNPJ, o
+  erro sai em dobro.
+- **A cidade do recibo é lida do endereço do emitente**, e só quando ele termina
+  em UF de duas letras. O endereço da MGM está vazio, então hoje o recibo sairia
+  sem local. Preencher o endereço do emitente resolve os dois de uma vez.
 - **A reentrega do webhook só dispara quando um evento novo é enfileirado**,
   porque o plano gratuito da Vercel não dá cron de minuto. Numa agenda em uso
   isso acontece muitas vezes por dia; a correção é um cron externo.
@@ -407,6 +476,8 @@ coluna ou tabela com dado de cliente).
 | Entidade nova no log | acrescente ao `check` de `log_configuracao.entidade` **na mesma migration** que cria a tabela, e ao tipo em `src/server/log.ts`. `registrar()` engole o erro de propósito, e a linha some calada. |
 | Tipo derivado do banco | mora em `src/server/banco.ts`. **Nunca** em `banco.types.ts`, que é reescrito inteiro a cada geração. |
 | Janela de período | monte com `instante(data, hora, fuso)`, nunca com `` `${data}T00:00:00Z` ``. Isso é meia-noite em Londres e corta as três últimas horas do dia brasileiro. |
+| Impressão | tudo que não é a folha leva `data-imprimir="fora"`. Trilho, barra do celular e rodapé imprimiam **por baixo** do recibo, com o nome das telas atravessando o texto. E a folha imprime no fluxo: `position: absolute` a fazia flutuar por cima em vez de ocupar a página. Guardado em `tests/unit/impressao.test.ts`. |
+| Nome de quem age, no papel | **nunca o e-mail.** Quem responde pelo negócio raramente é profissional cadastrado, e `user.email` como reserva põe o endereço pessoal dele num documento que vai embora com o cliente. Sem nome, a linha some. |
 | Recusa em Server Action | volta como **valor** (`{ ok: false, erro }`), nunca como `throw`. Erro lançado ali não atravessa a rede com o nosso texto: o Next entrega um genérico com identificador, e a tela mostra "alguma coisa quebrou". Já aconteceu duas vezes, em `planos/acoes.ts` e em `config/acoes.ts`. |
 | Cliente do Supabase | `clienteServidor()` é `cache()` do React, um por pedido. Não crie um cliente novo dentro de função nova: **o primeiro `getUser()` de cada cliente é uma ida ao servidor de autenticação**, e elas somam sem aparecer em lugar nenhum. |
 | Placeholder de campo | nunca o valor que a pessoa ia digitar. Campo vazio com o texto certo dentro parece campo preenchido, e quem preencheu o resto sai achando que terminou. |
@@ -447,6 +518,10 @@ coluna ou tabela com dado de cliente).
 - **O onboarding é dentro do sistema**, não uma tela antes de entrar.
 - **Importador de planilha não será construído.** Os dados do cliente entram
   pela tela.
+- **A tela inicial se arruma por pessoa, e as colunas não trocam de conteúdo.**
+  O arranjo é de quem usa, não da conta: dono e recepção abrem o dia por motivos
+  diferentes. E a agenda precisa da coluna larga, então o que se arruma é a
+  ordem dentro de cada coluna, não de qual coluna cada bloco é.
 - **Cálculo de pagamento de profissional não entra no relatório de aulas.**
   Quanto vale a aula é contrato de trabalho, muda por pessoa e por modalidade.
 
