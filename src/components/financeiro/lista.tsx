@@ -13,6 +13,7 @@ import {
   cancelarCobranca, corrigirValor, estornarPagamento, reabrirCobranca,
   registrarPagamento,
 } from '@/server/financeiro/acoes'
+import { emitirRecibo } from '@/server/recibo/acoes'
 import type { CobrancaLinha } from '@/server/financeiro/consultas'
 import { emCentavos, emReais } from '@/core/planos/plano'
 import { competenciaCurta } from '@/core/financeiro/cobranca'
@@ -195,13 +196,42 @@ export function ListaDeCobrancas({
                         estornado: {p.motivoEstorno}
                       </span>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => setModo({ tipo: 'estornar', c, pagamentoId: p.id })}
-                        className="cursor-pointer text-[11.5px] text-tinta-media underline"
-                      >
-                        estornar
-                      </button>
+                      <>
+                        {/*
+                          * O recibo nasce daqui, da linha do pagamento, que é
+                          * onde a pessoa pede o papel. Emitir não é automático:
+                          * a maior parte dos pagamentos de um estúdio pequeno
+                          * não vira recibo, e gastar número de sequência com o
+                          * que ninguém pediu é o mesmo buraco do cancelamento,
+                          * sem nem a desculpa de ter havido um erro.
+                          */}
+                        {p.recibo ? (
+                          <Link
+                            href={`/recibos/${p.recibo.id}`}
+                            className="text-[11.5px] text-marca underline"
+                          >
+                            {p.recibo.descricao}
+                            {p.recibo.cancelado ? ' (cancelado)' : ''}
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => agir(
+                              () => emitirRecibo(p.id), 'Recibo emitido')}
+                            disabled={pendente}
+                            className="cursor-pointer text-[11.5px] text-marca underline disabled:opacity-50"
+                          >
+                            emitir recibo
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setModo({ tipo: 'estornar', c, pagamentoId: p.id })}
+                          className="cursor-pointer text-[11.5px] text-tinta-media underline"
+                        >
+                          estornar
+                        </button>
+                      </>
                     )}
                   </li>
                 ))}

@@ -72,10 +72,12 @@ export const PRIVACIDADE: Documento = {
           tipo: 'lista',
           itens: [
             'identificação: nome, telefone, e-mail, data de nascimento e um identificador do próprio negócio, quando ele usa um;',
+            'documento e endereço, quando o negócio os preenche: CPF, RG, endereço completo, sexo, estado civil, profissão e telefones adicionais. O CPF existe porque um recibo sem o documento de quem pagou não comprova pagamento nenhum;',
             'operação da agenda: em quais horários a pessoa está marcada, presença, falta, falta avisada, licença, reposição e encaixe, com data e hora;',
             'marcações que o negócio cria para organizar o atendimento;',
             'observações escritas pelo negócio, tanto na ficha quanto na chamada do dia;',
-            'a data de vencimento do plano, quando o negócio a usa como lembrete. A Verandi não processa pagamento e não guarda dado de cartão.',
+            'a relação comercial com o negócio: qual plano foi contratado, por quanto, de quando até quando, o que foi cobrado, o que foi pago, em que data e por qual forma, e o recibo emitido, quando houver. A Verandi não processa pagamento e não guarda dado de cartão: ela registra o que o negócio informa ter recebido;',
+            'a data de vencimento do plano, quando o negócio a usa como lembrete.',
           ],
         },
         {
@@ -217,7 +219,8 @@ export const PRIVACIDADE: Documento = {
             'Registro de operação da agenda: fica enquanto a conta existir, porque é o histórico do negócio.',
             'Convite: perde a validade sozinho no prazo dele, e o registro do envio fica para responder "este acesso foi concedido quando?".',
             'Chave de integração revogada: a linha fica, sem o segredo, para o histórico não apontar para uma chave que não existe mais.',
-            'Depois do fim do contrato: 30 dias para o cliente pedir a cópia, e então eliminação ou anonimização, salvo o que a lei obrigar a guardar.',
+            'Recibo emitido: cinco anos contados da emissão, mesmo que o cadastro da pessoa seja apagado antes. Ele é documento que comprova um pagamento que existiu, a via impressa já está no mundo, e a lei brasileira usa esse prazo para cobrança e para reclamação de consumo. O recibo fica congelado, com o texto que foi impresso no dia, e não é usado para procurar ninguém.',
+            'Depois do fim do contrato: 30 dias para o cliente pedir a cópia, e então eliminação ou anonimização, salvo o que a lei obrigar a guardar, que hoje é o recibo.',
           ],
         },
       ],
@@ -247,6 +250,11 @@ export const PRIVACIDADE: Documento = {
           tipo: 'p',
           texto:
             'Em qualquer dos casos, a resposta sai em até 15 dias.',
+        },
+        {
+          tipo: 'p',
+          texto:
+            'A eliminação tem uma exceção, e ela está escrita aqui para não ser descoberta depois: o recibo já emitido não é apagado. Ele comprova um pagamento que aconteceu, tem prazo de guarda de cinco anos, e a base legal é o cumprimento de obrigação legal e o exercício regular de direito, não o consentimento. Todo o resto do cadastro sai: nome, telefone, endereço, CPF, foto e avaliação.',
         },
         {
           tipo: 'p',

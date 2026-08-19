@@ -15,6 +15,18 @@ import { admin, contaDeTeste, usuarioDe, entrar } from './apoio'
 const HOJE = () => new Date().toLocaleDateString('en-CA')
 const competencia = (iso: string) => `${iso.slice(0, 7)}-01`
 
+/*
+ * Dias contados a partir de **hoje local**, e não de `toISOString`.
+ *
+ * Depois das 21h no Brasil o `toISOString` já está no dia seguinte, e a conta
+ * de "40 dias atrás" saía um dia diferente da que o servidor faz com o fuso da
+ * conta: o teste procurava "40d" e a tela dizia "39d". É a mesma armadilha de
+ * UTC que o `core/` documenta, chegando pela porta do teste.
+ */
+const DIAS_ATRAS = (n: number) =>
+  new Date(Date.parse(`${HOJE()}T12:00:00Z`) - n * 864e5)
+    .toISOString().slice(0, 10)
+
 async function cenario(nome: string) {
   const { contaId, marca } = await contaDeTeste(nome)
   const { email } = await usuarioDe(contaId, 'dono', marca)
@@ -133,8 +145,7 @@ test('o pagamento pela metade fica parcial, e as duas datas ficam', async ({ pag
 
 test('a tela abre pelo que está em atraso, com os dias e o telefone', async ({ page }) => {
   const c = await cenario('Estúdio do atraso')
-  const ontem = new Date(Date.now() - 40 * 864e5).toISOString().slice(0, 10)
-  await contratoCom(c, { vencimento: ontem })
+  await contratoCom(c, { vencimento: DIAS_ATRAS(40) })
 
   await entrar(page, c.email)
   await page.goto('/financeiro')

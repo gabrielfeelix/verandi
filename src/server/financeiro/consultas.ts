@@ -1,5 +1,6 @@
 import type { Db } from '../supabase'
 import type { Recorrencia } from '@/core/planos/plano'
+import { instante } from '../agenda/fuso'
 import { fimProrrogado, type Pausa } from '@/core/contratos/contrato'
 import {
   cobrancasPrevistas, competenciaDe, fimDaCompetencia, proximaCompetencia,
@@ -9,6 +10,7 @@ import type {
   CobrancaDoPeriodo, ContratoDoPeriodo, EstornoDoPeriodo, Forma,
   PagamentoRecebido, PessoaDaConta,
 } from '@/core/financeiro/fechamento'
+import { descricaoDoRecibo, type StatusRecibo } from '@/core/recibo/recibo'
 
 export const POR_PAGINA = 20
 
@@ -20,6 +22,8 @@ export type PagamentoLinha = {
   observacao: string | null
   estornado: boolean
   motivoEstorno: string | null
+  /** o recibo já emitido deste pagamento, quando existe */
+  recibo: { id: string; descricao: string; cancelado: boolean } | null
 }
 
 export type CobrancaLinha = {
@@ -109,6 +113,7 @@ function paraLinha(c: LinhaCrua, hoje: string): CobrancaLinha {
       observacao: p.observacao,
       estornado: p.estornado_em !== null,
       motivoEstorno: p.motivo_estorno,
+      recibo: null,
     })).sort((a, b) => a.recebidoEm.localeCompare(b.recebidoEm)),
   }
 }
@@ -163,7 +168,55 @@ export async function listarCobrancas(
     .returns<LinhaCrua[]>()
   if (error) throw error
 
-  return { linhas: (data ?? []).map((c) => paraLinha(c, hoje)), total: count ?? 0 }
+  const linhas = (data ?? []).map((c) => paraLinha(c, hoje))
+  await juntarRecibos(db, contaId, linhas)
+  return { linhas, total: count ?? 0 }
+}
+
+/**
+ * Cola em cada pagamento o recibo dele, numa consulta só.
+ *
+ * Numa junção dentro do `select` da cobrança, o recibo viria com o corpo
+ * inteiro por linha, que é o objeto mais pesado deste módulo, e a lista carrega
+ * vinte cobranças de uma vez. Aqui vai só o que a linha precisa mostrar: se já
+ * existe papel, e qual é o número dele.
+ */
+async function juntarRecibos(
+  db: Db, contaId: string, linhas: CobrancaLinha[],
+): Promise<void> {
+  const ids = linhas.flatMap((c) => c.pagamentos.map((p) => p.id))
+  if (!ids.length) return
+
+  const { data } = await db.from('recibo')
+    .select('id, serie, numero, versao, status, pagamento_id')
+    .eq('conta_id', contaId).in('pagamento_id', ids)
+    .neq('status', 'substituido')
+    .returns<Array<{
+      id: string; serie: string; numero: number; versao: number
+      status: string; pagamento_id: string
+    }>>()
+
+  const porPagamento = new Map<string, typeof data extends null ? never : NonNullable<typeof data>[number]>()
+  for (const r of data ?? []) {
+    const atual = porPagamento.get(r.pagamento_id)
+    if (!atual || r.versao > atual.versao) porPagamento.set(r.pagamento_id, r)
+  }
+
+  for (const c of linhas) {
+    for (const p of c.pagamentos) {
+      const r = porPagamento.get(p.id)
+      p.recibo = r
+        ? {
+            id: r.id,
+            descricao: descricaoDoRecibo({
+              serie: r.serie, numero: r.numero, versao: r.versao,
+              status: r.status as StatusRecibo,
+            }),
+            cancelado: r.status === 'cancelado',
+          }
+        : null
+    }
+  }
 }
 
 /** Quantas estão em atraso hoje: é o número do rail, e ele precisa ser barato. */
@@ -186,7 +239,9 @@ export async function cobrancasDaPessoa(
     .order('competencia', { ascending: false })
     .returns<LinhaCrua[]>()
   if (error) throw error
-  return (data ?? []).map((c) => paraLinha(c, hoje))
+  const linhas = (data ?? []).map((c) => paraLinha(c, hoje))
+  await juntarRecibos(db, contaId, linhas)
+  return linhas
 }
 
 export type Fechamento = {
@@ -220,7 +275,7 @@ export type Fechamento = {
  * o teste das somas não precisa de banco.
  */
 export async function materialDoFechamento(
-  db: Db, contaId: string, de: string, ate: string, hoje: string,
+  db: Db, contaId: string, de: string, ate: string, hoje: string, fuso: string,
 ): Promise<Fechamento> {
   const [pagamentos, cobrancas, contratos, atrasadas, estornos, pessoas] =
     await Promise.all([
@@ -286,8 +341,14 @@ export async function materialDoFechamento(
      */
     db.from('pagamento')
       .select('valor_cent, estornado_em, motivo_estorno, cobranca(pessoa(nome))')
+      /*
+       * Em instante absoluto, e no fuso da conta: `${de}T00:00:00Z` é
+       * meia-noite em Londres, e no Brasil isso corta as três últimas horas do
+       * dia. O estorno das 21h30 cairia no fechamento de amanhã.
+       */
       .eq('conta_id', contaId).not('estornado_em', 'is', null)
-      .gte('estornado_em', `${de}T00:00:00Z`).lte('estornado_em', `${ate}T23:59:59Z`)
+      .gte('estornado_em', instante(de, '00:00', fuso))
+      .lte('estornado_em', instante(ate, '23:59', fuso))
       .returns<Array<{
         valor_cent: number; estornado_em: string; motivo_estorno: string | null
         cobranca: { pessoa: { nome: string } | null } | null

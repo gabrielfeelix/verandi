@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
-  descricaoDoRecibo, emitenteCompleto, montarCorpo, numeroFormatado,
-  podeCancelar, podeCorrigir, porExtenso,
+  descricaoDoRecibo, documentoFormatado, emitenteCompleto, montarCorpo,
+  numeroFormatado, podeCancelar, podeCorrigir, porExtenso,
 } from '@/core/recibo/recibo'
 
 describe('o número do recibo', () => {
@@ -14,6 +14,19 @@ describe('o número do recibo', () => {
       .toBe('A-000042')
     expect(descricaoDoRecibo({ serie: 'A', numero: 42, versao: 2, status: 'valido' }))
       .toBe('A-000042 (correção 2)')
+  })
+})
+
+describe('o documento no papel', () => {
+  it('sai pontuado, como se lê', () => {
+    expect(documentoFormatado('52998224725')).toBe('529.982.247-25')
+    expect(documentoFormatado('12345678000190')).toBe('12.345.678/0001-90')
+  })
+
+  it('o que não é CPF nem CNPJ sai como veio, e não some', () => {
+    // documento que o sistema não reconheceu ainda é o que a pessoa digitou
+    expect(documentoFormatado('X-1234')).toBe('X-1234')
+    expect(documentoFormatado(null)).toBeNull()
   })
 })
 

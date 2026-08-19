@@ -55,8 +55,18 @@ export const ENDERECO_PUBLICO = 'https://verandi.4yu.com.br'
  */
 export const EM_REVISAO = true
 
-export const VERSAO = '1.0'
-export const VIGENTE_DESDE = '15 de agosto de 2026'
+/*
+ * Mexer no texto **sobe a versão**, e subir a versão faz o aceite ser pedido de
+ * novo a quem já aceitou. É o ponto inteiro de guardar a versão no
+ * `aceite_de_termos`: sem isso, "a pessoa aceitou" não se prova, porque não se
+ * sabe o quê.
+ *
+ * 1.1, em 18/08: a política passou a listar documento e endereço, a relação
+ * comercial e o recibo, e a dizer o prazo de guarda dele e a exceção que ele
+ * abre na eliminação.
+ */
+export const VERSAO = '1.1'
+export const VIGENTE_DESDE = '18 de agosto de 2026'
 
 /** Quem é a 4YU, do jeito que precisa aparecer num documento destes. */
 export const EMPRESA = {

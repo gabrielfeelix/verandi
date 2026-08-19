@@ -414,6 +414,29 @@ select:focus-visible {
   body {
     background: #fff;
   }
+
+  /*
+   * A folha do recibo.
+   *
+   * Só ela sai, e sai inteira: o trilho, as abas e os botões somem pelo
+   * `data-imprimir="fora"`, e o que resta ocupa a largura da folha. As duas
+   * vias ficam uma embaixo da outra, com a linha de corte no meio, porque é
+   * assim que o talão de papel funciona e é o que a recepção espera cortar.
+   */
+  [data-folha] {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+
+  [data-via] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
 
 /* Espera curta: o ponto que respira enquanto a próxima tela não chega. */

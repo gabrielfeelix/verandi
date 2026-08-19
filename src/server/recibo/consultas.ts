@@ -1,4 +1,5 @@
 import type { Db } from '../supabase'
+import { instante } from '../agenda/fuso'
 import type { CorpoDoRecibo, StatusRecibo } from '@/core/recibo/recibo'
 
 export const POR_PAGINA = 20
@@ -144,15 +145,23 @@ export async function recibosDosPagamentos(
  * recibo de março cancelado em abril é um cancelamento de abril.
  */
 export async function recibosDoPeriodo(
-  db: Db, contaId: string, de: string, ate: string,
+  db: Db, contaId: string, de: string, ate: string, fuso: string,
 ): Promise<{
   emitidos: number
   emitidoCent: number
   cancelados: number
   canceladoCent: number
 }> {
-  const inicio = `${de}T00:00:00Z`
-  const fim = `${ate}T23:59:59Z`
+  /*
+   * O período vem em data local, e a coluna guarda instante absoluto.
+   *
+   * `${de}T00:00:00Z` é meia-noite em Londres, e no Brasil isso corta as três
+   * últimas horas do dia: um recibo emitido às 21h30 de hoje nascia no dia
+   * seguinte em UTC e sumia do fechamento de hoje. Apareceu rodando a suíte
+   * inteira depois das 21h, e não rodando o teste sozinho de tarde.
+   */
+  const inicio = instante(de, '00:00', fuso)
+  const fim = instante(ate, '23:59', fuso)
 
   const [emitidos, cancelados] = await Promise.all([
     db.from('recibo').select('valor_cent')

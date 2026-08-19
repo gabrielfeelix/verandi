@@ -300,6 +300,21 @@ export async function anonimizarPessoa(id: string): Promise<void> {
   const tags = await db.from('pessoa_tag').delete().eq('pessoa_id', id)
   if (tags.error) throw tags.error
 
+  /*
+   * **O recibo fica, e é a única exceção deste sistema.**
+   *
+   * Nada aqui o toca de propósito, e esta linha existe para que a próxima
+   * correção da anonimização não o apague achando que está fazendo o certo. O
+   * recibo é documento contábil de um pagamento que existiu, guardado por cinco
+   * anos contados da emissão, com base legal de cumprimento de obrigação legal
+   * e exercício regular de direito. A via impressa já está no mundo.
+   *
+   * Ele guarda o nome dentro do `corpo` congelado, e continua guardando. O que
+   * o titular pediu foi apagar o cadastro, e o cadastro sai inteiro: a ficha
+   * some da busca, das listas e da agenda. O recibo não é fonte de consulta,
+   * ninguém procura pessoa por ele, e a decisão está escrita no plano 13.
+   */
+
   // a observação da participação é anotação de terceiro sobre o titular, e vai
   // junto: "lesão no ombro" continua sendo dado dela depois que o nome saiu
   const obs = await db.from('participacao')

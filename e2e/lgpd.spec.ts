@@ -36,6 +36,17 @@ test('atender pedido de exclusão apaga quem a pessoa é e mantém o que acontec
     origem: 'recorrente', status: 'presente', observacao: 'travou no meio',
   }).select().single()
 
+  /*
+   * O recibo é a única coisa que sobrevive ao pedido, e o teste guarda isso:
+   * documento contábil de um pagamento que existiu, com prazo de guarda de
+   * cinco anos, e com a via impressa já no mundo. Ver o plano 13.
+   */
+  const { data: recibo } = await admin.from('recibo').insert({
+    conta_id: base.contaId, serie: 'A', numero: 7, pessoa_id: pessoa.id,
+    valor_cent: 45000,
+    corpo: { pagadorNome: `Larissa Cruz ${base.marca}`, valorCent: 45000 },
+  }).select('id').single()
+
   await entrar(page, email)
   await page.goto(`/pessoas/${pessoa.id}`)
 
@@ -64,6 +75,14 @@ test('atender pedido de exclusão apaga quem a pessoa é e mantém o que acontec
     cidade: null, uf: null, cep: null, profissao: null,
     telefone_residencial: null,
   })
+
+  // o recibo continua de pé, com o nome dentro do corpo congelado
+  const { data: depois } = await admin.from('recibo')
+    .select('id, status, corpo').eq('id', recibo!.id).single()
+  expect(depois).toBeTruthy()
+  expect(depois!.status).toBe('valido')
+  expect((depois!.corpo as { pagadorNome: string }).pagadorNome)
+    .toBe(`Larissa Cruz ${base.marca}`)
 
   /*
    * `poll` também aqui, e não leitura direta.

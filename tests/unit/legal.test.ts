@@ -22,6 +22,16 @@ import { montaRedefinicao } from '@/core/email/redefinir'
 
 const TODOS = Object.values(DOCUMENTOS)
 
+/*
+ * O que o produto passou a guardar precisa estar escrito na política, e este é
+ * o lint que impede a política de envelhecer em silêncio. Cada linha aqui é um
+ * módulo que acrescentou dado pessoal: 16 trouxe CPF e endereço, 17 trouxe o
+ * dinheiro, 18 trouxe o recibo e o prazo de guarda dele.
+ */
+const O_QUE_O_PRODUTO_GUARDA = [
+  'CPF', 'endereço completo', 'plano', 'pago', 'recibo',
+]
+
 /** todo texto que a tela renderiza, seção por seção */
 function textos(doc: Documento): string[] {
   return [
@@ -159,5 +169,25 @@ describe('o link vai junto no e-mail', () => {
   ])('%s leva os dois documentos no rodapé', (_nome, html) => {
     expect(html).toContain('https://verandi.4yu.com.br/termos')
     expect(html).toContain('https://verandi.4yu.com.br/privacidade')
+  })
+})
+
+
+describe('a política acompanha o que o produto guarda', () => {
+  const texto = textos(PRIVACIDADE).join(' ')
+
+  it.each(O_QUE_O_PRODUTO_GUARDA)('diz que guarda %s', (o) => {
+    expect(texto).toContain(o)
+  })
+
+  it('diz o prazo de guarda do recibo, e a exceção que ele abre', () => {
+    // sem o prazo escrito, "salvo o que a lei obrigar a guardar" não informa
+    // nada a quem lê: obriga a quê, e por quanto tempo?
+    expect(texto).toContain('cinco anos contados da emissão')
+    expect(texto).toContain('A eliminação tem uma exceção')
+  })
+
+  it('a versão subiu junto com o texto, senão o aceite antigo valeria para ele', () => {
+    expect(PRIVACIDADE.versao).not.toBe('1.0')
   })
 })

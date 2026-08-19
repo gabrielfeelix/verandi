@@ -105,6 +105,13 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
             badgeRotulo: 'em atraso',
             guia: 'rail-financeiro',
           },
+          {
+            href: '/recibos',
+            rotulo: 'Recibos',
+            curto: 'Recibo',
+            icone: 'lista',
+            guia: 'rail-recibos',
+          },
         ] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'dono' || conta.papel === 'suporte'

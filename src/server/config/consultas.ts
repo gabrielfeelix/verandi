@@ -16,6 +16,17 @@ export type Padroes = {
   horariosSugeridos: string[]
 }
 
+/** Quem emite o recibo: a razão social, o documento e o endereço do estúdio. */
+export type Emitente = {
+  razaoSocial: string | null
+  documento: string | null
+  endereco: string | null
+  telefone: string | null
+  serieRecibo: string
+  /** o nome da conta, que é o que o recibo usa quando não há razão social */
+  nomeDaConta: string
+}
+
 export type ServicoLinha = {
   id: string
   nome: string
@@ -76,6 +87,32 @@ export async function carregarPadroes(db: Db, contaId: string): Promise<Padroes>
     encaixeAcima: data.encaixe_acima,
     creditoFaltaAvisada: data.credito_falta_avisada,
     horariosSugeridos: (data.horarios_sugeridos ?? []).map(hhmm).sort(),
+  }
+}
+
+/**
+ * Quem emite o recibo, lido da conta.
+ *
+ * Uma consulta própria, e não um acréscimo em `padroesDaConta`: os padrões são
+ * lidos por toda a Configuração, e o emitente só interessa a duas telas. Somar
+ * cinco colunas de texto àquela leitura é pagar em toda visita o preço de uma.
+ */
+export async function emitenteDaConta(db: Db, contaId: string): Promise<Emitente> {
+  const { data, error } = await db
+    .from('conta')
+    .select(`nome, razao_social, documento, endereco_emitente,
+             telefone_emitente, serie_recibo`)
+    .eq('id', contaId)
+    .single()
+  if (error) throw error
+
+  return {
+    razaoSocial: data.razao_social,
+    documento: data.documento,
+    endereco: data.endereco_emitente,
+    telefone: data.telefone_emitente,
+    serieRecibo: data.serie_recibo,
+    nomeDaConta: data.nome,
   }
 }
 

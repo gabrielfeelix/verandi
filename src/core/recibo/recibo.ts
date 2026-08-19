@@ -6,6 +6,25 @@
  * lugares divergiria no dia em que só um deles passasse a incluir o CPF.
  */
 
+/**
+ * O documento como se lê num papel: `529.982.247-25` ou `12.345.678/0001-90`.
+ *
+ * Onze dígitos é CPF e catorze é CNPJ; qualquer outra coisa sai como veio, e
+ * não some. Um documento que o sistema não reconheceu ainda é o documento que a
+ * pessoa digitou, e escondê-lo do recibo seria pior do que imprimi-lo torto.
+ */
+export function documentoFormatado(bruto: string | null): string | null {
+  if (!bruto) return null
+  const n = bruto.replace(/\D/g, '')
+  if (n.length === 11) {
+    return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9)}`
+  }
+  if (n.length === 14) {
+    return `${n.slice(0, 2)}.${n.slice(2, 5)}.${n.slice(5, 8)}/${n.slice(8, 12)}-${n.slice(12)}`
+  }
+  return bruto
+}
+
 /** `A-000123`: a série na frente, e zeros à esquerda para a lista alinhar. */
 export function numeroFormatado(serie: string, numero: number): string {
   return `${serie}-${String(numero).padStart(6, '0')}`

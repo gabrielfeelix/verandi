@@ -12,6 +12,7 @@ import {
   faturamentoPor, recebidoPorForma,
 } from '@/core/financeiro/fechamento'
 import { competenciaDe, competenciaPorExtenso } from '@/core/financeiro/cobranca'
+import { recibosDoPeriodo } from '@/server/recibo/consultas'
 import { emReais } from '@/core/planos/plano'
 import { dataCurta, somarDias } from '@/core/agenda/datas'
 import { ListaDeCobrancas } from '@/components/financeiro/lista'
@@ -65,7 +66,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
     const ate = ateBruto || hoje
     return (
       <Fechamento
-        contaId={conta.contaId} de={de} ate={ate} hoje={hoje}
+        contaId={conta.contaId} de={de} ate={ate} hoje={hoje} fuso={conta.fuso}
         atrasadas={atrasadas}
       />
     )
@@ -205,16 +206,21 @@ function Trilha({
  * dois períodos, e ninguém pediu.
  */
 async function Fechamento({
-  contaId, de, ate, hoje, atrasadas,
+  contaId, de, ate, hoje, fuso, atrasadas,
 }: {
   contaId: string
   de: string
   ate: string
   hoje: string
+  fuso: string
   atrasadas: number
 }) {
   const db = await clienteServidor()
-  const material = await materialDoFechamento(db, contaId, de, ate, hoje)
+  const [material, recibos] = await Promise.all([
+    materialDoFechamento(db, contaId, de, ate, hoje, fuso),
+    // o terceiro relatório do item 4, e o último dos sete a ficar de pé
+    recibosDoPeriodo(db, contaId, de, ate, fuso),
+  ])
 
   const recebido = recebidoPorForma(material.pagamentos)
   const receber = aReceber(material.cobrancas, hoje)
@@ -296,6 +302,13 @@ async function Fechamento({
           titulo="Novos no período"
           valor={String(gente.novos)}
           nota={`cadastrados entre ${dataCurta(de)} e ${dataCurta(ate)}`}
+        />
+        <Numero
+          titulo="Recibos emitidos"
+          valor={String(recibos.emitidos)}
+          nota={recibos.cancelados === 0
+            ? `${emReais(recibos.emitidoCent)} em papel, nenhum cancelado`
+            : `${recibos.cancelados} ${recibos.cancelados === 1 ? 'cancelado' : 'cancelados'}, somando ${emReais(recibos.canceladoCent)}`}
         />
       </div>
 

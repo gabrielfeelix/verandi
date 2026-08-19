@@ -62,6 +62,53 @@ export async function salvarPadroes(p: {
   revalidatePath('/grade')
 }
 
+/**
+ * Quem emite o recibo.
+ *
+ * O documento é conferido só no comprimento: CNPJ tem catorze dígitos e CPF tem
+ * onze, e conferir o dígito do CNPJ aqui seria a terceira regra de documento
+ * neste sistema para um campo que quem digita é o dono da conta, sobre a
+ * própria empresa, uma vez na vida. O CPF do cliente é outra conversa, e esse
+ * confere dígito desde o módulo 16: ele é digitado por outra pessoa, às pressas,
+ * na recepção.
+ */
+export async function salvarEmitente(e: {
+  razaoSocial: string
+  documento: string
+  endereco: string
+  telefone: string
+  serieRecibo: string
+}): Promise<void> {
+  const conta = await exigirDono()
+  const db = await clienteServidor()
+
+  const documento = e.documento.replace(/\D/g, '')
+  if (documento && documento.length !== 11 && documento.length !== 14) {
+    throw new Error('o documento precisa ser um CPF (11 dígitos) ou um CNPJ (14)')
+  }
+
+  const serie = e.serieRecibo.trim().toUpperCase() || 'A'
+  if (!/^[A-Z0-9]{1,4}$/.test(serie)) {
+    throw new Error('a série do recibo é de 1 a 4 letras ou números, sem espaço')
+  }
+
+  const { error } = await db.from('conta').update({
+    razao_social: e.razaoSocial.trim() || null,
+    documento: documento || null,
+    endereco_emitente: e.endereco.trim() || null,
+    telefone_emitente: e.telefone.trim() || null,
+    serie_recibo: serie,
+  }).eq('id', conta.contaId)
+  if (error) throw error
+
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'conta', entidadeId: conta.contaId,
+    acao: 'editou', detalhe: { emitente: { razaoSocial: e.razaoSocial, serie } },
+  })
+  revalidatePath('/config')
+  revalidatePath('/recibos')
+}
+
 // ---------------------------------------------------------------------------
 // Serviço, local
 // ---------------------------------------------------------------------------

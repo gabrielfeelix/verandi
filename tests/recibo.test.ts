@@ -195,13 +195,16 @@ describe('recibos do período', () => {
 
   it('conta o emitido pela emissão e o cancelado pelo cancelamento', async () => {
     const { recibosDoPeriodo } = await import('../src/server/recibo/consultas')
+    // no fuso da conta, e não em UTC: a emissão das 21h30 de 31/03 é de março
 
-    const marco = await recibosDoPeriodo(db, contaId, '2026-03-01', '2026-03-31')
+    const marco = await recibosDoPeriodo(
+      db, contaId, '2026-03-01', '2026-03-31', 'America/Sao_Paulo')
     expect(marco).toEqual({
       emitidos: 2, emitidoCent: 65000, cancelados: 0, canceladoCent: 0,
     })
 
-    const abril = await recibosDoPeriodo(db, contaId, '2026-04-01', '2026-04-30')
+    const abril = await recibosDoPeriodo(
+      db, contaId, '2026-04-01', '2026-04-30', 'America/Sao_Paulo')
     expect(abril).toEqual({
       emitidos: 1, emitidoCent: 73500, cancelados: 1, canceladoCent: 20000,
     })

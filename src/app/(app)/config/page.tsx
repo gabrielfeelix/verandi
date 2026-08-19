@@ -4,14 +4,15 @@ import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { PADRAO, type ChaveVocabulario, type Rotulos } from '@/core/vocabulario/padrao'
 import {
-  carregarPadroes, carregarFuncionamento, listarDatasFechadas, ultimaAlteracao,
-  listarLocais, listarServicos,
+  carregarPadroes, carregarFuncionamento, emitenteDaConta, listarDatasFechadas,
+  ultimaAlteracao, listarLocais, listarServicos,
 } from '@/server/config/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Icone, type NomeIcone } from '@/components/ui/icones'
 import { SecaoLocais, SecaoServicos } from '@/components/config/catalogo'
 import { SecaoPlanos } from '@/components/config/planos'
+import { SecaoRecibo } from '@/components/config/recibo'
 import { listarPlanos } from '@/server/planos/consultas'
 import { SecaoPadroes } from '@/components/config/padroes'
 import { SecaoVocabulario } from '@/components/config/vocabulario'
@@ -30,6 +31,7 @@ import { cartao } from '@/components/ui/pecas'
 const SECOES = [
   { chave: 'servicos', icone: 'lista' },
   { chave: 'planos', icone: 'regua' },
+  { chave: 'recibo', icone: 'dinheiro' },
   { chave: 'equipe', icone: 'pessoas' },
   { chave: 'locais', icone: 'local' },
   { chave: 'padroes', icone: 'regua' },
@@ -58,7 +60,8 @@ function rotuloDaSecao(chave: Secao, r: Rotulos): string {
   // vende de plano, e o gênero não muda com o vocabulário da conta
   return { padroes: 'Padrões', vocabulario: 'Vocabulário',
            funcionamento: 'Funcionamento', usuarios: 'Usuários',
-           integracoes: 'Integrações', planos: 'Planos e valores' }[chave]
+           integracoes: 'Integrações', planos: 'Planos e valores',
+           recibo: 'Recibo' }[chave]
 }
 
 /** O que cada palavra do vocabulário nomeia, em uma linha. */
@@ -154,6 +157,10 @@ export default async function Config({
             servicos={await listarServicos(db, conta.contaId)}
             rotuloServico={rotulos.servico}
           />
+        ) : null}
+
+        {secao === 'recibo' ? (
+          <SecaoRecibo emitente={await emitenteDaConta(db, conta.contaId)} />
         ) : null}
 
         {secao === 'equipe' ? (

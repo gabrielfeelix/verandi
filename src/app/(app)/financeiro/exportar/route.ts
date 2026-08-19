@@ -6,6 +6,7 @@ import {
   faturamentoPor, recebidoPorForma,
 } from '@/core/financeiro/fechamento'
 import { competenciaDe } from '@/core/financeiro/cobranca'
+import { recibosDoPeriodo } from '@/server/recibo/consultas'
 
 /**
  * O fechamento em planilha.
@@ -34,7 +35,8 @@ export async function GET(pedido: Request) {
   const de = url.searchParams.get('de') || competenciaDe(hoje)
   const ate = url.searchParams.get('ate') || hoje
 
-  const m = await materialDoFechamento(db, conta.contaId, de, ate, hoje)
+  const m = await materialDoFechamento(db, conta.contaId, de, ate, hoje, conta.fuso)
+  const recibos = await recibosDoPeriodo(db, conta.contaId, de, ate, conta.fuso)
   const recebido = recebidoPorForma(m.pagamentos)
   const receber = aReceber(m.cobrancas, hoje)
   const vencido = aReceber(m.atrasadas, hoje)
@@ -74,6 +76,9 @@ export async function GET(pedido: Request) {
     ...estornos.linhas.map((e) => [
       e.pessoaNome, e.estornadoEm.slice(0, 10), e.motivo ?? '', reais(e.valorCent),
     ]),
+    [],
+    ['Recibos emitidos no período', recibos.emitidos, reais(recibos.emitidoCent)],
+    ['Recibos cancelados no período', recibos.cancelados, reais(recibos.canceladoCent)],
     [],
     ['Clientes'],
     ['Ativos', gente.ativos],
