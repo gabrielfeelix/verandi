@@ -5,7 +5,7 @@ export type EntidadeConfig =
   | 'serie' | 'servico' | 'profissional' | 'local' | 'vocabulario'
   | 'funcionamento' | 'excecao_calendario' | 'usuario_conta' | 'convite' | 'conta'
   | 'pessoa' | 'chave_api' | 'webhook' | 'plano' | 'contrato'
-  | 'cobranca' | 'pagamento' | 'recibo'
+  | 'cobranca' | 'pagamento' | 'recibo' | 'envio_de_recibo'
 
 export type AcaoConfig =
   | 'criou' | 'editou' | 'duplicou' | 'encerrou' | 'desativou' | 'reativou' | 'removeu'

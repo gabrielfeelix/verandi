@@ -25,7 +25,15 @@ export type Emitente = {
   serieRecibo: string
   /** o nome da conta, que é o que o recibo usa quando não há razão social */
   nomeDaConta: string
+  /** a imagem da assinatura, no balde privado */
+  assinaturaPath: string | null
+  /** quem assina, impresso embaixo da linha; vazio cai na razão social */
+  assinaturaNome: string | null
+  assinaturaCargo: string | null
 }
+
+/** O balde privado da assinatura. Ver a migration `0059`. */
+export const BALDE_ASSINATURA = 'assinatura-recibo'
 
 export type ServicoLinha = {
   id: string
@@ -101,7 +109,8 @@ export async function emitenteDaConta(db: Db, contaId: string): Promise<Emitente
   const { data, error } = await db
     .from('conta')
     .select(`nome, razao_social, documento, endereco_emitente,
-             telefone_emitente, serie_recibo`)
+             telefone_emitente, serie_recibo,
+             assinatura_path, assinatura_nome, assinatura_cargo`)
     .eq('id', contaId)
     .single()
   if (error) throw error
@@ -113,7 +122,30 @@ export async function emitenteDaConta(db: Db, contaId: string): Promise<Emitente
     telefone: data.telefone_emitente,
     serieRecibo: data.serie_recibo,
     nomeDaConta: data.nome,
+    assinaturaPath: data.assinatura_path,
+    assinaturaNome: data.assinatura_nome,
+    assinaturaCargo: data.assinatura_cargo,
   }
+}
+
+/**
+ * A assinatura como o navegador consegue mostrar: uma URL assinada, curta.
+ *
+ * O balde é privado, então não há endereço público para pôr num `<img>`. A URL
+ * dura o suficiente para a folha carregar e para o e-mail ser montado, e não o
+ * suficiente para virar link permanente de uma imagem que é a marca de quem
+ * responde pelo negócio.
+ *
+ * Devolve `null` quando não há assinatura configurada, que é o estado inicial
+ * de toda conta e não é erro: a folha volta a imprimir a linha em branco.
+ */
+export async function urlDaAssinatura(
+  db: Db, caminho: string | null, segundos = 300,
+): Promise<string | null> {
+  if (!caminho) return null
+  const { data } = await db.storage.from(BALDE_ASSINATURA)
+    .createSignedUrl(caminho, segundos)
+  return data?.signedUrl ?? null
 }
 
 export async function listarServicos(db: Db, contaId: string): Promise<ServicoLinha[]> {

@@ -5,10 +5,14 @@ import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import {
   emitenteCompleto, montarCorpo, numeroFormatado, podeCancelar, podeCorrigir,
-  type StatusRecibo,
+  type CorpoDoRecibo, type StatusRecibo,
 } from '@/core/recibo/recibo'
 import { competenciaPorExtenso } from '@/core/financeiro/cobranca'
 import { ROTULO_FORMA, type Forma } from '@/core/financeiro/fechamento'
+import { envia } from '../email/brevo'
+import {
+  assuntoDoRecibo, htmlDoRecibo, textoDoRecibo,
+} from '@/core/recibo/mensagem'
 import type { Json } from '../banco.types'
 
 /**
@@ -50,7 +54,9 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
     const db = await clienteServidor()
 
     const { data: c } = await db.from('conta')
-      .select('nome, razao_social, documento, endereco_emitente, telefone_emitente, serie_recibo')
+      .select(`nome, razao_social, documento, endereco_emitente,
+               telefone_emitente, serie_recibo,
+               assinatura_nome, assinatura_cargo`)
       .eq('id', conta.contaId).single()
 
     const emitente = {
@@ -129,6 +135,16 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
       recebidoEm: pg.recebido_em,
       emitidoPor: nomeDeQuemEmite,
       emitidoEm: new Date().toISOString(),
+      /*
+       * Quem assina entra congelado, e a imagem não.
+       *
+       * O nome de quem assinou naquele dia é parte do que o papel afirma:
+       * trocar a responsável técnica em 2027 não pode reescrever quem assinou
+       * em 2026. A imagem é a marca do estúdio, e carimbar a segunda via com o
+       * carimbo de hoje é o que uma segunda via sempre fez.
+       */
+      assinanteNome: c?.assinatura_nome ?? null,
+      assinanteCargo: c?.assinatura_cargo ?? null,
     })
 
     const serie = c?.serie_recibo ?? 'A'
@@ -281,4 +297,113 @@ export async function corrigirRecibo(
   } catch (e) {
     return falha(e, 'Não foi possível corrigir o recibo.')
   }
+}
+
+
+/**
+ * Mandar o recibo por e-mail, para quem pagou.
+ *
+ * Imprimir não é a única saída, e para a maioria dos alunos não é nem a
+ * provável: o estúdio recebe no pix, o aluno pede o comprovante, e ninguém vai
+ * até a impressora. O corpo da mensagem **é** o recibo, e não um aviso com
+ * link, porque o aluno não tem login neste produto.
+ *
+ * **Cada envio vira uma linha, e reenviar é normal.** "Eu nunca recebi" é a
+ * frase que este registro responde, e ela chega meses depois. Sobrescrever uma
+ * data no recibo apagaria justamente o histórico que a pergunta exige.
+ *
+ * O endereço padrão é o da ficha, e quem envia pode trocar: o aluno dita outro
+ * no balcão o tempo todo, e obrigar a editar o cadastro antes de mandar um
+ * comprovante é atrito no lugar errado.
+ */
+export async function enviarReciboPorEmail(
+  reciboId: string, paraOutro?: string | null,
+): Promise<Resultado<string>> {
+  try {
+    const conta = await exigirCaixa()
+    const db = await clienteServidor()
+
+    const { data: r } = await db.from('recibo')
+      .select('id, serie, numero, status, corpo, pessoa_id')
+      .eq('id', reciboId).eq('conta_id', conta.contaId).maybeSingle()
+    if (!r) return { ok: false, erro: 'Este recibo não existe mais.' }
+    if (r.status === 'substituido') {
+      return {
+        ok: false,
+        erro: 'Esta versão foi substituída por uma correção. Envie a versão em vigor.',
+      }
+    }
+
+    let para = paraOutro?.trim() ?? ''
+    if (!para && r.pessoa_id) {
+      const { data: p } = await db.from('pessoa')
+        .select('email').eq('id', r.pessoa_id).eq('conta_id', conta.contaId)
+        .maybeSingle()
+      para = p?.email?.trim() ?? ''
+    }
+    if (!enderecoPlausivel(para)) {
+      return {
+        ok: false,
+        erro: 'Escreva o e-mail de quem vai receber. A ficha desta pessoa está sem endereço.',
+      }
+    }
+
+    const corpo = r.corpo as unknown as CorpoDoRecibo
+    const cancelado = r.status === 'cancelado'
+
+    const saiu = await envia({
+      para,
+      de: corpo.emitenteNome,
+      assunto: assuntoDoRecibo(r.serie, r.numero, corpo.emitenteNome),
+      html: htmlDoRecibo(corpo, r.serie, r.numero, cancelado),
+      texto: textoDoRecibo(corpo, r.serie, r.numero),
+    })
+
+    const { data: { user } } = await db.auth.getUser()
+    await db.from('envio_de_recibo').insert({
+      conta_id: conta.contaId,
+      recibo_id: reciboId,
+      para,
+      enviado_por_usuario_id: user?.id ?? null,
+      entregue: saiu,
+      erro: saiu ? null : 'o provedor de e-mail recusou o envio',
+    })
+
+    await registrar(db, {
+      contaId: conta.contaId, entidade: 'envio_de_recibo', entidadeId: reciboId,
+      acao: 'criou',
+      detalhe: { numero: numeroFormatado(r.serie, r.numero), para, entregue: saiu },
+    })
+
+    revalidatePath('/recibos')
+    if (r.pessoa_id) revalidatePath(`/pessoas/${r.pessoa_id}`)
+
+    /*
+     * O envio que não saiu **não** volta como sucesso silencioso. `envia`
+     * devolve `false` em vez de lançar, de propósito, para nunca derrubar a
+     * tela de quem estava fazendo outra coisa; aqui o e-mail é a coisa em si, e
+     * quem clicou precisa saber que o comprovante não chegou.
+     */
+    if (!saiu) {
+      return {
+        ok: false,
+        erro: 'O e-mail não saiu. A tentativa ficou registrada; tente de novo em alguns minutos.',
+      }
+    }
+    return { ok: true, valor: para }
+  } catch (e) {
+    return falha(e, 'Não foi possível enviar o recibo.')
+  }
+}
+
+/**
+ * Endereço plausível, e não "válido".
+ *
+ * Validar e-mail por expressão é uma armadilha conhecida: as que tentam ser
+ * corretas recusam endereços legítimos. O que dá para afirmar é que sem arroba
+ * e sem ponto depois dela não há para onde mandar, e o resto quem responde é o
+ * provedor.
+ */
+function enderecoPlausivel(bruto: string): boolean {
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(bruto)
 }

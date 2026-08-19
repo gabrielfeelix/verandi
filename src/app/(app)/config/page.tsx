@@ -3,8 +3,10 @@ import { redirect } from 'next/navigation'
 import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { PADRAO, type ChaveVocabulario, type Rotulos } from '@/core/vocabulario/padrao'
+import type { Db } from '@/server/supabase'
 import {
   carregarPadroes, carregarFuncionamento, emitenteDaConta, listarDatasFechadas,
+  urlDaAssinatura,
   ultimaAlteracao, listarLocais, listarServicos,
 } from '@/server/config/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
@@ -159,9 +161,7 @@ export default async function Config({
           />
         ) : null}
 
-        {secao === 'recibo' ? (
-          <SecaoRecibo emitente={await emitenteDaConta(db, conta.contaId)} />
-        ) : null}
+        {secao === 'recibo' ? <PainelDoRecibo db={db} contaId={conta.contaId} /> : null}
 
         {secao === 'equipe' ? (
           <SecaoEquipe
@@ -229,5 +229,23 @@ export default async function Config({
         </div>
       </div>
     </ProvedorDeAviso>
+  )
+}
+
+
+/**
+ * O painel do recibo carrega o emitente e a URL da assinatura juntos.
+ *
+ * Componente próprio porque a URL do balde privado precisa ser assinada, e
+ * assinar dentro do JSX da página deixaria dois `await` encadeados no meio da
+ * árvore, que é onde eles somem da vista de quem lê depois.
+ */
+async function PainelDoRecibo({ db, contaId }: { db: Db; contaId: string }) {
+  const emitente = await emitenteDaConta(db, contaId)
+  return (
+    <SecaoRecibo
+      emitente={emitente}
+      assinatura={await urlDaAssinatura(db, emitente.assinaturaPath)}
+    />
   )
 }

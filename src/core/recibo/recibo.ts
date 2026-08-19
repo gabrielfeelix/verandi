@@ -203,6 +203,20 @@ export type CorpoDoRecibo = {
   /** quem apertou o botão */
   emitidoPor: string
   emitidoEm: string
+  /**
+   * Quem assina, congelado no ato.
+   *
+   * O **texto** entra no corpo e a **imagem** não: o nome de quem assinou
+   * naquele dia é parte do que o papel afirma, e mudar a responsável técnica em
+   * 2027 não pode reescrever quem assinou em 2026. A imagem é a marca do
+   * estúdio, e carimbar a segunda via com o carimbo de hoje é o que uma segunda
+   * via sempre fez.
+   *
+   * Opcionais porque todo recibo emitido antes da `0059` não os tem, e a folha
+   * precisa continuar saindo igual para eles.
+   */
+  assinanteNome?: string | null
+  assinanteCargo?: string | null
 }
 
 /**
@@ -227,6 +241,8 @@ export function montarCorpo(dados: {
   recebidoEm: string
   emitidoPor: string
   emitidoEm: string
+  assinanteNome?: string | null
+  assinanteCargo?: string | null
 }): CorpoDoRecibo {
   return {
     emitenteNome: dados.emitente.razaoSocial?.trim() || dados.emitente.nomeDaConta,
@@ -244,6 +260,23 @@ export function montarCorpo(dados: {
     recebidoEm: dados.recebidoEm,
     emitidoPor: dados.emitidoPor,
     emitidoEm: dados.emitidoEm,
+    assinanteNome: dados.assinanteNome ?? null,
+    assinanteCargo: dados.assinanteCargo ?? null,
+  }
+}
+
+/**
+ * O nome que vai embaixo da linha de assinatura.
+ *
+ * Quem assina é uma pessoa, e nem sempre é a razão social: "Marina Toledo,
+ * responsável técnica" é o caso comum num estúdio. Sem assinante configurado
+ * cai no emitente, que é quem recebeu e portanto quem quita.
+ */
+export function quemAssina(corpo: CorpoDoRecibo): { nome: string; cargo: string | null } {
+  const nome = corpo.assinanteNome?.trim()
+  return {
+    nome: nome || corpo.emitenteNome,
+    cargo: corpo.assinanteCargo?.trim() || null,
   }
 }
 

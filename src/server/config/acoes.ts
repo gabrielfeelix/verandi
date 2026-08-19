@@ -6,6 +6,7 @@ import { registrar } from '../log'
 import { hojeEm, instante } from '../agenda/fuso'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
 import { BALDE_FOTO } from './equipe'
+import { BALDE_ASSINATURA } from './consultas'
 import { LIMITE_ENVIO_MB, MB } from '@/core/foto'
 import type { Resultado } from '../planos/acoes'
 
@@ -91,6 +92,8 @@ export async function salvarEmitente(e: {
   endereco: string
   telefone: string
   serieRecibo: string
+  assinaturaNome?: string
+  assinaturaCargo?: string
 }): Promise<Resultado> {
   const conta = await exigirDono()
   const db = await clienteServidor()
@@ -135,6 +138,8 @@ export async function salvarEmitente(e: {
     endereco_emitente: e.endereco.trim() || null,
     telefone_emitente: e.telefone.trim() || null,
     serie_recibo: serie,
+    assinatura_nome: e.assinaturaNome?.trim() || null,
+    assinatura_cargo: e.assinaturaCargo?.trim() || null,
   }).eq('id', conta.contaId)
   if (error) throw error
 
@@ -535,4 +540,91 @@ export async function removerFoto(profissionalId: string): Promise<void> {
     acao: 'editou', detalhe: { foto: 'removida' },
   })
   revalidatePath('/config')
+}
+
+
+// ---------------------------------------------------------------------------
+// A assinatura do recibo
+// ---------------------------------------------------------------------------
+
+const TIPOS_ASSINATURA = ['image/png', 'image/jpeg', 'image/webp']
+const TAMANHO_ASSINATURA = 1024 * 1024
+
+/**
+ * Guardar a imagem da assinatura.
+ *
+ * Vem como `FormData` porque é arquivo: Server Action com `File` dentro de
+ * objeto simples não atravessa. Só o dono chega aqui, e a política do balde diz
+ * a mesma coisa: a recepção emite recibo o dia inteiro sem precisar poder
+ * trocar a marca de quem responde pelo negócio.
+ *
+ * A imagem substitui a anterior no mesmo caminho, e o caminho leva a extensão:
+ * trocar um PNG por um JPEG sem isso deixaria o arquivo velho órfão no balde,
+ * que é o defeito que a foto do profissional já pagou uma vez.
+ */
+export async function salvarAssinatura(entrada: FormData): Promise<Resultado> {
+  const conta = await exigirDono()
+  const db = await clienteServidor()
+
+  const arquivo = entrada.get('assinatura')
+  if (!(arquivo instanceof File) || arquivo.size === 0) {
+    return recusa('Escolha a imagem da assinatura.')
+  }
+  if (!TIPOS_ASSINATURA.includes(arquivo.type)) {
+    return recusa('A assinatura precisa ser PNG, JPEG ou WEBP. SVG não entra: é documento com script.')
+  }
+  if (arquivo.size > TAMANHO_ASSINATURA) {
+    return recusa('A assinatura precisa ter até 1 MB. Uma foto da assinatura em fundo branco costuma ter bem menos.')
+  }
+
+  const ext = arquivo.type === 'image/png' ? 'png'
+    : arquivo.type === 'image/webp' ? 'webp' : 'jpg'
+  const caminho = `${conta.contaId}/assinatura.${ext}`
+
+  const envio = await db.storage.from(BALDE_ASSINATURA)
+    .upload(caminho, arquivo, { upsert: true, contentType: arquivo.type })
+  if (envio.error) throw envio.error
+
+  // a extensão pode ter mudado: o arquivo antigo vira lixo que ninguém vê
+  const { data: antes } = await db.from('conta')
+    .select('assinatura_path').eq('id', conta.contaId).maybeSingle()
+  if (antes?.assinatura_path && antes.assinatura_path !== caminho) {
+    await db.storage.from(BALDE_ASSINATURA).remove([antes.assinatura_path])
+  }
+
+  const { error } = await db.from('conta')
+    .update({ assinatura_path: caminho }).eq('id', conta.contaId)
+  if (error) throw error
+
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'conta', entidadeId: conta.contaId,
+    acao: 'editou', detalhe: { assinatura: 'enviada' },
+  })
+  revalidatePath('/config')
+  revalidatePath('/recibos')
+  return { ok: true }
+}
+
+/** Tirar a assinatura: o papel volta a sair com a linha em branco. */
+export async function removerAssinatura(): Promise<Resultado> {
+  const conta = await exigirDono()
+  const db = await clienteServidor()
+
+  const { data } = await db.from('conta')
+    .select('assinatura_path').eq('id', conta.contaId).maybeSingle()
+  if (data?.assinatura_path) {
+    await db.storage.from(BALDE_ASSINATURA).remove([data.assinatura_path])
+  }
+
+  const { error } = await db.from('conta')
+    .update({ assinatura_path: null }).eq('id', conta.contaId)
+  if (error) throw error
+
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'conta', entidadeId: conta.contaId,
+    acao: 'editou', detalhe: { assinatura: 'removida' },
+  })
+  revalidatePath('/config')
+  revalidatePath('/recibos')
+  return { ok: true }
 }

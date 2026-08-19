@@ -366,6 +366,9 @@ export type Database = {
       }
       conta: {
         Row: {
+          assinatura_cargo: string | null
+          assinatura_nome: string | null
+          assinatura_path: string | null
           ativo: boolean
           capacidade_padrao: number
           credito_falta_avisada: boolean
@@ -387,6 +390,9 @@ export type Database = {
           telefone_emitente: string | null
         }
         Insert: {
+          assinatura_cargo?: string | null
+          assinatura_nome?: string | null
+          assinatura_path?: string | null
           ativo?: boolean
           capacidade_padrao?: number
           credito_falta_avisada?: boolean
@@ -408,6 +414,9 @@ export type Database = {
           telefone_emitente?: string | null
         }
         Update: {
+          assinatura_cargo?: string | null
+          assinatura_nome?: string | null
+          assinatura_path?: string | null
           ativo?: boolean
           capacidade_padrao?: number
           credito_falta_avisada?: boolean
@@ -591,6 +600,54 @@ export type Database = {
             columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      envio_de_recibo: {
+        Row: {
+          conta_id: string
+          entregue: boolean
+          enviado_em: string
+          enviado_por_usuario_id: string | null
+          erro: string | null
+          id: string
+          para: string
+          recibo_id: string
+        }
+        Insert: {
+          conta_id: string
+          entregue?: boolean
+          enviado_em?: string
+          enviado_por_usuario_id?: string | null
+          erro?: string | null
+          id?: string
+          para: string
+          recibo_id: string
+        }
+        Update: {
+          conta_id?: string
+          entregue?: boolean
+          enviado_em?: string
+          enviado_por_usuario_id?: string | null
+          erro?: string | null
+          id?: string
+          para?: string
+          recibo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "envio_de_recibo_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "envio_de_recibo_recibo_id_fkey"
+            columns: ["recibo_id"]
+            isOneToOne: false
+            referencedRelation: "recibo"
             referencedColumns: ["id"]
           },
         ]

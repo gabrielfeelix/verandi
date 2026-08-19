@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Menu } from '@/components/ui/menu'
+import { EnviarRecibo } from './enviar'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
@@ -34,7 +35,13 @@ const ROTULO: Record<string, string> = {
  * substituído continuam na lista, porque a via antiga continua na mão de
  * alguém e é preciso poder explicá-la.
  */
-export function ListaDeRecibos({ linhas }: { linhas: ReciboLinha[] }) {
+export function ListaDeRecibos({
+  linhas, envios = {},
+}: {
+  linhas: ReciboLinha[]
+  /** o último envio de cada recibo, por id: responde "já mandei isso?" */
+  envios?: Record<string, { para: string; em: string }>
+}) {
   const [modo, setModo] = useState<
     { tipo: 'cancelar' | 'corrigir'; r: ReciboLinha } | null
   >(null)
@@ -145,6 +152,23 @@ export function ListaDeRecibos({ linhas }: { linhas: ReciboLinha[] }) {
               // cancelado encolhe e o "Ver e imprimir" dela sai do prumo
               <span aria-hidden className="w-9" />
             )}
+          </span>
+
+          {/* enviar fica na linha, e não no menu: mandar o comprovante é o que
+              se faz com um recibo tanto quanto imprimi-lo */}
+          <span className="flex w-full flex-wrap items-center gap-x-3 gap-y-1">
+            <EnviarRecibo
+              reciboId={r.id}
+              numero={descricaoDoRecibo(r)}
+              paraSugerido={null}
+              botao="linha"
+              jaEnviado={envios[r.id] ?? null}
+            />
+            {envios[r.id] ? (
+              <span className="text-[11.5px] text-tinta-media">
+                enviado para {envios[r.id].para} em {envios[r.id].em}
+              </span>
+            ) : null}
           </span>
 
           {r.motivo ? (

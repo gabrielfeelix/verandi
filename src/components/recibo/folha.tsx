@@ -1,7 +1,7 @@
 import { emReais } from '@/core/planos/plano'
 import {
   dataPorExtenso, documentoFormatado, localDeEmissao, numeroFormatado,
-  quemEmitiu, type CorpoDoRecibo,
+  quemAssina, quemEmitiu, type CorpoDoRecibo,
 } from '@/core/recibo/recibo'
 import { exibirTelefone } from '@/core/telefone'
 
@@ -24,7 +24,7 @@ import { exibirTelefone } from '@/core/telefone'
  * só; o que mudou é que ele deixou de ser a única coisa na folha.
  */
 export function FolhaDoRecibo({
-  serie, numero, versao, status, corpo, motivo,
+  serie, numero, versao, status, corpo, motivo, assinatura,
 }: {
   serie: string
   numero: number
@@ -32,12 +32,15 @@ export function FolhaDoRecibo({
   status: 'valido' | 'cancelado' | 'substituido'
   corpo: CorpoDoRecibo
   motivo: string | null
+  /** a imagem da assinatura, quando o estúdio configurou uma */
+  assinatura?: string | null
 }) {
   return (
     <div data-folha className="flex flex-col gap-5">
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
-        corpo={corpo} motivo={motivo} via="1ª via · de quem pagou"
+        corpo={corpo} motivo={motivo} assinatura={assinatura}
+        via="1ª via · de quem pagou"
       />
       <div
         aria-hidden
@@ -49,14 +52,15 @@ export function FolhaDoRecibo({
       </div>
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
-        corpo={corpo} motivo={motivo} via="2ª via · do estúdio"
+        corpo={corpo} motivo={motivo} assinatura={assinatura}
+        via="2ª via · do estúdio"
       />
     </div>
   )
 }
 
 function Via({
-  serie, numero, versao, status, corpo, motivo, via,
+  serie, numero, versao, status, corpo, motivo, via, assinatura,
 }: {
   serie: string
   numero: number
@@ -65,10 +69,12 @@ function Via({
   corpo: CorpoDoRecibo
   motivo: string | null
   via: string
+  assinatura?: string | null
 }) {
   const local = localDeEmissao(corpo.emitenteEndereco)
   const emitiu = quemEmitiu(corpo.emitidoPor)
   const documentoEmitente = documentoFormatado(corpo.emitenteDocumento)
+  const assina = quemAssina(corpo)
 
   return (
     <article
@@ -165,14 +171,36 @@ function Via({
         {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
       </p>
 
-      {/* a assinatura leva o nome e o documento embaixo da linha: é quem
-          recebeu que assina, e a linha anônima não diz de quem é o traço */}
+      {/*
+        * A assinatura leva o nome e o documento embaixo da linha: é quem
+        * recebeu que assina, e a linha anônima não diz de quem é o traço.
+        *
+        * Com imagem configurada ela aparece **em cima** da linha, que é onde a
+        * caneta cairia. Sem imagem, o espaço em branco fica igual, para o papel
+        * impresso continuar tendo onde assinar à mão: quem manda por e-mail
+        * precisa da imagem, e quem imprime não.
+        */}
       <div className="relative flex justify-end pt-9">
-        <div className="min-w-[260px] border-t border-tinta-media pt-1.5 text-center">
-          <p className="text-[12.5px] font-medium">{corpo.emitenteNome}</p>
-          {documentoEmitente ? (
-            <p className="text-[11px] text-tinta-media">{documentoEmitente}</p>
-          ) : null}
+        <div className="min-w-[260px]">
+          <div className="flex h-[52px] items-end justify-center">
+            {assinatura ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={assinatura}
+                alt={`Assinatura de ${assina.nome}`}
+                className="max-h-[52px] max-w-[240px] object-contain"
+              />
+            ) : null}
+          </div>
+          <div className="border-t border-tinta-media pt-1.5 text-center">
+            <p className="text-[12.5px] font-medium">{assina.nome}</p>
+            {assina.cargo ? (
+              <p className="text-[11px] text-tinta-media">{assina.cargo}</p>
+            ) : null}
+            {documentoEmitente ? (
+              <p className="text-[11px] text-tinta-media">{documentoEmitente}</p>
+            ) : null}
+          </div>
         </div>
       </div>
 
