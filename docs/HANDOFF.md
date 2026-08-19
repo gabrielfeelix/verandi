@@ -29,11 +29,11 @@ a cada push na `main`.
 | | | |
 |---|---|---|
 | Contas de cliente | **1** (MGM Pilates) | conferido 18/08 |
-| Migrations aplicadas | **29**, da `0030` à `0058` | `aplica-em-producao --dry` diz "nada a fazer" |
+| Migrations aplicadas | **29** em produção, da `0030` à `0058`. A `0059` está escrita e aplicada só no local | ver o quadro acima |
 | Tabelas em `app_verandi` | **39** de base, todas com RLS | conferido 19/08, contando `pg_tables` |
 | Tabelas em `public` (AutoFluxos) | **33**, intactas | eram 22 na última contagem; o crescimento é do AutoFluxos, não nosso |
 | Banco | **16 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | **582** de unidade e banco · **226** de navegador | as duas suítes verdes em 19/08 |
+| Testes | **620** de unidade e banco · **229** de navegador | as duas suítes verdes em 19/08 |
 | Planos em produção | **29**, em 11 serviços | a tabela do cliente inteira, conferida linha a linha |
 | Movimento em produção | **18 contratos · 46 cobranças · 40 recibos** | **é ensaio, e sai com um comando**; ver o quadro abaixo |
 | API v1 | nove operações e quatro eventos de webhook, com documentação em `/api-docs` | |
@@ -127,30 +127,93 @@ separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
 
 ---
 
-> ## O QUE FOI AO AR EM 19/08, E COMO FOI CONFERIDO
+> ## O QUE ESPERA PRODUÇÃO
+>
+> **A migration `0059` está escrita, aplicada no banco local e testada, e não
+> foi aplicada em produção.** Ela acrescenta três colunas em `conta`
+> (`assinatura_path`, `assinatura_nome`, `assinatura_cargo`), cria o balde
+> privado `assinatura-recibo` e a tabela `envio_de_recibo`, e acrescenta
+> `envio_de_recibo` ao `check` do log. Não derruba nada e não encosta em
+> `public`. Sem ela, a tela de recibo quebra ao ler a assinatura.
 >
 > Banco primeiro, código depois, que é a ordem que não deixa a tela procurar
-> tabela que não existe.
+> coluna que não existe:
 >
-> **Migration `0058`**, aplicada por `scripts/aplica-em-producao.mjs`. Conferido
-> fora do console: `app_verandi` foi de 38 para 39 tabelas de base, `public`
-> continua **33** (o AutoFluxos cresceu de 22 desde a última contagem, e o
-> crescimento é dele), a tabela tem RLS ligada e uma política, e `--dry` passou
-> a dizer "nada a fazer".
+> ```bash
+> set -a && . ../.secrets/4yu.env && set +a
+> node scripts/aplica-em-producao.mjs --dry     # deve listar só a 0059
+> node scripts/aplica-em-producao.mjs
+> ```
 >
-> **Código**, cinco commits até `f0c2d82`, publicado pela Vercel. Raiz 307,
-> `/entrar` 200, `/termos` 200, `/api-docs` 200.
->
-> **Uma ponta ficou sem prova, e é honesto dizer qual:** ninguém abriu a `/hoje`
-> logado em produção, porque a senha da conta de demonstração mora no cofre da
-> equipe. O que dá para afirmar é o que foi medido: a tabela responde pelo
-> PostgREST (logo o cache de esquema já a enxerga) e os privilégios dela são
-> idênticos aos de `conta`, `cobranca` e `recibo`, porque o schema tem
-> `ALTER DEFAULT PRIVILEGES` e toda tabela nova herda. **Se `/hoje` abrir e a
-> tela inicial vier montada, está tudo certo. Se vier erro, é aqui que se
-> olha.**
+> A `0058` já está lá desde 19/08, conferida fora do console.
 
-## O que a sessão do fluxo na mão fez, em 19/ago
+## O que a sessão das telas usáveis fez, em 19/ago
+
+A pergunta que faltava era de dono de negócio, e não de quem testa: **dá para
+operar isto?** As telas abriam e passavam nos testes, e mesmo assim o
+Financeiro dizia "10 cobranças em atraso" sem dizer **quanto**, o arquivo de
+recibos não se recortava por data, e a ficha do aluno listava cobranças sem
+responder se a pessoa está em dia.
+
+| O quê | Onde |
+|---|---|
+| Aba "Todas" no Financeiro | `financeiro/page.tsx`; o recorte virou um só, compartilhado pela lista e pela soma |
+| Filtro de período nas listas | `core/financeiro/periodo.ts`, `components/ui/barra-periodo.tsx` |
+| Faixa de números por aba | `core/financeiro/metricas.ts`, `components/ui/faixa-numeros.tsx` |
+| Recibos com recorte por data e totais | `recibos/page.tsx`, `resumoDosRecibos` |
+| Resumo financeiro e recibos na ficha | `resumoDaPessoa`, `recibosDaPessoa` |
+| Caixa do mês na `/hoje`, com comparação | `caixaDoMes` |
+| Assinatura do emitente | migration `0059`, `config/recibo.tsx`, `folha.tsx` |
+| Enviar o recibo por e-mail | `core/recibo/mensagem.ts`, `enviarReciboPorEmail`, `envio_de_recibo` |
+
+**Os números somam o recorte inteiro, e não a página.** Um total que muda ao
+virar a página é pior que total nenhum: quem confere caixa com ele perde a
+tarde procurando a diferença. Tem teto (20 mil linhas) e o teto se anuncia na
+tela em vez de a soma sair parcial em silêncio.
+
+**A janela do Financeiro é por vencimento e a dos Recibos é por emissão**, e as
+duas dizem isso com todas as letras na barra. Duas telas com a mesma barra
+significando datas diferentes é o jeito mais rápido de os dois números
+discordarem sem ninguém saber por quê. Nenhuma das listas nasce filtrada: uma
+tela de cobranças que abre em "este mês" esconde quem deve desde junho, que é
+exatamente a pessoa para quem se liga hoje.
+
+**Um defeito de fuso apareceu, e desta vez o teste pegou primeiro.** A janela
+dos recibos era montada com `'2026-01-19T00:00:00'` sem fuso, e o Postgres lia
+em UTC: o recibo emitido às 21h30 no Brasil já é 00h30 do dia seguinte, e sumia
+do próprio dia. É a terceira vez que essa armadilha aparece por uma porta nova.
+Agora a janela sai de `instante(data, hora, fuso)`, e há teste com um recibo às
+21h30.
+
+**A assinatura: o texto congela, a imagem não.** O nome de quem assinou naquele
+dia é parte do que o papel afirma, e trocar a responsável técnica em 2027 não
+pode reescrever quem assinou em 2026. A imagem é a marca do estúdio, e carimbar
+a segunda via com o carimbo de hoje é o que uma segunda via sempre fez.
+
+**O e-mail leva o recibo no corpo, e não como anexo nem como link.** Quem recebe
+abre no telefone e precisa ver o comprovante ali; link exigiria login, e o aluno
+não tem login neste produto. A assinatura **não** vai como imagem na mensagem:
+cliente de e-mail bloqueia imagem por padrão, e um recibo cuja assinatura só
+aparece depois de "exibir imagens" parece adulterado.
+
+### O que ficou pendente disto, e por quê
+
+- **PDF de verdade não existe.** Salvar em PDF hoje é imprimir e escolher
+  "Salvar como PDF" na caixa do navegador, e a tela diz isso ao lado do botão.
+  Um PDF gerado pelo servidor precisa de biblioteca nova (`pdf-lib` é a
+  candidata: JS puro, roda em serverless) e de refazer o layout da folha em
+  coordenadas, porque nada do CSS atravessa. **É a próxima coisa a fazer no
+  recibo**, e ela destrava o anexo no e-mail junto.
+- **O e-mail não leva anexo** enquanto não houver PDF. `envia()` já é o único
+  lugar a mexer quando houver: o Brevo aceita `attachment`.
+- **A assinatura não é desenhada na tela.** Hoje se envia uma imagem. Assinar
+  com o dedo num campo de desenho é o que um tablet no balcão pediria, e é
+  trabalho próprio.
+- **Não há filtro por forma de pagamento** no Financeiro. A busca é por nome e
+  o recorte é por data; "quanto entrou no pix em agosto" só o Fechamento
+  responde.
+
+## O que a sessão do fluxo na mão fez, em 19/ago## O que a sessão do fluxo na mão fez, em 19/ago
 
 Ninguém tinha percorrido o produto como quem usa. A suíte de navegador pergunta
 se a tela abriu e o ensaio geral pergunta se o dinheiro atravessa; nenhum dos

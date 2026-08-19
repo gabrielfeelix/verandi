@@ -410,6 +410,61 @@ estão em atraso, e isso responde "tem alguém para ligar?". O que ele não
 responde é "quanto", que é a pergunta que faz alguém abrir o Financeiro: dez
 linhas de R$ 90 e dez linhas de R$ 700 pedem manhãs diferentes.
 
+## As telas que passaram a se responder, em 19/08
+
+O produto passava nos testes e não era operável. O Financeiro dizia "10
+cobranças em atraso" e não dizia **quanto**; o arquivo de recibos não se
+recortava por data, e achar "os do dia 19 de janeiro" entre trezentos mil só
+era possível sabendo o número ou o nome; a ficha do aluno listava cobranças sem
+responder se a pessoa está em dia; e a tela inicial do dono não falava do mês.
+
+**Os números somam o recorte inteiro, e não a página.** Total que muda ao virar
+a página é pior que total nenhum. Tem teto de 20 mil linhas, e o teto se
+anuncia na tela em vez de a soma sair parcial em silêncio.
+
+**O recorte é um só, compartilhado pela lista e pela soma.** Se a faixa somasse
+por um caminho e a lista mostrasse por outro, os dois discordariam em silêncio,
+e o número de cima é o que alguém anota.
+
+**A janela do Financeiro é por vencimento; a dos Recibos, por emissão.** Duas
+telas com a mesma barra significando datas diferentes é o jeito mais rápido de
+os números discordarem sem ninguém saber por quê. E nenhuma lista nasce
+filtrada: abrir em "este mês" esconderia quem deve desde junho.
+
+**Terceiro defeito de fuso do projeto, e o primeiro que um teste pegou antes do
+usuário.** A janela dos recibos era montada com data crua, e o Postgres a lia
+em UTC: o recibo das 21h30 no Brasil já é 00h30 do dia seguinte, e sumia do
+próprio dia.
+
+## A assinatura e o envio do recibo, em 19/08
+
+Migration `0059`: `assinatura_path`, `assinatura_nome` e `assinatura_cargo` em
+`conta`, o balde privado `assinatura-recibo` e a tabela `envio_de_recibo`.
+
+**O texto de quem assina congela no corpo; a imagem não.** O nome de quem
+assinou naquele dia é parte do que o papel afirma, e trocar a responsável
+técnica em 2027 não pode reescrever quem assinou em 2026. A imagem é a marca do
+estúdio, e carimbar a segunda via com o carimbo de hoje é o que uma segunda via
+sempre fez.
+
+**Só o dono troca a assinatura**, e todo mundo da conta lê: é a recepção que
+emite o papel onde ela aparece. SVG fica fora dos tipos aceitos, porque SVG é
+documento com script e um balde de imagem que aceita script é XSS servido do
+nosso próprio domínio.
+
+**O e-mail leva o recibo no corpo.** Não como link, porque o aluno não tem login
+neste produto; não como anexo, porque ainda não há PDF. A assinatura não vai
+como imagem na mensagem: cliente de e-mail bloqueia imagem por padrão, e um
+recibo cuja assinatura só aparece depois de "exibir imagens" parece adulterado.
+
+**Cada envio é uma linha, e reenviar é normal.** "Eu nunca recebi" é a frase que
+esse registro responde, e ela chega meses depois. Uma coluna `enviado_em` no
+recibo apagaria o histórico a cada reenvio.
+
+**O que falta, e está escrito no handoff:** PDF gerado pelo servidor (destrava o
+anexo junto), assinatura desenhada na tela, e filtro por forma de pagamento no
+Financeiro.
+
 ## O módulo 19, aulas por professor, no ar em 18/08
 
 O item 7, e o último dos nove pedidos do documento. **Sem migration:** a

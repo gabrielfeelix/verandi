@@ -84,7 +84,7 @@ test('arrumar a tela inicial muda a ordem, e só para quem arrumou', async ({ pa
 
   await page.reload()
   await expect(page.getByText('Lotação cheia não é bloqueio')).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'Abrir o financeiro' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ver o fechamento' })).toBeVisible()
 
   // o arranjo é da pessoa: o que foi gravado tem o caixa na frente
   const { data } = await admin.from('preferencia_home')
@@ -117,4 +117,43 @@ test('voltar ao padrão apaga a preferência, e não grava uma foto do padrão',
     return count ?? 0
   }).toBe(0)
   await expect(page.getByText('Lotação cheia não é bloqueio')).toBeVisible()
+})
+
+test('o financeiro diz quanto, e não só quantas', async ({ page }) => {
+  const c = await cenario('Estúdio dos números')
+  await entrar(page, c.email)
+  await page.goto('/financeiro?aba=todas')
+
+  /*
+   * A tela dizia "10 cobranças em atraso" e não dizia quanto. Dez linhas de
+   * R$ 90 e dez de R$ 700 são a mesma frase e duas manhãs diferentes.
+   */
+  await expect(page.getByText('Cobrado', { exact: true })).toBeVisible()
+  await expect(page.getByText('Ticket médio')).toBeVisible()
+  await expect(page.getByText('R$ 700,00').first()).toBeVisible()
+})
+
+test('o arquivo de recibos se recorta por data', async ({ page }) => {
+  const c = await cenario('Estúdio do arquivo')
+  await entrar(page, c.email)
+
+  // um dia em que nada foi emitido: a pergunta "e os do dia 19 de janeiro?"
+  await page.goto('/recibos?de=2026-01-19&ate=2026-01-19')
+  await expect(page.getByText('Nenhum recibo em 19/01/26.')).toBeVisible()
+
+  // e a barra de período diz o recorte em vez de deixar a tela mentir vazia
+  await expect(page.getByText('em 19/01/26').first()).toBeVisible()
+  await page.getByRole('link', { name: 'limpar' }).click()
+  await expect(page.getByText('sem recorte de data')).toBeVisible()
+})
+
+test('a ficha responde se a pessoa está em dia', async ({ page }) => {
+  const c = await cenario('Estúdio da ficha')
+  await entrar(page, c.email)
+  await page.goto(`/pessoas/${c.pessoaId}?aba=contratos`)
+
+  // a aba listava cobranças e não respondia nenhuma pergunta sobre a pessoa
+  await expect(page.getByText('Já pagou')).toBeVisible()
+  await expect(page.getByText('Em atraso', { exact: true })).toBeVisible()
+  await expect(page.getByText('Último pagamento')).toBeVisible()
 })
