@@ -146,6 +146,7 @@ export default async function Pessoa({
         cobrancasDaPessoa(db, conta.contaId, id, hoje),
       ])
     : [[], []]
+  const contratosEmVigor = contratos.filter((c) => c.status === 'ativo').length
   const [avaliacoes, posicoes, quemAvalia] = vendoAvaliacao
     ? await Promise.all([
         avaliacoesDaPessoa(id),
@@ -213,7 +214,10 @@ export default async function Pessoa({
   // a ficha é a linha entre agenda e CRM: entra histórico, tag, observação e
   // contato. Não entra funil, proposta, valor nem cobrança.
   const dados: Array<[string, string, boolean?]> = [
-    ['Telefone', p.telefone ?? 'Sem telefone', !p.telefone],
+    // pontuado, como o cartão de contato ao lado já mostrava: o mesmo número
+    // aparecendo cru aqui e formatado a três centímetros de distância faz a
+    // recepção conferir se são dois números diferentes
+    ['Telefone', p.telefone ? exibirTelefone(p.telefone) : 'Sem telefone', !p.telefone],
     ['E-mail', p.email ?? 'Sem e-mail'],
     ['Identificador', p.identificadorExterno ?? 'Sem identificador', !p.identificadorExterno],
     ['Nascimento', p.nascimento ? curta(p.nascimento) : 'Sem registro'],
@@ -802,10 +806,39 @@ export default async function Pessoa({
                 </span>
               )}
             </div>
+            {/*
+              * Este cartão é anterior ao contrato, e o texto dele ficou para
+              * trás: dizia que "valor e cobrança são de outro sistema" numa
+              * tela que hoje tem os dois, uma aba ao lado. Quem lesse isso
+              * concluía que o financeiro não existia aqui.
+              *
+              * A data continua servindo para o que sempre serviu: até quando a
+              * agenda materializa. O que mudou é que ela deixou de ser a única
+              * coisa que a ficha sabe sobre plano, e por isso aponta para onde
+              * a resposta inteira está.
+              */}
             <p className="pb-3 text-[13px] leading-[1.5] text-tinta-media">
               {p.vencimentoPlano
-                ? `Vence em ${curta(p.vencimentoPlano)}`
-                : 'Sem data de vencimento. A agenda guarda só até quando o plano vale, valor e cobrança são de outro sistema.'}
+                ? `A agenda vai até ${curta(p.vencimentoPlano)}`
+                : 'Sem data de limite: a agenda segue enquanto houver horário.'}
+              {contratosEmVigor > 0 ? (
+                <>
+                  {' '}
+                  <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
+                    {contratosEmVigor === 1
+                      ? '1 contrato em vigor'
+                      : `${contratosEmVigor} contratos em vigor`}
+                  </Link>
+                  {' '}dizem o preço e geram as cobranças.
+                </>
+              ) : (
+                <>
+                  {' '}Preço e cobrança vêm do contrato, na aba{' '}
+                  <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
+                    Contratos
+                  </Link>.
+                </>
+              )}
             </p>
             <RegistrarRenovacao pessoaId={p.id} vencimento={p.vencimentoPlano} />
           </section>
