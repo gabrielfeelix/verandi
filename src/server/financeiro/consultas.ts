@@ -11,6 +11,9 @@ import type {
   PagamentoRecebido, PessoaDaConta,
 } from '@/core/financeiro/fechamento'
 import { descricaoDoRecibo, type StatusRecibo } from '@/core/recibo/recibo'
+import {
+  resumoDeCobrancas, type ResumoDeCobrancas,
+} from '@/core/financeiro/metricas'
 
 export const POR_PAGINA = 20
 
@@ -118,7 +121,80 @@ function paraLinha(c: LinhaCrua, hoje: string): CobrancaLinha {
   }
 }
 
-export type FiltroCobranca = 'atrasadas' | 'a_vencer' | 'pagas' | 'canceladas'
+export type FiltroCobranca =
+  'todas' | 'atrasadas' | 'a_vencer' | 'pagas' | 'canceladas'
+
+export type RecorteDeCobranca = {
+  filtro: FiltroCobranca
+  /** janela por **vencimento**; a tela diz isso com todas as letras */
+  periodo?: { de: string; ate: string } | null
+  /** ids de pessoa, quando a busca por nome já resolveu quem */
+  pessoaIds?: string[] | null
+}
+
+/**
+ * Um recorte, aplicado à consulta.
+ *
+ * Escrito uma vez e usado duas: pela lista paginada e pelo resumo que soma o
+ * conjunto inteiro. Se a lista e a soma filtrassem por caminhos diferentes, a
+ * faixa de números diria uma coisa e as linhas embaixo dela diriam outra, que é
+ * o tipo de divergência que ninguém percebe e todo mundo acredita.
+ *
+ * O tipo do construtor do PostgREST muda a cada filtro encadeado, e não há como
+ * nomeá-lo aqui sem arrastar meia biblioteca para a assinatura. Então ele entra
+ * genérico e sai genérico, com uma conversão só, no meio, onde ela se lê.
+ */
+function recortar<T>(q: T, r: RecorteDeCobranca, hoje: string): T {
+  type Filtravel = {
+    eq: (coluna: string, valor: unknown) => Filtravel
+    in: (coluna: string, valores: unknown[]) => Filtravel
+    lt: (coluna: string, valor: unknown) => Filtravel
+    lte: (coluna: string, valor: unknown) => Filtravel
+    gte: (coluna: string, valor: unknown) => Filtravel
+  }
+  let f = q as Filtravel
+
+  if (r.filtro === 'canceladas') f = f.eq('situacao', 'cancelada')
+  else if (r.filtro === 'pagas') f = f.eq('situacao', 'paga')
+  else if (r.filtro === 'atrasadas') {
+    f = f.in('situacao', ['aberta', 'parcial']).lt('vencimento', hoje)
+  } else if (r.filtro === 'a_vencer') {
+    f = f.in('situacao', ['aberta', 'parcial']).gte('vencimento', hoje)
+  }
+  /*
+   * 'todas' não recorta situação nenhuma. É a aba que responde "o que houve com
+   * esta pessoa" sem obrigar quem pergunta a visitar quatro abas e somar de
+   * cabeça o que viu em cada uma.
+   */
+
+  if (r.periodo) {
+    f = f.gte('vencimento', r.periodo.de).lte('vencimento', r.periodo.ate)
+  }
+  if (r.pessoaIds) f = f.in('pessoa_id', r.pessoaIds)
+
+  return f as T
+}
+
+/**
+ * Quem casa com a busca por nome, resolvido antes da consulta principal.
+ *
+ * `ilike` em coluna de tabela ligada não filtra a de cima no PostgREST, e
+ * trazer tudo para filtrar em memória pagina errado — o defeito que ninguém
+ * percebe até a lista passar de vinte linhas.
+ *
+ * Devolve `null` quando não há busca, e lista vazia quando a busca não achou
+ * ninguém. São coisas diferentes: `null` é "não filtre", `[]` é "não há".
+ */
+async function idsQueCasam(
+  db: Db, contaId: string, busca: string | undefined,
+): Promise<string[] | null> {
+  const termo = busca?.trim()
+  if (!termo) return null
+  const { data } = await db.from('pessoa')
+    .select('id').eq('conta_id', contaId)
+    .ilike('nome', `%${termo}%`).limit(500)
+  return (data ?? []).map((p) => p.id)
+}
 
 /**
  * As cobranças de uma aba, paginadas.
@@ -129,48 +205,91 @@ export type FiltroCobranca = 'atrasadas' | 'a_vencer' | 'pagas' | 'canceladas'
  */
 export async function listarCobrancas(
   db: Db, contaId: string, hoje: string,
-  opcoes: { filtro: FiltroCobranca; busca?: string; pagina?: number },
+  opcoes: {
+    filtro: FiltroCobranca
+    busca?: string
+    pagina?: number
+    periodo?: { de: string; ate: string } | null
+  },
 ): Promise<{ linhas: CobrancaLinha[]; total: number }> {
   const pagina = Math.max(1, opcoes.pagina ?? 1)
   const de = (pagina - 1) * POR_PAGINA
 
-  let q = db.from('cobranca_resumo').select(SELECT_LINHA, { count: 'exact' })
-    .eq('conta_id', contaId)
+  const pessoaIds = await idsQueCasam(db, contaId, opcoes.busca)
+  if (pessoaIds?.length === 0) return { linhas: [], total: 0 }
 
-  if (opcoes.filtro === 'canceladas') {
-    q = q.eq('situacao', 'cancelada').order('vencimento', { ascending: false })
-  } else if (opcoes.filtro === 'pagas') {
-    q = q.eq('situacao', 'paga').order('vencimento', { ascending: false })
-  } else if (opcoes.filtro === 'atrasadas') {
-    q = q.in('situacao', ['aberta', 'parcial']).lt('vencimento', hoje)
-      .order('vencimento', { ascending: true })
-  } else {
-    q = q.in('situacao', ['aberta', 'parcial']).gte('vencimento', hoje)
-      .order('vencimento', { ascending: true })
-  }
+  const base = db.from('cobranca_resumo')
+    .select(SELECT_LINHA, { count: 'exact' }).eq('conta_id', contaId)
 
-  if (opcoes.busca?.trim()) {
-    /*
-     * O nome vai numa segunda consulta: `ilike` em coluna de tabela ligada não
-     * filtra a de cima no PostgREST, e trazer tudo para filtrar em memória
-     * pagina errado, que é o defeito que ninguém percebe até a lista passar de
-     * vinte linhas.
-     */
-    const { data: pessoas } = await db.from('pessoa')
-      .select('id').eq('conta_id', contaId)
-      .ilike('nome', `%${opcoes.busca.trim()}%`).limit(200)
-    const ids = (pessoas ?? []).map((p) => p.id)
-    if (ids.length === 0) return { linhas: [], total: 0 }
-    q = q.in('pessoa_id', ids)
-  }
+  const recortada = recortar(base, {
+    filtro: opcoes.filtro, periodo: opcoes.periodo, pessoaIds,
+  }, hoje)
 
-  const { data, error, count } = await q.range(de, de + POR_PAGINA - 1)
+  /*
+   * A ordem é a do que dói primeiro: em atraso, o mais velho na frente; a
+   * vencer, o mais próximo na frente; o resto, o mais recente. A recepção não
+   * pede ordenação, ela pede a próxima ligação.
+   */
+  const crescente = opcoes.filtro === 'atrasadas' || opcoes.filtro === 'a_vencer'
+
+  const { data, error, count } = await recortada
+    .order('vencimento', { ascending: crescente })
+    .range(de, de + POR_PAGINA - 1)
     .returns<LinhaCrua[]>()
   if (error) throw error
 
   const linhas = (data ?? []).map((c) => paraLinha(c, hoje))
   await juntarRecibos(db, contaId, linhas)
   return { linhas, total: count ?? 0 }
+}
+
+/**
+ * Os números da faixa: o conjunto inteiro do recorte, e não a página.
+ *
+ * A tela dizia "10 cobranças em atraso" e não dizia quanto. Somar só a página
+ * seria pior que não somar: o número mudaria ao virar a página, e quem confere
+ * caixa com um número que anda sozinho perde a tarde.
+ *
+ * Traz duas colunas por linha, e nada mais. **Tem teto**, e o teto está dito na
+ * resposta: acima dele a soma sairia cara e passaria a ser parcial em silêncio,
+ * e a tela precisa poder avisar em vez de mentir. No tamanho real de um estúdio
+ * — algumas centenas de cobranças por ano — ele nunca é alcançado.
+ */
+export const TETO_DO_RESUMO = 20000
+
+export async function resumoDasCobrancas(
+  db: Db, contaId: string, hoje: string,
+  opcoes: {
+    filtro: FiltroCobranca
+    busca?: string
+    periodo?: { de: string; ate: string } | null
+  },
+): Promise<{ resumo: ResumoDeCobrancas; completo: boolean }> {
+  const pessoaIds = await idsQueCasam(db, contaId, opcoes.busca)
+  if (pessoaIds?.length === 0) {
+    return { resumo: resumoDeCobrancas([]), completo: true }
+  }
+
+  const base = db.from('cobranca_resumo')
+    .select('valor_cent, valor_pago_cent, situacao').eq('conta_id', contaId)
+
+  const { data, error } = await recortar(base, {
+    filtro: opcoes.filtro, periodo: opcoes.periodo, pessoaIds,
+  }, hoje)
+    .limit(TETO_DO_RESUMO + 1)
+    .returns<Array<{ valor_cent: number; valor_pago_cent: number; situacao: string }>>()
+  if (error) throw error
+
+  const linhas = data ?? []
+  const completo = linhas.length <= TETO_DO_RESUMO
+  return {
+    resumo: resumoDeCobrancas(linhas.slice(0, TETO_DO_RESUMO).map((c) => ({
+      valorCent: c.valor_cent,
+      valorPagoCent: c.valor_pago_cent,
+      situacao: c.situacao,
+    }))),
+    completo,
+  }
 }
 
 /**
@@ -484,4 +603,95 @@ function paraPeriodo(c: {
     valorPagoCent: c.valor_pago_cent,
     situacao: c.situacao,
   }
+}
+
+
+export type CaixaDoMes = {
+  /** o que entrou no mês corrente, já sem estorno */
+  recebidoCent: number
+  /** o que entrou no mesmo trecho do mês passado, para comparar */
+  recebidoAntesCent: number
+  /** o que ainda vence neste mês */
+  aVencerCent: number
+  /** o vencido e não pago, de qualquer mês: é a pergunta de hoje */
+  atrasadoCent: number
+  atrasadas: number
+}
+
+/**
+ * O caixa do mês, para o bloco da tela inicial do dono.
+ *
+ * O trilho já diz quantas cobranças estão em atraso, e isso responde "tem
+ * alguém para ligar?". Quem responde pelo negócio abre o dia com outra
+ * pergunta: **como o mês está indo**. Sem isso a home era uma agenda com
+ * números de presença, e o dono ia direto para o Financeiro todo dia.
+ *
+ * A comparação é com o **mesmo trecho** do mês passado, e não com o mês
+ * fechado: no dia 5 de setembro, comparar cinco dias com trinta diria que o
+ * faturamento caiu 80%, e o número que mente é pior que o número que falta.
+ *
+ * O estornado sai da soma. Ele é uma linha que existe para explicar por que o
+ * dinheiro saiu, e não uma vez que alguém pagou.
+ */
+export async function caixaDoMes(
+  db: Db, contaId: string, hoje: string,
+): Promise<CaixaDoMes> {
+  const inicioDoMes = competenciaDe(hoje)
+  const diaDoMes = Number(hoje.slice(8, 10))
+
+  // o mesmo trecho do mês passado: do dia 1 até o mesmo dia
+  const ultimoDoPassado = somarDiasIso(inicioDoMes, -1)
+  const inicioDoPassado = competenciaDe(ultimoDoPassado)
+  const mesmoDiaNoPassado = (() => {
+    const fim = somarDiasIso(inicioDoPassado, diaDoMes - 1)
+    return fim > ultimoDoPassado ? ultimoDoPassado : fim
+  })()
+
+  const [pagos, abertas] = await Promise.all([
+    db.from('pagamento')
+      .select('valor_cent, recebido_em, estornado_em')
+      .eq('conta_id', contaId)
+      .gte('recebido_em', inicioDoPassado)
+      .lte('recebido_em', hoje)
+      .returns<Array<{
+        valor_cent: number; recebido_em: string; estornado_em: string | null
+      }>>(),
+    db.from('cobranca_resumo')
+      .select('valor_cent, valor_pago_cent, vencimento')
+      .eq('conta_id', contaId).in('situacao', ['aberta', 'parcial'])
+      .lte('vencimento', fimDaCompetencia(inicioDoMes))
+      .returns<Array<{
+        valor_cent: number; valor_pago_cent: number; vencimento: string
+      }>>(),
+  ])
+
+  let recebidoCent = 0, recebidoAntesCent = 0
+  for (const p of pagos.data ?? []) {
+    if (p.estornado_em) continue
+    if (p.recebido_em >= inicioDoMes) recebidoCent += p.valor_cent
+    else if (p.recebido_em <= mesmoDiaNoPassado) recebidoAntesCent += p.valor_cent
+  }
+
+  let aVencerCent = 0, atrasadoCent = 0, atrasadas = 0
+  for (const c of abertas.data ?? []) {
+    const falta = Math.max(0, c.valor_cent - (c.valor_pago_cent ?? 0))
+    if (falta === 0) continue
+    if (c.vencimento < hoje) { atrasadoCent += falta; atrasadas++ }
+    else aVencerCent += falta
+  }
+
+  return { recebidoCent, recebidoAntesCent, aVencerCent, atrasadoCent, atrasadas }
+}
+
+/**
+ * Somar dias numa data ISO sem passar por fuso.
+ *
+ * `new Date(iso)` lê meia-noite em UTC, e depois das 21h no Brasil o dia já
+ * virou. O meio-dia é o único horário em que somar dia não atravessa fronteira
+ * de fuso nenhuma.
+ */
+function somarDiasIso(iso: string, dias: number): string {
+  const d = new Date(`${iso}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + dias)
+  return d.toISOString().slice(0, 10)
 }

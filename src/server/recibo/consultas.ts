@@ -1,6 +1,9 @@
 import type { Db } from '../supabase'
 import { instante } from '../agenda/fuso'
 import type { CorpoDoRecibo, StatusRecibo } from '@/core/recibo/recibo'
+import {
+  resumoDeRecibos, type ResumoDeRecibos,
+} from '@/core/financeiro/metricas'
 
 export const POR_PAGINA = 20
 
@@ -74,35 +77,146 @@ export type FiltroRecibo = 'todos' | 'validos' | 'cancelados'
  */
 export async function listarRecibos(
   db: Db, contaId: string,
-  opcoes: { filtro?: FiltroRecibo; busca?: string; pagina?: number } = {},
+  opcoes: {
+    filtro?: FiltroRecibo
+    busca?: string
+    pagina?: number
+    /** janela por data de **emissão**, que é o que se procura num arquivo */
+    periodo?: { de: string; ate: string } | null
+    /** o fuso da conta: sem ele a janela é lida em UTC. Ver `recortarRecibos` */
+    fuso?: string
+  } = {},
 ): Promise<{ linhas: ReciboLinha[]; total: number }> {
   const pagina = Math.max(1, opcoes.pagina ?? 1)
   const de = (pagina - 1) * POR_PAGINA
 
-  let q = db.from('recibo').select(SELECT_LINHA, { count: 'exact' })
-    .eq('conta_id', contaId)
-
-  if (opcoes.filtro === 'validos') q = q.eq('status', 'valido')
-  if (opcoes.filtro === 'cancelados') q = q.eq('status', 'cancelado')
-
-  const busca = opcoes.busca?.trim()
-  if (busca) {
-    const numero = Number(busca.replace(/\D/g, ''))
-    if (Number.isFinite(numero) && numero > 0) {
-      q = q.eq('numero', numero)
-    } else {
-      // o nome mora dentro do `corpo`, e o `->>` é o que o PostgREST entende
-      q = q.ilike('corpo->>pagadorNome', `%${busca}%`)
-    }
-  }
-
-  const { data, error, count } = await q
+  const { data, error, count } = await recortarRecibos(
+    db.from('recibo').select(SELECT_LINHA, { count: 'exact' }).eq('conta_id', contaId),
+    opcoes,
+  )
     .order('emitido_em', { ascending: false })
     .range(de, de + POR_PAGINA - 1)
     .returns<LinhaCrua[]>()
   if (error) throw error
 
   return { linhas: (data ?? []).map(paraLinha), total: count ?? 0 }
+}
+
+/**
+ * O recorte do arquivo de recibos, aplicado à consulta.
+ *
+ * Compartilhado entre a lista e o resumo pelo mesmo motivo do financeiro: se a
+ * faixa de números somasse por um caminho e a lista mostrasse por outro, os
+ * dois discordariam em silêncio e o número de cima é o que alguém anota.
+ *
+ * **O período vai por `emitido_em`, e a janela é montada com o fuso da conta.**
+ * `emitido_em` é `timestamptz`, e comparar com `'2026-01-19T00:00:00'` sem fuso
+ * faz o Postgres ler no fuso do servidor, que é UTC: o recibo emitido às 21h30
+ * no Brasil já é 00h30 do dia seguinte em UTC, e sumia do próprio dia. É a
+ * armadilha que o fechamento pagou uma vez, chegando por outra porta — e desta
+ * vez o teste pegou antes de alguém procurar um recibo e não achar.
+ */
+function recortarRecibos<T>(
+  q: T,
+  opcoes: {
+    filtro?: FiltroRecibo
+    busca?: string
+    periodo?: { de: string; ate: string } | null
+    fuso?: string
+  },
+): T {
+  type Filtravel = {
+    eq: (coluna: string, valor: unknown) => Filtravel
+    gte: (coluna: string, valor: unknown) => Filtravel
+    lt: (coluna: string, valor: unknown) => Filtravel
+    ilike: (coluna: string, valor: string) => Filtravel
+  }
+  let f = q as Filtravel
+
+  if (opcoes.filtro === 'validos') f = f.eq('status', 'valido')
+  if (opcoes.filtro === 'cancelados') f = f.eq('status', 'cancelado')
+
+  const busca = opcoes.busca?.trim()
+  if (busca) {
+    const numero = Number(busca.replace(/\D/g, ''))
+    if (Number.isFinite(numero) && numero > 0 && /\d/.test(busca)) {
+      f = f.eq('numero', numero)
+    } else {
+      // o nome mora dentro do `corpo`, e o `->>` é o que o PostgREST entende
+      f = f.ilike('corpo->>pagadorNome', `%${busca}%`)
+    }
+  }
+
+  if (opcoes.periodo) {
+    const fuso = opcoes.fuso ?? 'America/Sao_Paulo'
+    f = f.gte('emitido_em', instante(opcoes.periodo.de, '00:00', fuso))
+      .lt('emitido_em', instante(diaSeguinte(opcoes.periodo.ate), '00:00', fuso))
+  }
+
+  return f as T
+}
+
+/** O dia seguinte, para a comparação exclusiva do fim da janela. */
+function diaSeguinte(iso: string): string {
+  const d = new Date(`${iso}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + 1)
+  return d.toISOString().slice(0, 10)
+}
+
+/** Teto do resumo, pelo mesmo motivo do financeiro: soma parcial se anuncia. */
+export const TETO_DO_RESUMO_RECIBO = 20000
+
+/**
+ * Os números do arquivo: quantos, quanto, e quantos deixaram de valer.
+ *
+ * Somam o recorte inteiro, e não a página. Um arquivo de recibos que só diz
+ * quantos existem não responde a pergunta de quem abre: "quanto foi
+ * comprovado neste período?".
+ */
+export async function resumoDosRecibos(
+  db: Db, contaId: string,
+  opcoes: {
+    filtro?: FiltroRecibo
+    busca?: string
+    periodo?: { de: string; ate: string } | null
+    fuso?: string
+  } = {},
+): Promise<{ resumo: ResumoDeRecibos; completo: boolean }> {
+  const { data, error } = await recortarRecibos(
+    db.from('recibo').select('valor_cent, status').eq('conta_id', contaId),
+    opcoes,
+  )
+    .limit(TETO_DO_RESUMO_RECIBO + 1)
+    .returns<Array<{ valor_cent: number; status: string }>>()
+  if (error) throw error
+
+  const linhas = data ?? []
+  return {
+    resumo: resumoDeRecibos(
+      linhas.slice(0, TETO_DO_RESUMO_RECIBO)
+        .map((r) => ({ valorCent: r.valor_cent, status: r.status })),
+    ),
+    completo: linhas.length <= TETO_DO_RESUMO_RECIBO,
+  }
+}
+
+/**
+ * Os recibos de uma pessoa, para a ficha dela.
+ *
+ * A ficha mostrava o recibo pendurado na linha do pagamento, e só. Quem
+ * pergunta "manda de novo aquele recibo de março" não tem por onde começar sem
+ * abrir cobrança por cobrança.
+ */
+export async function recibosDaPessoa(
+  db: Db, contaId: string, pessoaId: string, limite = 50,
+): Promise<ReciboLinha[]> {
+  const { data, error } = await db.from('recibo').select(SELECT_LINHA)
+    .eq('conta_id', contaId).eq('pessoa_id', pessoaId)
+    .order('emitido_em', { ascending: false })
+    .limit(limite)
+    .returns<LinhaCrua[]>()
+  if (error) throw error
+  return (data ?? []).map(paraLinha)
 }
 
 /** Um recibo, para a folha impressa e para a segunda via. */
@@ -180,4 +294,37 @@ export async function recibosDoPeriodo(
     cancelados: (cancelados.data ?? []).length,
     canceladoCent: (cancelados.data ?? []).reduce((s, r) => s + r.valor_cent, 0),
   }
+}
+
+
+export type EnvioDoRecibo = { para: string; em: string }
+
+/**
+ * O último envio de cada recibo de uma lista.
+ *
+ * Responde "já mandei isso?", que é a pergunta de quem está com o aluno na
+ * frente perguntando se o comprovante chegou. Uma consulta só para a página
+ * inteira: uma por linha seria vinte idas ao banco para mostrar vinte frases
+ * curtas.
+ */
+export async function ultimosEnvios(
+  db: Db, contaId: string, reciboIds: string[],
+): Promise<Map<string, EnvioDoRecibo>> {
+  if (!reciboIds.length) return new Map()
+
+  const { data, error } = await db.from('envio_de_recibo')
+    .select('recibo_id, para, enviado_em')
+    .eq('conta_id', contaId).in('recibo_id', reciboIds)
+    .eq('entregue', true)
+    .order('enviado_em', { ascending: false })
+    .returns<Array<{ recibo_id: string; para: string; enviado_em: string }>>()
+  if (error) throw error
+
+  // a ordem é do mais novo para o mais velho, então o primeiro de cada id fica
+  const mapa = new Map<string, EnvioDoRecibo>()
+  for (const e of data ?? []) {
+    if (mapa.has(e.recibo_id)) continue
+    mapa.set(e.recibo_id, { para: e.para, em: e.enviado_em })
+  }
+  return mapa
 }

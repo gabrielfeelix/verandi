@@ -5,7 +5,7 @@ import { hojeEm } from '@/server/agenda/fuso'
 import { materializarCobrancas } from '@/server/financeiro/materializar'
 import {
   contarAtrasadas, listarCobrancas, materialDoFechamento, POR_PAGINA,
-  type FiltroCobranca,
+  resumoDasCobrancas, TETO_DO_RESUMO, type FiltroCobranca,
 } from '@/server/financeiro/consultas'
 import {
   aReceber, carteira, clientes, descontoDeVinculo, emAtraso, estornosDoPeriodo,
@@ -19,6 +19,10 @@ import { ListaDeCobrancas } from '@/components/financeiro/lista'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { BuscaDeCobranca } from '@/components/financeiro/busca'
 import { Paginacao, Vazio, cartao } from '@/components/ui/pecas'
+import { BarraDePeriodo } from '@/components/ui/barra-periodo'
+import { FaixaDeNumeros, type NumeroDaFaixa } from '@/components/ui/faixa-numeros'
+import { periodoDaBusca } from '@/core/financeiro/periodo'
+import type { ResumoDeCobrancas } from '@/core/financeiro/metricas'
 
 /**
  * O caixa da recepção.
@@ -31,6 +35,7 @@ import { Paginacao, Vazio, cartao } from '@/components/ui/pecas'
 
 const ABAS: Array<{ id: FiltroCobranca | 'fechamento'; rotulo: string }> = [
   { id: 'atrasadas', rotulo: 'Em atraso' },
+  { id: 'todas', rotulo: 'Todas' },
   { id: 'a_vencer', rotulo: 'A vencer' },
   { id: 'pagas', rotulo: 'Recebidas' },
   { id: 'canceladas', rotulo: 'Canceladas' },
@@ -72,25 +77,53 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
     )
   }
 
-  const { linhas, total } = await listarCobrancas(db, conta.contaId, hoje, {
-    filtro: aba, busca: q, pagina,
-  })
+  /*
+   * A janela é por **vencimento**, e a barra diz isso com todas as letras.
+   * Recortar "Recebidas" pela data do pagamento seria outra pergunta legítima,
+   * e é a que o Fechamento responde: duas telas com a mesma barra significando
+   * datas diferentes é o jeito mais rápido de os dois números discordarem sem
+   * ninguém saber por quê.
+   */
+  const periodo = periodoDaBusca(deBruto, ateBruto)
+
+  const [{ linhas, total }, { resumo, completo }] = await Promise.all([
+    listarCobrancas(db, conta.contaId, hoje, {
+      filtro: aba, busca: q, pagina, periodo,
+    }),
+    resumoDasCobrancas(db, conta.contaId, hoje, { filtro: aba, busca: q, periodo }),
+  ])
 
   const endereco = (mudanca: (b: URLSearchParams) => void) => {
     const base = new URLSearchParams()
     base.set('aba', aba)
     if (q) base.set('q', q)
+    if (periodo) { base.set('de', periodo.de); base.set('ate', periodo.ate) }
     mudanca(base)
     return `/financeiro?${base}`
   }
+
+  const numeros = faixaDaAba(aba, resumo)
 
   return (
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <Cabecalho atrasadas={atrasadas} hoje={hoje} />
-        <Trilha aba={aba} q={q} atrasadas={atrasadas} />
+        <Trilha aba={aba} q={q} periodo={periodo} atrasadas={atrasadas} />
+
+        <FaixaDeNumeros
+          itens={numeros}
+          aviso={completo ? null
+            : `A soma cobre as primeiras ${TETO_DO_RESUMO.toLocaleString('pt-BR')} cobranças deste recorte. Filtre por data para fechar o número.`}
+        />
 
         <div className={`${cartao} flex flex-col gap-3 p-4`}>
+          <BarraDePeriodo
+            base="/financeiro"
+            periodo={periodo}
+            hoje={hoje}
+            rotulo="Vencimento"
+            escondidos={{ aba, q }}
+          />
           <BuscaDeCobranca valorInicial={q ?? ''} aba={aba} />
 
           <ListaDeCobrancas
@@ -111,6 +144,10 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
 }
 
 const VAZIO: Record<FiltroCobranca, { titulo: string; texto: string }> = {
+  todas: {
+    titulo: 'Nenhuma cobrança ainda',
+    texto: 'Elas nascem dos contratos em vigor. Se você esperava alguma aqui, confira se a pessoa tem contrato na ficha dela.',
+  },
   atrasadas: {
     titulo: 'Ninguém em atraso',
     texto: 'Toda cobrança vencida está paga. É o estado que esta tela existe para manter, e não é falha de carregamento.',
@@ -153,11 +190,66 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
   )
 }
 
+/**
+ * Que números a aba mostra.
+ *
+ * Não é a mesma faixa em toda aba de propósito: "em atraso" quer saber quanto
+ * falta entrar e há quanto tempo, "recebidas" quer saber quanto entrou, e
+ * "todas" quer o retrato. Repetir os quatro mesmos números em cinco abas é o
+ * jeito de nenhum deles ser lido.
+ */
+function faixaDaAba(aba: FiltroCobranca, r: ResumoDeCobrancas): NumeroDaFaixa[] {
+  const emReaisOuTraco = (c: number) => c > 0 ? emReais(c) : '—'
+  const quantas = (n: number) => `${n} ${n === 1 ? 'cobrança' : 'cobranças'}`
+
+  if (aba === 'pagas') {
+    return [
+      { rotulo: 'Entrou', valor: emReais(r.pagoCent), tom: 'positivo',
+        nota: quantas(r.quantidade) },
+      { rotulo: 'Cobrado', valor: emReais(r.totalCent),
+        nota: 'o que essas cobranças somavam' },
+      { rotulo: 'Ticket médio', valor: emReaisOuTraco(r.ticketCent),
+        nota: 'por cobrança do recorte' },
+      { rotulo: 'Ainda em aberto', valor: emReaisOuTraco(r.abertoCent),
+        tom: r.abertoCent > 0 ? 'atencao' : 'neutro',
+        nota: r.abertoCent > 0 ? 'diferença de arredondamento ou pagamento parcial' : 'nada pendente aqui' },
+    ]
+  }
+
+  if (aba === 'canceladas') {
+    return [
+      { rotulo: 'Canceladas', valor: String(r.quantidadeCancelada),
+        nota: 'continuam na lista, com o motivo' },
+      { rotulo: 'Valor cancelado', valor: emReaisOuTraco(r.canceladasCent),
+        nota: 'fora de toda soma de faturamento' },
+    ]
+  }
+
+  const rotuloDoTotal = aba === 'atrasadas' ? 'Falta receber'
+    : aba === 'a_vencer' ? 'Vai entrar' : 'Em aberto'
+
+  return [
+    {
+      rotulo: rotuloDoTotal,
+      valor: emReaisOuTraco(r.abertoCent),
+      tom: aba === 'atrasadas' && r.abertoCent > 0 ? 'alerta' : 'neutro',
+      nota: quantas(r.quantidadeAberta),
+    },
+    { rotulo: 'Já recebido', valor: emReaisOuTraco(r.pagoCent), tom: 'positivo',
+      nota: 'destas mesmas cobranças' },
+    { rotulo: 'Cobrado', valor: emReaisOuTraco(r.totalCent),
+      nota: quantas(r.quantidade - r.quantidadeCancelada) },
+    { rotulo: 'Ticket médio', valor: emReaisOuTraco(r.ticketCent),
+      nota: 'por cobrança do recorte' },
+  ]
+}
+
 function Trilha({
-  aba, q, atrasadas,
+  aba, q, periodo, atrasadas,
 }: {
   aba: string
   q?: string
+  periodo: { de: string; ate: string } | null
   atrasadas: number
 }) {
   return (
@@ -169,6 +261,9 @@ function Trilha({
         const ligado = a.id === aba
         const busca = new URLSearchParams({ aba: a.id })
         if (q) busca.set('q', q)
+        // o período atravessa a troca de aba: quem filtrou setembro e clicou em
+        // "Recebidas" quer as recebidas de setembro, e não recomeçar
+        if (periodo) { busca.set('de', periodo.de); busca.set('ate', periodo.ate) }
         return (
           <Link
             key={a.id}
@@ -258,7 +353,7 @@ async function Fechamento({
   return (
     <div className="flex flex-col gap-4">
       <Cabecalho atrasadas={atrasadas} hoje={hoje} />
-      <Trilha aba="fechamento" atrasadas={atrasadas} />
+      <Trilha aba="fechamento" periodo={null} atrasadas={atrasadas} />
 
       <div className="flex flex-wrap items-center gap-2">
         {/* dia, semana, mês e ano são as quatro janelas que o documento pede */}
