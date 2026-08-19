@@ -145,6 +145,16 @@ const TRACOS = {
   ),
   antes: <path d="M12.2 4.8L7 10l5.2 5.2" />,
   depois: <path d="M7.8 4.8L13 10l-5.2 5.2" />,
+  acima: <path d="M4.8 12.2L10 7l5.2 5.2" />,
+  abaixo: <path d="M4.8 7.8L10 13l5.2-5.2" />,
+  // dois controles deslizantes: é o desenho que virou "ajustar isto aqui"
+  arrumar: (
+    <>
+      <path d="M3.4 6.6h13.2M3.4 13.4h13.2" />
+      <circle cx="7.6" cy="6.6" r="1.9" />
+      <circle cx="12.4" cy="13.4" r="1.9" />
+    </>
+  ),
   mais: <path d="M10 4.4v11.2M4.4 10h11.2" />,
   menos: <path d="M4.4 10h11.2" />,
   lapis: (

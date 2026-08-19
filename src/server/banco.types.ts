@@ -1400,6 +1400,35 @@ export type Database = {
           },
         ]
       }
+      preferencia_home: {
+        Row: {
+          atualizado_em: string
+          blocos: Json
+          conta_id: string
+          usuario_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          blocos?: Json
+          conta_id: string
+          usuario_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          blocos?: Json
+          conta_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preferencia_home_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profissional: {
         Row: {
           ativo: boolean

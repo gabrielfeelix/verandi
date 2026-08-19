@@ -230,6 +230,50 @@ export async function contarAtrasadas(
   return count ?? 0
 }
 
+/**
+ * O caixa em três números, para o bloco da tela inicial.
+ *
+ * Uma consulta só, sem paginação e sem corpo de linha: quem abre o dia quer
+ * saber se tem alguém para ligar e quanto entra esta semana, e trazer a lista
+ * inteira para somar na memória custaria a tela toda por um número que cabe
+ * numa frase.
+ *
+ * O que está vencido hoje entra em `atrasadoCent`; o que vence de hoje até a
+ * data limite entra em `aVencerCent`. Os dois usam o valor **que falta**, e não
+ * o da cobrança: quem já pagou metade deve metade, e o número que interessa é o
+ * que ainda tem de entrar.
+ */
+export async function resumoDoCaixa(
+  db: Db, contaId: string, hoje: string, ate: string,
+): Promise<{
+  atrasadas: number
+  atrasadoCent: number
+  aVencer: number
+  aVencerCent: number
+}> {
+  const { data, error } = await db.from('cobranca_resumo')
+    .select('vencimento, valor_cent, valor_pago_cent')
+    .eq('conta_id', contaId).in('situacao', ['aberta', 'parcial'])
+    .lte('vencimento', ate)
+    .returns<Array<{
+      vencimento: string | null
+      valor_cent: number | null
+      valor_pago_cent: number | null
+    }>>()
+  if (error) throw error
+
+  let atrasadas = 0; let atrasadoCent = 0
+  let aVencer = 0; let aVencerCent = 0
+  for (const c of data ?? []) {
+    if (!c.vencimento) continue
+    const falta = Math.max(0, (c.valor_cent ?? 0) - (c.valor_pago_cent ?? 0))
+    if (falta === 0) continue
+    if (c.vencimento < hoje) { atrasadas++; atrasadoCent += falta }
+    else { aVencer++; aVencerCent += falta }
+  }
+  return { atrasadas, atrasadoCent, aVencer, aVencerCent }
+}
+
 /** As cobranças de uma pessoa, da mais nova para a mais velha. */
 export async function cobrancasDaPessoa(
   db: Db, contaId: string, pessoaId: string, hoje: string,
