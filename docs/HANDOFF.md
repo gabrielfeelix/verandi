@@ -12,99 +12,213 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 18/ago/2026, com o administrativo inteiro no ar (módulos 14 a 19).
+Última revisão: 18/ago/2026, no fim do dia em que o administrativo inteiro
+entrou no ar (módulos 14 a 19, cinquenta commits).
 
 ---
 
-## Onde o produto está, em números
+## Onde o produto está, em números conferidos em produção
 
 A Verandi está **no ar** em `https://verandi.4yu.com.br`, com deploy automático
 a cada push na `main`.
 
 | | | |
 |---|---|---|
-| Contas de cliente em produção | **1** (MGM Pilates) | conferido 18/08 |
-| Migrations aplicadas | **28**, da `0030` à `0057` | aplicadas e conferidas em 18/08 |
-| Tabelas em `app_verandi` | **40**, todas com RLS | conferido em produção 18/08 |
-| Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção 18/08 |
-| Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | **543** de unidade e banco · **215** de navegador | as duas suítes verdes em 18/08, depois do módulo 19 |
-| API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
+| Contas de cliente | **1** (MGM Pilates) | conferido 18/08 |
+| Migrations aplicadas | **28**, da `0030` à `0057` | `aplica-em-producao --dry` diz "nada a fazer" |
+| Tabelas em `app_verandi` | **40**, todas com RLS | conferido em produção |
+| Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção |
+| Banco | **16 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
+| Testes | **543** de unidade e banco · **215** de navegador | as duas suítes verdes em 18/08 |
+| API v1 | nove operações e quatro eventos de webhook, com documentação em `/api-docs` | |
+| Telas | 14 no sistema, mais acesso, legais e `/api-docs` | |
 
-> **PEGUE POR AQUI: o emitente do recibo está vazio, e é dado do Gabriel.**
-> Enquanto `razao_social` e `documento` da conta estiverem em branco, a recepção
-> clica em "emitir recibo" e leva uma recusa. A tela existe e diz onde
-> preencher, em Configuração, Recibo, mas os dados são da empresa e ninguém
-> além dele pode digitá-los. É a mesma lista de
-> [`juridico/README.md`](juridico/README.md), que também espera razão social e
-> CNPJ desde 15/08.
+> ## PEGUE POR AQUI
 >
-> **A política de privacidade subiu para a versão 1.1**, e isso faz o aceite ser
-> pedido de novo a quem já aceitou. É o comportamento certo, e é bom saber antes
-> de alguém estranhar.
-
-**O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
-monta a grade, registra chamada, controla reposição, manda convite e senha por
-e-mail, ensina quem chega pela primeira vez, e agora tem porta para o bot.
-
-**O produto não está pronto para vender.** O papel saiu em 15/08 e espera
-assinatura, e o backup ainda não tem destino nem quem o dispare. Monitoramento e
-página no site foram feitos em 15/08. Nada do que falta é código de
-funcionalidade. Está na seção seguinte, em ordem.
+> **O administrativo está no ar e ninguém usou.** Em produção, hoje: **0 planos,
+> 0 contratos, 0 cobranças, 0 pagamentos, 0 recibos**, contra 84 pessoas e 485
+> sessões. Os módulos 15 a 19 funcionam e mostram tela vazia, porque a tabela de
+> preços do cliente (42 planos), as matrículas em curso e os dados de quem emite
+> o recibo **ainda não foram digitados**.
+>
+> Isso não é bug e não é código: é o passo que falta para o produto virar uso.
+> Três coisas, em ordem, e as três dependem do Gabriel ou de alguém com o
+> documento do cliente na mão:
+>
+> 1. **Os dados de quem emite o recibo** (Configuração → Recibo): razão social,
+>    CNPJ, endereço. Sem eles a recepção clica em "emitir recibo" e leva recusa.
+> 2. **Os 42 planos da tabela de preços**, em Configuração → Planos e valores.
+>    Não existe importador, por decisão do plano 13: escrever um para usar uma
+>    vez custa mais que digitar.
+> 3. **As matrículas em curso**, na ficha de cada pessoa. Atenção ao que o
+>    sistema faz de propósito: **a cobrança começa no mês do cadastro**, e não no
+>    início retroativo do contrato. Quem digitar precisa avisar o cliente disso.
+>
+> Enquanto isso não acontecer, ninguém sabe se o administrativo está certo: ele
+> passou em 758 testes e nunca viu um dado real.
 
 ---
 
-## Comece por aqui
+## O que existe, tela por tela
 
-**O administrativo inteiro está no ar desde 18/08**, módulos 14 a 19,, com as
-migrations `0054` a `0057` aplicadas em produção e conferidas fora do console:
-as sete tabelas novas (`plano`, `contrato`, `pausa`, `cobranca`, `pagamento`,
-`recibo`, `contador_recibo`) nasceram com RLS e uma política cada, a view
-`cobranca_resumo` está com `security_invoker`, a função que aloca número de
-recibo está `security definer`, e `public` continua intacto com as 22 do
-AutoFluxos.
+| Tela | Quem vê | O que faz |
+|---|---|---|
+| `/hoje` | todos | o dia, com chamada e busca rápida |
+| `/semana` | dono, recepção | a agenda da semana |
+| `/pendencias` | dono, recepção | o que exige decisão humana hoje, com exportação |
+| `/pessoas` e `/pessoas/[id]` | dono, recepção | cadastro, ficha, agenda, histórico, reposições, contratos, cobranças, avaliação |
+| `/vaga` | dono, recepção | onde ainda cabe alguém |
+| `/grade` | dono, recepção | a grade fixa que gera as sessões |
+| `/sessao/[id]` | todos | a chamada, encaixe, cancelamento |
+| `/financeiro` | dono, recepção | cobranças em atraso, a vencer, recebidas, canceladas e o fechamento |
+| `/recibos` e `/recibos/[id]` | dono, recepção | o arquivo de recibos e a folha em duas vias |
+| `/aulas` | dono | quantas aulas cada profissional aplicou |
+| `/config` | dono | serviços, planos, recibo, equipe, locais, padrões, vocabulário, funcionamento, usuários, integrações |
+| `/contas-4yu` | suporte | as contas de cliente, do lado da 4YU |
+| `/api-docs`, `/termos`, `/privacidade` | público | |
 
-**A suíte inteira rodou depois do 19**: 543 de unidade e banco, 215 de navegador.
+**Quem atende vê o dia dele, a chamada e a avaliação. Não vê dinheiro.** A
+separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
 
-**Os nove pedidos do documento do cliente estão de pé.** O módulo 19 fechou o
-item 7 sem criar tabela nenhuma, e fechou junto o pedaço do item 9 que faltava:
-a foto da avaliação agora amplia a partir do comparador.
+---
 
-**O que sobra do administrativo é nota fiscal**, e ela não é uma tarefa de
-código esperando permissão. **Quem emite é o cliente, com o CNPJ dele, para o
-aluno dele**: o estúdio é o prestador e o aluno é o tomador, e a 4YU não aparece
-no documento. Isso faz da nota uma **configuração por conta**, e não uma
-integração única: certificado digital A1, inscrição municipal, regime tributário,
-código de serviço e alíquota de ISS, com o layout mudando a cada prefeitura. O
-recibo, que é do estúdio e sai na hora, já existe e não depende de nada disso.
+## O que 18/ago fez, em uma tela
 
-**As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
-tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do
-acompanhamento por foto deixaram de ser escritas à mão. `tests/avaliacao.test.ts`
-e `e2e/avaliacao.spec.ts` passam. Não há verificação em aberto.
+Seis módulos, do 14 ao 19, que juntos cobrem **os nove pedidos do documento do
+cliente** (`SISTEMA ADMINISTRATIVO PARA STUDIO MGM PILATES.docx`, na raiz, fora
+do git porque este repositório é público).
 
-**O que falta não é código de funcionalidade.** As Fases 3, 4 e 5 do Marco 2
-saíram em 15/08, e 16/08 foi um domingo inteiro corrigindo o que só aparece
-usando o sistema como quem trabalha nele. O que sobrou está abaixo, em ordem de
-risco, e os dois primeiros dependem de decisão do Gabriel, não de trabalho de
-agente:
+| Módulo | O que entrou | Migration |
+|---|---|---|
+| 14 | acompanhamento por foto: avaliação, posições, comparador e matriz | `0053` |
+| 15 | planos e valores, com código único, dois preços e o número da turma | `0054` |
+| 16 | contrato, licença, prorrogação, e a ficha com CPF e endereço | `0055` |
+| 17 | cobrança materializada, pagamento com estorno, fechamento com os relatórios | `0056` |
+| 18 | recibo com numeração que não pula, corpo congelado, correção e cancelamento | `0057` |
+| 19 | aulas por professor | nenhuma |
 
-1. **O backup precisa de destino e de quem dispara** (item 2). O script existe e
-   foi provado restaurando; o que falta é escolher **onde a cópia mora**, e essa
-   escolha cria um lugar novo onde dado de saúde descansa, o que a torna decisão
-   de privacidade antes de ser de infraestrutura.
-2. **O papel espera assinatura** (item 1): CNPJ, prazos, a caixa
-   `privacidade@4yu.com.br` que ainda não existe, e virar `EM_REVISAO`.
+**Quatro defeitos silenciosos apareceram no caminho**, e nenhum deles quebrava
+nada:
 
-**Se você quer trabalho de agente e o Gabriel não estiver por perto**, há duas
-coisas honestas para fazer, nesta ordem:
+1. **A anonimização apagava o nome e deixava o CPF** e o endereço, que a ficha
+   ampliada tinha acabado de trazer. Segunda vez que esse defeito aparece: no
+   módulo 14 era a foto de rosto.
+2. **O log recusava `plano` e `contrato`** por causa de um `check` que parou na
+   `0048`, e `registrar()` não olha o erro de propósito. Nenhuma criação de
+   plano ou contrato tinha sido registrada.
+3. **Cinco dos sete relatórios do item 4 estavam errados**, porque foram
+   reconstruídos de memória enquanto o `.docx` não estava no repositório. Todas
+   as somas estavam certas; o que faltava era o documento.
+4. **Janela de período montada em UTC** cortava as três últimas horas do dia
+   brasileiro: recibo emitido às 21h30 sumia do fechamento de hoje. Só apareceu
+   porque a suíte rodou depois das 21h.
 
-- **O módulo 18, o recibo**, cujo plano está escrito e não depende de decisão
-  nova, com uma ressalva: os dados do emitente (razão social, CNPJ, endereço)
-  são do Gabriel, e a Tarefa 4 constrói a tela que os pede, não os inventa.
-- **A régua do vocabulário no aviso de sucesso** ("Horário criada" sai quando a
-  palavra da conta é masculina), que é a única dívida que 16/08 deixou por
-  escrito e sabe como resolver.
+---
+
+## O que falta, em ordem de risco
+
+### 1. Ninguém usou o administrativo ainda
+
+Está no quadro do topo. É o maior risco aberto, e não é código.
+
+### 2. O papel jurídico espera assinatura
+
+**Minuta feita em 15/08**, termos e privacidade no ar em `/termos` e
+`/privacidade`, link no rodapé do sistema, nas telas de acesso e no pé de todo
+e-mail. O que falta é **decisão do Gabriel**, listado em
+[`juridico/README.md`](juridico/README.md): razão social e CNPJ, criar de
+verdade a caixa `privacidade@4yu.com.br`, os quatro prazos de contrato, e virar
+`EM_REVISAO` para `false` depois do advogado.
+
+**A política subiu para a versão 1.1 em 18/08**, quando passou a descrever CPF,
+endereço, a relação comercial e o prazo de guarda do recibo. Subir a versão faz
+o aceite ser pedido de novo a quem já aceitou: é o comportamento certo, e é bom
+saber antes de alguém estranhar.
+
+O texto mora em `src/core/legal/`, não num `.md`, porque ele é tela.
+
+### 3. Backup: o script está pronto e provado, falta escolher o destino
+
+`npm run backup` faz o dump do schema, comprime, guarda fora do repositório e
+apaga o que passou de sete dias. `npm run backup:testa <arquivo>` restaura num
+banco descartável e confere que a conta volta de pé.
+
+**A primeira restauração de mentira achou um defeito que o dump escondia:**
+`pg_dump --schema app_verandi` não carrega as extensões, e como `pessoa.nome_busca`
+chama `unaccent`, num banco novo toda inserção de pessoa falhava, uma por uma,
+enquanto série e sessão entravam normalmente. Corrigido; a restauração volta com
+as 84 pessoas.
+
+**Faltam duas decisões, e as duas são suas:**
+
+1. **Onde a cópia mora.** Hoje o padrão é `../backups-verandi`, na sua máquina.
+   Qualquer destino em nuvem passa a ser um lugar novo onde dado de saúde
+   descansa, e por isso entra na política como subprocessador.
+2. **Quem dispara.** O plano gratuito da Vercel não roda `pg_dump`: é `cron` na
+   sua máquina, ou ação agendada num repositório **privado**.
+
+### 4. Nota fiscal: é configuração por cliente, não uma decisão
+
+**Quem emite é o cliente, com o CNPJ dele, para o aluno dele.** O estúdio é o
+prestador, o aluno é o tomador, e a 4YU não aparece no documento. Por isso a
+nota nunca será uma chave da 4YU num emissor: cada conta traz certificado
+digital A1, inscrição municipal, regime tributário, código de serviço e alíquota
+de ISS, e o layout muda com a prefeitura de cada cidade.
+
+O recibo, que é do estúdio e sai na hora, já existe e não depende de nada disso.
+
+### 5. O que depende do Gabriel, e você não começa sozinho
+
+- **Ilustrações do onboarding.** Prompts prontos em
+  [`ARTE-ONBOARDING.md`](ARTE-ONBOARDING.md). Trocar é uma linha por arte em
+  `src/core/onboarding/boas-vindas.ts`.
+- **Vida nas telas** ([`planos/08`](planos/08-vida-nas-telas.md)): movimento na
+  espera e ilustração nos estados vazios. Trava em três decisões dele.
+- **As telas contra o protótipo.** Ele pediu para **não** fazer essa passada.
+
+### 6. Higiene que pode esperar
+
+- O botão **"Entrar na conta"** do convite não entra: leva a `/entrar?novo=1`
+  sem preencher o e-mail. Atrito conhecido, não defeito.
+- A **busca global** do cabeçalho é uma caixa desabilitada dizendo que entra no
+  próximo marco.
+- **A reentrega do webhook só dispara quando um evento novo é enfileirado**,
+  porque o plano gratuito da Vercel não dá cron de minuto. Numa agenda em uso
+  isso acontece muitas vezes por dia; a correção é um cron externo.
+- `pessoa_resumo` recalcula quatro subconsultas por linha. Vai bem com mil
+  pessoas por conta; não medimos com dez mil.
+- **A cobrança também é materializada ao abrir a tela**, pelo mesmo motivo. Se
+  um dia houver cron, os dois viram job e a materialização vira rede de
+  segurança.
+
+---
+
+## O que os módulos novos deixaram anotado, e você não deve "corrigir"
+
+Nenhum destes é defeito. São decisões, e as três primeiras já foram tentadas do
+outro jeito em algum produto por alguém:
+
+- **"Paga" não é status e "atrasada" não é coluna.** Pago é a soma dos
+  pagamentos, lida na view `cobranca_resumo`; atrasada depende do dia de hoje no
+  fuso da conta, e `current_date` no banco é o fuso do servidor.
+- **Estorno não apaga o pagamento**, e cancelamento não apaga a cobrança nem o
+  recibo. O fechamento de ontem, já conferido, não pode mudar de valor sozinho,
+  e buraco na numeração é a primeira coisa que uma fiscalização pergunta.
+- **O sistema não inventa dívida de antes de conhecer o contrato.** Contrato
+  digitado hoje com início em janeiro cobra a partir do mês do cadastro.
+- **Cobrança manual não existe.** Toda venda gera contrato, inclusive a avulsa,
+  que é um contrato de um dia. A coluna `origem` já nasceu para a exceção ter
+  onde morar sem migration corretiva.
+- **Aula aplicada é a sessão que já passou e não foi cancelada**, mesmo sem
+  ninguém presente: quem atende foi ao estúdio e esperou. As outras leituras
+  estão nas colunas ao lado, para conferir em vez de acreditar.
+- **O recibo sobrevive à anonimização**, por cinco anos contados da emissão. É a
+  única exceção do produto, está escrita no código, no teste e na política, e a
+  próxima correção da anonimização não deve apagá-lo achando que acerta.
+
+---
+
+## Como subir o ambiente
 
 ```bash
 npx supabase start           # local, no Docker, faixa 564xx
@@ -116,261 +230,20 @@ npm run dev
 Entrar com `dono@dev.local`, `prof@dev.local`, `recepcao@dev.local` ou
 `suporte@dev.local`, senha `senha-de-teste-123`.
 
----
+Para ver o onboarding de novo depois de tê-lo pulado:
 
-## O que 16/08 fez, em uma tela
+```bash
+docker exec supabase_db_verandi psql -U postgres -d postgres \
+  -c "delete from app_verandi.onboarding;"
+```
 
-Onze commits, e o detalhe de cada um está em [`ESTADO.md`](ESTADO.md). O resumo
-é este: alguém abriu o produto e tentou fazer o trabalho de um dia, em vez de
-conferir se a tela existia.
+Se o Supabase local subir com config antiga (as rotas respondem
+`Invalid schema: app_verandi`), os contêineres são de antes de uma mudança no
+`supabase/config.toml`: `npx supabase stop --no-backup` e suba de novo.
 
-- **Cinco ações prometiam e não cumpriam** e viraram modal: cadastrar pessoa,
-  editar ficha, agendar, criar matrícula, encerrar horário. "Encerrar"
-  perguntava pelo `confirm()` do navegador, que o DESIGN-SYSTEM proíbe.
-- **A suíte passou a perguntar se o modal abriu**, não só se a URL mudou. As
-  quatro ações acima nunca tinham sido cobertas: davam verde por ausência.
-- **Seletor, calendário e máscara de telefone passaram a ser da casa**, e o DDD
-  virou regra de tela e de API (migration `0052`, coluna gerada).
-- **Grade fixa em cartões, foto na ficha** (migration `0051`, balde privado
-  `foto-pessoa`), e **o sino** para quem responde pelo negócio.
-- **Erro de framework virou frase em português**, porque "Minified React error
-  #441" apareceu para o dono de um estúdio no meio de cadastrar uma modalidade.
-- **A linguagem foi varrida nos 339 trechos que chegam à tela**, em três commits
-  seguidos: a primeira passada não alcançou o texto montado no servidor, que só
-  aparece quando existe pendência de verdade na conta.
-
-**As duas lições, que valem para o resto:** varredura por print não alcança
-texto montado no servidor, e teste que confere URL não confere trabalho feito.
-
----
-
-## O que falta para a Verandi ficar de pé
-
-A ordem aqui é de **risco**, não de esforço. Os quatro primeiros itens não
-apareciam em nenhum plano até 15/08, e os quatro são coisas que só doem depois
-que existe cliente pagante, que é exatamente para onde o produto está indo. O
-detalhe de cada um está em [`planos/11-por-em-pe.md`](planos/11-por-em-pe.md);
-aqui vai o resumo.
-
-### 1. Termos de uso, política de privacidade e o contrato de operador
-
-**Minuta feita em 15/08.** Os três documentos existem, as duas telas estão no
-ar e o link está no rodapé do sistema, no rodapé das telas de acesso e no pé de
-todo e-mail. O que falta agora é **decisão do Gabriel**, e a lista inteira está
-em [`juridico/README.md`](juridico/README.md): razão social e CNPJ, criar de
-verdade o `privacidade@4yu.com.br`, os quatro prazos de contrato, e virar
-`EM_REVISAO` para `false` depois do advogado.
-
-O texto mora em `src/core/legal/`, não num `.md`, porque ele é tela. O adendo de
-operador, que é assinado e não publicado, mora em
-[`juridico/ADENDO-TRATAMENTO-DE-DADOS.md`](juridico/ADENDO-TRATAMENTO-DE-DADOS.md).
-
-O problema nunca foi burocrático, é estrutural, e o produto já foi construído em
-cima dele:
-
-- Quem coletou o nome, o telefone e o "hérnia de disco" foi **o cliente**, não a
-  4YU. Ele é o **controlador**; a 4YU é **operadora** (LGPD, art. 5º).
-- O art. 39 diz que a operadora trata os dados **segundo as instruções** do
-  controlador. Instrução se dá por contrato. Sem contrato, a 4YU está tratando
-  dado sensível de terceiro sem base documentada.
-- O aluno do estúdio **nunca consentiu com a 4YU**. Ele consentiu com o estúdio.
-  Isso precisa estar escrito em algum lugar que ele possa ler.
-
-O produto já respeita isso no código, e é isso que torna a falta do papel
-esquisita: `anonimizarPessoa` existe, `observacao_visivel` existe nas duas
-caixas, o log registra quem atendeu ao pedido de exclusão sem copiar o nome. O
-que falta é dizer no papel o que o código já faz.
-
-**O mínimo defensável para vender, e o que já foi feito dele:**
-
-1. **Termos de uso.** ✔ `src/core/legal/termos.ts`, publicado em `/termos`.
-2. **Política de privacidade** com os dois papéis separados com todas as letras.
-   ✔ `src/core/legal/privacidade.ts`, publicada em `/privacidade`.
-3. **Adendo de tratamento de dados.** ✔ minuta em `docs/juridico/`, com os três
-   anexos (dados tratados, medidas de segurança, suboperadores).
-4. **Endereço do encarregado**, publicado. ✔ nos documentos, `privacidade@4yu.com.br`.
-   **A caixa ainda não existe**, e endereço que devolve erro é pior que
-   endereço nenhum.
-5. **Link no rodapé e no e-mail.** ✔ rodapé do sistema, rodapé das telas de
-   acesso, pé de todo e-mail, e a frase de aceite em dois lugares: ao criar a
-   senha do convite e ao entrar.
-6. **Registro do aceite.** ✔ migration `0046`, `aceite_de_termos`: quem, quando,
-   de onde, e **qual versão**. Não estava na lista original, e a pesquisa
-   mostrou que é o item de maior retorno: sem a versão registrada, "a pessoa
-   aceitou" não se prova.
-
-**Isto é decisão do Gabriel, não do agente.** Um agente redigiu a minuta e
-montou as telas; quem assume o risco jurídico assina.
-
-**Onde o dado é tratado, conferido na API de cada fornecedor:** banco no
-**Brasil** (Supabase, `sa-east-1`) e, desde 15/08, **aplicação também no Brasil**
-(Vercel, `gru1`, movida de `iad1` de propósito); e-mail na **União Europeia**
-(Brevo, coberto pela decisão de adequação da ANPD de jan/2026). Este arquivo
-dizia "Supabase e Brevo, os dois com dado no exterior", deduzido da sede das
-empresas, e estava errado. O que sobra de transferência é o acesso administrativo
-dos fornecedores a partir dos Estados Unidos, e está declarado na política.
-
-### 2. Backup: o script está pronto e provado, falta você escolher o destino
-
-`npm run backup` faz o dump do schema `app_verandi`, comprime, guarda fora do
-repositório e apaga o que passou de sete dias. `npm run backup:testa <arquivo>`
-restaura num banco descartável e confere que a conta volta de pé.
-
-**A primeira restauração de mentira achou um defeito que o dump escondia.**
-`pg_dump --schema app_verandi` não carrega as extensões, que moram em
-`extensions`. Como `pessoa.nome_busca` é coluna gerada que chama `unaccent`,
-num banco novo **toda inserção de pessoa falhava**, uma por uma, enquanto série,
-sessão e participação entravam normalmente. A restauração parecia ter dado
-certo e voltava sem nenhuma pessoa, com o histórico apontando para gente que não
-existia mais. O script agora escreve as extensões no topo do arquivo, e a
-restauração volta com as 84 pessoas.
-
-**O que falta é decisão sua, e são duas linhas:**
-
-1. **Onde a cópia mora.** Hoje o padrão é `../backups-verandi`, na sua máquina,
-   fora do repositório (que é público). Qualquer destino em nuvem, GitHub,
-   Drive, S3, passa a ser **um lugar novo onde dado de saúde de paciente
-   descansa**, e por isso precisa entrar na política de privacidade como
-   subprocessador. Não escolhi por você por causa disso.
-2. **Quem dispara.** O plano gratuito da Vercel não roda `pg_dump`, então o
-   agendamento é fora dela: `cron` na sua máquina, ou uma ação agendada num
-   repositório **privado** com a senha do banco como segredo.
-
-Enquanto não houver agendamento, rode à mão antes de qualquer mudança grande.
-É pouco, e é muito mais do que existia.
-
-### 3. Saber quando quebra ✔ feito em 15/08
-
-Erro em produção manda e-mail para `contato@4yu.com.br` (ou `ALERTA_EMAIL`, se
-existir). Pega tudo: tela, ação de servidor e rota de API, pelo gancho
-`onRequestError` mais o `try` da casca da API, que o gancho não enxerga.
-
-**A parte difícil é não virar ruído**, e é onde está o trabalho: erros com a
-mesma assinatura (mesmo lugar, mesma mensagem sem id, data e contagem) são um só,
-e o aviso fica calado por uma hora depois do primeiro. A contagem continua
-correndo em silêncio, e o e-mail seguinte diz quantas vezes aconteceu. Alerta que
-enche a caixa é alerta que todo mundo aprende a filtrar, e aí é pior que alerta
-nenhum. Migration `0050`, `tests/unit/alerta.test.ts` guardando a régua.
-
-**Não é Sentry, e é decisão.** Sentry resolveria melhor e cobra um cadastro, uma
-conta e um DSN que alguém precisa criar; enquanto isso o produto fica sem nada.
-Trocar depois é substituir uma função, `avisarErro`, chamada em dois lugares.
-
-### 4. Uma página no site ✔ feita em 15/08
-
-`4yu.com.br/verandi`, com o que é, para quem é, três capturas do sistema rodando
-(não maquete) e um formulário que monta um e-mail para `contato@4yu.com.br`. Ela
-diz também o que a Verandi **não** faz, porque descobrir isso depois da proposta
-custa a venda inteira.
-
-Mora em `website/site/verandi/`, e o deploy é
-`set -a && . ../.secrets/4yu.env && set +a && python3 scripts/deploy.py site`,
-de dentro de `website/`. Trocar as capturas é regerar os `.webp` de lá.
-
-O rodapé dela aponta para `/termos`, `/privacidade` e `/api-docs` do produto, e a
-home ganhou o cartão com a etiqueta "No ar".
-
-### 5. Marco 2, Fase 3: escrever pela API ✔ feito em 15/08
-
-Sete rotas no ar, e a documentação pública em `/api-docs`. O plano da fase e o
-desenho de até onde a automação vai estão em
-[`planos/12-api-que-escreve.md`](planos/12-api-que-escreve.md).
-
-- `POST /api/v1/pessoas`, `POST /api/v1/participacoes`,
-  `DELETE /api/v1/participacoes/:id`, e a leitura que faltava,
-  `GET /api/v1/pessoas/:id`, que devolve os próximos horários **com o id da
-  participação**. Sem ela o bot marcava e não conseguia desmarcar.
-- A armadilha do plano 10 foi desarmada: a regra saiu de `encaixar` para
-  `encaixarNaSessao`, que recebe quem registra. Tela e rota chamam a mesma
-  função, e o bot nunca confirma acima da capacidade.
-- `DELETE` **não apaga**: grava `falta_avisada`, que libera a vaga e preserva o
-  crédito de reposição. Apagar destruiria os dois.
-- `Idempotency-Key` em toda escrita, com a tabela `pedido_idempotente`
-  (migration `0047`). Mesma chave com corpo diferente dá 422, e não uma marcação
-  silenciosa no horário errado.
-
-### 6. Marco 2, Fases 4 e 5 ✔ feitas em 15/08
-
-**Fase 4, a Verandi avisa.** Outbox na mesma ação que mexe no dado, entrega em
-`after` (depois de a resposta sair), assinatura HMAC com o instante dentro da
-conta, e reentrega de 30s a 2h em seis tentativas. Quatro eventos:
-`participacao.criada`, `participacao.cancelada`, `sessao.cancelada` e
-`vaga.aberta`.
-
-**Fase 5, lista de espera.** `POST /api/v1/espera` e `DELETE /api/v1/espera/:id`.
-Fila por horário, ordem de chegada, e quando a vaga abre **uma pessoa por vaga**
-é chamada, nunca a fila inteira. Entrar na fila não reserva: quem é chamado
-precisa marcar, porque reservar sozinho seria a integração decidindo.
-
-**O limite conhecido:** a reentrega do webhook só dispara quando um evento novo
-é enfileirado, porque o plano gratuito da Vercel não dá cron de minuto. Numa
-agenda em uso isso acontece muitas vezes por dia; a correção é um cron externo, e
-está anotada no plano 12.
-
-### 7. O que depende do Gabriel, e você não começa sozinho
-
-- **Ilustrações do onboarding.** Prompts prontos em
-  [`ARTE-ONBOARDING.md`](ARTE-ONBOARDING.md). Ele gera; trocar é uma linha por
-  arte em `src/core/onboarding/boas-vindas.ts`, sem tocar em tela.
-- **Vida nas telas** ([`planos/08`](planos/08-vida-nas-telas.md)): movimento na
-  espera e ilustração nos estados vazios. Trava em três decisões dele, e ele
-  disse que vai querer mandar referências.
-- **As telas contra o protótipo.** Ele pediu para **não** fazer essa passada.
-  Nove tokens de cor e umas vinte frases mudaram em 14/08, a suíte passou
-  inteira, e ele avisa se algo ficar estranho.
-
-### 8. O financeiro e o recibo estão no ar, e quatro coisas ficaram anotadas
-
-Nenhuma delas impede vender, e as três estão no
-[`planos/17-financeiro.md`](planos/17-financeiro.md):
-
-- **Os sete relatórios esperam a palavra do cliente**, no quadro do topo desta
-  página.
-- **Cobrança manual não existe.** Toda venda gera contrato, inclusive a avulsa,
-  que é um contrato de um dia. A coluna `origem` já nasceu na tabela para a
-  exceção ter onde morar sem migration corretiva.
-- **O sistema não inventa dívida de antes de conhecer o contrato.** Quando o MGM
-  digitar as matrículas em curso, a cobrança começa no mês do cadastro. O que
-  ficou para trás é conversa do estúdio com o aluno, fora do sistema, e quem
-  fizer a migração dos dados precisa avisar isso ao cliente.
-- **O recibo não é nota fiscal, e a folha diz isso.** A nota depende de decisão
-  comercial sobre qual emissor, que continua sem ser tomada. Enquanto isso, o
-  estúdio emite a nota como sempre emitiu.
-
-### 9. Higiene que pode esperar
-
-- O botão **"Entrar na conta"** do convite não entra: leva a `/entrar?novo=1`
-  sem preencher o e-mail. Atrito conhecido, não defeito.
-- A **busca global** do cabeçalho é uma caixa desabilitada dizendo que entra no
-  próximo marco.
-- `pessoa_resumo` recalcula quatro subconsultas por linha. Vai bem com mil
-  pessoas por conta; não medimos com dez mil.
-
----
-
-## As decisões travadas. Não reabra sem o Gabriel pedir
-
-- **Cadastro público não será construído** enquanto a venda for ativa. A conta
-  nasce pela mão da 4YU. Análise antiga em
-  [`planos/06`](planos/06-cadastro-e-organizacoes.md); o que vale é esta linha,
-  porque a decisão é posterior a ela.
-- **Organização com várias unidades não será construída agora.** E o modelo
-  atual já é o certo para receber uma depois: `conta` é a unidade de isolamento,
-  e organização entraria como tabela nova mais uma coluna anulável, sem mover
-  nada. O caro seria o inverso.
-- **O profissional que atende em dois estúdios já funciona.** `usuario_conta`
-  tem chave `(usuario_id, conta_id)`, `profissional.usuario_id` não é único, e
-  `/contas` é o seletor. Teste em `acesso.test.ts:82`. Não construa nada.
-- **Cobrança não será construída.** Pix na mão está certo com um cliente. O que
-  já se decidiu é a **unidade** do preço, por pessoa ativa, que o produto já
-  conta.
-- **O robô não decide nada.** Horário cheio não aparece para ele, não abre
-  turma, não muda capacidade, não passa da lotação. É contrato de API e regra de
-  produto.
-- **O onboarding é dentro do sistema**, não uma tela antes de entrar. Já foi
-  tentado do outro jeito e a pessoa achava que o login não tinha funcionado.
-- **O "Cancelar assinatura" do Brevo em e-mail transacional fica como está.**
-  Existe caminho oficial e ele decidiu não abrir chamado.
+**Não rode `supabase db reset` com a suíte de navegador aberta.** Os dois usam o
+mesmo banco local, e o reset no meio de um teste dá deadlock e falha vermelha
+que não é do código.
 
 ---
 
@@ -426,13 +299,18 @@ coluna ou tabela com dado de cliente).
 | Segredo | `set -a && . ../.secrets/4yu.env && set +a`. **Nunca** dentro do repo, que é público. `npm run segredos` confere. |
 | Migration nova | `node scripts/aplica-em-producao.mjs`, com a conferência acima. **Nunca** `supabase db push`. |
 | Mexeu em migration | `npx supabase db reset` e depois **`npm run tipos`**. Sem isso o `tsc` segue passando com a forma antiga do banco. |
+| Entidade nova no log | acrescente ao `check` de `log_configuracao.entidade` **na mesma migration** que cria a tabela, e ao tipo em `src/server/log.ts`. `registrar()` engole o erro de propósito, e a linha some calada. |
 | Tipo derivado do banco | mora em `src/server/banco.ts`. **Nunca** em `banco.types.ts`, que é reescrito inteiro a cada geração. |
+| Janela de período | monte com `instante(data, hora, fuso)`, nunca com `` `${data}T00:00:00Z` ``. Isso é meia-noite em Londres e corta as três últimas horas do dia brasileiro. |
 | Rota nova da API | chame a função de `server/`, que já recebe `contaId` e filtra por ele. Sem sessão não há RLS, e um `select` sem `conta_id` lê a conta de todo mundo. |
+| Função que não confere papel | fora de arquivo `'use server'`. Tudo que um arquivo desses exporta vira endereço chamável de fora. Ver `server/financeiro/materializar.ts`. |
+| `insert` em lote no PostgREST | todas as linhas com as mesmas chaves. Ele usa as colunas da primeira e manda `null` explícito nas outras, e o erro fala de coluna nula sem dizer por quê. |
 | Build de produção | o compilador do React só roda nele, e derruba componente que reatribui variável durante o render. `next dev` bom e produção quebrada é isso até prova em contrário. |
 | Sombra de valor composto | vai em `style`, não em `shadow-[...]`: vírgula ali quebra o gerador do Tailwind e o CSS **inteiro** deixa de ser produzido. |
 | Campo numérico | `<input type="number">` aceita `e`, `+` e `.`. Recuse o que não é dígito, no navegador **e** no servidor. |
 | Prop de Server para Client Component | só valor. Função é recusada em **tempo de execução**, e nem o `tsc` nem o `build` avisam. |
 | `select` do supabase-js | string literal. Montado com `+` vira `string` e devolve `GenericStringError`, que fala de tudo menos do problema. |
+| Dinheiro | inteiro em centavos, sempre. Nunca ponto flutuante: dez parcelas com desconto produzem dízima, e ela aparece no recibo. |
 | Texto do produto | **Nada de travessão**. Vírgula, ponto ou dois-pontos. Há teste guardando os e-mails. |
 | Palavra do cliente | nem artigo nem adjetivo colado nela: o gênero é da palavra e a palavra é do cliente. Lint em `tests/unit/regua-do-vocabulario.test.ts`. |
 | Cor de texto | tem contraste mínimo, medido em `tests/unit/contraste.test.ts`. Não clareie para ficar igual ao protótipo. |
@@ -443,51 +321,54 @@ coluna ou tabela com dado de cliente).
 
 ---
 
-## O que quatro sessões ensinaram, sem a cronologia
+## As decisões travadas. Não reabra sem o Gabriel pedir
+
+- **Cadastro público não será construído** enquanto a venda for ativa. A conta
+  nasce pela mão da 4YU.
+- **Organização com várias unidades não será construída agora.** O modelo atual
+  já recebe uma depois: `conta` é a unidade de isolamento, e organização entra
+  como tabela nova mais uma coluna anulável.
+- **O profissional que atende em dois estúdios já funciona.** `usuario_conta`
+  tem chave `(usuario_id, conta_id)` e `/contas` é o seletor; o teste é "quem
+  pertence a duas contas enxerga as duas", em `tests/acesso.test.ts`. Não
+  construa nada.
+- **Cobrança automática não será construída.** Pix na mão está certo com um
+  cliente. O sistema registra o que o negócio informa ter recebido.
+- **O robô não decide nada.** Horário cheio não aparece para ele, não abre
+  turma, não muda capacidade, não passa da lotação.
+- **O onboarding é dentro do sistema**, não uma tela antes de entrar.
+- **Importador de planilha não será construído.** Os dados do cliente entram
+  pela tela.
+- **Cálculo de pagamento de profissional não entra no relatório de aulas.**
+  Quanto vale a aula é contrato de trabalho, muda por pessoa e por modalidade.
+
+---
+
+## O que cinco sessões ensinaram, sem a cronologia
 
 A cronologia está no `git log`, que conta melhor. O que não está em lugar nenhum
 é isto:
 
-1. **O silêncio é o defeito.** Os piores achados não quebraram nada: a chamada
-   que cancelava sem dar crédito, o contraste que reprovava havia meses, a
-   Configuração que falava a língua errada, o aplicador que trataria erro de
-   token como banco virgem. Nenhum apareceu em teste, porque nenhum quebrava.
-   Quando desconfiar de algo assim, **transforme a regra em número e teste** — o
-   lint do vocabulário pegou um erro meu três minutos depois de escrito.
+1. **O silêncio é o defeito.** Os piores achados do projeto inteiro não
+   quebraram nada: a chamada que cancelava sem dar crédito, o contraste que
+   reprovava havia meses, a anonimização que deixava o CPF, o log que recusava
+   `contrato` calado. Nenhum apareceu em teste, porque nenhum quebrava. Quando
+   desconfiar de algo assim, **transforme a regra em número e teste**.
 2. **Verifique fora do console.** O painel diz "publicado", "aplicado", "ok"
-   para coisa que não funciona. Foi assim que se descobriu que o site carregava
-   o contêiner errado do GTM por meses.
-3. **Regra duplicada é regra que vai divergir.** Sempre que a tela e outra coisa
-   precisarem da mesma decisão, a decisão sai para `core/` e as duas chamam. Vale
-   para o encaixe, para o crédito de reposição e para a API.
-4. **Coluna nova não entra em view sozinha.** Duas migrations seguidas caíram
-   nisso.
-5. **A régua da palavra do cliente inclui a palavra neutra.** O teste antigo
-   procurava "Aluno" e "Turma" fixos, e por isso não via "Serviço" e "Local"
-   escritos à mão: eles *são* o padrão. A pergunta certa é "escreveram uma
-   palavra que é do cliente?", não "escreveram a palavra de um cliente?".
+   para coisa que não funciona.
+3. **Regra duplicada é regra que vai divergir.** A decisão sai para `core/` e as
+   duas telas chamam.
+4. **Coluna nova não entra em view sozinha.**
+5. **A régua da palavra do cliente inclui a palavra neutra.** A pergunta certa é
+   "escreveram uma palavra que é do cliente?", não "escreveram a palavra de um
+   cliente?".
 6. **Pergunta de produto se faz descrevendo a cena.** "Quem é o comprador?" não
    comunicou nada; "o dono acha vocês no Google ou vocês batem na porta dele?"
-   teria resolvido na primeira tentativa.
-
----
-
-## Como subir o ambiente
-
-```bash
-npx supabase start           # local, no Docker, faixa 564xx
-node scripts/semear-dev.mjs  # conta de teste com 74 séries e 133 vagas
-npm run dev
-```
-
-Para ver o onboarding de novo depois de tê-lo pulado:
-
-```bash
-docker exec supabase_db_verandi psql -U postgres -d postgres \
-  -c "delete from app_verandi.onboarding;"
-```
-
-Se o Supabase local subir com config antiga (as rotas respondem
-`Invalid schema: app_verandi`), é porque os contêineres são de antes de uma
-mudança no `supabase/config.toml`: `npx supabase stop --no-backup` e suba de
-novo.
+   resolveu.
+7. **Documento do cliente não se reconstrói de memória.** Cinco dos sete
+   relatórios do item 4 nasceram errados, e nenhum teste pegaria: todas as somas
+   estavam certas. Se o documento não estiver à mão, peça, e escreva no plano o
+   que foi suposto até ele chegar.
+8. **Teste que roda só de tarde esconde defeito de fuso.** Dois furos de janela
+   em UTC apareceram porque a suíte rodou às 21h. Se algo depende de "hoje",
+   pergunte de quem é o hoje.
