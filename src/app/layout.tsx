@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Bricolage_Grotesque, DM_Sans, DM_Mono } from 'next/font/google'
+import { Bricolage_Grotesque, Inter, DM_Mono } from 'next/font/google'
 import './globals.css'
 
 /*
@@ -13,7 +13,24 @@ const titulo = Bricolage_Grotesque({
   weight: ['500', '600', '700'],
 })
 
-const texto = DM_Sans({
+/*
+ * O texto é Inter, e não DM Sans, e o motivo é o tamanho pequeno.
+ *
+ * DM Sans é geométrica e bonita em título; no corpo de 12 a 14px ela afina, e a
+ * altura-de-x baixa deixa as minúsculas pequenas dentro da linha. A maior parte
+ * deste produto é texto de apoio lido em pé, num balcão, de relance — e Inter
+ * foi desenhada para exatamente isso: altura-de-x alta, aberturas largas
+ * (`a`, `e`, `s` não fecham), e espaçamento pensado para tela.
+ *
+ * `cv05` desambigua o `l` do `I` maiúsculo, que num sistema cheio de nome
+ * próprio e código de plano ("Lívia", "104-I") é a confusão que mais aparece.
+ * `tnum` deixa os algarismos com a mesma largura, para as colunas de dinheiro
+ * não dançarem de linha em linha.
+ *
+ * O título continua Bricolage Grotesque: a identidade do produto mora ali, e o
+ * problema nunca foi o título.
+ */
+const texto = Inter({
   variable: '--fonte-texto',
   subsets: ['latin'],
   weight: ['400', '500', '600'],

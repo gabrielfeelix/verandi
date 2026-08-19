@@ -184,9 +184,32 @@ body {
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.55;
+  /*
+   * `cv05` desambigua o `l` minúsculo do `I` maiúsculo — num sistema cheio de
+   * nome próprio e código de plano, é a confusão que mais aparece. `tnum` dá
+   * largura igual a todo algarismo, para a coluna de dinheiro não dançar de
+   * linha em linha.
+   */
+  font-feature-settings: 'cv05' 1, 'tnum' 1;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+/*
+ * O texto pequeno respira mais que o grande.
+ *
+ * Abaixo de 13px a entrelinha de 1,55 fecha e as linhas grudam, porque o
+ * espaço entre elas encolhe junto com a fonte. Estas classes são as que
+ * carregam rótulo, contagem, dica e nota de rodapé — o texto que se lê de
+ * relance, que é justamente o que não pode exigir esforço.
+ */
+.text-\[11px\],
+.text-\[11\.5px\],
+.text-\[12px\],
+.text-\[12\.5px\] {
+  line-height: 1.5;
+  letter-spacing: 0.004em;
 }
 
 ::selection {
