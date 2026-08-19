@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
@@ -12,8 +13,18 @@ import type { Database } from './banco.types'
  * `Database` vem do arquivo gerado por `npm run tipos`. Sem ele, este cliente
  * aceitava qualquer nome de tabela e qualquer nome de coluna, e devolvia um
  * tipo que cada consulta tinha de reescrever à mão.
+ *
+ * **Um por pedido, e é daí que vem a velocidade.** O `cache` do React não
+ * guarda nada entre pedidos: ele só faz a segunda chamada dentro do mesmo
+ * render devolver o mesmo cliente. Sem isso, cada tela criava quatro ou cinco
+ * clientes — o proxy, o layout, `contaAtiva`, `contasDoUsuario`, a página — e o
+ * **primeiro `getUser` de cada cliente novo é uma ida ao servidor de
+ * autenticação**, medida em 90 ms com o banco na própria máquina. As chamadas
+ * seguintes do mesmo cliente custam 1 ms, porque o supabase-js já guardou a
+ * resposta. Eram 350 ms de "quem é você" repetido antes de qualquer consulta
+ * do produto começar, em toda navegação.
  */
-export async function clienteServidor() {
+export const clienteServidor = cache(async function clienteServidor() {
   const jar = await cookies()
   return createServerClient<Database, 'app_verandi'>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,7 +44,7 @@ export async function clienteServidor() {
       },
     },
   )
-}
+})
 
 export type ContaAtiva =
   { contaId: string; papel: Papel; nome: string; fuso: string; interna: boolean }
@@ -45,8 +56,13 @@ export type ContaAtiva =
  * `/contas`, e a escolha fica num cookie. Operar na conta errada é o erro mais
  * caro que este sistema permite, e ele é silencioso — por isso a conta ativa
  * precisa aparecer em toda tela.
+ *
+ * `cache` pelo mesmo motivo do cliente: o layout pergunta, a página pergunta de
+ * novo, e às vezes a ação pergunta uma terceira vez. A resposta é a mesma
+ * dentro do mesmo pedido, e cada repetição custava uma consulta a
+ * `usuario_conta`.
  */
-export async function contaAtiva(): Promise<ContaAtiva | null> {
+export const contaAtiva = cache(async function contaAtiva(): Promise<ContaAtiva | null> {
   const db = await clienteServidor()
   const { data: { user } } = await db.auth.getUser()
   if (!user) return null
@@ -75,7 +91,7 @@ export async function contaAtiva(): Promise<ContaAtiva | null> {
     // a conta da própria 4YU não recebe a faixa de suporte
     interna: conta.interna,
   }
-}
+})
 
 /**
  * O papel com que o usuário começa a sessão, logo depois de entrar.

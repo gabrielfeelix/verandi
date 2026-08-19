@@ -23,11 +23,22 @@ const PAPEL: Record<string, string> = {
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
   const conta = await exigirConta()
   const db = await clienteServidor()
-  const voc = await carregarVocabulario(db, conta.contaId)
-  const rotulos = resolverRotulos(voc)
-  const contas = await contasDoUsuario()
 
-  const { data: { user } } = await db.auth.getUser()
+  /*
+   * As quatro perguntas do trilho vão juntas, e não uma depois da outra.
+   *
+   * Nenhuma delas depende do resultado das outras: o vocabulário, as contas da
+   * pessoa, quem ela é e o nome dela na grade são quatro idas independentes ao
+   * banco. Em fila custavam a soma; juntas custam a mais lenta. É o mesmo tipo
+   * de conta que fazia toda navegação parecer travada, e o layout é o pior
+   * lugar para isso, porque **toda tela passa por aqui**.
+   */
+  const [voc, contas, { data: { user } }] = await Promise.all([
+    carregarVocabulario(db, conta.contaId),
+    contasDoUsuario(),
+    db.auth.getUser(),
+  ])
+  const rotulos = resolverRotulos(voc)
 
   // o nome da grade é o nome da pessoa; quem não é profissional cai no e-mail
   const { data: eu } = await db

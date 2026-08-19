@@ -46,11 +46,24 @@ export function SecaoRecibo({ emitente }: { emitente: Emitente }) {
     nomeDaConta: emitente.nomeDaConta,
   })
 
+  /**
+   * Salvar não pode dizer que deu certo enquanto a emissão continua barrada.
+   *
+   * O asterisco nos dois campos prometia uma conferência que não existia em
+   * lugar nenhum: dava para salvar só o CNPJ, ouvir "Emitente salvo" e
+   * descobrir a falta na tela de Recibos, ou pior, no balcão. A recusa nasce
+   * na ação do servidor, que é o que qualquer sessão consegue chamar; aqui a
+   * frase só chega ao lado do campo que falta.
+   */
   function salvar() {
     iniciar(async () => {
       setErro(null)
       try {
-        await salvarEmitente(v)
+        const r = await salvarEmitente(v)
+        if (!r.ok) {
+          setErro(r.erro)
+          return
+        }
         avisar({ texto: 'Emitente salvo' })
         router.refresh()
       } catch (e) {
@@ -79,12 +92,21 @@ export function SecaoRecibo({ emitente }: { emitente: Emitente }) {
         ) : null}
 
         <div className="grid gap-3 sm:grid-cols-2">
+          {/*
+            Sem placeholder, e isto é o conserto de um defeito de verdade.
+            Aqui estava o nome da conta — "MGM Pilates" —, e um campo vazio
+            mostrando exatamente o texto que a pessoa ia digitar **é um campo
+            que parece preenchido**. Quem abriu esta tela digitou o CNPJ e o
+            telefone, salvou, e saiu certo de que tinha terminado; a razão
+            social continuou nula e a recepção continuou sem emitir recibo.
+            Sugerir o valor certo no lugar errado custa mais do que não
+            sugerir nada.
+          */}
           <Campo rotulo="Razão social" htmlFor="em-razao" obrigatorio>
             <input
               id="em-razao" className={entrada} maxLength={120}
               value={v.razaoSocial}
               onChange={(e) => setV({ ...v, razaoSocial: e.target.value })}
-              placeholder={emitente.nomeDaConta}
             />
           </Campo>
           <Campo

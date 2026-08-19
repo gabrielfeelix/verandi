@@ -7,6 +7,19 @@ import { hojeEm, instante } from '../agenda/fuso'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
 import { BALDE_FOTO } from './equipe'
 import { LIMITE_ENVIO_MB, MB } from '@/core/foto'
+import type { Resultado } from '../planos/acoes'
+
+/**
+ * A recusa sai como **valor**, e não como exceção.
+ *
+ * Erro lançado dentro de uma Server Action não atravessa a rede com o texto que
+ * escrevemos: o Next entrega ao cliente um erro genérico com identificador, e a
+ * tela mostra "alguma coisa quebrou" no lugar de "falta a razão social". Quem
+ * precisa da frase é justamente quem pode corrigir sozinho. É a mesma decisão
+ * de `planos/acoes.ts`, e ela chegou aqui tarde: as recusas de documento e de
+ * série já existiam e nenhuma das duas nunca chegou à tela.
+ */
+const recusa = (erro: string) => ({ ok: false as const, erro })
 
 /**
  * Configuração é de quem manda na conta. A RLS recusa igual; aqui a recusa
@@ -78,22 +91,46 @@ export async function salvarEmitente(e: {
   endereco: string
   telefone: string
   serieRecibo: string
-}): Promise<void> {
+}): Promise<Resultado> {
   const conta = await exigirDono()
   const db = await clienteServidor()
 
+  const razaoSocial = e.razaoSocial.trim()
   const documento = e.documento.replace(/\D/g, '')
   if (documento && documento.length !== 11 && documento.length !== 14) {
-    throw new Error('o documento precisa ser um CPF (11 dígitos) ou um CNPJ (14)')
+    return recusa('O documento precisa ser um CPF (11 dígitos) ou um CNPJ (14).')
+  }
+
+  /*
+   * Meio emitente não é emitente, e salvar meio calado é o defeito.
+   *
+   * Esta tela tem uma função só: destravar a emissão de recibo. Aceitar o CNPJ
+   * sem a razão social gravava metade, respondia "Emitente salvo" e deixava a
+   * emissão barrada exatamente como antes — a pessoa saía daqui achando que
+   * tinha terminado, e a conta ia descobrir no balcão. Aconteceu em produção,
+   * na primeira vez que alguém preencheu esta tela.
+   *
+   * A recusa mora aqui, e não só na tela: a ação é uma chamada de rede que
+   * qualquer sessão autenticada consegue fazer.
+   */
+  if (!razaoSocial || !documento) {
+    const falta = [
+      !razaoSocial ? 'a razão social' : null,
+      !documento ? 'o CNPJ ou CPF' : null,
+    ].filter(Boolean).join(' e ')
+    return recusa(
+      `Falta ${falta}. Sem os dois a recepção continua sem conseguir emitir ` +
+      'recibo, e é por isso que salvar pela metade não ajuda.',
+    )
   }
 
   const serie = e.serieRecibo.trim().toUpperCase() || 'A'
   if (!/^[A-Z0-9]{1,4}$/.test(serie)) {
-    throw new Error('a série do recibo é de 1 a 4 letras ou números, sem espaço')
+    return recusa('A série do recibo é de 1 a 4 letras ou números, sem espaço.')
   }
 
   const { error } = await db.from('conta').update({
-    razao_social: e.razaoSocial.trim() || null,
+    razao_social: razaoSocial,
     documento: documento || null,
     endereco_emitente: e.endereco.trim() || null,
     telefone_emitente: e.telefone.trim() || null,
@@ -103,10 +140,11 @@ export async function salvarEmitente(e: {
 
   await registrar(db, {
     contaId: conta.contaId, entidade: 'conta', entidadeId: conta.contaId,
-    acao: 'editou', detalhe: { emitente: { razaoSocial: e.razaoSocial, serie } },
+    acao: 'editou', detalhe: { emitente: { razaoSocial, serie } },
   })
   revalidatePath('/config')
   revalidatePath('/recibos')
+  return { ok: true }
 }
 
 // ---------------------------------------------------------------------------

@@ -178,6 +178,39 @@ test('o fechamento conta os recibos do período', async ({ page }) => {
   await expect(page.getByText(/R\$ 735,00 em papel, nenhum cancelado/)).toBeVisible()
 })
 
+test('salvar só o CNPJ é recusado, e o campo da razão social não finge estar cheio', async ({ page }) => {
+  const c = await cenario('Estúdio do emitente pela metade', { semEmitente: true })
+  await entrar(page, c.email)
+  await page.goto('/config?s=recibo')
+
+  /*
+   * O campo nasce vazio de verdade.
+   *
+   * O placeholder era o nome da conta, e um campo vazio mostrando exatamente o
+   * texto que a pessoa ia digitar parece um campo preenchido. Aconteceu em
+   * produção: o dono digitou CNPJ e telefone, salvou, e a razão social ficou
+   * nula — com a tela de Recibos avisando, sem ninguém entender por quê.
+   */
+  await expect(page.getByLabel('Razão social')).toHaveValue('')
+  await expect(page.getByLabel('Razão social')).not.toHaveAttribute('placeholder', /./)
+
+  await page.getByLabel('CNPJ ou CPF').fill('05570714000159')
+  await page.getByRole('button', { name: 'Salvar' }).click()
+
+  await expect(page.getByText(/Falta a razão social/)).toBeVisible()
+
+  // e nada foi gravado pela metade: meio emitente destrava nada
+  const { data } = await admin.from('conta')
+    .select('razao_social, documento').eq('id', c.contaId).single()
+  expect(data!.razao_social).toBeNull()
+  expect(data!.documento).toBeNull()
+
+  // com os dois, salva
+  await page.getByLabel('Razão social').fill('MGM Pilates Ltda')
+  await page.getByRole('button', { name: 'Salvar' }).click()
+  await expect(page.getByText('Emitente salvo')).toBeVisible()
+})
+
 test('quem atende não alcança os recibos', async ({ page }) => {
   const { contaId, marca } = await contaDeTeste('Estúdio sem recibo à vista')
   const { email } = await usuarioDe(contaId, 'profissional', marca)
