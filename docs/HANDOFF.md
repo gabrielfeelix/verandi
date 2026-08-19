@@ -12,8 +12,9 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 18/ago/2026, no fim do dia em que o administrativo inteiro
-entrou no ar (módulos 14 a 19, cinquenta commits).
+Última revisão: 18/ago/2026, na sessão em que a tabela de preços do cliente
+entrou em produção e o ciclo administrativo passou de ponta a ponta pela
+primeira vez.
 
 ---
 
@@ -29,33 +30,52 @@ a cada push na `main`.
 | Tabelas em `app_verandi` | **40**, todas com RLS | conferido em produção |
 | Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção |
 | Banco | **16 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | **543** de unidade e banco · **215** de navegador | as duas suítes verdes em 18/08 |
+| Testes | **543** de unidade e banco · **222** de navegador | as duas suítes verdes em 18/08 |
+| Planos em produção | **29**, em 11 serviços | a tabela do cliente inteira, conferida linha a linha |
 | API v1 | nove operações e quatro eventos de webhook, com documentação em `/api-docs` | |
 | Telas | 14 no sistema, mais acesso, legais e `/api-docs` | |
 
 > ## PEGUE POR AQUI
 >
-> **O administrativo está no ar e ninguém usou.** Em produção, hoje: **0 planos,
-> 0 contratos, 0 cobranças, 0 pagamentos, 0 recibos**, contra 84 pessoas e 485
-> sessões. Os módulos 15 a 19 funcionam e mostram tela vazia, porque a tabela de
-> preços do cliente (42 planos), as matrículas em curso e os dados de quem emite
-> o recibo **ainda não foram digitados**.
->
-> Isso não é bug e não é código: é o passo que falta para o produto virar uso.
-> Três coisas, em ordem, e as três dependem do Gabriel ou de alguém com o
-> documento do cliente na mão:
+> **A tabela de preços entrou; falta o resto do cadastro.** Em produção, hoje:
+> **29 planos, 11 serviços, 0 contratos, 0 cobranças, 0 recibos**, contra 84
+> pessoas e 485 sessões. O catálogo do cliente foi digitado inteiro, e o ciclo
+> administrativo já passou de ponta a ponta com ele em ensaio local
+> (`e2e/ensaio-administrativo.spec.ts`). O que falta para o produto virar uso são
+> duas coisas, e as duas dependem de dado que ninguém tem escrito:
 >
 > 1. **Os dados de quem emite o recibo** (Configuração → Recibo): razão social,
->    CNPJ, endereço. Sem eles a recepção clica em "emitir recibo" e leva recusa.
-> 2. **Os 42 planos da tabela de preços**, em Configuração → Planos e valores.
->    Não existe importador, por decisão do plano 13: escrever um para usar uma
->    vez custa mais que digitar.
-> 3. **As matrículas em curso**, na ficha de cada pessoa. Atenção ao que o
->    sistema faz de propósito: **a cobrança começa no mês do cadastro**, e não no
->    início retroativo do contrato. Quem digitar precisa avisar o cliente disso.
+>    CNPJ e endereço do MGM. **Não existem em lugar nenhum** — nem no `.docx`,
+>    nem no repositório. Sem eles a recepção clica em "emitir recibo" e leva
+>    recusa, que é o comportamento certo: número gasto em recibo sem emitente
+>    não volta.
+> 2. **As matrículas em curso**, na ficha de cada pessoa. A planilha de turma tem
+>    nome, matrícula, telefone e vencimento; **ela não diz qual plano cada pessoa
+>    comprou**, e sem isso não há como digitar as 84 sem inventar. Atenção ao que
+>    o sistema faz de propósito: **a cobrança começa no mês do cadastro**, e não
+>    no início retroativo do contrato. Quem digitar precisa avisar o cliente.
 >
-> Enquanto isso não acontecer, ninguém sabe se o administrativo está certo: ele
-> passou em 758 testes e nunca viu um dado real.
+> ### O que a tabela do cliente tinha de errado, e o que foi feito
+>
+> As 43 linhas do documento viraram **29 planos**, porque "aluno MGM" e "não
+> aluno MGM" são os **dois preços da mesma linha**, e não dois planos (é o que a
+> `0054` foi desenhada para fazer: dois planos fariam o recibo dizer o nome
+> errado e o relatório somar serviço com serviço). O que sobrou de anomalia foi
+> **entrado como está escrito** e listado aqui, porque documento do cliente não
+> se corrige de memória:
+>
+> | Onde | O que o documento diz | Por que chama atenção |
+> |---|---|---|
+> | RPG, pacote 10, preço cheio | R$ 2.100 | todos os outros pacotes custam nove sessões; nove de R$ 230 dá R$ 2.070 |
+> | Liberação Miofacial, pacote 10, preço de cliente | R$ 810 | nove de R$ 150 dá R$ 1.350; R$ 810 é exatamente o pacote da Ventosaterapia, ao lado |
+> | Código do pacote de RPG | 104, repetido com a sessão | entrou como **106**, que era o único livre do bloco |
+> | "Liberação Miofacial", "Toque de Tensigridade" | grafia do documento | ficaram como o cliente escreveu; corrigir a palavra do cliente é decisão dele |
+> | Validade dos pacotes | o documento não diz | entrou com **6 meses**, que é o padrão da própria tela |
+>
+> Nenhuma dessas cinco é bug do sistema, e nenhuma se resolve sem o cliente.
+> São **cinco perguntas para a primeira conversa**, e valem dinheiro real: as
+> duas primeiras são preço cobrado errado toda vez que alguém vender aquele
+> pacote.
 
 ---
 
@@ -79,6 +99,30 @@ a cada push na `main`.
 
 **Quem atende vê o dia dele, a chamada e a avaliação. Não vê dinheiro.** A
 separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
+
+---
+
+## O que a sessão da tabela de preços fez
+
+| O quê | Onde |
+|---|---|
+| A tabela do cliente digitada em produção | 29 planos e 7 serviços novos na conta MGM Pilates, com o log que a tela escreveria |
+| O ensaio geral, que faltava | `e2e/ensaio-administrativo.spec.ts`: catálogo inteiro pela tela, matrícula em três formatos, cobrança, recebimento, recibo, fechamento e cancelamento, tudo na mesma conta |
+| O semeador cobrindo o administrativo | `scripts/semear-dev.mjs` passou a criar planos, contratos, cobranças e pagamentos: `/financeiro` e a aba de contratos nasciam vazias em toda sessão de desenvolvimento |
+| O convite entregando o e-mail na entrada | `/entrar` virou rota de servidor com `?email=`, e o botão do convite deixou de levar a um formulário vazio |
+| `escolher()` achando campo obrigatório | `e2e/apoio.ts` procurava pelo rótulo, e `<Campo obrigatorio>` põe um asterisco dentro dele: `'Serviço'` não casava com `Serviço*`, e a espera morria muda no tempo limite |
+
+**O que o ensaio provou, e nenhum teste anterior provava:** que o ciclo fecha.
+Vinte e nove planos em nove serviços, setenta turmas, matrícula mensal,
+trimestral e por pacote, cobrança nascendo sozinha, recebimento, recibo,
+fechamento batendo com a soma do dia, e o número do recibo cancelado
+continuando ocupado. Os outros arquivos perguntam se a tela abriu; este
+pergunta se o dinheiro atravessa o produto de ponta a ponta.
+
+**Um defeito de teste apareceu, e é da família dos silenciosos:** o
+`escolher()` da suíte nunca funcionou em campo obrigatório. Ninguém tinha
+notado porque os dois lugares que o usavam não eram obrigatórios. Não quebrava
+nada; só nunca tinha sido exercido.
 
 ---
 
@@ -117,9 +161,11 @@ nada:
 
 ## O que falta, em ordem de risco
 
-### 1. Ninguém usou o administrativo ainda
+### 1. O administrativo ainda não recebeu matrícula nenhuma
 
-Está no quadro do topo. É o maior risco aberto, e não é código.
+Está no quadro do topo, e continua sendo o maior risco aberto. Não é código: o
+catálogo já está lá, o ciclo já fechou em ensaio, e o que falta é o emitente do
+recibo e saber quem está em qual plano. As duas respostas são do cliente.
 
 ### 2. O papel jurídico espera assinatura
 
@@ -178,8 +224,6 @@ O recibo, que é do estúdio e sai na hora, já existe e não depende de nada di
 
 ### 6. Higiene que pode esperar
 
-- O botão **"Entrar na conta"** do convite não entra: leva a `/entrar?novo=1`
-  sem preencher o e-mail. Atrito conhecido, não defeito.
 - A **busca global** do cabeçalho é uma caixa desabilitada dizendo que entra no
   próximo marco.
 - **A reentrega do webhook só dispara quando um evento novo é enfileirado**,
