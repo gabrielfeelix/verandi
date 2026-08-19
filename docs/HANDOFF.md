@@ -127,16 +127,28 @@ separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
 
 ---
 
-> ## O CÓDIGO AINDA NÃO FOI AO AR
+> ## O QUE FOI AO AR EM 19/08, E COMO FOI CONFERIDO
 >
-> **A migration `0058` já está em produção** (aplicada em 19/08, conferida fora
-> do console: `app_verandi` foi de 38 para 39 tabelas de base, `public` continua
-> 33, a tabela tem RLS e uma política, e `--dry` diz "nada a fazer"). O banco
-> está pronto e a tabela vazia não atrapalha ninguém.
+> Banco primeiro, código depois, que é a ordem que não deixa a tela procurar
+> tabela que não existe.
 >
-> **O código desta sessão não foi commitado nem publicado.** Push na `main`
-> publica sozinho, então o que falta é decidir subir. A ordem certa já foi
-> respeitada: banco primeiro, código depois.
+> **Migration `0058`**, aplicada por `scripts/aplica-em-producao.mjs`. Conferido
+> fora do console: `app_verandi` foi de 38 para 39 tabelas de base, `public`
+> continua **33** (o AutoFluxos cresceu de 22 desde a última contagem, e o
+> crescimento é dele), a tabela tem RLS ligada e uma política, e `--dry` passou
+> a dizer "nada a fazer".
+>
+> **Código**, cinco commits até `f0c2d82`, publicado pela Vercel. Raiz 307,
+> `/entrar` 200, `/termos` 200, `/api-docs` 200.
+>
+> **Uma ponta ficou sem prova, e é honesto dizer qual:** ninguém abriu a `/hoje`
+> logado em produção, porque a senha da conta de demonstração mora no cofre da
+> equipe. O que dá para afirmar é o que foi medido: a tabela responde pelo
+> PostgREST (logo o cache de esquema já a enxerga) e os privilégios dela são
+> idênticos aos de `conta`, `cobranca` e `recibo`, porque o schema tem
+> `ALTER DEFAULT PRIVILEGES` e toda tabela nova herda. **Se `/hoje` abrir e a
+> tela inicial vier montada, está tudo certo. Se vier erro, é aqui que se
+> olha.**
 
 ## O que a sessão do fluxo na mão fez, em 19/ago
 
