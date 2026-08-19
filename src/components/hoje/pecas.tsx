@@ -82,10 +82,10 @@ export function CartaoNumero({
       className={`rounded-grande border px-4 py-4 ${pele}`}
     >
       <div className="flex items-center justify-between">
-        <span className={`text-[12px] font-medium ${rotuloCor}`}>{rotulo}</span>
+        <span className={`text-[13px] font-medium ${rotuloCor}`}>{rotulo}</span>
         <span
           aria-hidden
-          className={`flex size-[22px] items-center justify-center rounded-minima font-mono text-[11px] ${chip}`}
+          className={`flex size-[22px] items-center justify-center rounded-minima font-mono text-[12px] ${chip}`}
         >
           {glifo}
         </span>
@@ -96,7 +96,7 @@ export function CartaoNumero({
         >
           {valor}
         </span>
-        <span className="pb-[3px] text-[12px] text-tinta-media">{sub}</span>
+        <span className="pb-[3px] text-[13px] text-tinta-media">{sub}</span>
       </div>
     </div>
   )
@@ -148,7 +148,7 @@ export function PilhaPessoas({
           <span
             key={`${p.nome}-${i}`}
             title={p.nome}
-            className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie text-[10px] font-semibold"
+            className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie text-[11.5px] font-semibold"
             style={{ background: fundo, color: frente, marginRight: -9 }}
           >
             <span aria-hidden>{iniciaisDe(p.nome)}</span>
@@ -157,7 +157,7 @@ export function PilhaPessoas({
         )
       })}
       {pessoas.length > 5 ? (
-        <span className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie bg-superficie-mais-suave text-[10px] font-semibold text-tinta-media">
+        <span className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie bg-superficie-mais-suave text-[11.5px] font-semibold text-tinta-media">
           +{pessoas.length - 5}
         </span>
       ) : null}
@@ -178,7 +178,7 @@ export function SeloEstado({ estado }: { estado: keyof typeof ESTADO | string })
   const e = ESTADO[estado] ?? ESTADO.aberta
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${e.bg} ${e.fg}`}
+      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${e.bg} ${e.fg}`}
     >
       <span aria-hidden className="size-1.5 rounded-full bg-current" />
       {e.rotulo}
@@ -230,11 +230,11 @@ export function LinhaAgenda({
     >
       <span className="flex flex-col">
         <span
-          className={`font-mono text-[15px] ${cancelada ? 'text-tinta-fraca line-through' : passou ? 'text-tinta-media' : 'text-tinta'}`}
+          className={`font-mono text-[16px] ${cancelada ? 'text-tinta-fraca line-through' : passou ? 'text-tinta-media' : 'text-tinta'}`}
         >
           {sessao.hora}
         </span>
-        <span className="text-[10.5px] text-tinta-media">{sessao.duracaoMin} min</span>
+        <span className="text-[12px] text-tinta-media">{sessao.duracaoMin} min</span>
       </span>
 
       <span
@@ -248,11 +248,11 @@ export function LinhaAgenda({
 
       <span className="flex min-w-0 flex-col gap-1">
         <span
-          className={`text-[15px] font-medium ${cancelada ? 'text-tinta-fraca line-through' : ''}`}
+          className={`text-[16px] font-medium ${cancelada ? 'text-tinta-fraca line-through' : ''}`}
         >
           {sessao.servico}
         </span>
-        <span className="truncate text-[12px] text-tinta-media">
+        <span className="truncate text-[13px] text-tinta-media">
           {[sessao.profissional, nota].filter(Boolean).join(' · ')}
         </span>
       </span>
@@ -261,7 +261,7 @@ export function LinhaAgenda({
         <PilhaPessoas pessoas={sessao.pessoas} apagado={passou} />
         <span className="w-[18px]" />
         <span
-          className={`rounded-peca px-2 py-[3px] font-mono text-[12px] ${
+          className={`rounded-peca px-2 py-[3px] font-mono text-[13px] ${
             // laranja só acima da capacidade, como no protótipo: turma cheia é
             // estado normal do dia, e pintar toda turma de alerta apagaria o
             // único caso que pede olho — o 5/4
@@ -302,11 +302,11 @@ export function FaixaPeriodo({
 }) {
   return (
     <div className="flex items-center gap-2.5 px-3 pt-3.5 pb-2">
-      <span className="text-[10.5px] font-semibold tracking-[.12em] text-tinta-media uppercase">
+      <span className="text-[12px] font-semibold tracking-[.12em] text-tinta-media uppercase">
         {titulo}
       </span>
       <span aria-hidden className="h-px flex-1 bg-linha-fina" />
-      <span className="text-[11.5px] text-tinta-media">
+      <span className="text-[12.5px] text-tinta-media">
         {n} {(n === 1 ? rotulo.singular : rotulo.plural).toLowerCase()}
       </span>
     </div>
@@ -328,7 +328,7 @@ export function Bloco({
     >
       {titulo ? (
         <div className="flex items-baseline justify-between pb-3">
-          <h2 className="font-titulo text-[17px] font-semibold">{titulo}</h2>
+          <h2 className="font-titulo text-[18px] font-semibold">{titulo}</h2>
           {acao}
         </div>
       ) : null}

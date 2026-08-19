@@ -85,7 +85,7 @@ export function CascaAcesso({
               {titulo}
             </p>
             <span aria-hidden className="my-4 block h-[3px] w-15 rounded-sm bg-menta" />
-            <p className="max-w-[290px] text-[13.5px] leading-relaxed text-tinta-escura-media">
+            <p className="max-w-[290px] text-[14.5px] leading-relaxed text-tinta-escura-media">
               {texto}
             </p>
           </div>

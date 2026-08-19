@@ -136,7 +136,7 @@ export function NovaMatricula({
           ) : (
             <>
               <fieldset className="flex flex-col gap-2">
-                <legend className="pb-1.5 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
                   Qual plano
                 </legend>
                 <div className="flex flex-col gap-2">
@@ -152,12 +152,12 @@ export function NovaMatricula({
                       }`}
                     >
                       <span className="flex min-w-0 flex-col">
-                        <span className="text-[13.5px] font-medium">{p.nome}</span>
-                        <span className="text-[12px] text-tinta-media">
+                        <span className="text-[14.5px] font-medium">{p.nome}</span>
+                        <span className="text-[13px] text-tinta-media">
                           {p.servicoNome} · {comoCobra(p)}
                         </span>
                       </span>
-                      <span className="font-mono text-[13px]">
+                      <span className="font-mono text-[14px]">
                         {emReais(p.precoVinculadoCent === p.precoAvulsoCent
                           ? p.precoAvulsoCent
                           : p.precoAvulsoCent)}
@@ -169,10 +169,10 @@ export function NovaMatricula({
 
               {plano && pede > 0 ? (
                 <fieldset className="flex flex-col gap-2">
-                  <legend className="pb-1.5 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                  <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
                     Quais horários
                   </legend>
-                  <p className="pb-1 text-[12.5px] text-tinta-media">
+                  <p className="pb-1 text-[13.5px] text-tinta-media">
                     {`o plano pede ${pede}, e ${escolhidas.length} ${escolhidas.length === 1 ? 'foi escolhido' : 'foram escolhidos'}`}
                   </p>
                   {doPlano.length === 0 ? (
@@ -201,7 +201,7 @@ export function NovaMatricula({
                               </span>
                               {/* a ocupação decide a escolha, e decidir sem ela
                                   é descobrir que a horário estava cheia no envio */}
-                              <span className="text-[11px] opacity-70">
+                              <span className="text-[12px] opacity-70">
                                 {t.ocupadas}/{t.capacidade}
                                 {cheia ? ' · cheia' : ''}
                                 {t.profissional ? ` · ${t.profissional}` : ''}
@@ -290,7 +290,7 @@ export function ContratosDaFicha({
 
   if (contratos.length === 0) {
     return (
-      <p className="text-[13px] text-tinta-media">
+      <p className="text-[14px] text-tinta-media">
         Nenhum contrato ainda. É ela que diz qual plano {pessoaNome.split(' ')[0]}{' '}
         contratou, por quanto, e até quando.
       </p>
@@ -310,19 +310,19 @@ export function ContratosDaFicha({
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="flex min-w-0 flex-col">
-              <span className="text-[13.5px] font-medium">
+              <span className="text-[14.5px] font-medium">
                 {c.planoCodigo ? `${c.planoCodigo} · ` : ''}{c.planoNome}
               </span>
-              <span className="text-[12px] text-tinta-media">
+              <span className="text-[13px] text-tinta-media">
                 {c.servicoNome}
                 {c.fim ? ` · até ${c.fim.split('-').reverse().join('/')}` : ' · sem fim previsto'}
                 {c.vagasVivas > 0 ? ` · ocupa ${c.vagasVivas}` : ''}
               </span>
             </span>
             <span className="flex items-center gap-2">
-              <span className="font-mono text-[13px]">{emReais(c.precoAplicadoCent)}</span>
+              <span className="font-mono text-[14px]">{emReais(c.precoAplicadoCent)}</span>
               <span
-                className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
+                className={`rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${
                   c.status === 'ativo' ? 'bg-positivo-fundo text-positivo'
                     : c.status === 'pausado' ? 'bg-atencao-fundo text-atencao'
                     : 'bg-superficie-mais-suave text-tinta-media'
@@ -336,13 +336,13 @@ export function ContratosDaFicha({
 
           {/* por que aquele preço, sem precisar procurar na tabela */}
           {c.vinculoUsado ? (
-            <p className="text-[11.5px] text-tinta-media">
+            <p className="text-[12.5px] text-tinta-media">
               Preço de quem já é cliente de outra modalidade.
             </p>
           ) : null}
 
           {c.saldo ? (
-            <p className={`text-[12px] ${c.saldo.acabou ? 'text-alerta' : 'text-tinta-media'}`}>
+            <p className={`text-[13px] ${c.saldo.acabou ? 'text-alerta' : 'text-tinta-media'}`}>
               {c.saldo.acabou
                 ? `Pacote esgotado: ${c.saldo.usadas} sessões usadas.`
                 : `Restam ${c.saldo.restantes} de ${c.saldo.usadas + c.saldo.restantes} sessões.`}
@@ -511,7 +511,7 @@ function BotaoMiudo({
     <button
       type="button"
       {...resto}
-      className={`min-h-9 cursor-pointer rounded-peca border px-3 text-[12.5px] disabled:opacity-50 ${
+      className={`min-h-9 cursor-pointer rounded-peca border px-3 text-[13.5px] disabled:opacity-50 ${
         perigo
           ? 'border-alerta-linha bg-superficie text-alerta hover:bg-alerta-superficie'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'

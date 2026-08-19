@@ -42,10 +42,20 @@
    * porque podem voltar a divergir no tema escuro.
    */
   --color-tinta: #141a18;
-  --color-tinta-media: #5d6b66;
-  /* 5,26:1 no branco · 4,78:1 em #F1F5F3 */
-  --color-tinta-apagada: #656e6a;
-  --color-tinta-fraca: #656e6a;
+  /*
+   * O texto de apoio escureceu, e o motivo é de leitura e não de norma.
+   *
+   * `#5D6B66` dava 4,78:1 sobre `#F1F5F3` — passa na AA e cansa: a maior parte
+   * do produto é texto de apoio em DM Sans, que é geométrica e afina no
+   * pequeno. Passar dos 4,8 para perto de 7 é a diferença entre "está dentro
+   * da regra" e "dá para ler o dia inteiro no balcão".
+   *
+   * 6,56:1 no #F1F5F3 · 7,22:1 no branco
+   */
+  --color-tinta-media: #4d5a55;
+  /* 6,38:1 no #F1F5F3 · 7,02:1 no branco */
+  --color-tinta-apagada: #525b57;
+  --color-tinta-fraca: #525b57;
   /* só onde a WCAG isenta: controle desabilitado (1.4.3). Não use em texto. */
   --color-tinta-inativa: #9aa5a0;
   --color-tinta-clara: #eaf3f0;
@@ -154,12 +164,29 @@
  * a demonstração não parecer editável. No produto isso quebra copiar telefone,
  * copiar nome e leitor de tela — por isso não está aqui, e não deve voltar.
  */
+/*
+ * A base do texto.
+ *
+ * O corpo subiu de 13px para 15px junto com a escala inteira das telas. O que
+ * estava escrito era conforme e pequeno: quase cem lugares em 11,5px e mais de
+ * quarenta em 10,5px, numa fonte geométrica que afina no pequeno, lida em pé,
+ * num balcão, por quem está entre um aluno e outro.
+ *
+ * `line-height` explícito porque o padrão do navegador (`normal`) é apertado
+ * para DM Sans, e é a entrelinha que separa "letra grande" de "texto legível".
+ *
+ * `text-size-adjust` desligado: o iOS aumenta a fonte sozinho na horizontal e
+ * quebra as colunas de largura fixa das listas.
+ */
 body {
   background: var(--color-fundo);
   color: var(--color-tinta);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 ::selection {

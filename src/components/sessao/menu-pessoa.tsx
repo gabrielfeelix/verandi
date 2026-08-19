@@ -74,14 +74,14 @@ export function MenuPessoa({
         <div className="absolute top-[38px] right-0 z-[25] flex w-[216px] flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado">
           <Link
             href={`/pessoas/${participacao.pessoaId}`}
-            className="rounded-peca px-3 py-2.5 text-[13px] hover:bg-superficie-suave"
+            className="rounded-peca px-3 py-2.5 text-[14px] hover:bg-superficie-suave"
           >
             Ver ficha completa
           </Link>
           {/* restrita e não é para estes olhos: o item some, em vez de abrir
               uma caixa vazia que apagaria o que o profissional anotou */}
           {participacao.observacaoRestrita ? (
-            <span className="px-3 py-2.5 text-[13px] text-tinta-fraca">
+            <span className="px-3 py-2.5 text-[14px] text-tinta-fraca">
               Observação de quem atende
             </span>
           ) : (
@@ -134,7 +134,7 @@ export function MenuPessoa({
                 Todo mundo da conta
               </Chip>
             </div>
-            <p className="text-[11.5px] text-tinta-media">
+            <p className="text-[12.5px] text-tinta-media">
               {visivel === 'profissionais'
                 ? 'A recepção não lê. É onde vai o que é de saúde.'
                 : 'Aparece para quem abrir esta tela, inclusive a recepção.'}
@@ -162,7 +162,7 @@ export function MenuPessoa({
       {aberto === 'reposicao' ? (
         <Gaveta titulo={`Qual falta ${participacao.nome} está repondo?`} aoFechar={fechar}>
           {faltas.length === 0 ? (
-            <p className="text-[12.5px] text-tinta-media">
+            <p className="text-[13.5px] text-tinta-media">
               Nenhuma falta em aberto no prazo. Sem crédito para repor, isto
               provavelmente é um avulso ou um encaixe.
             </p>
@@ -180,17 +180,17 @@ export function MenuPessoa({
                         'Reposição apontada',
                       )
                     }}
-                    className={`flex w-full items-center gap-2.5 rounded-padrao border px-3 py-2.5 text-left text-[13px] hover:bg-superficie-suave ${
+                    className={`flex w-full items-center gap-2.5 rounded-padrao border px-3 py-2.5 text-left text-[14px] hover:bg-superficie-suave ${
                       participacao.reposicaoDeId === f.participacaoId
                         ? 'border-marca bg-positivo-superficie'
                         : 'border-linha-suave'
                     }`}
                   >
-                    <span className="font-mono text-[12px] text-tinta-media">
+                    <span className="font-mono text-[13px] text-tinta-media">
                       {f.data.slice(8)}/{f.data.slice(5, 7)}
                     </span>
                     <span className="flex-1">{f.servico}</span>
-                    <span className="text-[11.5px] text-tinta-media">
+                    <span className="text-[12.5px] text-tinta-media">
                       {f.status === 'falta' ? 'Falta' : 'Falta avisada'}
                     </span>
                   </button>
@@ -239,8 +239,8 @@ export function MenuPessoa({
                       : 'border-linha-suave'
                   }`}
                 >
-                  <span className="text-[13px] font-medium">{o.rotulo}</span>
-                  <span className="text-[11.5px] text-tinta-media">{o.explica}</span>
+                  <span className="text-[14px] font-medium">{o.rotulo}</span>
+                  <span className="text-[12.5px] text-tinta-media">{o.explica}</span>
                 </button>
               </li>
             ))}
@@ -262,7 +262,7 @@ function ItemMenu({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-peca px-3 py-2.5 text-left text-[13px] hover:bg-superficie-suave ${
+      className={`rounded-peca px-3 py-2.5 text-left text-[14px] hover:bg-superficie-suave ${
         perigo ? 'text-alerta' : ''
       }`}
     >
@@ -286,7 +286,7 @@ function Gaveta({
       className="absolute top-11 right-0 z-30 flex w-80 flex-col gap-2.5 rounded-grande border border-linha-suave bg-superficie p-3.5 shadow-elevado"
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="text-[13px] font-medium">{titulo}</span>
+        <span className="text-[14px] font-medium">{titulo}</span>
         <button
           type="button"
           aria-label="Fechar"

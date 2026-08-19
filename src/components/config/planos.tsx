@@ -108,7 +108,7 @@ export function SecaoPlanos({
       }
     >
       {servicos.length === 0 ? (
-        <p className="px-5 py-6 text-[13px] text-tinta-media">
+        <p className="px-5 py-6 text-[14px] text-tinta-media">
           Um plano vende uma modalidade, então o catálogo de{' '}
           {rotuloServico.plural.toLowerCase()} vem antes. Cadastre pelo menos
           {' '}{rotuloServico.singular.toLowerCase() === 'serviço' ? 'um' : 'uma'}{' '}
@@ -137,7 +137,7 @@ export function SecaoPlanos({
                 {s.nome}
               </Chip>
             ))}
-            <label className="flex cursor-pointer items-center gap-2 pl-1 text-[12.5px] text-tinta-media">
+            <label className="flex cursor-pointer items-center gap-2 pl-1 text-[13.5px] text-tinta-media">
               <input
                 type="checkbox"
                 checked={soInativos}
@@ -151,7 +151,7 @@ export function SecaoPlanos({
       ) : null}
 
       {servicos.length > 0 && visiveis.length === 0 ? (
-        <p className="px-5 pb-6 text-[13px] text-tinta-media">
+        <p className="px-5 pb-6 text-[14px] text-tinta-media">
           {planos.length === 0
             ? 'Nada no catálogo ainda. O primeiro plano é o que faz a matrícula parar de digitar preço à mão.'
             : 'Nenhum plano com esse filtro.'}
@@ -160,7 +160,7 @@ export function SecaoPlanos({
 
       {grupos(visiveis).map(([nome, doGrupo]) => (
         <div key={nome}>
-          <p className="border-b border-linha-fina bg-superficie-suave px-5 py-2 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+          <p className="border-b border-linha-fina bg-superficie-suave px-5 py-2 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
             {nome} · {doGrupo.length}
           </p>
           {doGrupo.map((p) => (
@@ -171,10 +171,10 @@ export function SecaoPlanos({
               nome={p.nome}
               detalhe={`${p.servicoNome} · ${comoCobra(p)}`}
             >
-              <span className="font-mono text-[12.5px]">
+              <span className="font-mono text-[13.5px]">
                 {emReais(p.precoVinculadoCent)}
               </span>
-              <span className="font-mono text-[12.5px] text-tinta-media">
+              <span className="font-mono text-[13.5px] text-tinta-media">
                 {p.precoAvulsoCent === p.precoVinculadoCent
                   /* repetir o mesmo número duas vezes faz procurar a diferença
                      que não existe */

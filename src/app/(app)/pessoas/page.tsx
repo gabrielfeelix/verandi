@@ -98,7 +98,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           </h1>
           {/* três números, não um: "28 cadastrados" sozinho esconde que três
               pessoas pararam, e é justamente quem parou que se quer achar */}
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {cadastrados} {cadastrados === 1 ? 'cadastrado' : 'cadastrados'}
             {' · '}{contagem.ativos} {contagem.ativos === 1 ? 'ativo' : 'ativos'}
             {' · '}{contagem.inativos} {contagem.inativos === 1 ? 'inativo' : 'inativos'}
@@ -116,7 +116,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <a
             href={exportar}
             download
-            className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
+            className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
           >
             Exportar
           </a>
@@ -160,7 +160,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
             .map((c) => (
               <span
                 key={c}
-                className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase"
+                className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase"
               >
                 {c}
               </span>
@@ -189,24 +189,24 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                     <span className="flex min-w-0 items-center gap-2.5">
                       <span
                         aria-hidden
-                        className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[11.5px] font-semibold"
+                        className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[12.5px] font-semibold"
                         style={{ background: fundo, color: frente, opacity: p.ativo ? 1 : 0.55 }}
                       >
                         {iniciaisDe(p.nome)}
                       </span>
                       <span className="flex min-w-0 flex-col leading-[1.35]">
                         <span className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-[14px] font-medium">{p.nome}</span>
+                          <span className="truncate text-[15px] font-medium">{p.nome}</span>
                           {p.tags.map((x) => (
                             <span
                               key={x}
-                              className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] uppercase ${TINTA.atencao}`}
+                              className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[11.5px] font-semibold tracking-[.08em] uppercase ${TINTA.atencao}`}
                             >
                               {x}
                             </span>
                           ))}
                         </span>
-                        <span className="truncate text-[11.5px] text-tinta-media">
+                        <span className="truncate text-[12.5px] text-tinta-media">
                           {p.identificadorExterno
                             ? `id ${p.identificadorExterno}`
                             : 'Sem identificador'}
@@ -216,7 +216,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
 
                     <span
                       title={fone ? undefined : 'Sem telefone cadastrado'}
-                      className={`font-mono text-[12.5px] ${
+                      className={`font-mono text-[13.5px] ${
                         fone ? 'text-tinta-media' : 'text-alerta'
                       }`}
                     >
@@ -225,7 +225,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                     </span>
 
                     <span
-                      className={`hidden text-[13px] md:block ${
+                      className={`hidden text-[14px] md:block ${
                         p.horarioFixo ? 'text-tinta-media' : 'text-tinta-fraca'
                       }`}
                     >
@@ -239,12 +239,12 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                       ) : 'Sem registro'}
                     </span>
 
-                    <span className="hidden text-[13px] text-tinta-media md:block">
+                    <span className="hidden text-[14px] text-tinta-media md:block">
                       {quando(p.ultimaPresenca)}
                     </span>
 
                     <span
-                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${TINTA[situacao.tinta]}`}
+                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${TINTA[situacao.tinta]}`}
                     >
                       <span aria-hidden className="size-1.5 rounded-full bg-current" />
                       {situacao.rotulo}
@@ -275,7 +275,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
 /** O número dentro do chip: mesma linha, peso menor, nunca disputa o rótulo. */
 function Contador({ ativo, children }: { ativo: boolean; children: React.ReactNode }) {
   return (
-    <span className={`font-mono text-[11.5px] ${ativo ? 'opacity-70' : 'text-tinta-fraca'}`}>
+    <span className={`font-mono text-[12.5px] ${ativo ? 'opacity-70' : 'text-tinta-fraca'}`}>
       {children}
     </span>
   )

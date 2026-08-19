@@ -58,7 +58,7 @@ export function Interruptor({
       {texto ? (
         <span
           aria-hidden
-          className={`text-[12px] font-medium ${ligado ? 'text-marca' : 'text-tinta-media'}`}
+          className={`text-[13px] font-medium ${ligado ? 'text-marca' : 'text-tinta-media'}`}
         >
           {texto}
         </span>

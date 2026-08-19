@@ -46,7 +46,7 @@ export function FolhaDoRecibo({
         aria-hidden
         className="relative border-t border-dashed border-linha-tracejada"
       >
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-fundo px-2 text-[10px] tracking-[.14em] text-tinta-fraca uppercase">
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-fundo px-2 text-[11.5px] tracking-[.14em] text-tinta-fraca uppercase">
           corte aqui
         </span>
       </div>
@@ -110,10 +110,10 @@ function Via({
           longe uma pilha de recibos na mesa */}
       <header className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div className="min-w-[220px] flex-1">
-          <h2 className="font-titulo text-[17px] leading-[1.2] font-semibold">
+          <h2 className="font-titulo text-[18px] leading-[1.2] font-semibold">
             {corpo.emitenteNome}
           </h2>
-          <p className="pt-[3px] text-[11.5px] leading-[1.6] text-tinta-media">
+          <p className="pt-[3px] text-[12.5px] leading-[1.6] text-tinta-media">
             {documentoEmitente ? <>CNPJ/CPF {documentoEmitente}<br /></> : null}
             {corpo.emitenteEndereco}
             {corpo.emitenteEndereco && corpo.emitenteTelefone ? <br /> : null}
@@ -122,7 +122,7 @@ function Via({
         </div>
 
         <div className="shrink-0 rounded-media border border-linha-suave bg-superficie-mais-suave px-4 py-2.5 text-right">
-          <p className="text-[10px] tracking-[.14em] text-tinta-media uppercase">
+          <p className="text-[11.5px] tracking-[.14em] text-tinta-media uppercase">
             valor recebido
           </p>
           <p className="font-mono text-[24px] leading-[1.15] font-semibold tabular-nums">
@@ -138,15 +138,15 @@ function Via({
         <h3 className="font-titulo text-[20px] leading-none font-semibold tracking-[.22em] uppercase">
           Recibo
         </h3>
-        <p className="text-[11.5px] text-tinta-media">
-          <span className="font-mono text-[13.5px] font-medium text-tinta">
+        <p className="text-[12.5px] text-tinta-media">
+          <span className="font-mono text-[14.5px] font-medium text-tinta">
             nº {numeroFormatado(serie, numero)}
           </span>
           {versao > 1 ? ` · correção ${versao}` : ''} · {via}
         </p>
       </div>
 
-      <p className="relative pt-4 text-[14.5px] leading-[1.75]">
+      <p className="relative pt-4 text-[15px] leading-[1.75]">
         Recebemos de <strong>{corpo.pagadorNome}</strong>
         {corpo.pagadorDocumento
           ? <>, CPF {documentoFormatado(corpo.pagadorDocumento)}</> : null}
@@ -166,7 +166,7 @@ function Via({
         * quando dá para ter certeza, e some quando não dá: data sozinha é uma
         * lacuna, cidade errada é uma afirmação falsa.
         */}
-      <p className="relative pt-5 text-[13.5px]">
+      <p className="relative pt-5 text-[14.5px]">
         {local ? `${local}, ` : ''}
         {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
       </p>
@@ -193,25 +193,25 @@ function Via({
             ) : null}
           </div>
           <div className="border-t border-tinta-media pt-1.5 text-center">
-            <p className="text-[12.5px] font-medium">{assina.nome}</p>
+            <p className="text-[13.5px] font-medium">{assina.nome}</p>
             {assina.cargo ? (
-              <p className="text-[11px] text-tinta-media">{assina.cargo}</p>
+              <p className="text-[12px] text-tinta-media">{assina.cargo}</p>
             ) : null}
             {documentoEmitente ? (
-              <p className="text-[11px] text-tinta-media">{documentoEmitente}</p>
+              <p className="text-[12px] text-tinta-media">{documentoEmitente}</p>
             ) : null}
           </div>
         </div>
       </div>
 
       <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-6">
-        <p className="max-w-[440px] text-[10.5px] leading-[1.6] text-tinta-media">
+        <p className="max-w-[440px] text-[12px] leading-[1.6] text-tinta-media">
           {emitiu ? <>Emitido por {emitiu}. </> : null}
           Este documento é um recibo, e não uma nota fiscal.
           {motivo ? <> Observação: {motivo}.</> : null}
         </p>
         {status !== 'valido' ? (
-          <p className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[11px] font-medium text-alerta">
+          <p className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12px] font-medium text-alerta">
             {status === 'cancelado' ? 'Cancelado' : 'Substituído'}
           </p>
         ) : null}

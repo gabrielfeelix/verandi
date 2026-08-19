@@ -173,7 +173,7 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
         <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
           Financeiro
         </h1>
-        <p className="pt-[3px] text-[13.5px] text-tinta-media">
+        <p className="pt-[3px] text-[14.5px] text-tinta-media">
           {atrasadas === 0
             ? `Nada em atraso hoje, ${dataCurta(hoje)}.`
             : `${atrasadas} ${atrasadas === 1 ? 'cobrança em atraso' : 'cobranças em atraso'} · o objetivo é zerar`}
@@ -182,7 +182,7 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
       <a
         href="/financeiro/exportar"
         download
-        className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
+        className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
       >
         Exportar
       </a>
@@ -269,7 +269,7 @@ function Trilha({
             key={a.id}
             href={`/financeiro?${busca}`}
             aria-current={ligado ? 'page' : undefined}
-            className={`inline-flex min-h-10 items-center gap-2 rounded-padrao px-3.5 text-[13px] whitespace-nowrap ${
+            className={`inline-flex min-h-10 items-center gap-2 rounded-padrao px-3.5 text-[14px] whitespace-nowrap ${
               ligado
                 ? 'bg-escuro text-tinta-clara'
                 : 'text-tinta-media hover:bg-superficie-mais-suave'
@@ -278,7 +278,7 @@ function Trilha({
             {a.rotulo}
             {a.id === 'atrasadas' && atrasadas > 0 ? (
               <span
-                className={`rounded-peca px-1.5 text-[11px] ${
+                className={`rounded-peca px-1.5 text-[12px] ${
                   ligado ? 'bg-white/15' : 'bg-alerta-fundo text-alerta'
                 }`}
               >
@@ -340,7 +340,7 @@ async function Fechamento({
     <Link
       key={rotulo}
       href={`/financeiro?aba=fechamento&de=${novoDe}&ate=${novoAte}`}
-      className={`inline-flex min-h-9 items-center rounded-peca border px-3 text-[12.5px] ${
+      className={`inline-flex min-h-9 items-center rounded-peca border px-3 text-[13.5px] ${
         de === novoDe && ate === novoAte
           ? 'border-marca bg-positivo-superficie text-marca'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -361,13 +361,13 @@ async function Fechamento({
         {periodo('Esta semana', somarDias(hoje, -6), hoje)}
         {periodo('Este mês', competenciaDe(hoje), hoje)}
         {periodo('Este ano', `${hoje.slice(0, 4)}-01-01`, hoje)}
-        <span className="text-[12px] text-tinta-fraca">
+        <span className="text-[13px] text-tinta-fraca">
           de {dataCurta(de)} a {dataCurta(ate)}
         </span>
         <a
           href={`/financeiro/exportar?de=${de}&ate=${ate}`}
           download
-          className="ml-auto inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] hover:bg-superficie-mais-suave"
+          className="ml-auto inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] hover:bg-superficie-mais-suave"
         >
           Planilha
         </a>
@@ -409,8 +409,8 @@ async function Fechamento({
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
         <section className={`${cartao} p-4`}>
-          <h2 className="pb-1 font-titulo text-[17px] font-semibold">Quem está em atraso</h2>
-          <p className="pb-3 text-[12.5px] text-tinta-media">
+          <h2 className="pb-1 font-titulo text-[18px] font-semibold">Quem está em atraso</h2>
+          <p className="pb-3 text-[13.5px] text-tinta-media">
             hoje, e não só no período: do mais velho para o mais novo, que é a
             ordem em que se liga
           </p>
@@ -429,19 +429,19 @@ async function Fechamento({
                 >
                   <Link
                     href={`/pessoas/${a.pessoaId}?aba=contratos`}
-                    className="flex-1 text-[13px] hover:underline"
+                    className="flex-1 text-[14px] hover:underline"
                   >
                     {a.pessoaNome}
                   </Link>
-                  <span className="text-[12px] text-tinta-media">
+                  <span className="text-[13px] text-tinta-media">
                     {a.cobrancas} {a.cobrancas === 1 ? 'cobrança' : 'cobranças'} ·{' '}
                     {a.diasDoMaisVelho} dias
                   </span>
-                  <span className="font-mono text-[13px]">{emReais(a.totalCent)}</span>
+                  <span className="font-mono text-[14px]">{emReais(a.totalCent)}</span>
                   {a.telefone ? (
                     <a
                       href={`tel:${a.telefone.replace(/\D/g, '')}`}
-                      className="text-[12px] text-marca underline"
+                      className="text-[13px] text-marca underline"
                     >
                       ligar
                     </a>
@@ -454,16 +454,16 @@ async function Fechamento({
 
         <div className="flex flex-col gap-3">
           <section className={`${cartao} p-4`}>
-            <h2 className="pb-1 font-titulo text-[17px] font-semibold">
+            <h2 className="pb-1 font-titulo text-[18px] font-semibold">
               Quanto cada modalidade faturou
             </h2>
-            <p className="pb-3 text-[12.5px] text-tinta-media">
+            <p className="pb-3 text-[13.5px] text-tinta-media">
               sobre o que entrou, e não sobre o que foi cobrado
             </p>
             <Barras itens={porServico} />
             {porPlano.length > 1 ? (
               <>
-                <h3 className="pt-4 pb-2 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                <h3 className="pt-4 pb-2 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
                   Por plano
                 </h3>
                 <Barras itens={porPlano} />
@@ -472,14 +472,14 @@ async function Fechamento({
           </section>
 
           <section className={`${cartao} p-4`}>
-            <h2 className="pb-3 font-titulo text-[17px] font-semibold">A carteira</h2>
+            <h2 className="pb-3 font-titulo text-[18px] font-semibold">A carteira</h2>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Par termo="Contratos novos" valor={String(cart.novos)} />
               <Par termo="Encerrados" valor={String(cart.encerrados)} />
               <Par termo="Em vigor hoje" valor={String(cart.emVigor)} />
               <Par termo="Recorrente" valor={emReais(cart.recorrenteCent)} />
             </dl>
-            <p className="pt-3 text-[12px] text-tinta-media">
+            <p className="pt-3 text-[13px] text-tinta-media">
               Recorrente é a soma dos contratos em vigor, sem os trancados: quem
               está em licença não paga o período parado. Ainda vai vencer neste
               mês: {emReais(receber.aVencerCent)}, e vencido e não pago hoje:{' '}
@@ -492,17 +492,17 @@ async function Fechamento({
 
           {estornos.quantidade > 0 ? (
             <section className={`${cartao} p-4`}>
-              <h2 className="pb-1 font-titulo text-[17px] font-semibold">
+              <h2 className="pb-1 font-titulo text-[18px] font-semibold">
                 O que voltou atrás
               </h2>
-              <p className="pb-3 text-[12.5px] text-tinta-media">
+              <p className="pb-3 text-[13.5px] text-tinta-media">
                 estornos do período, com o motivo que quem estornou escreveu
               </p>
               <ul className="flex flex-col gap-2">
                 {estornos.linhas.map((e, i) => (
                   <li
                     key={`${e.estornadoEm}-${i}`}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-linha-suave pb-2 text-[12.5px] last:border-0"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-linha-suave pb-2 text-[13.5px] last:border-0"
                   >
                     <span className="flex-1">{e.pessoaNome}</span>
                     <span className="text-tinta-media">
@@ -517,7 +517,7 @@ async function Fechamento({
         </div>
       </div>
 
-      <p className="text-[12px] text-tinta-fraca">
+      <p className="text-[13px] text-tinta-fraca">
         Período de {competenciaPorExtenso(competenciaDe(de))}, de {dataCurta(de)} a{' '}
         {dataCurta(ate)}.
       </p>
@@ -528,11 +528,11 @@ async function Fechamento({
 function Numero({ titulo, valor, nota }: { titulo: string; valor: string; nota: string }) {
   return (
     <section className={`${cartao} flex flex-col gap-1 p-4`}>
-      <h2 className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+      <h2 className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
         {titulo}
       </h2>
       <p className="font-titulo text-[26px] leading-none font-semibold">{valor}</p>
-      <p className="text-[12px] text-tinta-media">{nota}</p>
+      <p className="text-[13px] text-tinta-media">{nota}</p>
     </section>
   )
 }
@@ -540,7 +540,7 @@ function Numero({ titulo, valor, nota }: { titulo: string; valor: string; nota: 
 function Par({ termo, valor }: { termo: string; valor: string }) {
   return (
     <div className="flex flex-col">
-      <dt className="text-[11.5px] text-tinta-media">{termo}</dt>
+      <dt className="text-[12.5px] text-tinta-media">{termo}</dt>
       <dd className="font-titulo text-[19px] font-semibold">{valor}</dd>
     </div>
   )
@@ -550,20 +550,20 @@ function Par({ termo, valor }: { termo: string; valor: string }) {
 function Barras({ itens }: { itens: Array<{ nome: string; totalCent: number }> }) {
   const maior = Math.max(1, ...itens.map((i) => i.totalCent))
   if (itens.length === 0) {
-    return <p className="text-[12.5px] text-tinta-media">Nada recebido no período.</p>
+    return <p className="text-[13.5px] text-tinta-media">Nada recebido no período.</p>
   }
   return (
     <ul className="flex flex-col gap-2">
       {itens.map((i) => (
         <li key={i.nome} className="flex items-center gap-3">
-          <span className="w-[38%] truncate text-[12.5px]">{i.nome}</span>
+          <span className="w-[38%] truncate text-[13.5px]">{i.nome}</span>
           <span className="h-2 flex-1 rounded-peca bg-superficie-mais-suave">
             <span
               className="block h-2 rounded-peca bg-marca"
               style={{ width: `${Math.round((i.totalCent / maior) * 100)}%` }}
             />
           </span>
-          <span className="font-mono text-[12.5px]">{emReais(i.totalCent)}</span>
+          <span className="font-mono text-[13.5px]">{emReais(i.totalCent)}</span>
         </li>
       ))}
     </ul>

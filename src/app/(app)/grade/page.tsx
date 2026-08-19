@@ -43,7 +43,7 @@ export default async function Grade() {
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Grade fixa
           </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {vigentes.length} {rotulos.serie.plural.toLowerCase()} em uso ·
             configuração, usada muito no começo e pouco depois
           </p>
@@ -58,10 +58,10 @@ export default async function Grade() {
 
       {/* A confusão mais provável do sistema inteiro mora aqui, e por isso ela
           é dita antes de qualquer edição, não depois. */}
-      <p className="flex items-start gap-2.5 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[13px] leading-relaxed text-[#2F6659]">
+      <p className="flex items-start gap-2.5 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[14px] leading-relaxed text-[#2F6659]">
         <span
           aria-hidden
-          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-positivo-linha font-mono text-[11px]"
+          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-positivo-linha font-mono text-[12px]"
         >
           i
         </span>
@@ -91,8 +91,8 @@ export default async function Grade() {
             className={`overflow-hidden ${cartao}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
-              <h2 className="text-[13px] font-medium">{g.nome}</h2>
-              <span className="text-[12px] text-tinta-media">
+              <h2 className="text-[14px] font-medium">{g.nome}</h2>
+              <span className="text-[13px] text-tinta-media">
                 {g.linhas.length} {(g.linhas.length === 1
                   ? rotulos.serie.singular
                   : rotulos.serie.plural).toLowerCase()}
@@ -117,10 +117,10 @@ export default async function Grade() {
       {encerradas.length > 0 ? (
         <section className={`overflow-hidden ${cartao}`}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
-            <h2 className="text-[13px] font-medium">
+            <h2 className="text-[14px] font-medium">
               {rotulos.serie.plural} que terminaram
             </h2>
-            <span className="text-[12px] text-tinta-media">
+            <span className="text-[13px] text-tinta-media">
               continuam existindo no histórico
             </span>
           </div>
@@ -142,7 +142,7 @@ export default async function Grade() {
 
           {/* As duas ações que assustam, explicadas antes de serem clicadas. */}
           <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-            <p className="text-[12.5px] leading-relaxed text-tinta-media">
+            <p className="text-[13.5px] leading-relaxed text-tinta-media">
               Encerrar {rotulos.serie.singular.toLowerCase()} avisa quantas
               pessoas ocupam vaga ali antes de confirmar. Duplicar existe porque
               montar {vigentes.length} {rotulos.serie.plural.toLowerCase()} à mão

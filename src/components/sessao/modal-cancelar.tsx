@@ -44,7 +44,7 @@ export function ModalCancelar({
         iniciar(() => cancelarSessao(sessaoId, m))
       }}
     >
-      <p className="text-[13px] leading-[1.55] text-tinta-media">
+      <p className="text-[14px] leading-[1.55] text-tinta-media">
         <strong className="font-medium text-tinta">
           {quantasPessoas} pessoa(s) serão avisadas.
         </strong>{' '}

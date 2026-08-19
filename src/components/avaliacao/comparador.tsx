@@ -45,7 +45,7 @@ export function Comparador({
   if (!par) {
     return (
       <section className={`${cartao} px-[18px] py-6`}>
-        <p className="text-[13px] text-tinta-media">
+        <p className="text-[14px] text-tinta-media">
           A comparação aparece a partir da segunda avaliação. Esta é a primeira,
           e ela já está guardada: não é falha de carregamento.
         </p>
@@ -73,7 +73,7 @@ export function Comparador({
   return (
     <section className={cartao}>
       <header className="flex flex-wrap items-center gap-2 border-b border-linha-fina px-[18px] py-3.5">
-        <h2 className="mr-2 font-titulo text-[17px] font-semibold">Comparar</h2>
+        <h2 className="mr-2 font-titulo text-[18px] font-semibold">Comparar</h2>
         {posicoes.map((p) => (
           <Chip key={p.id} ativo={p.id === posicaoId} onClick={() => setPosicaoId(p.id)}>
             {p.nome}
@@ -156,7 +156,7 @@ function Lado({
   return (
     <div className="flex flex-col gap-3 bg-superficie px-[18px] py-4">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+        <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
           {rotulo}
         </span>
         <Escolha
@@ -194,7 +194,7 @@ function Lado({
             />
           </>
         ) : (
-          <p className="max-w-[240px] px-4 text-center text-[12.5px] text-tinta-media">
+          <p className="max-w-[240px] px-4 text-center text-[13.5px] text-tinta-media">
             Nesta avaliação ninguém fotografou {nome.toLowerCase()}. Não é falha
             de carregamento.
           </p>
@@ -209,7 +209,7 @@ function Lado({
       </div>
 
       {foto?.observacao ? (
-        <p className="text-[12.5px] leading-relaxed text-tinta-media">{foto.observacao}</p>
+        <p className="text-[13.5px] leading-relaxed text-tinta-media">{foto.observacao}</p>
       ) : null}
     </div>
   )

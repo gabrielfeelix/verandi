@@ -73,11 +73,11 @@ function Conteudo() {
         <div className="mt-3 flex flex-wrap items-center gap-3 rounded-media bg-escuro p-3">
           <Botao tom="claro">Entrar</Botao>
           <Botao tom="contorno-claro">Sair da conta</Botao>
-          <span className="text-[11.5px] text-tinta-escura-media">
+          <span className="text-[12.5px] text-tinta-escura-media">
             os dois tons que existem para o painel escuro
           </span>
         </div>
-        <p className="mt-3 text-[11.5px] text-tinta-media">
+        <p className="mt-3 text-[12.5px] text-tinta-media">
           Altura mínima de 44px, menos no miúdo, a tela de Sessão é usada em pé,
           com a mão ocupada.
         </p>
@@ -89,10 +89,10 @@ function Conteudo() {
             Bricolage Grotesque 30
           </p>
           <p className="font-titulo text-[19px] font-semibold">Bricolage 19</p>
-          <p className="text-[14px] font-medium">DM Sans 14 forte</p>
-          <p className="text-[13px]">DM Sans 13 padrão</p>
-          <p className="text-[12.5px] text-tinta-media">DM Sans 12.5 de apoio</p>
-          <p className="font-mono text-[13px]">DM Mono 07:00 · 4/4 · id 1042</p>
+          <p className="text-[15px] font-medium">DM Sans 14 forte</p>
+          <p className="text-[14px]">DM Sans 13 padrão</p>
+          <p className="text-[13.5px] text-tinta-media">DM Sans 12.5 de apoio</p>
+          <p className="font-mono text-[14px]">DM Mono 07:00 · 4/4 · id 1042</p>
           <Rotulo>Rótulo em versalete</Rotulo>
         </div>
       </Cartao>
@@ -100,12 +100,12 @@ function Conteudo() {
       <Cartao titulo="Tintas com significado">
         <div className="flex flex-wrap gap-2">
           {TINTAS.map((t) => (
-            <span key={t} className={`rounded-peca px-3 py-2 text-[12.5px] ${TINTA[t]}`}>
+            <span key={t} className={`rounded-peca px-3 py-2 text-[13.5px] ${TINTA[t]}`}>
               {t}
             </span>
           ))}
         </div>
-        <p className="mt-3 text-[11.5px] text-tinta-media">
+        <p className="mt-3 text-[12.5px] text-tinta-media">
           A cor nunca informa sozinha: sempre acompanha texto ou glifo.
         </p>
       </Cartao>
@@ -123,7 +123,7 @@ function Conteudo() {
           <Ocupacao usadas={3} capacidade={4} />
           <Ocupacao usadas={4} capacidade={4} />
           <Ocupacao usadas={5} capacidade={4} />
-          <span className="text-[11.5px] text-tinta-media">
+          <span className="text-[12.5px] text-tinta-media">
             passar da capacidade fica laranja e continua aceitando encaixe
           </span>
         </div>
@@ -141,7 +141,7 @@ function Conteudo() {
             </span>
           ))}
         </div>
-        <p className="mt-3 text-[11.5px] text-tinta-media">
+        <p className="mt-3 text-[12.5px] text-tinta-media">
           Um traço só, `currentColor`, sem biblioteca externa e sem emoji.
         </p>
       </Cartao>
@@ -169,7 +169,7 @@ function Conteudo() {
             { id: 'sem', rotulo: 'Sem vaga fixa', contagem: 2 },
           ]}
         />
-        <p className="mt-3 text-[11.5px] text-tinta-media">
+        <p className="mt-3 text-[12.5px] text-tinta-media">
           O ativo não clareia no hover, clarear faz parecer que desligou.
         </p>
       </Cartao>
@@ -229,7 +229,7 @@ function Conteudo() {
           <Avatar nome="Larissa Cruz" tamanho={40} />
           <Avatar nome="Thalya Ribeiro" tamanho={40} anel="#0E7C6B" />
           <Avatar nome="Carol Nunes" tamanho={40} anel="#F0693C" />
-          <span className="text-[11.5px] text-tinta-media">
+          <span className="text-[12.5px] text-tinta-media">
             cor por hash do nome: a mesma pessoa, a mesma cor, em toda tela
           </span>
         </div>
@@ -308,8 +308,8 @@ function Conteudo() {
             <li key={nome} className="flex items-center gap-3">
               {/* o nome está escrito ao lado: o avatar é decoração */}
               <Avatar nome={nome} decorativo />
-              <span className="text-[13px]">{nome}</span>
-              <span className="ml-auto text-[11.5px] text-tinta-media">{desde}</span>
+              <span className="text-[14px]">{nome}</span>
+              <span className="ml-auto text-[12.5px] text-tinta-media">{desde}</span>
             </li>
           ))}
         </ul>

@@ -114,11 +114,11 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Buscar vaga
           </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             Onde ainda cabe alguém, nos próximos dias
           </p>
         </div>
-        <span className="pb-1 text-[12px] text-tinta-fraca">
+        <span className="pb-1 text-[13px] text-tinta-fraca">
           {nLivres} {nLivres === 1 ? 'horário' : 'horários'} · {vagasTotais} vagas
           {comLotados ? ` · inclui ${nLotados} lotados` : ''}
         </span>
@@ -192,8 +192,8 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
             className="flex items-center justify-between gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3 py-3 transition-colors duration-150 hover:bg-superficie-mais-suave"
           >
             <span className="flex flex-col leading-[1.35]">
-              <span className="text-[13px] font-medium">Incluir lotados</span>
-              <span className="text-[11.5px] text-tinta-fraca">Para encaixe</span>
+              <span className="text-[14px] font-medium">Incluir lotados</span>
+              <span className="text-[12.5px] text-tinta-fraca">Para encaixe</span>
             </span>
             <span
               aria-hidden
@@ -229,10 +229,10 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
               return (
                 <section key={data} className={`overflow-hidden ${cartao}`}>
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-[18px] py-3">
-                    <h2 className="font-titulo text-[13.5px] font-semibold">
+                    <h2 className="font-titulo text-[14.5px] font-semibold">
                       {porExtenso(data)}
                     </h2>
-                    <span className="text-[12px] text-tinta-fraca">
+                    <span className="text-[13px] text-tinta-fraca">
                       {livresNoDia} {livresNoDia === 1 ? 'livre' : 'livres'}
                       {lotadosNoDia > 0
                         ? ` · ${lotadosNoDia} ${lotadosNoDia === 1 ? 'lotado' : 'lotados'}`
@@ -251,7 +251,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
                               : 'hover:bg-superficie-tenue'
                           }`}
                         >
-                          <span className="font-mono text-[15px]">{s.hora}</span>
+                          <span className="font-mono text-[16px]">{s.hora}</span>
                           <span>
                             {s.profissional ? (
                               <AvatarProf
@@ -262,15 +262,15 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
                             ) : null}
                           </span>
                           <span className="flex min-w-0 flex-col leading-[1.35]">
-                            <span className="truncate text-[14px] font-medium">
+                            <span className="truncate text-[15px] font-medium">
                               {s.servico}
                             </span>
-                            <span className="truncate text-[12px] text-tinta-fraca">
+                            <span className="truncate text-[13px] text-tinta-fraca">
                               {[s.profissional, s.local].filter(Boolean).join(' · ')}
                             </span>
                           </span>
                           <span
-                            className={`rounded-peca px-2.5 py-1 font-mono text-[12px] ${
+                            className={`rounded-peca px-2.5 py-1 font-mono text-[13px] ${
                               s.lotada
                                 ? 'bg-alerta-fundo text-alerta'
                                 : 'bg-positivo-fundo text-positivo'
@@ -281,7 +281,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
                               : `${s.ocupacao.livres} vaga(s)`}
                           </span>
                           <span
-                            className={`rounded-peca px-3.5 py-2 text-[12.5px] font-medium whitespace-nowrap ${
+                            className={`rounded-peca px-3.5 py-2 text-[13.5px] font-medium whitespace-nowrap ${
                               s.lotada
                                 ? 'border border-alerta-linha bg-superficie text-alerta'
                                 : 'bg-escuro text-tinta-clara'
@@ -298,7 +298,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
             })
           )}
 
-          <p className="text-[12px] text-tinta-fraca">
+          <p className="text-[13px] text-tinta-fraca">
             Livre e lotado são respostas diferentes, e as duas resolvem: sem
             vaga, a recepção quer ver o quase-cheio.
           </p>

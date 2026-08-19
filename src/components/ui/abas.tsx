@@ -49,7 +49,7 @@ export function Abas({
          * O hover do ativo continua escuro. Clarear o ativo ao passar o mouse
          * faz parecer que ele desligou — o feedback contradiz o estado.
          */
-        const estilo = `inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-padrao px-3 text-[13px] whitespace-nowrap transition-colors duration-150 ${
+        const estilo = `inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-padrao px-3 text-[14px] whitespace-nowrap transition-colors duration-150 ${
           ligado
             ? 'bg-escuro font-medium text-tinta-clara'
             : 'text-tinta-media hover:bg-superficie-mais-suave'
@@ -60,7 +60,7 @@ export function Abas({
             {i.rotulo}
             {i.contagem === undefined ? null : (
               <span
-                className={`rounded-minima px-1.5 font-mono text-[11px] ${
+                className={`rounded-minima px-1.5 font-mono text-[12px] ${
                   ligado ? 'bg-tinta-clara/16 text-tinta-clara' : 'bg-superficie-mais-suave text-tinta-media'
                 }`}
               >

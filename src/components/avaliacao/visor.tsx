@@ -65,10 +65,10 @@ export function Visor({
         className="flex items-center gap-3 px-4 py-3 md:px-6"
       >
         <span className="flex flex-col">
-          <span className="font-titulo text-[17px] font-semibold text-tinta-clara">
+          <span className="font-titulo text-[18px] font-semibold text-tinta-clara">
             {posicao}
           </span>
-          <span className="font-mono text-[12.5px] text-tinta-escura-media">
+          <span className="font-mono text-[13.5px] text-tinta-escura-media">
             {dataCurta(data)}
           </span>
         </span>
@@ -123,7 +123,7 @@ export function Visor({
       {observacao ? (
         <p
           onClick={(e) => e.stopPropagation()}
-          className="mx-auto max-w-[720px] px-6 pb-6 text-center text-[13px] leading-relaxed text-tinta-escura-media"
+          className="mx-auto max-w-[720px] px-6 pb-6 text-center text-[14px] leading-relaxed text-tinta-escura-media"
         >
           {observacao}
         </p>

@@ -46,10 +46,10 @@ export function CampoNumero({
         // vazio quando ele é obrigatório
         pattern="[0-9]*"
         required={required}
-        className={`min-w-0 flex-1 bg-transparent py-3 text-[14px] outline-none ${className}`}
+        className={`min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none ${className}`}
       />
       {sufixo ? (
-        <span aria-hidden className="shrink-0 text-[12.5px] text-tinta-fraca">
+        <span aria-hidden className="shrink-0 text-[13.5px] text-tinta-fraca">
           {sufixo}
         </span>
       ) : null}

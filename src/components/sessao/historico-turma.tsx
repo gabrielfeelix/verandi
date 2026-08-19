@@ -22,7 +22,7 @@ export function HistoricoDaTurma({ eventos }: { eventos: EventoDaTurma[] }) {
 
   return (
     <section className={`${cartao} p-4`}>
-      <h2 className="pb-3 font-titulo text-[17px] font-semibold">Histórico da turma</h2>
+      <h2 className="pb-3 font-titulo text-[18px] font-semibold">Histórico da turma</h2>
       <ol className="flex flex-col">
         {eventos.map((e, i) => (
           <li key={`${e.quando}-${e.texto}`} className="flex gap-3">
@@ -39,8 +39,8 @@ export function HistoricoDaTurma({ eventos }: { eventos: EventoDaTurma[] }) {
                 i < eventos.length - 1 ? 'pb-3.5' : ''
               }`}
             >
-              <span className="text-[13px]">{e.texto}</span>
-              <span className="text-[11.5px] text-tinta-media">{e.quando}</span>
+              <span className="text-[14px]">{e.texto}</span>
+              <span className="text-[12.5px] text-tinta-media">{e.quando}</span>
             </span>
           </li>
         ))}

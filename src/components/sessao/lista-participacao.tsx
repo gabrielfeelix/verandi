@@ -60,8 +60,8 @@ export function ListaParticipacao({
   return (
     <section className={`${cartao} px-2.5 pt-2 pb-3`}>
       <div className="flex items-center justify-between p-3">
-        <h2 className="font-titulo text-[17px] font-semibold">{titulo}</h2>
-        <span className="text-[12px] text-tinta-media">
+        <h2 className="font-titulo text-[18px] font-semibold">{titulo}</h2>
+        <span className="text-[13px] text-tinta-media">
           vaga fixa em cima, encaixes abaixo
         </span>
       </div>
@@ -95,7 +95,7 @@ export function ListaParticipacao({
                 <span className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/pessoas/${p.pessoaId}`}
-                    className="text-[15px] font-medium hover:text-marca"
+                    className="text-[16px] font-medium hover:text-marca"
                   >
                     {p.nome}
                   </Link>
@@ -118,7 +118,7 @@ export function ListaParticipacao({
                 {/* por que esta pessoa está aqui — a linha que separa quatro
                     nomes iguais em quatro situações diferentes */}
                 {p.detalhe ? (
-                  <span className="truncate text-[12px] text-tinta-media">{p.detalhe}</span>
+                  <span className="truncate text-[13px] text-tinta-media">{p.detalhe}</span>
                 ) : null}
               </span>
 
@@ -138,7 +138,7 @@ export function ListaParticipacao({
                         disabled={ocupado}
                         aria-pressed={p.status === s.valor}
                         onClick={() => registrar(p, s.valor)}
-                        className={`flex h-11 w-11 items-center justify-center rounded-padrao border text-[15px] ${
+                        className={`flex h-11 w-11 items-center justify-center rounded-padrao border text-[16px] ${
                           p.status === s.valor
                             ? TINTA_BOTAO[s.valor]
                             : 'border-linha bg-superficie text-tinta-media hover:border-[#B7C4BF]'
@@ -149,7 +149,7 @@ export function ListaParticipacao({
                     ))}
                   </span>
                 ) : (
-                  <span className="text-[12.5px] text-tinta-media">{p.status}</span>
+                  <span className="text-[13.5px] text-tinta-media">{p.status}</span>
                 )}
 
                 <MenuPessoa
@@ -187,12 +187,12 @@ export function ListaParticipacao({
             <Icone nome="mais" />
           </span>
           <span className="flex flex-col">
-            <span className="text-[14px] font-medium text-marca">
+            <span className="text-[15px] font-medium text-marca">
               {livres > 0
                 ? `${livres} vaga${livres > 1 ? 's' : ''} livre${livres > 1 ? 's' : ''}, encaixar alguém`
                 : 'Sem vaga livre, encaixar assim mesmo'}
             </span>
-            <span className="text-[12px] text-tinta-media">
+            <span className="text-[13px] text-tinta-media">
               buscar {rotuloPessoa.toLowerCase()} que já existe ou cadastrar na hora
             </span>
           </span>
@@ -221,7 +221,7 @@ function Marca({
   return (
     <span
       title={titulo}
-      className={`rounded-minima px-1.5 py-[3px] text-[10px] font-semibold tracking-[.08em] uppercase ${cor}`}
+      className={`rounded-minima px-1.5 py-[3px] text-[11.5px] font-semibold tracking-[.08em] uppercase ${cor}`}
     >
       {children}
     </span>

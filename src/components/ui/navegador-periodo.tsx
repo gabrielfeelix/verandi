@@ -60,7 +60,7 @@ export function NavegadorPeriodo({
 
       <Link
         href={meio.href}
-        className="flex min-h-11 items-center px-3 text-[13px] font-medium whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave"
+        className="flex min-h-11 items-center px-3 text-[14px] font-medium whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave"
       >
         <Miolo>{meio.texto}</Miolo>
       </Link>

@@ -71,7 +71,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
               <h2 className="font-titulo text-[18px] font-semibold tracking-[-.01em]">
                 {g.titulo}
               </h2>
-              <span className="text-[11.5px] opacity-75">{g.sub}</span>
+              <span className="text-[12.5px] opacity-75">{g.sub}</span>
             </span>
           </div>
 
@@ -89,35 +89,35 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
                   {p.tipo === 'chamada_nao_feita' ? (
                     <span
                       aria-hidden
-                      className="flex size-8.5 shrink-0 items-center justify-center rounded-padrao bg-superficie-mais-suave font-mono text-[13px] text-tinta-media"
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-padrao bg-superficie-mais-suave font-mono text-[14px] text-tinta-media"
                     >
                       ◷
                     </span>
                   ) : (
                     <span
                       aria-hidden
-                      className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[11.5px] font-semibold"
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[12.5px] font-semibold"
                       style={{ background: fundo, color: frente }}
                     >
                       {iniciaisDe(p.titulo)}
                     </span>
                   )}
                   <div className="flex min-w-40 flex-1 flex-col leading-[1.35]">
-                    <span className="text-[14px] font-medium">{p.titulo}</span>
-                    <span className="text-[12px] text-tinta-media">{p.detalhe}</span>
+                    <span className="text-[15px] font-medium">{p.titulo}</span>
+                    <span className="text-[13px] text-tinta-media">{p.detalhe}</span>
                   </div>
                   {i ? <Etiqueta tinta={i.tinta}>{i.texto}</Etiqueta> : null}
                   <span className="flex items-center gap-1.5">
                     <Link
                       href={p.href}
-                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[12.5px] font-medium whitespace-nowrap text-tinta-clara hover:bg-escuro-hover"
+                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[13.5px] font-medium whitespace-nowrap text-tinta-clara hover:bg-escuro-hover"
                     >
                       {ACAO_GRUPO[p.tipo] ?? 'Resolver'}
                     </Link>
                     <button
                       type="button"
                       onClick={() => setDispensando(p)}
-                      className="min-h-10 rounded-padrao border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                      className="min-h-10 rounded-padrao border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
                     >
                       Dispensar
                     </button>
@@ -132,7 +132,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
               type="button"
               onClick={() => setAbertos((a) =>
                 a.includes(g.tipo) ? a.filter((x) => x !== g.tipo) : [...a, g.tipo])}
-              className="w-full cursor-pointer bg-superficie-tenue px-4.5 py-3 text-left text-[12.5px] font-medium text-marca hover:bg-superficie-mais-suave"
+              className="w-full cursor-pointer bg-superficie-tenue px-4.5 py-3 text-left text-[13.5px] font-medium text-marca hover:bg-superficie-mais-suave"
             >
               {abertos.includes(g.tipo)
                 ? 'Mostrar só as primeiras ↑'
@@ -164,7 +164,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
         }}
       >
         <label className="flex flex-col gap-1.5">
-          <span className="text-[12.5px] font-medium">Motivo</span>
+          <span className="text-[13.5px] font-medium">Motivo</span>
           <select
             className={entrada} value={motivo}
             onChange={(e) => setMotivo(e.target.value)}

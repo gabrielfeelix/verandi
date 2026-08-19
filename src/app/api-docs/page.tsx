@@ -29,7 +29,7 @@ const TINTA_METODO: Record<Rota['metodo'], string> = {
 
 function Codigo({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto rounded-padrao border border-linha bg-superficie-suave p-3.5 text-[12.5px] leading-[1.65]">
+    <pre className="overflow-x-auto rounded-padrao border border-linha bg-superficie-suave p-3.5 text-[13.5px] leading-[1.65]">
       <code className="font-mono whitespace-pre">{children}</code>
     </pre>
   )
@@ -38,8 +38,8 @@ function Codigo({ children }: { children: string }) {
 function Bloco({ p }: { p: Passo }) {
   return (
     <div className="flex flex-col gap-2.5">
-      <h3 className="font-titulo text-[15px] font-semibold">{p.titulo}</h3>
-      <p className="text-[14px] leading-[1.7] text-tinta-media">{p.texto}</p>
+      <h3 className="font-titulo text-[16px] font-semibold">{p.titulo}</h3>
+      <p className="text-[15px] leading-[1.7] text-tinta-media">{p.texto}</p>
       {p.codigo ? <Codigo>{p.codigo}</Codigo> : null}
     </div>
   )
@@ -48,7 +48,7 @@ function Bloco({ p }: { p: Passo }) {
 function Tabela({ titulo, campos }: { titulo: string; campos: Campo[] }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-[10.5px] font-medium tracking-[.1em] text-tinta-fraca uppercase">
+      <p className="text-[12px] font-medium tracking-[.1em] text-tinta-fraca uppercase">
         {titulo}
       </p>
       <div className="overflow-x-auto rounded-padrao border border-linha">
@@ -57,15 +57,15 @@ function Tabela({ titulo, campos }: { titulo: string; campos: Campo[] }) {
             {campos.map((c) => (
               <tr key={c.nome} className="border-b border-linha-fina last:border-0">
                 <td className="px-3.5 py-2.5 align-top">
-                  <span className="font-mono text-[12.5px] font-medium">{c.nome}</span>
+                  <span className="font-mono text-[13.5px] font-medium">{c.nome}</span>
                   {c.obrigatorio ? (
-                    <span className="ml-2 text-[11px] text-alerta">obrigatório</span>
+                    <span className="ml-2 text-[12px] text-alerta">obrigatório</span>
                   ) : null}
                 </td>
-                <td className="px-3.5 py-2.5 align-top text-[12.5px] text-tinta-fraca">
+                <td className="px-3.5 py-2.5 align-top text-[13.5px] text-tinta-fraca">
                   {c.tipo}
                 </td>
-                <td className="px-3.5 py-2.5 align-top text-[13px] leading-relaxed text-tinta-media">
+                <td className="px-3.5 py-2.5 align-top text-[14px] leading-relaxed text-tinta-media">
                   {c.descricao}
                 </td>
               </tr>
@@ -87,19 +87,19 @@ export default function ApiDocs() {
       >
         <span
           aria-hidden
-          className="flex size-8 items-center justify-center rounded-padrao bg-escuro font-titulo text-[17px] font-bold text-menta"
+          className="flex size-8 items-center justify-center rounded-padrao bg-escuro font-titulo text-[18px] font-bold text-menta"
         >
           V
         </span>
-        <span className="font-titulo text-[17px] font-semibold">Verandi</span>
+        <span className="font-titulo text-[18px] font-semibold">Verandi</span>
       </Link>
 
       <header className="pt-8">
         <h1 className="font-titulo text-[30px] leading-[1.15] font-semibold tracking-[-.02em]">
           API da Verandi
         </h1>
-        <p className="max-w-[62ch] pt-3 text-[14px] leading-[1.75]">{ABERTURA}</p>
-        <p className="pt-4 font-mono text-[12.5px] text-tinta-fraca">{BASE}</p>
+        <p className="max-w-[62ch] pt-3 text-[15px] leading-[1.75]">{ABERTURA}</p>
+        <p className="pt-4 font-mono text-[13.5px] text-tinta-fraca">{BASE}</p>
       </header>
 
       <section className="flex flex-col gap-7 pt-11">
@@ -122,9 +122,9 @@ export default function ApiDocs() {
             <a
               key={r.id}
               href={`#${r.id}`}
-              className="flex flex-wrap items-baseline gap-2 text-[13px] text-marca hover:text-marca-forte"
+              className="flex flex-wrap items-baseline gap-2 text-[14px] text-marca hover:text-marca-forte"
             >
-              <span className="font-mono text-[11.5px] font-medium">{r.metodo}</span>
+              <span className="font-mono text-[12.5px] font-medium">{r.metodo}</span>
               <span className="font-mono">{r.caminho}</span>
               <span className="text-tinta-fraca">{r.titulo}</span>
             </a>
@@ -136,18 +136,18 @@ export default function ApiDocs() {
             <article key={r.id} id={r.id} className="scroll-mt-6">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span
-                  className={`rounded-peca px-2 py-[3px] font-mono text-[11px] font-semibold ${TINTA_METODO[r.metodo]}`}
+                  className={`rounded-peca px-2 py-[3px] font-mono text-[12px] font-semibold ${TINTA_METODO[r.metodo]}`}
                 >
                   {r.metodo}
                 </span>
-                <span className="font-mono text-[14px] font-medium">{r.caminho}</span>
+                <span className="font-mono text-[15px] font-medium">{r.caminho}</span>
               </div>
 
-              <h3 className="pt-3 font-titulo text-[17px] font-semibold">{r.titulo}</h3>
-              <p className="pt-2 text-[14px] leading-[1.7] text-tinta-media">{r.resumo}</p>
+              <h3 className="pt-3 font-titulo text-[18px] font-semibold">{r.titulo}</h3>
+              <p className="pt-2 text-[15px] leading-[1.7] text-tinta-media">{r.resumo}</p>
 
               {r.atencao ? (
-                <p className="mt-3.5 rounded-padrao border-l-2 border-menta bg-superficie-suave px-4 py-3 text-[13.5px] leading-[1.7] text-tinta-media">
+                <p className="mt-3.5 rounded-padrao border-l-2 border-menta bg-superficie-suave px-4 py-3 text-[14.5px] leading-[1.7] text-tinta-media">
                   {r.atencao}
                 </p>
               ) : null}
@@ -157,14 +157,14 @@ export default function ApiDocs() {
                 {r.corpo ? <Tabela titulo="Corpo" campos={r.corpo} /> : null}
 
                 <div className="flex flex-col gap-2">
-                  <p className="text-[10.5px] font-medium tracking-[.1em] text-tinta-fraca uppercase">
+                  <p className="text-[12px] font-medium tracking-[.1em] text-tinta-fraca uppercase">
                     Exemplo
                   </p>
                   <Codigo>{r.exemplo}</Codigo>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <p className="text-[10.5px] font-medium tracking-[.1em] text-tinta-fraca uppercase">
+                  <p className="text-[12px] font-medium tracking-[.1em] text-tinta-fraca uppercase">
                     Resposta
                   </p>
                   <Codigo>{r.resposta}</Codigo>
@@ -180,7 +180,7 @@ export default function ApiDocs() {
           <h2 className="font-titulo text-[19px] font-semibold">
             Receber avisos da Verandi
           </h2>
-          <p className="max-w-[62ch] pt-2 text-[14px] leading-[1.7] text-tinta-media">
+          <p className="max-w-[62ch] pt-2 text-[15px] leading-[1.7] text-tinta-media">
             As rotas acima são você perguntando. Esta parte é o contrário: a
             recepção cancela a aula de quinta na tela, e o seu sistema precisa
             saber para avisar quem ia.
@@ -189,7 +189,7 @@ export default function ApiDocs() {
         {WEBHOOK.map((p) => <Bloco key={p.titulo} p={p} />)}
       </section>
 
-      <footer className="mt-14 border-t border-linha pt-6 text-[12.5px] leading-relaxed text-tinta-fraca">
+      <footer className="mt-14 border-t border-linha pt-6 text-[13.5px] leading-relaxed text-tinta-fraca">
         <p>
           Dúvida de integração:{' '}
           <span className="text-tinta-media">sac@4yu.com.br</span>.

@@ -85,7 +85,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
         podeRegistrar={podeRegistrar}
       >
         <div className="flex flex-col gap-4">
-          <nav className="flex items-center gap-2.5 text-[12.5px] text-tinta-media">
+          <nav className="flex items-center gap-2.5 text-[13.5px] text-tinta-media">
             <Link href="/hoje" className="font-medium text-marca">Hoje</Link>
             <span aria-hidden className="font-mono">/</span>
             <span>{dataLonga}</span>
@@ -99,7 +99,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                 <span className="font-titulo text-[34px] leading-none font-semibold tracking-[-.03em]">
                   {sessao.hora}
                 </span>
-                <span className="text-[12px] whitespace-nowrap text-tinta-media">
+                <span className="text-[13px] whitespace-nowrap text-tinta-media">
                   {sessao.duracaoMin} min · até {terminaEm(sessao.hora, sessao.duracaoMin)}
                 </span>
               </div>
@@ -110,7 +110,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                     {sessao.servico}
                   </h1>
                   <span
-                    className={`rounded-peca px-2.5 py-1 font-mono text-[12px] ${
+                    className={`rounded-peca px-2.5 py-1 font-mono text-[13px] ${
                       sessao.ocupacao.excedida
                         ? 'bg-alerta-fundo text-alerta'
                         : 'bg-superficie-mais-suave text-tinta-media'
@@ -121,7 +121,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                   <EtiquetaEstado cancelada={cancelada} />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-[13px] text-tinta-media">
+                <div className="flex flex-wrap items-center gap-3 text-[14px] text-tinta-media">
                   {sessao.profissional ? (
                     <span className="inline-flex items-center gap-2">
                       <AvatarProf
@@ -157,7 +157,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                 <NotaDeRegistro comecaEm={comecaEm} />
 
                 {cancelada ? (
-                  <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[12.5px] text-alerta">
+                  <p className="rounded-padrao bg-alerta-fundo px-3 py-2 text-[13.5px] text-alerta">
                     {/* "cancelada" concorda com a palavra do cliente, e a
                         palavra é dele: "Atendimento cancelada". O verbo no
                         infinitivo não tem gênero, e a frase continua nomeando
@@ -202,7 +202,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
               <HistoricoDaTurma eventos={sessao.historico} />
 
               <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-                <p className="text-[12.5px] leading-relaxed text-tinta-media">
+                <p className="text-[13.5px] leading-relaxed text-tinta-media">
                   O registro aplica na hora e sincroniza depois. Sem sinal nada se
                   perde, o aviso aparece e a chamada continua.
                 </p>

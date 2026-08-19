@@ -44,7 +44,7 @@ export function ProximaTurma({
       <div className="relative flex flex-wrap items-start justify-between gap-x-6.5 gap-y-4.5">
         <div className="flex min-w-0 flex-[1_1_330px] gap-5.5">
           <div className="flex flex-col gap-2">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[.1em] text-menta uppercase">
+            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold tracking-[.1em] text-menta uppercase">
               <span aria-hidden className="size-[7px] rounded-full bg-menta" />
               {/* "Próxima" concordaria com a palavra do cliente: "Próxima
                   atendimento". "A seguir" não tem gênero e diz o mesmo. */}
@@ -53,7 +53,7 @@ export function ProximaTurma({
             <span className="font-titulo text-[40px] leading-none font-semibold tracking-[-.03em]">
               {sessao.hora}
             </span>
-            <span className="text-[12.5px] text-tinta-escura-media">{faltam}</span>
+            <span className="text-[13.5px] text-tinta-escura-media">{faltam}</span>
           </div>
 
           <div className="flex min-w-0 flex-col gap-2.5">
@@ -61,17 +61,17 @@ export function ProximaTurma({
               <h2 className="font-titulo text-[23px] leading-tight font-semibold">
                 {sessao.servico}
               </h2>
-              <span className="rounded-peca bg-tinta-clara/12 px-2.5 py-[3px] font-mono text-[12px] text-[#CDE3DD]">
+              <span className="rounded-peca bg-tinta-clara/12 px-2.5 py-[3px] font-mono text-[13px] text-[#CDE3DD]">
                 {sessao.ocupacao.ocupadas}/{sessao.ocupacao.capacidade}
               </span>
             </div>
 
-            <div className="flex items-center gap-3 text-[13px] text-[#B7CBC5]">
+            <div className="flex items-center gap-3 text-[14px] text-[#B7CBC5]">
               {sessao.profissional ? (
                 <span className="inline-flex items-center gap-2">
                   <span
                     aria-hidden
-                    className="flex size-6 items-center justify-center rounded-full bg-[#22463C] text-[9.5px] font-semibold text-menta shadow-[inset_0_0_0_1.5px_#2AC3A3]"
+                    className="flex size-6 items-center justify-center rounded-full bg-[#22463C] text-[11px] font-semibold text-menta shadow-[inset_0_0_0_1.5px_#2AC3A3]"
                   >
                     {iniciaisDe(sessao.profissional)}
                   </span>
@@ -96,18 +96,18 @@ export function ProximaTurma({
                   >
                     <span
                       aria-hidden
-                      className="flex size-6 items-center justify-center rounded-full text-[10px] font-semibold"
+                      className="flex size-6 items-center justify-center rounded-full text-[11.5px] font-semibold"
                       style={{ background: fundo, color: frente }}
                     >
                       {iniciaisDe(p.nome)}
                     </span>
-                    <span className="text-[13px] text-tinta-clara">
+                    <span className="text-[14px] text-tinta-clara">
                       {primeiroNome(p.nome)}
                     </span>
                     {p.tags.map((t) => (
                       <span
                         key={t}
-                        className="rounded-minima bg-[rgba(240,105,60,.18)] px-1.5 py-[2px] text-[9.5px] font-semibold tracking-[.08em] text-[#F5A88A] uppercase"
+                        className="rounded-minima bg-[rgba(240,105,60,.18)] px-1.5 py-[2px] text-[11px] font-semibold tracking-[.08em] text-[#F5A88A] uppercase"
                       >
                         {t}
                       </span>
@@ -116,7 +116,7 @@ export function ProximaTurma({
                 )
               })}
               {sessao.pessoas.length === 0 ? (
-                <span className="text-[12.5px] text-tinta-escura-media">
+                <span className="text-[13.5px] text-tinta-escura-media">
                   Ninguém marcado ainda.
                 </span>
               ) : null}
@@ -136,7 +136,7 @@ export function ProximaTurma({
                   router.refresh()
                 })
               }
-              className="min-h-11 rounded-padrao bg-menta px-4 text-[14px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px disabled:opacity-60"
+              className="min-h-11 rounded-padrao bg-menta px-4 text-[15px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px disabled:opacity-60"
             >
               {aMarcar === 0 ? 'Chamada feita' : 'Marcar todos presentes'}
             </button>
@@ -144,14 +144,14 @@ export function ProximaTurma({
 
           <Link
             href={`/sessao/${sessao.id}`}
-            className="flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[13px] hover:bg-tinta-clara/10"
+            className="flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[14px] hover:bg-tinta-clara/10"
           >
             Abrir {rotulo.toLowerCase()}
           </Link>
 
           <Link
             href={`/sessao/${sessao.id}#encaixar`}
-            className="text-center text-[12px] text-tinta-escura-media hover:text-tinta-clara"
+            className="text-center text-[13px] text-tinta-escura-media hover:text-tinta-clara"
           >
             Encaixar {rotuloPessoa.toLowerCase()}
           </Link>

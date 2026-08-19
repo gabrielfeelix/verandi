@@ -97,7 +97,7 @@ export function SecaoFuncionamento({
       <h2 className="font-titulo text-[19px] font-semibold">
         Funcionamento e feriados
       </h2>
-      <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
+      <p className="pt-1.5 pb-4 text-[14px] text-tinta-media">
         Dias e horários em que o negócio abre; datas fechadas.
       </p>
 
@@ -111,10 +111,10 @@ export function SecaoFuncionamento({
                 d.abre ? 'bg-superficie' : 'bg-superficie-suave'
               }`}
             >
-              <span className="w-20 text-[13.5px] font-medium">{DIAS[d.diaSemana]}</span>
+              <span className="w-20 text-[14.5px] font-medium">{DIAS[d.diaSemana]}</span>
 
               <span
-                className={`flex-1 font-mono text-[13px] ${
+                className={`flex-1 font-mono text-[14px] ${
                   d.abre ? 'text-tinta-media' : 'text-tinta-fraca'
                 }`}
               >
@@ -122,7 +122,7 @@ export function SecaoFuncionamento({
               </span>
 
               <span
-                className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
+                className={`rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${
                   d.abre
                     ? 'bg-positivo-fundo text-positivo'
                     : 'bg-neutro-fundo text-tinta-media'
@@ -147,7 +147,7 @@ export function SecaoFuncionamento({
       ) : null}
 
       <div className="pt-4">
-        <p className="pb-2.5 text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+        <p className="pb-2.5 text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
           Datas fechadas
         </p>
 
@@ -155,14 +155,14 @@ export function SecaoFuncionamento({
           {datas.map((d) => (
             <span
               key={d.id}
-              className="inline-flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie-suave py-1.5 pr-2 pl-3 text-[13px]"
+              className="inline-flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie-suave py-1.5 pr-2 pl-3 text-[14px]"
             >
-              <span className="font-mono text-[12px] text-tinta-media">
+              <span className="font-mono text-[13px] text-tinta-media">
                 {d.data.slice(8)}/{d.data.slice(5, 7)}
               </span>
               {d.descricao ?? d.tipo}
               {d.acao === 'cancelar_avisar' ? (
-                <span className="rounded-minima bg-alerta-fundo px-1.5 py-0.5 text-[10px] font-medium text-alerta">
+                <span className="rounded-minima bg-alerta-fundo px-1.5 py-0.5 text-[11.5px] font-medium text-alerta">
                   cancela
                 </span>
               ) : null}
@@ -181,14 +181,14 @@ export function SecaoFuncionamento({
           <button
             type="button"
             onClick={() => setModal('data')}
-            className="min-h-10 rounded-padrao border border-dashed border-linha-tracejada px-3.5 text-[13px] whitespace-nowrap text-marca hover:bg-superficie-suave"
+            className="min-h-10 rounded-padrao border border-dashed border-linha-tracejada px-3.5 text-[14px] whitespace-nowrap text-marca hover:bg-superficie-suave"
           >
             + Nova data fechada
           </button>
         </div>
 
         {datas.length === 0 ? (
-          <p className="pt-2.5 text-[12.5px] text-tinta-media">
+          <p className="pt-2.5 text-[13.5px] text-tinta-media">
             Nenhuma data marcada daqui para frente.
           </p>
         ) : null}

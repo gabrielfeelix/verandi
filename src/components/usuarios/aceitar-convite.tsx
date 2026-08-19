@@ -62,7 +62,7 @@ export function AceitarConvite({ token, email }: { token: string; email: string 
         <input
           id="c-senha" name="senha" type="password" required minLength={8}
           autoFocus autoComplete="new-password"
-          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14px] focus:border-marca focus:bg-superficie"
+          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[15px] focus:border-marca focus:bg-superficie"
         />
       </Campo>
 
@@ -70,7 +70,7 @@ export function AceitarConvite({ token, email }: { token: string; email: string 
         <input
           id="c-repete" name="repete" type="password" required minLength={8}
           autoComplete="new-password"
-          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14px] focus:border-marca focus:bg-superficie"
+          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[15px] focus:border-marca focus:bg-superficie"
         />
       </Campo>
 
@@ -78,7 +78,7 @@ export function AceitarConvite({ token, email }: { token: string; email: string 
 
       <Botao
         type="submit" disabled={pendente}
-        className="mt-1 min-h-13 w-full rounded-media text-[14.5px] font-semibold"
+        className="mt-1 min-h-13 w-full rounded-media text-[15px] font-semibold"
       >
         Entrar na conta
       </Botao>

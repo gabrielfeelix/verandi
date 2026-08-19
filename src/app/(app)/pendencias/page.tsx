@@ -32,7 +32,7 @@ export default async function Pendencias() {
             <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
               Pendências
             </h1>
-            <p className="pt-[3px] text-[13.5px] text-tinta-media">
+            <p className="pt-[3px] text-[14.5px] text-tinta-media">
               {total === 0
                 ? 'Nada exige ação humana agora.'
                 : `${total} ${total === 1 ? 'item exige' : 'itens exigem'} ação humana · o objetivo é zerar`}
@@ -41,13 +41,13 @@ export default async function Pendencias() {
 
           <div className="flex flex-wrap items-center gap-2.5">
             {/* o número que mostra progresso, e não só dívida */}
-            <span className="text-[12px] text-tinta-media">
+            <span className="text-[13px] text-tinta-media">
               esvaziado hoje: {esvaziadas}
             </span>
             <a
               href="/pendencias/exportar"
               download
-              className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
+              className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
             >
               Exportar
             </a>
@@ -62,7 +62,7 @@ export default async function Pendencias() {
           <div className="flex flex-col gap-3.5">
             {total > 0 ? (
               <section className={`${cartao} p-4`}>
-                <h2 className="pb-3 font-titulo text-[17px] font-semibold">Resumo</h2>
+                <h2 className="pb-3 font-titulo text-[18px] font-semibold">Resumo</h2>
                 <ul className="flex flex-col gap-2.5">
                   {grupos.map((g) => (
                     <li key={g.tipo} className="flex items-center gap-2.5">
@@ -70,8 +70,8 @@ export default async function Pendencias() {
                         aria-hidden
                         className={`size-2 shrink-0 rounded-full ${PONTO_GRUPO[g.tipo]}`}
                       />
-                      <span className="flex-1 text-[13px]">{g.titulo}</span>
-                      <span className="font-mono text-[13px] text-tinta-media">
+                      <span className="flex-1 text-[14px]">{g.titulo}</span>
+                      <span className="font-mono text-[14px] text-tinta-media">
                         {g.itens.length}
                       </span>
                     </li>
@@ -81,7 +81,7 @@ export default async function Pendencias() {
             ) : null}
 
             <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-              <p className="text-[12.5px] leading-relaxed text-tinta-media">
+              <p className="text-[13.5px] leading-relaxed text-tinta-media">
                 Pendência que nunca zera vira ruído. Por isso dispensar pede
                 motivo e o item sai da lista.
               </p>

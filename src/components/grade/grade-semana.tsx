@@ -76,20 +76,20 @@ export function GradeSemana({
       <section className="flex flex-col items-center gap-2.5 rounded-cartao border border-dashed border-linha-tracejada bg-superficie px-6 py-8.5 text-center">
         <span
           aria-hidden
-          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave font-mono text-[17px] text-tinta-media"
+          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave font-mono text-[18px] text-tinta-media"
         >
           ▦
         </span>
         <span className="font-titulo text-[18px] font-semibold">
           Nenhum horário nesta semana
         </span>
-        <span className="max-w-[380px] text-[13px] leading-relaxed text-tinta-media">
+        <span className="max-w-[380px] text-[14px] leading-relaxed text-tinta-media">
           Conta nova começa assim. A grade nasce em Grade fixa, é lá que se diz
           o que se repete toda semana. Não é falha de carregamento.
         </span>
         <Link
           href="/grade"
-          className="mt-1.5 rounded-padrao bg-escuro px-4 py-2.5 text-[13px] font-medium text-tinta-clara"
+          className="mt-1.5 rounded-padrao bg-escuro px-4 py-2.5 text-[14px] font-medium text-tinta-clara"
         >
           Montar a grade fixa
         </Link>
@@ -138,7 +138,7 @@ export function GradeSemana({
               }`}
             >
               <span
-                className={`text-[11px] font-semibold tracking-[.08em] uppercase ${
+                className={`text-[12px] font-semibold tracking-[.08em] uppercase ${
                   ehHoje
                     ? 'text-menta'
                     : feriado
@@ -151,14 +151,14 @@ export function GradeSemana({
                 {DIAS[diaDe(d)]}
               </span>
               <span
-                className={`font-mono text-[15px] ${
+                className={`font-mono text-[16px] ${
                   ehHoje ? 'text-tinta-clara' : fechado ? 'text-tinta-fraca' : 'text-tinta'
                 }`}
               >
                 {d.slice(8)}
               </span>
               <span
-                className={`truncate text-[10px] ${
+                className={`truncate text-[11.5px] ${
                   ehHoje ? 'text-tinta-clara/70' : 'text-tinta-fraca'
                 }`}
               >
@@ -171,7 +171,7 @@ export function GradeSemana({
         {horas.map((hora) => (
           <div key={hora} className="contents">
             <div className="flex items-start justify-end pt-1.5 pr-2">
-              <span className="font-mono text-[12px] text-tinta-media">{hora}</span>
+              <span className="font-mono text-[13px] text-tinta-media">{hora}</span>
             </div>
 
             {dias.map((d) => {
@@ -186,7 +186,7 @@ export function GradeSemana({
                 return (
                   <div
                     key={d}
-                    className="flex min-h-14 items-center justify-center rounded-padrao border border-linha-fina bg-superficie-tenue font-mono text-[13px] text-linha-tracejada"
+                    className="flex min-h-14 items-center justify-center rounded-padrao border border-linha-fina bg-superficie-tenue font-mono text-[14px] text-linha-tracejada"
                   >
                     <span aria-hidden>+</span>
                   </div>
@@ -222,12 +222,12 @@ export function GradeSemana({
                   {paralelo || ehAgora ? (
                     <span className="flex flex-wrap items-center gap-1">
                       {ehAgora ? (
-                        <span className="rounded-minima bg-positivo-fundo px-1.5 py-0.5 text-[9.5px] font-semibold tracking-[.06em] text-marca uppercase">
+                        <span className="rounded-minima bg-positivo-fundo px-1.5 py-0.5 text-[11px] font-semibold tracking-[.06em] text-marca uppercase">
                           agora
                         </span>
                       ) : null}
                       {paralelo ? (
-                        <span className="rounded-minima bg-neutro-fundo px-1.5 py-0.5 text-[9.5px] font-semibold tracking-[.06em] text-tinta-media uppercase">
+                        <span className="rounded-minima bg-neutro-fundo px-1.5 py-0.5 text-[11px] font-semibold tracking-[.06em] text-tinta-media uppercase">
                           {paralelo}
                         </span>
                       ) : null}
@@ -237,7 +237,7 @@ export function GradeSemana({
                   {sobra > 0 ? (
                     <Link
                       href={`/semana?de=${dias[0]}&dia=${d}`}
-                      className="self-start rounded-minima bg-neutro-fundo px-1.5 py-0.5 text-[9.5px] font-semibold tracking-[.06em] text-tinta-media uppercase"
+                      className="self-start rounded-minima bg-neutro-fundo px-1.5 py-0.5 text-[11px] font-semibold tracking-[.06em] text-tinta-media uppercase"
                     >
                       +{sobra} no mesmo horário
                     </Link>
@@ -277,7 +277,7 @@ export function CelulaTurma({ sessao }: { sessao: SessaoResumo }) {
           />
         ) : null}
         <span
-          className={`truncate text-[12px] font-medium ${
+          className={`truncate text-[13px] font-medium ${
             cancelada ? 'text-tinta-media line-through' : ''
           }`}
         >
@@ -285,11 +285,11 @@ export function CelulaTurma({ sessao }: { sessao: SessaoResumo }) {
         </span>
       </span>
       <span className="flex items-center justify-between gap-1.5">
-        <span className="truncate text-[10.5px] text-tinta-media">
+        <span className="truncate text-[12px] text-tinta-media">
           {sessao.profissional ?? sessao.local ?? ''}
         </span>
         <span
-          className={`rounded-minima px-1.5 py-0.5 font-mono text-[10.5px] ${
+          className={`rounded-minima px-1.5 py-0.5 font-mono text-[12px] ${
             sessao.ocupacao.excedida
               ? 'bg-alerta-fundo text-alerta'
               : 'bg-superficie-mais-suave text-tinta-media'

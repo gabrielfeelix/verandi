@@ -100,7 +100,7 @@ export function Sino({ itens }: { itens: Notificacao[] }) {
       >
         <Icone nome="sino" tamanho={19} />
         {novas > 0 ? (
-          <span className="absolute top-1.5 right-1.5 flex min-w-4 items-center justify-center rounded-full bg-alerta px-1 font-mono text-[10px] leading-4 text-tinta-clara">
+          <span className="absolute top-1.5 right-1.5 flex min-w-4 items-center justify-center rounded-full bg-alerta px-1 font-mono text-[11.5px] leading-4 text-tinta-clara">
             {novas > 9 ? '9+' : novas}
           </span>
         ) : null}
@@ -113,12 +113,12 @@ export function Sino({ itens }: { itens: Notificacao[] }) {
           className="flex max-h-[420px] flex-col overflow-hidden rounded-grande border border-linha bg-superficie shadow-modal"
         >
           <div className="flex shrink-0 items-baseline justify-between gap-2 border-b border-linha-fina px-4 py-3">
-            <span className="text-[13.5px] font-semibold">Notificações</span>
-            <span className="text-[11.5px] text-tinta-fraca">Últimos 7 dias</span>
+            <span className="text-[14.5px] font-semibold">Notificações</span>
+            <span className="text-[12.5px] text-tinta-fraca">Últimos 7 dias</span>
           </div>
 
           {itens.length === 0 ? (
-            <p className="px-4 py-6 text-center text-[12.5px] leading-relaxed text-tinta-media">
+            <p className="px-4 py-6 text-center text-[13.5px] leading-relaxed text-tinta-media">
               Nada aconteceu na semana que precise da sua atenção.
               <br />
               Cancelamento e aviso de falta aparecem aqui.
@@ -136,24 +136,24 @@ export function Sino({ itens }: { itens: Notificacao[] }) {
                   >
                     <span
                       aria-hidden
-                      className={`flex size-7 shrink-0 items-center justify-center rounded-padrao font-mono text-[13px] ${TINTA_TIPO[n.tipo]}`}
+                      className={`flex size-7 shrink-0 items-center justify-center rounded-padrao font-mono text-[14px] ${TINTA_TIPO[n.tipo]}`}
                     >
                       {GLIFO[n.tipo]}
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                      <span className="flex items-center gap-1.5 text-[13px] font-medium">
+                      <span className="flex items-center gap-1.5 text-[14px] font-medium">
                         {lidas.includes(n.id) ? null : (
                           <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-marca" />
                         )}
                         {n.texto}
                       </span>
                       {n.detalhe ? (
-                        <span className="truncate text-[11.5px] text-tinta-fraca">
+                        <span className="truncate text-[12.5px] text-tinta-fraca">
                           {n.detalhe}
                         </span>
                       ) : null}
                     </span>
-                    <span className="shrink-0 text-[11px] text-tinta-fraca">
+                    <span className="shrink-0 text-[12px] text-tinta-fraca">
                       {n.quando}
                     </span>
                   </Link>

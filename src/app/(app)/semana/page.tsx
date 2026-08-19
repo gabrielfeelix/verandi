@@ -143,7 +143,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             {ehDia ? 'Dia por recurso' : 'Agenda da semana'}
           </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {ehDia
               ? `${DIAS_CURTOS[diaDaSemanaDe(diaFoco)]} ${curta(diaFoco)}`
               : faixaDaSemana(segunda, dias[6])}
@@ -225,7 +225,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
       {ehDia ? (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[12.5px] text-tinta-media">Colunas por</span>
+            <span className="text-[13.5px] text-tinta-media">Colunas por</span>
             <Abas
               rotuloDoGrupo="O que fica nas colunas"
               ativo={porLocal ? 'local' : 'profissional'}
@@ -239,7 +239,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               ]}
             />
             {feriados[diaFoco] ? (
-              <span className="rounded-peca bg-atencao-fundo px-2.5 py-1 text-[11.5px] font-medium text-atencao">
+              <span className="rounded-peca bg-atencao-fundo px-2.5 py-1 text-[12.5px] font-medium text-atencao">
                 {feriados[diaFoco]}
               </span>
             ) : null}
@@ -287,16 +287,16 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                       : 'border-linha bg-superficie'
                   }`}
                 >
-                  <span className="text-[10px] uppercase">
+                  <span className="text-[11.5px] uppercase">
                     {DIAS_CURTOS[diaDaSemanaDe(d)]}
                   </span>
-                  <span className="font-mono text-[13px]">{d.slice(8)}</span>
+                  <span className="font-mono text-[14px]">{d.slice(8)}</span>
                 </Link>
               ))}
             </nav>
 
             {feriados[diaFoco] ? (
-              <p className="mb-2 rounded-padrao bg-atencao-fundo px-3 py-2 text-[12.5px] text-atencao">
+              <p className="mb-2 rounded-padrao bg-atencao-fundo px-3 py-2 text-[13.5px] text-atencao">
                 {feriados[diaFoco]}
               </p>
             ) : null}
@@ -323,7 +323,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         </>
       )}
 
-      <div className="flex flex-wrap items-center gap-4 text-[12px] text-tinta-media">
+      <div className="flex flex-wrap items-center gap-4 text-[13px] text-tinta-media">
         {[
           ['bg-superficie border-linha-suave', 'Com vaga'],
           ['bg-alerta-superficie border-alerta-linha', 'Lotada'],

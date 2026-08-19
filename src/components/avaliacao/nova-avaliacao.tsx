@@ -100,14 +100,14 @@ export function NovaAvaliacao({
         </Campo>
 
         <div className="flex flex-col gap-3">
-          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
             As fotos
           </span>
 
           <div className="grid gap-4 md:grid-cols-2">
             {posicoes.map((p) => (
               <div key={p.id} className="flex flex-col gap-2">
-                <span className="text-[13px] font-medium">{p.nome}</span>
+                <span className="text-[14px] font-medium">{p.nome}</span>
                 <CampoFoto
                   nome={`foto-${p.id}`}
                   alt={`Foto de ${p.nome.toLowerCase()}`}
@@ -116,7 +116,7 @@ export function NovaAvaliacao({
                 <input
                   name={`observacao-${p.id}`}
                   placeholder="Ex.: ombro direito 2 cm acima"
-                  className={`${entrada} min-h-11 text-[13px]`}
+                  className={`${entrada} min-h-11 text-[14px]`}
                 />
               </div>
             ))}

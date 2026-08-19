@@ -213,7 +213,7 @@ export function EditorSerie({
               </div>
 
               {catalogo.funcionamento.length > 0 ? (
-                <p className="text-[12px] text-tinta-fraca">
+                <p className="text-[13px] text-tinta-fraca">
                   Funcionamento:{' '}
                   {catalogo.funcionamento
                     .map((f) => `${DIAS[f.diaSemana]} ${f.abre}–${f.fecha}`)
@@ -225,7 +225,7 @@ export function EditorSerie({
                   real. Quem opera é que sabe, então a tela conta o que achou e
                   deixa seguir. */}
               {colisoes.length > 0 ? (
-                <div className="flex flex-col gap-2 rounded-media border border-atencao-linha bg-atencao-superficie p-3 text-[12.5px] leading-relaxed">
+                <div className="flex flex-col gap-2 rounded-media border border-atencao-linha bg-atencao-superficie p-3 text-[13.5px] leading-relaxed">
                   <p className="font-medium">Já existe algo marcado neste horário:</p>
                   <ul className="list-inside list-disc">
                     {colisoes.map((c, i) => (

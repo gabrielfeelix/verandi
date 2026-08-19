@@ -16,7 +16,7 @@ export function BotaoImprimir({ rotulo = 'Imprimir' }: { rotulo?: string }) {
     <button
       type="button"
       onClick={() => window.print()}
-      className="inline-flex min-h-11 cursor-pointer items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium transition-colors duration-150 hover:bg-superficie-mais-suave"
+      className="inline-flex min-h-11 cursor-pointer items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium transition-colors duration-150 hover:bg-superficie-mais-suave"
     >
       {rotulo}
     </button>

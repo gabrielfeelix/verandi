@@ -103,14 +103,14 @@ export function BoasVindas({
                   : 'border-linha bg-superficie hover:bg-superficie-mais-suave'
               }`}
             >
-              <span className="text-[13.5px] font-medium">{p.nome}</span>
-              <span className="text-[12px] leading-[1.45] text-tinta-media">
+              <span className="text-[14.5px] font-medium">{p.nome}</span>
+              <span className="text-[13px] leading-[1.45] text-tinta-media">
                 {p.exemplos}
               </span>
               {/* as palavras aparecem antes de serem escolhidas: é o que a
                   pessoa vai ler em toda tela depois, e ninguém deveria
                   descobrir isso na tela seguinte */}
-              <span className="pt-0.5 font-mono text-[11px] text-tinta-fraca">
+              <span className="pt-0.5 font-mono text-[12px] text-tinta-fraca">
                 {p.palavras.pessoa.plural} · {p.palavras.sessao.singular} ·{' '}
                 {p.palavras.local.singular}
               </span>
@@ -149,7 +149,7 @@ export function BoasVindas({
             />
           ))}
         </div>
-        <span className="font-mono text-[11px] text-tinta-fraca">
+        <span className="font-mono text-[12px] text-tinta-fraca">
           {i + 1} de {total}
         </span>
       </div>

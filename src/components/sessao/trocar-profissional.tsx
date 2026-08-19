@@ -53,7 +53,7 @@ export function TrocarProfissional({
               type="button"
               disabled={pendente}
               onClick={() => trocar(p.id, p.nome)}
-              className={`flex items-center gap-2.5 rounded-peca px-2.5 py-2 text-left text-[13px] hover:bg-superficie-suave ${
+              className={`flex items-center gap-2.5 rounded-peca px-2.5 py-2 text-left text-[14px] hover:bg-superficie-suave ${
                 p.id === atual ? 'bg-positivo-superficie font-medium' : ''
               }`}
             >
@@ -67,13 +67,13 @@ export function TrocarProfissional({
               type="button"
               disabled={pendente}
               onClick={() => trocar(null, `Ninguém`)}
-              className="rounded-peca px-2.5 py-2 text-left text-[13px] text-tinta-media hover:bg-superficie-suave"
+              className="rounded-peca px-2.5 py-2 text-left text-[14px] text-tinta-media hover:bg-superficie-suave"
             >
               Deixar sem {rotulo.toLowerCase()}
             </button>
           ) : null}
 
-          <span className="px-2.5 py-2 text-[11.5px] leading-relaxed text-tinta-media">
+          <span className="px-2.5 py-2 text-[12.5px] leading-relaxed text-tinta-media">
             Vale só para este dia. A grade continua com quem estava.
           </span>
         </span>

@@ -41,7 +41,7 @@ export function NovaPessoa({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="min-h-11 rounded-padrao bg-escuro px-3.5 text-[13px] font-medium text-tinta-clara hover:bg-escuro-hover"
+        className="min-h-11 rounded-padrao bg-escuro px-3.5 text-[14px] font-medium text-tinta-clara hover:bg-escuro-hover"
       >
         Cadastrar {rotulo}
       </button>

@@ -104,7 +104,7 @@ export function Rail({
             <span className="font-titulo text-[16px] font-semibold text-tinta-clara">
               Verandi
             </span>
-            <span className="truncate font-mono text-[9.5px] tracking-[.12em] text-tinta-fraca uppercase">
+            <span className="truncate font-mono text-[11px] tracking-[.12em] text-tinta-fraca uppercase">
               {conta}
             </span>
           </span>
@@ -135,15 +135,15 @@ export function Rail({
               <span
                 className={
                   aberto
-                    ? 'min-w-0 flex-1 truncate text-[13px]'
-                    : 'text-[8px] tracking-[.06em] uppercase'
+                    ? 'min-w-0 flex-1 truncate text-[14px]'
+                    : 'text-[11px] leading-none tracking-[.04em]'
                 }
               >
                 {aberto ? i.rotulo : i.curto}
               </span>
               {i.badge ? (
                 <span
-                  className={`flex h-[18px] min-w-[19px] items-center justify-center rounded-peca bg-destaque px-1.5 text-[10px] font-semibold text-white ${
+                  className={`flex h-[18px] min-w-[19px] items-center justify-center rounded-peca bg-destaque px-1.5 text-[11.5px] font-semibold text-white ${
                     aberto ? 'ml-auto' : 'absolute top-1 right-1'
                   }`}
                 >
@@ -170,7 +170,7 @@ export function Rail({
           >
             <Icone nome="depois" />
           </span>
-          <span className={aberto ? 'text-[12.5px] whitespace-nowrap' : 'sr-only'}>
+          <span className={aberto ? 'text-[13.5px] whitespace-nowrap' : 'sr-only'}>
             {aberto ? 'Retrair menu' : 'Expandir menu'}
           </span>
         </button>
@@ -182,14 +182,14 @@ export function Rail({
         >
           <span
             aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F4A40] text-[11.5px] font-semibold text-[#BFEBDD] ring-2 ring-menta"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F4A40] text-[12.5px] font-semibold text-[#BFEBDD] ring-2 ring-menta"
           >
             {iniciais(pessoa)}
           </span>
           {aberto ? (
             <span className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-[12.5px] text-tinta-clara">{pessoa}</span>
-              <span className="text-[10.5px] text-tinta-escura-fraca">
+              <span className="truncate text-[13.5px] text-tinta-clara">{pessoa}</span>
+              <span className="text-[12px] text-tinta-escura-fraca">
                 {papel}
                 {podeTrocar ? (
                   <>
@@ -237,9 +237,9 @@ export function BarraInferior({ itens }: { itens: ItemRail[] }) {
             }`}
           >
             <Icone nome={i.icone} />
-            <span className="text-[10px] font-medium">{i.curto}</span>
+            <span className="text-[11.5px] font-medium">{i.curto}</span>
             {i.badge ? (
-              <span className="absolute top-1 right-3 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-destaque px-1 text-[9px] font-semibold text-white">
+              <span className="absolute top-1 right-3 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destaque px-1 text-[11px] font-semibold text-white">
                 {i.badge}
               </span>
             ) : null}

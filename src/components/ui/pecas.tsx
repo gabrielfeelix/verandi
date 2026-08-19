@@ -30,7 +30,7 @@ export function Cartao({
     <section className={`${cartao} ${className}`}>
       {titulo ? (
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-[18px] py-3.5">
-          <h2 className="font-titulo text-[17px] font-semibold">{titulo}</h2>
+          <h2 className="font-titulo text-[18px] font-semibold">{titulo}</h2>
           {acao}
         </header>
       ) : null}
@@ -51,7 +51,7 @@ export function Etiqueta({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${TINTA[tinta]}`}
+      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${TINTA[tinta]}`}
     >
       {icone ? <Icone nome={icone} tamanho={12} /> : null}
       {glifo && !icone ? <span aria-hidden>{glifo}</span> : null}
@@ -70,7 +70,7 @@ export function Ocupacao({ usadas, capacidade }: { usadas: number; capacidade: n
   const cheia = usadas > capacidade
   return (
     <span
-      className={`inline-flex items-center rounded-minima px-2 py-[3px] font-mono text-[12px] ${
+      className={`inline-flex items-center rounded-minima px-2 py-[3px] font-mono text-[13px] ${
         cheia ? 'bg-alerta-fundo text-alerta' : 'bg-superficie-mais-suave text-tinta-media'
       }`}
     >
@@ -96,7 +96,7 @@ export function Chip({
   href?: string
   children: ReactNode
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>) {
-  const estilo = `inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border px-3 text-[13px] transition-colors duration-150 ${
+  const estilo = `inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border px-3 text-[14px] transition-colors duration-150 ${
     ativo
       ? 'border-escuro bg-escuro font-medium text-tinta-clara'
       : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -133,7 +133,7 @@ export function Chip({
 /** Rótulo em versalete, o `10.5px` com espaçamento do protótipo. */
 export function Rotulo({ children }: { children: ReactNode }) {
   return (
-    <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+    <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
       {children}
     </span>
   )
@@ -160,7 +160,7 @@ export function Campo({
         </Rotulo>
       </label>
       {children}
-      {dica ? <span className="text-[12px] text-tinta-fraca">{dica}</span> : null}
+      {dica ? <span className="text-[13px] text-tinta-fraca">{dica}</span> : null}
     </div>
   )
 }
@@ -197,8 +197,8 @@ export function ListaImpacto({
           key={i.titulo}
           className="flex items-center gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-2.5"
         >
-          <span className="min-w-0 flex-1 text-[13.5px]">{i.titulo}</span>
-          <span className="font-mono text-[11.5px] text-tinta-media">{i.meta}</span>
+          <span className="min-w-0 flex-1 text-[14.5px]">{i.titulo}</span>
+          <span className="font-mono text-[12.5px] text-tinta-media">{i.meta}</span>
         </div>
       ))}
     </div>
@@ -218,7 +218,7 @@ export function Nota({
   children: ReactNode
 }) {
   return (
-    <p className={`rounded-media px-3.5 py-3 text-[12.5px] leading-[1.55] ${TINTA[tom]}`}>
+    <p className={`rounded-media px-3.5 py-3 text-[13.5px] leading-[1.55] ${TINTA[tom]}`}>
       {children}
     </p>
   )
@@ -249,7 +249,7 @@ export function Vazio({
       </span>
       <h3 className="font-titulo text-[16px] font-semibold">{titulo}</h3>
       {texto ? (
-        <p className="max-w-[42ch] text-[12.5px] leading-[1.55] text-tinta-apagada text-pretty">
+        <p className="max-w-[42ch] text-[13.5px] leading-[1.55] text-tinta-apagada text-pretty">
           {texto}
         </p>
       ) : null}
@@ -290,12 +290,12 @@ export function Paginacao({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <span className="text-[12px] text-tinta-fraca">
+      <span className="text-[13px] text-tinta-fraca">
         {primeiro}–{ultimo} de {total}
         {nota ? <> · {nota}</> : null}
       </span>
       <div className="flex items-center gap-2">
-        <span className="text-[12px] text-tinta-fraca">
+        <span className="text-[13px] text-tinta-fraca">
           página {pagina} de {paginas}
         </span>
         <Seta
@@ -431,7 +431,7 @@ export function Avatar({
       {rosto}
       <span
         aria-hidden
-        className={`absolute -right-0.5 -bottom-0.5 flex size-[17px] items-center justify-center rounded-full border-2 border-superficie text-[9px] font-bold text-white ${TINTA_CHAPADA[selo.tinta]}`}
+        className={`absolute -right-0.5 -bottom-0.5 flex size-[19px] items-center justify-center rounded-full border-2 border-superficie text-[11px] font-bold text-white ${TINTA_CHAPADA[selo.tinta]}`}
       >
         {selo.glifo}
       </span>

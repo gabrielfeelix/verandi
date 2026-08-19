@@ -51,7 +51,7 @@ export function BotaoAgendar({ children }: { children: ReactNode }) {
     <button
       type="button"
       onClick={() => abrir?.()}
-      className="flex min-h-11 w-full items-center justify-center rounded-media bg-escuro px-4 text-[13.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
+      className="flex min-h-11 w-full items-center justify-center rounded-media bg-escuro px-4 text-[14.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
     >
       {children}
     </button>
@@ -88,7 +88,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
   return (
     <div className="flex flex-col gap-3">
       {ativas.length === 0 ? (
-        <p className="text-[12.5px] text-tinta-media">
+        <p className="text-[13.5px] text-tinta-media">
           Sem {rotuloSerie.toLowerCase()}. Quem só vem de vez em quando é
           normal: {rotuloVaga.toLowerCase()} existe para quem ocupa o mesmo
           horário toda semana.
@@ -104,15 +104,15 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
               className="flex items-center gap-3 rounded-grande border border-linha-suave bg-superficie p-3"
             >
               <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-media bg-escuro font-mono leading-none text-tinta-clara">
-                <span className="text-[10px] tracking-[.08em] uppercase opacity-70">
+                <span className="text-[11.5px] tracking-[.08em] uppercase opacity-70">
                   {v.dia.slice(0, 3)}
                 </span>
-                <span className="pt-0.5 text-[13px] font-semibold">{v.hora}</span>
+                <span className="pt-0.5 text-[14px] font-semibold">{v.hora}</span>
               </span>
 
               <span className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
-                <span className="truncate text-[13.5px] font-medium">{v.servico}</span>
-                <span className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-tinta-media">
+                <span className="truncate text-[14.5px] font-medium">{v.servico}</span>
+                <span className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-tinta-media">
                   {v.profissional ? (
                     <span className="rounded-peca bg-superficie-suave px-2 py-0.5">
                       {v.profissional}
@@ -128,7 +128,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
                 type="button"
                 disabled={pendente}
                 aria-label={`Encerrar ${v.rotulo}`}
-                className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-alerta-linha-forte bg-alerta-superficie px-3 text-[12.5px] text-alerta hover:bg-alerta-fundo"
+                className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-alerta-linha-forte bg-alerta-superficie px-3 text-[13.5px] text-alerta hover:bg-alerta-fundo"
                 onClick={() => setEncerrando({ id: v.id, rotulo: v.rotulo })}
               >
                 Encerrar
@@ -140,10 +140,10 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
 
       {encerradas.length > 0 ? (
         <details>
-          <summary className="cursor-pointer text-[12.5px] text-tinta-media">
+          <summary className="cursor-pointer text-[13.5px] text-tinta-media">
             {encerradas.length} no histórico
           </summary>
-          <ul className="mt-2 flex flex-col gap-1 text-[12.5px] text-tinta-media">
+          <ul className="mt-2 flex flex-col gap-1 text-[13.5px] text-tinta-media">
             {encerradas.map((v) => (
               <li key={v.id}>{v.rotulo}, de {v.desde} até {v.ate}</li>
             ))}
@@ -154,11 +154,11 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
       <button
         type="button"
         onClick={() => setCriando(true)}
-        className="min-h-11 self-start rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
+        className="min-h-11 self-start rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
       >
         Criar {rotuloVaga.toLowerCase()}
       </button>
-      <p className="text-[12px] text-tinta-fraca">
+      <p className="text-[13px] text-tinta-fraca">
         Ocupa esse horário toda semana, por tempo indeterminado.
       </p>
 

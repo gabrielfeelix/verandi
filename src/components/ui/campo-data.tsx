@@ -131,7 +131,7 @@ export function CampoData({
           inputMode="numeric"
           placeholder="dd/mm/aaaa"
           aria-label="Data, no formato dia, mês e ano"
-          className="min-w-0 flex-1 bg-transparent py-3 text-[14px] outline-none placeholder:text-tinta-fraca"
+          className="min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none placeholder:text-tinta-fraca"
         />
         <button
           type="button"
@@ -158,7 +158,7 @@ export function CampoData({
             >
               <Icone nome="antes" tamanho={16} />
             </button>
-            <span className="text-[13.5px] font-medium">
+            <span className="text-[14.5px] font-medium">
               {MESES[mes - 1]} de {ano}
             </span>
             <button
@@ -174,7 +174,7 @@ export function CampoData({
               <span
                 key={i}
                 aria-hidden
-                className="flex h-7 items-center justify-center text-[11px] font-semibold text-tinta-fraca"
+                className="flex h-7 items-center justify-center text-[12px] font-semibold text-tinta-fraca"
               >
                 {d}
               </span>
@@ -192,7 +192,7 @@ export function CampoData({
                   aria-current={dia === hoje ? 'date' : undefined}
                   aria-pressed={dia === iso}
                   onClick={() => { definir(dia); setAberto(false) }}
-                  className={`flex h-9 cursor-pointer items-center justify-center rounded-padrao text-[13px] transition-colors duration-100 ${
+                  className={`flex h-9 cursor-pointer items-center justify-center rounded-padrao text-[14px] transition-colors duration-100 ${
                     dia === iso
                       ? 'bg-escuro font-semibold text-tinta-clara'
                       : dia === hoje
@@ -210,7 +210,7 @@ export function CampoData({
             <button
               type="button"
               onClick={() => { definir(hoje); setMesVisto(hoje.slice(0, 7)); setAberto(false) }}
-              className="cursor-pointer rounded-padrao px-2 py-1 text-[12.5px] font-medium text-marca hover:bg-positivo-superficie"
+              className="cursor-pointer rounded-padrao px-2 py-1 text-[13.5px] font-medium text-marca hover:bg-positivo-superficie"
             >
               Hoje
             </button>
@@ -218,7 +218,7 @@ export function CampoData({
               <button
                 type="button"
                 onClick={() => { definir(''); setAberto(false) }}
-                className="cursor-pointer rounded-padrao px-2 py-1 text-[12.5px] text-tinta-media hover:bg-superficie-mais-suave"
+                className="cursor-pointer rounded-padrao px-2 py-1 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
               >
                 Limpar
               </button>

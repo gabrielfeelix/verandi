@@ -25,21 +25,21 @@ export function TelaDocumento({ doc }: { doc: Documento }) {
       >
         <span
           aria-hidden
-          className="flex size-8 items-center justify-center rounded-padrao bg-escuro font-titulo text-[17px] font-bold text-menta"
+          className="flex size-8 items-center justify-center rounded-padrao bg-escuro font-titulo text-[18px] font-bold text-menta"
         >
           V
         </span>
-        <span className="font-titulo text-[17px] font-semibold">Verandi</span>
+        <span className="font-titulo text-[18px] font-semibold">Verandi</span>
       </Link>
 
       <header className="pt-8">
         <h1 className="font-titulo text-[30px] leading-[1.15] font-semibold tracking-[-.02em]">
           {doc.titulo}
         </h1>
-        <p className="max-w-[58ch] pt-3 text-[14px] leading-relaxed text-tinta-media">
+        <p className="max-w-[58ch] pt-3 text-[15px] leading-relaxed text-tinta-media">
           {doc.resumo}
         </p>
-        <p className="pt-4 text-[11.5px] text-tinta-fraca">
+        <p className="pt-4 text-[12.5px] text-tinta-fraca">
           Versão {doc.versao}, vigente desde {doc.vigenteDesde}.
         </p>
 
@@ -49,7 +49,7 @@ export function TelaDocumento({ doc }: { doc: Documento }) {
           em `core/legal/comum.ts` quando a revisão chegar.
         */}
         {EM_REVISAO ? (
-          <p className="mt-4 flex items-start gap-2.5 rounded-padrao border border-atencao-linha bg-atencao-superficie px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
+          <p className="mt-4 flex items-start gap-2.5 rounded-padrao border border-atencao-linha bg-atencao-superficie px-3.5 py-3 text-[13.5px] leading-relaxed text-atencao">
             <span aria-hidden className="mt-1.5 size-[7px] shrink-0 rounded-full bg-atencao" />
             Esta versão está em revisão jurídica. O texto descreve o que o
             sistema faz hoje, e pode ganhar precisão de redação antes de virar
@@ -66,7 +66,7 @@ export function TelaDocumento({ doc }: { doc: Documento }) {
             <li key={s.id}>
               <a
                 href={`#${s.id}`}
-                className="text-[13px] leading-relaxed text-marca hover:text-marca-forte"
+                className="text-[14px] leading-relaxed text-marca hover:text-marca-forte"
               >
                 {s.titulo}
               </a>
@@ -91,7 +91,7 @@ export function TelaDocumento({ doc }: { doc: Documento }) {
         ))}
       </article>
 
-      <footer className="mt-14 border-t border-linha pt-6 text-[12.5px] text-tinta-fraca">
+      <footer className="mt-14 border-t border-linha pt-6 text-[13.5px] text-tinta-fraca">
         {outro ? (
           <p>
             Leia também:{' '}
@@ -110,7 +110,7 @@ export function TelaDocumento({ doc }: { doc: Documento }) {
 function Peca({ bloco }: { bloco: Bloco }) {
   if (bloco.tipo === 'p') {
     return (
-      <p className="text-[14px] leading-[1.75] text-tinta">{bloco.texto}</p>
+      <p className="text-[15px] leading-[1.75] text-tinta">{bloco.texto}</p>
     )
   }
 
@@ -118,7 +118,7 @@ function Peca({ bloco }: { bloco: Bloco }) {
     return (
       <ul className="flex flex-col gap-2.5">
         {bloco.itens.map((it, i) => (
-          <li key={i} className="flex gap-3 text-[14px] leading-[1.7] text-tinta">
+          <li key={i} className="flex gap-3 text-[15px] leading-[1.7] text-tinta">
             <span aria-hidden className="mt-[9px] size-[6px] shrink-0 rounded-full bg-menta" />
             <span>{it}</span>
           </li>
@@ -129,7 +129,7 @@ function Peca({ bloco }: { bloco: Bloco }) {
 
   if (bloco.tipo === 'nota') {
     return (
-      <p className="rounded-padrao border-l-2 border-menta bg-superficie-suave px-4 py-3.5 text-[13.5px] leading-[1.7] text-tinta-media">
+      <p className="rounded-padrao border-l-2 border-menta bg-superficie-suave px-4 py-3.5 text-[14.5px] leading-[1.7] text-tinta-media">
         {bloco.texto}
       </p>
     )
@@ -146,7 +146,7 @@ function Peca({ bloco }: { bloco: Bloco }) {
               <th
                 key={c}
                 scope="col"
-                className="border-b border-linha px-3.5 py-2.5 text-[10.5px] font-medium tracking-[.1em] text-tinta-fraca uppercase"
+                className="border-b border-linha px-3.5 py-2.5 text-[12px] font-medium tracking-[.1em] text-tinta-fraca uppercase"
               >
                 {c}
               </th>
@@ -159,7 +159,7 @@ function Peca({ bloco }: { bloco: Bloco }) {
               {linha.map((celula, j) => (
                 <td
                   key={j}
-                  className={`px-3.5 py-3 align-top text-[13px] leading-relaxed ${
+                  className={`px-3.5 py-3 align-top text-[14px] leading-relaxed ${
                     j === 0 ? 'font-medium text-tinta' : 'text-tinta-media'
                   }`}
                 >

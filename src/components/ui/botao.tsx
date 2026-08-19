@@ -46,7 +46,7 @@ export function Botao({
   tom?: TomBotao
   miudo?: boolean
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
-  const tamanho = miudo ? 'min-h-8 px-3 text-[12.5px]' : 'min-h-11 px-4 text-[13.5px]'
+  const tamanho = miudo ? 'min-h-8 px-3 text-[13.5px]' : 'min-h-11 px-4 text-[14.5px]'
   return (
     <button
       {...resto}

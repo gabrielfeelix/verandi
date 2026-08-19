@@ -43,7 +43,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
     <Link
       key={rotulo}
       href={`/aulas?de=${novoDe}&ate=${novoAte}`}
-      className={`inline-flex min-h-9 items-center rounded-peca border px-3 text-[12.5px] ${
+      className={`inline-flex min-h-9 items-center rounded-peca border px-3 text-[13.5px] ${
         de === novoDe && ate === novoAte
           ? 'border-marca bg-positivo-superficie text-marca'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -60,7 +60,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Aulas por {rotulos.profissional.singular.toLowerCase()}
           </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {r.total.aplicadas === 0
               ? 'Nenhuma aula aconteceu no período escolhido.'
               : `${r.total.aplicadas} ${r.total.aplicadas === 1 ? 'aula aplicada' : 'aulas aplicadas'}, com ${r.total.atendimentos} ${r.total.atendimentos === 1 ? 'presença' : 'presenças'}`}
@@ -70,7 +70,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
         <a
           href={`/aulas/exportar?de=${de}&ate=${ate}`}
           download
-          className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13px] font-medium hover:bg-superficie-mais-suave"
+          className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
         >
           Planilha
         </a>
@@ -82,7 +82,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
         {periodo('Esta semana', somarDias(hoje, -6), hoje)}
         {periodo('Este mês', competenciaDe(hoje), hoje)}
         {periodo('Este ano', `${hoje.slice(0, 4)}-01-01`, hoje)}
-        <span className="text-[12px] text-tinta-fraca">
+        <span className="text-[13px] text-tinta-fraca">
           de {dataCurta(de)} a {dataCurta(ate)}
         </span>
       </div>
@@ -118,7 +118,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
                       key={l.profissionalId ?? 'sem'}
                       className="border-b border-linha-fina last:border-b-0 hover:bg-superficie-tenue"
                     >
-                      <td className="px-5 py-3.5 text-[13.5px]">
+                      <td className="px-5 py-3.5 text-[14.5px]">
                         {l.profissionalNome}
                       </td>
                       <Celula forte>{l.aplicadas}</Celula>
@@ -129,7 +129,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
                       <Celula apagado={l.canceladas === 0}>
                         {l.canceladas}
                         {l.porFeriado > 0 ? (
-                          <span className="pl-1 text-[11px] text-tinta-media">
+                          <span className="pl-1 text-[12px] text-tinta-media">
                             ({l.porFeriado} fechado{l.porFeriado === 1 ? '' : 's'})
                           </span>
                         ) : null}
@@ -142,7 +142,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
             </div>
 
             <div className="border-t border-linha-fina bg-superficie-suave px-5 py-4">
-              <p className="text-[12.5px] leading-relaxed text-tinta-media">
+              <p className="text-[13.5px] leading-relaxed text-tinta-media">
                 <strong>Aula aplicada</strong> é a que já aconteceu e não foi
                 cancelada, mesmo quando ninguém apareceu: quem atende foi ao
                 estúdio e esperou. As colunas ao lado existem para você conferir
@@ -178,7 +178,7 @@ function Cabeca({ children, numero = false }: { children: React.ReactNode; numer
   return (
     <th
       scope="col"
-      className={`px-5 py-3 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase ${
+      className={`px-5 py-3 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase ${
         numero ? 'text-right' : ''
       }`}
     >
@@ -197,7 +197,7 @@ function Celula({
 }) {
   return (
     <td
-      className={`px-5 py-3.5 text-right font-mono text-[13px] ${
+      className={`px-5 py-3.5 text-right font-mono text-[14px] ${
         forte ? 'font-medium text-tinta' : ''
       } ${apagado ? 'text-tinta-fraca' : ''} ${alerta ? 'text-alerta' : ''}`}
     >

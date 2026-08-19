@@ -101,11 +101,11 @@ export function LinhaDaGrade({
               : 'bg-escuro text-tinta-clara'
           }`}
         >
-          <span className="text-[15px] font-semibold">{serie.horaInicio.slice(0, 2)}</span>
-          <span className="text-[12px] opacity-70">{serie.horaInicio.slice(3)}</span>
+          <span className="text-[16px] font-semibold">{serie.horaInicio.slice(0, 2)}</span>
+          <span className="text-[13px] opacity-70">{serie.horaInicio.slice(3)}</span>
           {/* conta que não numera horário não pode ganhar uma coluna vazia */}
           {serie.codigo ? (
-            <span className="pl-1.5 font-mono text-[11px] opacity-60">
+            <span className="pl-1.5 font-mono text-[12px] opacity-60">
               {serie.codigo}
             </span>
           ) : null}
@@ -113,13 +113,13 @@ export function LinhaDaGrade({
 
         <span className="flex min-w-[160px] flex-1 flex-col gap-1.5">
           <span
-            className={`truncate text-[14.5px] font-medium ${
+            className={`truncate text-[15px] font-medium ${
               serie.encerrada ? 'text-tinta-media' : ''
             }`}
           >
             {serie.servico}
           </span>
-          <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-tinta-media">
+          <span className="flex flex-wrap items-center gap-1.5 text-[13px] text-tinta-media">
             {serie.profissional ? (
               <span className="flex items-center gap-1.5 rounded-peca bg-superficie-suave py-1 pr-2.5 pl-1">
                 <Avatar nome={serie.profissional} tamanho={24} decorativo />
@@ -131,10 +131,10 @@ export function LinhaDaGrade({
                 {serie.local}
               </span>
             ) : null}
-            <span className="rounded-peca bg-superficie-suave px-2.5 py-1 font-mono text-[11.5px]">
+            <span className="rounded-peca bg-superficie-suave px-2.5 py-1 font-mono text-[12.5px]">
               {serie.duracaoMin} min
             </span>
-            <span className="text-[11.5px] text-tinta-fraca">
+            <span className="text-[12.5px] text-tinta-fraca">
               {serie.encerrada
                 ? `${mesCurto(serie.vigenciaInicio)} – ${mesCurto(serie.vigenciaFim!)}`
                 : `desde ${mesCurto(serie.vigenciaInicio)}`}
@@ -146,7 +146,7 @@ export function LinhaDaGrade({
             se lê varrendo trinta horários de uma vez */}
         <span className="flex w-[86px] shrink-0 flex-col gap-1.5">
           <span
-            className={`text-right font-mono text-[12.5px] ${
+            className={`text-right font-mono text-[13.5px] ${
               serie.ocupadas > serie.capacidade ? 'text-alerta' : 'text-tinta-media'
             }`}
             title={`${serie.ocupadas} de ${serie.capacidade} ${rotulos.vaga.plural.toLowerCase()}`}
@@ -201,7 +201,7 @@ export function LinhaDaGrade({
           aoFechar={fechar}
         >
           {ocupantes === null ? (
-            <p className="text-[12.5px] text-tinta-media">Carregando…</p>
+            <p className="text-[13.5px] text-tinta-media">Carregando…</p>
           ) : ocupantes.length === 0 ? (
             <Nota>
               Ninguém ocupa este horário. Encerrar não avisa ninguém.
@@ -212,11 +212,11 @@ export function LinhaDaGrade({
                 <li key={o.pessoaId}>
                   <Link
                     href={`/pessoas/${o.pessoaId}`}
-                    className="flex items-center gap-2.5 rounded-padrao border border-linha-suave bg-superficie-suave px-2.5 py-2 text-[13.5px] hover:border-marca hover:bg-superficie"
+                    className="flex items-center gap-2.5 rounded-padrao border border-linha-suave bg-superficie-suave px-2.5 py-2 text-[14.5px] hover:border-marca hover:bg-superficie"
                   >
                     <Avatar nome={o.nome} tamanho={32} decorativo />
                     <span className="min-w-0 flex-1 truncate">{o.nome}</span>
-                    <span className="font-mono text-[11.5px] text-tinta-fraca">
+                    <span className="font-mono text-[12.5px] text-tinta-fraca">
                       desde {mesCurto(o.desde)}
                     </span>
                   </Link>
@@ -374,7 +374,7 @@ export function LinhaDaGrade({
           })}
         >
           <fieldset className="flex flex-col gap-2">
-            <legend className="pb-2 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+            <legend className="pb-2 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
               Repetir este horário em
             </legend>
             <div className="flex flex-wrap gap-2">
@@ -468,7 +468,7 @@ function BotaoAcao({
       onClick={onClick}
       disabled={pendente}
       aria-label={rotulo}
-      className={`flex min-h-9 cursor-pointer items-center gap-1.5 rounded-peca border px-2.5 text-[12.5px] transition-colors duration-150 disabled:opacity-60 ${
+      className={`flex min-h-9 cursor-pointer items-center gap-1.5 rounded-peca border px-2.5 text-[13.5px] transition-colors duration-150 disabled:opacity-60 ${
         perigo
           ? 'border-alerta-linha-forte bg-alerta-superficie text-alerta hover:bg-alerta-fundo'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-suave hover:text-tinta'

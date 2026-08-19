@@ -61,7 +61,7 @@ export function BuscaDePessoas({
       {tag ? <input type="hidden" name="t" value={tag} /> : null}
       <span
         aria-hidden
-        className={`pointer-events-none absolute left-3.5 font-mono text-[13px] ${
+        className={`pointer-events-none absolute left-3.5 font-mono text-[14px] ${
           pendente ? 'text-marca' : 'text-tinta-fraca'
         }`}
       >
@@ -71,7 +71,7 @@ export function BuscaDePessoas({
         id="q" name="q" value={texto} aria-label="Buscar"
         onChange={(e) => setTexto(e.target.value)}
         placeholder={placeholder}
-        className="min-h-11 min-w-[248px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[13px] placeholder:text-tinta-fraca"
+        className="min-h-11 min-w-[292px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[14px] placeholder:text-tinta-fraca"
       />
       <button type="submit" className="sr-only focus:not-sr-only focus:ml-2">
         Buscar

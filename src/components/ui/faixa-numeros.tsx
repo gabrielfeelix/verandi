@@ -41,7 +41,7 @@ export function FaixaDeNumeros({
         {itens.map((n) => {
           const corpo = (
             <>
-              <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+              <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
                 {n.rotulo}
               </span>
               <span
@@ -50,7 +50,7 @@ export function FaixaDeNumeros({
                 {n.valor}
               </span>
               {n.nota ? (
-                <span className="text-[11.5px] leading-[1.4] text-tinta-media">
+                <span className="text-[12.5px] leading-[1.4] text-tinta-media">
                   {n.nota}
                 </span>
               ) : null}
@@ -67,7 +67,7 @@ export function FaixaDeNumeros({
         })}
       </div>
       {aviso ? (
-        <p className="text-[11.5px] text-atencao">{aviso}</p>
+        <p className="text-[12.5px] text-atencao">{aviso}</p>
       ) : null}
     </div>
   )

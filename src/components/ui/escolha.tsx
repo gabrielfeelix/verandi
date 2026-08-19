@@ -146,7 +146,7 @@ export function Escolha({
           {escolhida ? escolhida.rotulo : placeholder}
         </span>
         {escolhida?.detalhe ? (
-          <span className="hidden shrink-0 text-[12px] text-tinta-fraca sm:block">
+          <span className="hidden shrink-0 text-[13px] text-tinta-fraca sm:block">
             {escolhida.detalhe}
           </span>
         ) : null}
@@ -166,7 +166,7 @@ export function Escolha({
         >
           {temFiltro ? (
             <div className="flex shrink-0 items-center gap-2 border-b border-linha-fina px-3 py-2">
-              <span aria-hidden className="font-mono text-[13px] text-tinta-fraca">⌕</span>
+              <span aria-hidden className="font-mono text-[14px] text-tinta-fraca">⌕</span>
               <input
                 autoFocus
                 value={filtro}
@@ -174,10 +174,10 @@ export function Escolha({
                 onKeyDown={teclado}
                 placeholder="Filtrar"
                 aria-label="Filtrar a lista"
-                className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-tinta-fraca"
+                className="min-w-0 flex-1 bg-transparent text-[14.5px] outline-none placeholder:text-tinta-fraca"
               />
               {filtro ? (
-                <span className="shrink-0 text-[11.5px] text-tinta-fraca">
+                <span className="shrink-0 text-[12.5px] text-tinta-fraca">
                   {visiveis.length}
                 </span>
               ) : null}
@@ -192,14 +192,14 @@ export function Escolha({
             className="min-h-0 flex-1 overflow-y-auto p-1.5 outline-none"
           >
             {visiveis.length === 0 ? (
-              <li className="px-2.5 py-3 text-[12.5px] text-tinta-media">
+              <li className="px-2.5 py-3 text-[13.5px] text-tinta-media">
                 Nada com esse texto.
               </li>
             ) : (
               visiveis.map((o, i) => (
                   <li key={o.valor}>
                     {o.abreGrupo ? (
-                      <p className="sticky top-0 z-10 bg-superficie px-2.5 pt-2 pb-1 text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                      <p className="sticky top-0 z-10 bg-superficie px-2.5 pt-2 pb-1 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
                         {o.grupo}
                       </p>
                     ) : null}
@@ -214,9 +214,9 @@ export function Escolha({
                       }`}
                     >
                       <span className="flex min-w-0 flex-1 flex-col leading-tight">
-                        <span className="truncate text-[13.5px] font-medium">{o.rotulo}</span>
+                        <span className="truncate text-[14.5px] font-medium">{o.rotulo}</span>
                         {o.detalhe ? (
-                          <span className="truncate text-[11.5px] text-tinta-fraca">
+                          <span className="truncate text-[12.5px] text-tinta-fraca">
                             {o.detalhe}
                           </span>
                         ) : null}

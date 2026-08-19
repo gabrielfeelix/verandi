@@ -38,7 +38,7 @@ export default async function Convite({
 
       {r.ok ? (
         <>
-          <p className="pt-2 pb-4 text-[13.5px] leading-relaxed text-tinta-media">
+          <p className="pt-2 pb-4 text-[14.5px] leading-relaxed text-tinta-media">
             Você entra em <strong className="text-tinta">{r.contaNome}</strong>{' '}
             com o e-mail <strong className="text-tinta">{r.email}</strong>.
           </p>
@@ -46,14 +46,14 @@ export default async function Convite({
           {/* qual conta e qual papel, antes de aceitar: sem isso a pessoa não
               sabe no que está entrando */}
           {r.tipo === 'acesso' ? (
-            <p className="mb-5 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-3 text-[12.5px] leading-relaxed text-tinta-media">
+            <p className="mb-5 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-3 text-[13.5px] leading-relaxed text-tinta-media">
               <span className="font-medium text-tinta">
                 Como {PAPEL[r.papel]?.split(', ')[0] ?? r.papel}
               </span>
               {PAPEL[r.papel] ? `, ${PAPEL[r.papel].split(', ')[1]}` : ''}
             </p>
           ) : (
-            <p className="mb-5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[12.5px] leading-relaxed text-atencao">
+            <p className="mb-5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[13.5px] leading-relaxed text-atencao">
               Este link é para redefinir a sua senha. O acesso que você já tinha
               continua o mesmo.
             </p>
@@ -68,7 +68,7 @@ export default async function Convite({
             quando entrou, e repetir aceite em tela de socorro é ruído.
           */}
           {r.tipo === 'acesso' ? (
-            <p className="pt-4 text-center text-[11.5px] leading-[1.6] text-tinta-fraca">
+            <p className="pt-4 text-center text-[12.5px] leading-[1.6] text-tinta-fraca">
               Ao criar sua senha, você concorda com os{' '}
               <a href="/termos" className="text-marca hover:text-marca-forte">
                 Termos de uso
@@ -84,12 +84,12 @@ export default async function Convite({
       ) : (
         <>
           {/* estado recusado precisa dizer o que fazer, não dar erro genérico */}
-          <p className="pt-2 pb-5 text-[13.5px] leading-relaxed text-tinta-media">
+          <p className="pt-2 pb-5 text-[14.5px] leading-relaxed text-tinta-media">
             {RECUSA[r.motivo]}
           </p>
           <a
             href="/entrar"
-            className="inline-flex min-h-12 items-center justify-center rounded-media bg-escuro px-4 text-[14px] font-semibold text-tinta-clara"
+            className="inline-flex min-h-12 items-center justify-center rounded-media bg-escuro px-4 text-[15px] font-semibold text-tinta-clara"
           >
             Ir para a entrada
           </a>

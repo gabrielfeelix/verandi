@@ -25,7 +25,7 @@ export function PainelConfig({
         <div>
           <h2 className="font-titulo text-[19px] font-semibold">{titulo}</h2>
           {sub ? (
-            <p className="pt-[3px] text-[12.5px] text-tinta-media">{sub}</p>
+            <p className="pt-[3px] text-[13.5px] text-tinta-media">{sub}</p>
           ) : null}
         </div>
         {acao}
@@ -61,12 +61,12 @@ export function LinhaConfig({
       {antes}
       <div className="flex min-w-0 flex-[1_1_180px] flex-col leading-[1.35]">
         <span
-          className={`text-[14px] font-medium ${apagado ? 'text-tinta-media' : ''}`}
+          className={`text-[15px] font-medium ${apagado ? 'text-tinta-media' : ''}`}
         >
           {nome}
         </span>
         {detalhe ? (
-          <span className="text-[12px] text-tinta-media">{detalhe}</span>
+          <span className="text-[13px] text-tinta-media">{detalhe}</span>
         ) : null}
       </div>
       {children}
@@ -77,7 +77,7 @@ export function LinhaConfig({
 /** O número entre parênteses da linha — capacidade, duração, contagem. */
 export function Dado({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-peca bg-superficie-mais-suave px-2.5 py-1 font-mono text-[12px] text-tinta-media">
+    <span className="rounded-peca bg-superficie-mais-suave px-2.5 py-1 font-mono text-[13px] text-tinta-media">
       {children}
     </span>
   )
@@ -87,7 +87,7 @@ export function Dado({ children }: { children: ReactNode }) {
 export function Estado({ ativo }: { ativo: boolean }) {
   return (
     <span
-      className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
+      className={`rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${
         ativo ? 'bg-positivo-fundo text-positivo' : 'bg-alerta-fundo text-alerta'
       }`}
     >
@@ -109,7 +109,7 @@ export function BotaoLinha({
     <button
       type="button"
       {...resto}
-      className={`min-h-9 rounded-peca border px-3 text-[12.5px] whitespace-nowrap disabled:opacity-50 ${
+      className={`min-h-9 rounded-peca border px-3 text-[13.5px] whitespace-nowrap disabled:opacity-50 ${
         tom === 'marca'
           ? 'border-linha-suave bg-superficie text-marca hover:bg-positivo-superficie'
           : tom === 'perigo'
@@ -143,8 +143,8 @@ export function Recolhivel({
         aria-expanded={aberto}
         className="flex w-full items-center justify-between gap-3 border-t border-linha-fina bg-superficie-tenue px-5 py-3.5 text-left hover:bg-superficie-mais-suave"
       >
-        <span className="text-[12.5px] text-tinta-media">{rotulo}</span>
-        <span aria-hidden className="font-mono text-[13px] text-tinta-inativa">
+        <span className="text-[13.5px] text-tinta-media">{rotulo}</span>
+        <span aria-hidden className="font-mono text-[14px] text-tinta-inativa">
           {aberto ? '▴' : '▾'}
         </span>
       </button>

@@ -44,7 +44,7 @@ export function MarcarInativa({
           iniciar(() => editarPessoa(pessoaId, { ativo: !ativo }))
         }}
       >
-        <p className="text-[13px] leading-[1.55] text-tinta-media">
+        <p className="text-[14px] leading-[1.55] text-tinta-media">
           {ativo
             ? `Sai da lista padrão de ${rotuloPessoa.toLowerCase()} e das escolhas de horário novo. ` +
               'Nada é apagado: as presenças, as faltas e as reposições continuam ' +
@@ -85,7 +85,7 @@ export function AtenderPedidoDeExclusao({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="cursor-pointer self-start text-[12px] text-tinta-fraca underline underline-offset-2 hover:text-alerta"
+        className="cursor-pointer self-start text-[13px] text-tinta-fraca underline underline-offset-2 hover:text-alerta"
       >
         Atender pedido de exclusão
       </button>
@@ -122,7 +122,7 @@ export function AtenderPedidoDeExclusao({
             { titulo: 'A contagem de cada horário', meta: 'continua batendo' },
           ]}
         />
-        <p className="text-[13px] leading-[1.55] text-tinta-media">
+        <p className="text-[14px] leading-[1.55] text-tinta-media">
           A linha continua existindo sem nada que identifique alguém, porque
           apagar de vez levaria junto a presença de todo mundo que estava na
           mesma aula. Fica registrado quem atendeu ao pedido e quando.
@@ -161,7 +161,7 @@ export function CopiarTelefone({ telefone }: { telefone: string }) {
         setCopiado(true)
         setTimeout(() => setCopiado(false), 2000)
       }}
-      className="flex w-9 shrink-0 items-center justify-center rounded-padrao border border-linha bg-superficie font-mono text-[12px] text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave"
+      className="flex w-9 shrink-0 items-center justify-center rounded-padrao border border-linha bg-superficie font-mono text-[13px] text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave"
     >
       <span aria-hidden>{copiado ? '✓' : '⧉'}</span>
       <span className="sr-only" role="status">

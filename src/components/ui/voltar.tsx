@@ -18,7 +18,7 @@ export function Voltar({ rotulo = 'Voltar' }: { rotulo?: string }) {
     <button
       type="button"
       onClick={() => router.back()}
-      className="flex min-h-9 cursor-pointer items-center gap-1 rounded-peca pr-2 pl-1 text-[12.5px] font-medium text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta"
+      className="flex min-h-9 cursor-pointer items-center gap-1 rounded-peca pr-2 pl-1 text-[13.5px] font-medium text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta"
     >
       <Icone nome="antes" tamanho={15} />
       {rotulo}

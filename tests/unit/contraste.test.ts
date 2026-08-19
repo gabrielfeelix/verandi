@@ -89,3 +89,50 @@ describe('contraste dos tokens de texto', () => {
     expect(CSS).toMatch(/tinta-inativa[\s\S]{0,200}?:disabled|:disabled[\s\S]{0,200}?tinta-inativa/)
   })
 })
+
+/*
+ * O piso da escala de texto, medido e não prometido.
+ *
+ * O contraste passava em AA e as telas continuavam cansativas de ler: quase
+ * cem lugares em 11,5px, mais de quarenta em 10,5px e alguns em 9,5px, numa
+ * fonte geométrica que afina no pequeno, lida em pé, num balcão, por quem está
+ * entre um aluno e outro. Norma cumprida não é o mesmo que texto legível.
+ *
+ * O número aqui é 11px porque abaixo disso não existe texto de interface que
+ * se defenda — e porque, sem um número, "só este rótulo pode ser menor"
+ * acontece uma vez por semana até a escala voltar ao que era.
+ */
+describe('o tamanho do texto', () => {
+  const PISO = 11
+
+  it('nenhuma tela escreve abaixo do piso', () => {
+    const { readdirSync, statSync } = require('node:fs') as typeof import('node:fs')
+    const { join } = require('node:path') as typeof import('node:path')
+
+    const pequenos: string[] = []
+    const varrer = (dir: string) => {
+      for (const nome of readdirSync(dir)) {
+        const caminho = join(dir, nome)
+        if (statSync(caminho).isDirectory()) { varrer(caminho); continue }
+        if (!nome.endsWith('.tsx')) continue
+        const texto = readFileSync(caminho, 'utf8')
+        for (const m of texto.matchAll(/text-\[(\d+(?:\.\d+)?)px\]/g)) {
+          if (Number(m[1]) < PISO) pequenos.push(`${caminho}: ${m[0]}`)
+        }
+      }
+    }
+    varrer('src')
+
+    expect(pequenos).toEqual([])
+  })
+
+  it('o corpo da página não nasce menor que o piso confortável', () => {
+    const m = CSS.match(/body\s*\{[^}]*font-size:\s*(\d+)px/)
+    expect(m).not.toBeNull()
+    expect(Number(m![1])).toBeGreaterThanOrEqual(15)
+  })
+
+  it('a entrelinha do corpo é explícita, e não a do navegador', () => {
+    expect(CSS).toMatch(/body\s*\{[^}]*line-height:\s*1\.[45]/)
+  })
+})

@@ -83,7 +83,7 @@ export function SecaoPadroes({
   return (
     <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[19px] font-semibold">Padrões</h2>
-      <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
+      <p className="pt-1.5 pb-4 text-[14px] text-tinta-media">
         O que já vem preenchido quando você cria algo novo. Sempre dá para mudar
         na hora.
       </p>
@@ -193,7 +193,7 @@ export function SecaoPadroes({
                     horariosSugeridos: v.horariosSugeridos.filter((x) => x !== h),
                   })
                 }
-                className="inline-flex min-h-9 items-center gap-2 rounded-padrao border border-linha bg-superficie px-3 font-mono text-[12.5px] hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
+                className="inline-flex min-h-9 items-center gap-2 rounded-padrao border border-linha bg-superficie px-3 font-mono text-[13.5px] hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
               >
                 {h}
                 <span aria-hidden>×</span>
@@ -211,7 +211,7 @@ export function SecaoPadroes({
         </LinhaPadrao>
       </div>
 
-      <p className="mt-4 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[12.5px] leading-relaxed text-[#3E7A6C]">
+      <p className="mt-4 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[13.5px] leading-relaxed text-[#3E7A6C]">
         Mudar um padrão não mexe em nada que já existe. Vale só para o que for
         criado daqui em diante, cada serviço ainda pode ter a sua própria
         capacidade.
@@ -222,7 +222,7 @@ export function SecaoPadroes({
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-linha-fina pt-4">
         {/* "Tudo salvo" responde à máquina; numa conta com quatro pessoas com
             acesso, a pergunta é quem mudou o padrão */}
-        <span className="text-[12.5px] text-tinta-media">
+        <span className="text-[13.5px] text-tinta-media">
           {sujo ? 'Há mudanças não salvas.' : 'Tudo salvo.'}
           {!sujo && ultima ? (
             <>
@@ -273,8 +273,8 @@ function LinhaPadrao({
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-grande border border-linha-fina bg-superficie-suave px-4 py-3.5">
       <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-[3px]">
-        <span className="text-[14px] font-medium">{rotulo}</span>
-        <span className="text-[12px] leading-[1.45] text-tinta-media">{detalhe}</span>
+        <span className="text-[15px] font-medium">{rotulo}</span>
+        <span className="text-[13px] leading-[1.45] text-tinta-media">{detalhe}</span>
       </div>
       {children}
     </div>
@@ -339,7 +339,7 @@ function Contador({
           <Icone nome="mais" />
         </button>
       </div>
-      <span className="text-[12px] text-tinta-media">{unidade}</span>
+      <span className="text-[13px] text-tinta-media">{unidade}</span>
     </div>
   )
 }

@@ -14,7 +14,7 @@ import { LINKS_LEGAIS } from '@/core/legal'
  */
 export function RodapeLegal({ className = '' }: { className?: string }) {
   return (
-    <footer className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-tinta-fraca ${className}`}>
+    <footer className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-tinta-fraca ${className}`}>
       <span>Verandi, um produto 4YU</span>
       {LINKS_LEGAIS.map((l) => (
         <Link key={l.href} href={l.href} className="hover:text-tinta-media hover:underline">

@@ -98,7 +98,7 @@ export function SecaoEquipe({
       }
     >
       {equipe.length === 0 ? (
-        <p className="px-5 py-6 text-[13px] text-tinta-media">
+        <p className="px-5 py-6 text-[14px] text-tinta-media">
           Ninguém cadastrado ainda. A grade funciona sem isso, e fica mais
           fácil de ler com nome e cor.
         </p>
@@ -119,7 +119,7 @@ export function SecaoEquipe({
                 <span className="flex flex-col">
                   {/* vazio explicado, nunca vazio mudo */}
                   <span>{p.email ?? 'Sem e-mail cadastrado'}</span>
-                  <span className="text-[11.5px] text-tinta-media">
+                  <span className="text-[12.5px] text-tinta-media">
                     {p.servicoIds.length === 0
                       ? 'atende qualquer serviço'
                       : `atende ${p.servicoIds
@@ -132,7 +132,7 @@ export function SecaoEquipe({
               }
             >
               <span
-                className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${
+                className={`rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${
                   p.temLogin
                     ? 'bg-positivo-fundo text-positivo'
                     : 'bg-neutro-fundo text-tinta-media'
@@ -155,7 +155,7 @@ export function SecaoEquipe({
                     Desativar
                   </BotaoLinha>
                 ) : (
-                  <span className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[11.5px] font-medium text-alerta">
+                  <span className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12.5px] font-medium text-alerta">
                     Desativado
                   </span>
                 )}
@@ -301,7 +301,7 @@ function Formulario({
 
       <div className="flex flex-col gap-2">
         <Rotulo>Serviços que atende</Rotulo>
-        <p className="text-[11.5px] text-tinta-media">
+        <p className="text-[12.5px] text-tinta-media">
           Sem nenhum marcado, atende todos.
         </p>
         <div className="flex flex-wrap gap-2">
@@ -329,7 +329,7 @@ function Formulario({
         />
       </Campo>
 
-      <label className="flex items-center gap-2 text-[12.5px]">
+      <label className="flex items-center gap-2 text-[13.5px]">
         <input type="checkbox" name="ativo" defaultChecked={profissional?.ativo ?? true} />
         Ativo
       </label>

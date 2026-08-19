@@ -81,7 +81,7 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
     <div className="relative hidden lg:block">
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 font-mono text-[12px] text-tinta-fraca"
+        className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 font-mono text-[13px] text-tinta-fraca"
       >
         /
       </span>
@@ -101,7 +101,7 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
         aria-controls={idLista}
         aria-label={`Buscar ${rotuloPessoa.toLowerCase()}`}
         placeholder={`Buscar ${rotuloPessoa.toLowerCase()}`}
-        className="min-h-11 w-[240px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-8 text-[13px] placeholder:text-tinta-fraca"
+        className="min-h-11 w-[240px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-8 text-[14px] placeholder:text-tinta-fraca"
       />
 
       {aberto ? (
@@ -111,7 +111,7 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
           className="absolute top-[calc(100%+6px)] right-0 z-40 max-h-[320px] w-[300px] overflow-y-auto rounded-grande border border-linha bg-superficie p-1.5 shadow-modal"
         >
           {lista.length === 0 ? (
-            <li className="px-3 py-2.5 text-[12.5px] text-tinta-media">
+            <li className="px-3 py-2.5 text-[13.5px] text-tinta-media">
               Ninguém com esse nome, telefone ou identificador.
             </li>
           ) : (
@@ -129,8 +129,8 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
                 >
                   <Avatar nome={a.nome} />
                   <span className="flex min-w-0 flex-col leading-tight">
-                    <span className="truncate text-[13.5px] font-medium">{a.nome}</span>
-                    <span className="text-[11.5px] text-tinta-fraca">{a.detalhe}</span>
+                    <span className="truncate text-[14.5px] font-medium">{a.nome}</span>
+                    <span className="text-[12.5px] text-tinta-fraca">{a.detalhe}</span>
                   </span>
                 </button>
               </li>

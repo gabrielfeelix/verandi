@@ -53,7 +53,7 @@ export function BuscaDeRecibo({
         autoComplete="off"
       />
       {pendente ? (
-        <span className="absolute right-3 text-[11.5px] text-tinta-fraca">procurando</span>
+        <span className="absolute right-3 text-[12.5px] text-tinta-fraca">procurando</span>
       ) : null}
     </form>
   )

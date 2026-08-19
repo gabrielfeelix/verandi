@@ -87,7 +87,7 @@ export function SecaoServicos({
       }
     >
       {servicos.length === 0 ? (
-        <p className="px-5 py-6 text-[13px] text-tinta-media">
+        <p className="px-5 py-6 text-[14px] text-tinta-media">
           Nada cadastrado ainda. É o primeiro cadastro da conta: sem isso não
           dá para montar a grade.
         </p>
@@ -196,7 +196,7 @@ export function SecaoServicos({
             </span>
           </Campo>
           {emEdicao ? (
-            <label className="flex items-center gap-2 text-[12.5px]">
+            <label className="flex items-center gap-2 text-[13.5px]">
               <input type="checkbox" name="ativo" defaultChecked={emEdicao.ativo} />
               Ativo
             </label>
@@ -248,7 +248,7 @@ export function SecaoLocais({
       sub="Sala, cadeira, consultório, domicílio. A capacidade é o limite físico, avisa, não bloqueia"
     >
       {locais.length === 0 ? (
-        <p className="px-5 py-6 text-[13px] text-tinta-media">
+        <p className="px-5 py-6 text-[14px] text-tinta-media">
           Nada cadastrado ainda. A grade funciona sem isso: cadastre quando
           houver mais de um lugar para separar.
         </p>
@@ -267,14 +267,14 @@ export function SecaoLocais({
           {ativos.map((l) => (
             <span
               key={l.id}
-              className="inline-flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie py-1.5 pr-1.5 pl-3 text-[13.5px] font-medium"
+              className="inline-flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie py-1.5 pr-1.5 pl-3 text-[14.5px] font-medium"
             >
               {l.nome}
-              <span className="font-mono text-[11.5px] font-normal text-tinta-fraca">
+              <span className="font-mono text-[12.5px] font-normal text-tinta-fraca">
                 {l.emUso > 0 ? `${l.emUso} na grade` : 'Sem uso'}
               </span>
               {l.capacidade ? (
-                <span className="font-mono text-[11.5px] font-normal text-tinta-fraca">
+                <span className="font-mono text-[12.5px] font-normal text-tinta-fraca">
                   Capacidade {l.capacidade}
                 </span>
               ) : null}
@@ -298,7 +298,7 @@ export function SecaoLocais({
           <button
             type="button"
             onClick={() => setEdicao('novo')}
-            className="inline-flex min-h-11 cursor-pointer items-center rounded-padrao border border-dashed border-linha-tracejada px-3.5 text-[13px] whitespace-nowrap text-marca hover:bg-superficie-suave"
+            className="inline-flex min-h-11 cursor-pointer items-center rounded-padrao border border-dashed border-linha-tracejada px-3.5 text-[14px] whitespace-nowrap text-marca hover:bg-superficie-suave"
           >
             + Cadastrar {rotulo.singular.toLowerCase()}
           </button>
@@ -421,7 +421,7 @@ export function SecaoLocais({
           </Campo>
           {emEdicao ? (
             <>
-              <label className="flex items-center gap-2 text-[12.5px]">
+              <label className="flex items-center gap-2 text-[13.5px]">
                 <input type="checkbox" name="ativo" defaultChecked={emEdicao.ativo} />
                 Ativo
               </label>

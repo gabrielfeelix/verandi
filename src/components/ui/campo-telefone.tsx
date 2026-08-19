@@ -39,7 +39,7 @@ export function CampoTelefone({
         className={`campo w-full ${erro ? 'border-alerta-linha-forte bg-alerta-superficie' : ''}`}
       />
       {erro ? (
-        <span id={`${id ?? nome}-erro`} className="text-[12px] text-alerta">
+        <span id={`${id ?? nome}-erro`} className="text-[13px] text-alerta">
           {erro}
         </span>
       ) : null}

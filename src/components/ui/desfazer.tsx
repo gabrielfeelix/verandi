@@ -41,12 +41,12 @@ export function ProvedorDeAviso({ children }: { children: React.ReactNode }) {
           style={{ animation: 'vd-surge .34s var(--ease-sobe) both' }}
         >
           <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-menta" />
-          <span className="flex-1 text-[13.5px]">{aviso.texto}</span>
+          <span className="flex-1 text-[14.5px]">{aviso.texto}</span>
           {aviso.desfazer ? (
             <button
               type="button"
               onClick={() => { aviso.desfazer?.(); setAviso(null) }}
-              className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-tinta-clara/24 px-3 text-[12px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-tinta-clara/10"
+              className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-tinta-clara/24 px-3 text-[13px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-tinta-clara/10"
             >
               Desfazer
             </button>

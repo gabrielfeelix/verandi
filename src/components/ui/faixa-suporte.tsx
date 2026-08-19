@@ -22,7 +22,7 @@ export function FaixaSuporte({ conta }: { conta: string }) {
       // gritaria a mesma coisa em toda tela até perder o efeito.
       className="flex flex-wrap items-center justify-between gap-3 bg-atencao px-4 py-2 text-[#FFF8E8]"
     >
-      <span className="text-[12.5px] font-medium">
+      <span className="text-[13.5px] font-medium">
         Você está dentro de {conta} como suporte da 4YU. Tudo que fizer fica
         registrado com o seu nome.
       </span>
@@ -33,7 +33,7 @@ export function FaixaSuporte({ conta }: { conta: string }) {
           await sairDoSuporte()
           router.push('/contas-4yu')
         })}
-        className="min-h-9 rounded-peca bg-white/15 px-3 text-[12.5px] font-medium"
+        className="min-h-9 rounded-peca bg-white/15 px-3 text-[13.5px] font-medium"
       >
         Sair do suporte
       </button>

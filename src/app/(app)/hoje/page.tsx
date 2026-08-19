@@ -212,7 +212,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           href="/financeiro?aba=pagas"
           className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
         >
-          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
             Entrou neste mês
           </span>
           <span className="font-titulo text-[24px] leading-none font-semibold text-positivo">
@@ -226,7 +226,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             * falta. Quando não há com o que comparar, a linha some: sair de
             * zero para quatro mil não é aumento infinito, é o primeiro mês.
             */}
-          <span className="text-[11.5px] text-tinta-media">
+          <span className="text-[12.5px] text-tinta-media">
             {variou === null
               ? 'sem mês anterior para comparar'
               : `${variou >= 0 ? '+' : ''}${variou}% ante o mesmo trecho do mês passado`}
@@ -239,13 +239,13 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           href="/financeiro?aba=a_vencer"
           className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
         >
-          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
             Ainda vence neste mês
           </span>
           <span className="font-titulo text-[24px] leading-none font-semibold">
             {emReais(caixa.aVencerCent)}
           </span>
-          <span className="text-[11.5px] text-tinta-media">o que falta entrar</span>
+          <span className="text-[12.5px] text-tinta-media">o que falta entrar</span>
         </Link>
 
         <span aria-hidden className="w-px self-stretch bg-linha-fina" />
@@ -254,7 +254,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           href="/financeiro?aba=atrasadas"
           className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
         >
-          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
             Em atraso
           </span>
           <span
@@ -262,7 +262,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           >
             {emReais(caixa.atrasadoCent)}
           </span>
-          <span className="text-[11.5px] text-tinta-media">
+          <span className="text-[12.5px] text-tinta-media">
             {caixa.atrasadas === 0
               ? 'nada vencido'
               : `${caixa.atrasadas} ${caixa.atrasadas === 1 ? 'cobrança' : 'cobranças'}, de qualquer mês`}
@@ -271,7 +271,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
         <Link
           href="/financeiro?aba=fechamento"
-          className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
+          className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
         >
           Ver o fechamento
         </Link>
@@ -295,7 +295,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         {!proxima && sessoes.length > 0 ? (
           <section className={`flex flex-wrap items-center gap-x-5.5 gap-y-3.5 ${cartao} px-5 py-4.5`}>
             <div className="flex flex-col gap-[3px]">
-              <span className="text-[10.5px] font-semibold tracking-[.12em] text-tinta-media uppercase">
+              <span className="text-[12px] font-semibold tracking-[.12em] text-tinta-media uppercase">
                 {ehHoje ? 'Dia encerrado' : 'Dia fechado'}
               </span>
               <span className="font-titulo text-[20px] font-semibold tracking-[-.01em]">
@@ -312,13 +312,13 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 <span className={`font-titulo text-[24px] leading-none font-semibold ${r.cor}`}>
                   {r.n}
                 </span>
-                <span className="text-[11.5px] text-tinta-media">{r.rotulo}</span>
+                <span className="text-[12.5px] text-tinta-media">{r.rotulo}</span>
               </div>
             ))}
             {!ehHoje ? (
               <Link
                 href={link(hoje)}
-                className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
+                className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
               >
                 Voltar para hoje
               </Link>
@@ -332,28 +332,28 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       <section key="agenda" className="flex flex-col items-center gap-2.5 rounded-cartao border border-dashed border-linha-tracejada bg-superficie px-6 py-8.5 text-center">
         <span
           aria-hidden
-          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave font-mono text-[17px] text-tinta-media"
+          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave font-mono text-[18px] text-tinta-media"
         >
           ◷
         </span>
         <span className="font-titulo text-[18px] font-semibold">
           Nada marcado neste dia
         </span>
-        <span className="max-w-[340px] text-[13px] leading-relaxed text-tinta-media">
+        <span className="max-w-[340px] text-[14px] leading-relaxed text-tinta-media">
           Pode ser domingo, feriado ou dia fechado na configuração de
           funcionamento. Não é falha de carregamento.
         </span>
         <div className="flex flex-wrap justify-center gap-2 pt-1.5">
           <Link
             href="/semana"
-            className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
+            className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
           >
             Ver a semana
           </Link>
           {!ehHoje ? (
             <Link
               href={link(hoje)}
-              className="rounded-padrao bg-escuro px-4 py-2.5 text-[13px] font-medium text-tinta-clara hover:bg-escuro-hover"
+              className="rounded-padrao bg-escuro px-4 py-2.5 text-[14px] font-medium text-tinta-clara hover:bg-escuro-hover"
             >
               Voltar para hoje
             </Link>
@@ -363,8 +363,8 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
     ) : (
       <section key="agenda" className={`flex flex-col ${cartao} px-2 pt-1.5 pb-2.5`}>
         <div className="flex items-center justify-between px-3 pt-3 pb-2">
-          <h2 className="font-titulo text-[17px] font-semibold">Agenda do dia</h2>
-          <span className="text-[12px] text-tinta-media">
+          <h2 className="font-titulo text-[18px] font-semibold">Agenda do dia</h2>
+          <span className="text-[13px] text-tinta-media">
             {vivas.length} {rotulos.sessao.plural.toLowerCase()} ·{' '}
             {pendentes} chamada(s) pendente(s)
           </span>
@@ -399,7 +399,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         key="pendencias"
         titulo="Pendências"
         acao={
-          <Link href="/pendencias" className="text-[12px] font-medium text-marca">
+          <Link href="/pendencias" className="text-[13px] font-medium text-marca">
             Ver tudo
           </Link>
         }
@@ -412,23 +412,23 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               className="flex items-center gap-3 rounded-media bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
             >
               <span
-                className={`flex size-7.5 items-center justify-center rounded-peca text-[13px] font-semibold ${TINTA_PENDENCIA[g.tipo] ?? 'bg-neutro-fundo text-neutro'}`}
+                className={`flex size-7.5 items-center justify-center rounded-peca text-[14px] font-semibold ${TINTA_PENDENCIA[g.tipo] ?? 'bg-neutro-fundo text-neutro'}`}
               >
                 {g.itens.length}
               </span>
               <span className="flex min-w-0 flex-col leading-tight">
-                <span className="text-[13px] font-medium">{g.titulo}</span>
-                <span className="truncate text-[11.5px] text-tinta-media">
+                <span className="text-[14px] font-medium">{g.titulo}</span>
+                <span className="truncate text-[12.5px] text-tinta-media">
                   {g.itens[0]?.detalhe ?? g.sub}
                 </span>
               </span>
-              <span aria-hidden className="ml-auto font-mono text-[13px] text-[#A9B3AE]">
+              <span aria-hidden className="ml-auto font-mono text-[14px] text-[#A9B3AE]">
                 ›
               </span>
             </Link>
           ))}
           {grupos.every((g) => g.itens.length === 0) ? (
-            <p className="px-1 py-2 text-[12.5px] text-tinta-media">
+            <p className="px-1 py-2 text-[13.5px] text-tinta-media">
               Nada esperando por você.
             </p>
           ) : null}
@@ -443,7 +443,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             <div key={p.nome} className="flex items-center gap-2.5">
               <AvatarProf nome={p.nome} cor={p.cor} tamanho={30} />
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <span className="truncate text-[13px] font-medium">{p.nome}</span>
+                <span className="truncate text-[14px] font-medium">{p.nome}</span>
                 <span className="block h-[5px] overflow-hidden rounded-[3px] bg-neutro-fundo">
                   <span
                     className="block h-[5px] rounded-[3px]"
@@ -454,14 +454,14 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                   />
                 </span>
               </div>
-              <span className="font-mono text-[11.5px] text-tinta-media">
+              <span className="font-mono text-[12.5px] text-tinta-media">
                 {p.n}{' '}
                 {(p.n === 1 ? rotulos.sessao.singular : rotulos.sessao.plural).toLowerCase()}
               </span>
             </div>
           ))}
           {profs.length === 0 ? (
-            <p className="text-[12.5px] text-tinta-media">
+            <p className="text-[13.5px] text-tinta-media">
               Ninguém da equipe tem {rotulos.sessao.singular.toLowerCase()}
               {' '}neste dia.
             </p>
@@ -472,7 +472,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
     dica: (
       <section key="dica" className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-        <p className="text-[12.5px] leading-relaxed text-tinta-media">
+        <p className="text-[13.5px] leading-relaxed text-tinta-media">
           Lotação cheia não é bloqueio:{' '}
           <strong className="font-semibold text-tinta">5/4</strong> aparece em
           laranja e o encaixe segue permitido, quem decide é quem está na
@@ -492,7 +492,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 ? `${saudacao(horaLocal)}, ${primeiro(eu?.nome ?? user?.email ?? '')}`
                 : dataLonga(dia, fuso)}
             </h1>
-            <p className="pt-[3px] text-[13.5px] text-tinta-media">
+            <p className="pt-[3px] text-[14.5px] text-tinta-media">
               {dataLonga(dia, fuso)} · {conta.nome}
             </p>
           </div>

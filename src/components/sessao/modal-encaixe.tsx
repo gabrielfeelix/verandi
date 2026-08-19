@@ -135,8 +135,8 @@ export function ModalEncaixe({
                 >
                   <Avatar nome={c.nome} tamanho={32} decorativo />
                   <span className="flex min-w-0 flex-col">
-                    <span className="text-[14px] font-medium">{c.nome}</span>
-                    <span className="text-[11.5px] text-tinta-media">{c.detalhe}</span>
+                    <span className="text-[15px] font-medium">{c.nome}</span>
+                    <span className="text-[12.5px] text-tinta-media">{c.detalhe}</span>
                   </span>
                 </button>
               </li>
@@ -169,7 +169,7 @@ export function ModalEncaixe({
           nunca o sistema deixando passar. */}
       {excedente ? (
         <div className="flex flex-col gap-2 rounded-media border border-alerta-linha bg-alerta-superficie p-3">
-          <p className="text-[12.5px] leading-relaxed text-alerta-texto">
+          <p className="text-[13.5px] leading-relaxed text-alerta-texto">
             Este horário já está com {ocupacao.ocupadas}/{ocupacao.capacidade}.
             Encaixar deixa {ocupacao.ocupadas + 1}/{ocupacao.capacidade}, e fica
             registrado como decisão sua.
@@ -227,7 +227,7 @@ export function ModalEncaixe({
             Aplicar
           </Botao>
         </div>
-        <p className="text-[11.5px] leading-relaxed text-tinta-media">
+        <p className="text-[12.5px] leading-relaxed text-tinta-media">
           Muda só este horário. A grade fixa das outras semanas continua igual.
         </p>
       </form>

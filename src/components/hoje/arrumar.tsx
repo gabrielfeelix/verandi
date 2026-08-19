@@ -130,7 +130,7 @@ export function ArrumarHome({ inicial }: { inicial: Linha[] }) {
               if (daFaixa.length === 0) return null
               return (
                 <section key={faixa} className="flex flex-col gap-1.5">
-                  <h3 className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                  <h3 className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
                     {NOME_DA_FAIXA[faixa]}
                   </h3>
                   {daFaixa.map((l, i) => (
@@ -151,15 +151,15 @@ export function ArrumarHome({ inicial }: { inicial: Linha[] }) {
                           className="size-4 shrink-0 accent-[#0E7C6B] disabled:opacity-40"
                         />
                         <span className="flex min-w-0 flex-col">
-                          <span className={`text-[13.5px] font-medium ${l.visivel ? '' : 'text-tinta-media'}`}>
+                          <span className={`text-[14.5px] font-medium ${l.visivel ? '' : 'text-tinta-media'}`}>
                             {l.titulo}
                             {l.fixo ? (
-                              <span className="pl-2 text-[11px] font-normal text-tinta-fraca">
+                              <span className="pl-2 text-[12px] font-normal text-tinta-fraca">
                                 {' '}sempre visível
                               </span>
                             ) : null}
                           </span>
-                          <span className="text-[11.5px] leading-[1.5] text-tinta-media">
+                          <span className="text-[12.5px] leading-[1.5] text-tinta-media">
                             {l.sobre}
                           </span>
                         </span>
@@ -195,7 +195,7 @@ export function ArrumarHome({ inicial }: { inicial: Linha[] }) {
               type="button"
               onClick={restaurar}
               disabled={pendente}
-              className="cursor-pointer self-start text-[12.5px] text-tinta-media underline disabled:opacity-50"
+              className="cursor-pointer self-start text-[13.5px] text-tinta-media underline disabled:opacity-50"
             >
               Voltar ao padrão
             </button>

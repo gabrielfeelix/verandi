@@ -47,7 +47,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
   return (
     <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[19px] font-semibold">Vocabulário</h2>
-      <p className="pt-1.5 pb-4 text-[13px] text-tinta-media">
+      <p className="pt-1.5 pb-4 text-[14px] text-tinta-media">
         Escolha os nomes que combinam com o seu negócio. Nada é reescrito nos
         dados: muda só o texto que aparece nas telas.
       </p>
@@ -55,7 +55,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">
         {valores.map((i) => (
           <div key={i.chave} className="flex flex-col gap-1.5">
-            <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+            <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
               {i.padrao.singular}
             </span>
             {/* singular e plural na mesma caixa: são a mesma decisão, e separar
@@ -63,13 +63,13 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
             <div className="flex items-center gap-2 rounded-padrao border border-linha-suave bg-superficie-suave px-3 py-1 focus-within:border-marca focus-within:bg-superficie">
               <input
                 aria-label={`${i.explica}, no singular`}
-                className="min-h-10 min-w-0 flex-1 bg-transparent text-[14px] font-medium outline-none"
+                className="min-h-10 min-w-0 flex-1 bg-transparent text-[15px] font-medium outline-none"
                 value={i.singular}
                 onChange={(e) => muda(i.chave, 'singular', e.target.value)}
               />
               <input
                 aria-label={`${i.explica}, no plural`}
-                className="min-h-10 w-20 min-w-0 bg-transparent text-right font-mono text-[11px] text-tinta-media outline-none"
+                className="min-h-10 w-20 min-w-0 bg-transparent text-right font-mono text-[12px] text-tinta-media outline-none"
                 value={i.plural}
                 onChange={(e) => muda(i.chave, 'plural', e.target.value)}
               />
@@ -80,7 +80,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
 
       {/* A prévia é o que faz a seção fazer sentido antes de salvar */}
       <div className="mt-4 rounded-grande border border-positivo-linha bg-positivo-superficie p-4">
-        <p className="pb-2.5 text-[10.5px] font-semibold tracking-[.1em] text-[#3E7A6C] uppercase">
+        <p className="pb-2.5 text-[12px] font-semibold tracking-[.1em] text-[#3E7A6C] uppercase">
           Onde isso aparece, antes de salvar
         </p>
         <ul className="flex flex-col gap-1.5">
@@ -97,8 +97,8 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
               key={onde}
               className="flex items-center gap-2.5 rounded-padrao border border-positivo-fundo bg-superficie px-3 py-2.5"
             >
-              <span className="w-26 shrink-0 text-[11px] text-tinta-media">{onde}</span>
-              <span className="flex-1 text-[13.5px]">{texto}</span>
+              <span className="w-26 shrink-0 text-[12px] text-tinta-media">{onde}</span>
+              <span className="flex-1 text-[14.5px]">{texto}</span>
             </li>
           ))}
         </ul>
@@ -109,7 +109,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
       <div className="flex gap-2.5 pt-4">
         <Botao
           disabled={pendente}
-          className="min-h-11 rounded-padrao px-4.5 text-[13.5px] font-semibold"
+          className="min-h-11 rounded-padrao px-4.5 text-[14.5px] font-semibold"
           onClick={() => iniciar(async () => {
             setErro(null)
             try {
@@ -128,7 +128,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
         <Botao
           tom="secundario"
           disabled={pendente || !sujo}
-          className="min-h-11 rounded-padrao px-4.5 text-[13.5px]"
+          className="min-h-11 rounded-padrao px-4.5 text-[14.5px]"
           onClick={() => { setValores(itens); setErro(null) }}
         >
           Descartar

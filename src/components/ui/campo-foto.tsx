@@ -138,16 +138,16 @@ export function CampoFoto({
         )}
 
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-[13.5px] font-medium">
+          <span className="text-[14.5px] font-medium">
             {mostra ? 'Trocar a foto' : 'Arraste a foto aqui, ou clique para escolher'}
           </span>
-          <span className="text-[12px] text-tinta-fraca">
+          <span className="text-[13px] text-tinta-fraca">
             {ocupado ? 'Preparando a foto…' : dica}
           </span>
         </span>
       </label>
 
-      {erro ? <span className="text-[12px] text-alerta">{erro}</span> : null}
+      {erro ? <span className="text-[13px] text-alerta">{erro}</span> : null}
 
       {(previa || atual) ? (
         <div className="flex gap-3">
@@ -158,7 +158,7 @@ export function CampoFoto({
                 limpar()
                 setPrevia((v) => { if (v) URL.revokeObjectURL(v); return null })
               }}
-              className="cursor-pointer text-[12.5px] text-tinta-media underline underline-offset-2 hover:text-tinta"
+              className="cursor-pointer text-[13.5px] text-tinta-media underline underline-offset-2 hover:text-tinta"
             >
               Desfazer a escolha
             </button>
@@ -167,7 +167,7 @@ export function CampoFoto({
             <button
               type="button"
               onClick={aoRemover}
-              className="cursor-pointer text-[12.5px] text-alerta underline underline-offset-2"
+              className="cursor-pointer text-[13.5px] text-alerta underline underline-offset-2"
             >
               Remover a foto salva
             </button>

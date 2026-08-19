@@ -44,7 +44,7 @@ export function BarraDePeriodo({
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span className="text-[11px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+      <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
         {rotulo}
       </span>
 
@@ -55,7 +55,7 @@ export function BarraDePeriodo({
             <Link
               key={a.id}
               href={comParametros({ de: j.de, ate: j.ate })}
-              className={`inline-flex min-h-9 items-center rounded-peca border px-2.5 text-[12.5px] ${
+              className={`inline-flex min-h-9 items-center rounded-peca border px-2.5 text-[13.5px] ${
                 ligado === a.id
                   ? 'border-marca bg-positivo-superficie text-marca'
                   : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -80,11 +80,11 @@ export function BarraDePeriodo({
         {Object.entries(escondidos).map(([k, v]) =>
           v ? <input key={k} type="hidden" name={k} value={v} /> : null)}
         <CampoData nome="de" valorInicial={periodo?.de ?? ''} />
-        <span aria-hidden className="text-[12.5px] text-tinta-fraca">a</span>
+        <span aria-hidden className="text-[13.5px] text-tinta-fraca">a</span>
         <CampoData nome="ate" valorInicial={periodo?.ate ?? ''} />
         <button
           type="submit"
-          className="min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-mais-suave"
+          className="min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
         >
           Filtrar
         </button>
@@ -92,16 +92,16 @@ export function BarraDePeriodo({
 
       {periodo ? (
         <>
-          <span className="text-[12px] text-tinta-media">{dito}</span>
+          <span className="text-[13px] text-tinta-media">{dito}</span>
           <Link
             href={comParametros({})}
-            className="text-[12.5px] text-tinta-media underline"
+            className="text-[13.5px] text-tinta-media underline"
           >
             limpar
           </Link>
         </>
       ) : (
-        <span className="text-[12px] text-tinta-fraca">sem recorte de data</span>
+        <span className="text-[13px] text-tinta-fraca">sem recorte de data</span>
       )}
     </div>
   )

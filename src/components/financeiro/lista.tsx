@@ -107,27 +107,27 @@ export function ListaDeCobrancas({
             <span className="flex min-w-[190px] flex-1 flex-col">
               <Link
                 href={`/pessoas/${c.pessoaId}?aba=contratos`}
-                className="text-[13.5px] font-medium hover:underline"
+                className="text-[14.5px] font-medium hover:underline"
               >
                 {c.pessoaNome}
               </Link>
-              <span className="text-[12px] text-tinta-media">
+              <span className="text-[13px] text-tinta-media">
                 {c.planoNome || 'Sem plano'} · {competenciaCurta(c.competencia)}
                 {' · vence '}{dataCurta(c.vencimento)}
               </span>
             </span>
 
             <span className="flex flex-col items-end">
-              <span className="font-mono text-[13.5px]">{emReais(c.valorCent)}</span>
+              <span className="font-mono text-[14.5px]">{emReais(c.valorCent)}</span>
               {c.valorPagoCent > 0 && falta > 0 ? (
-                <span className="text-[11.5px] text-tinta-media">
+                <span className="text-[12.5px] text-tinta-media">
                   faltam {emReais(falta)}
                 </span>
               ) : null}
             </span>
 
             <span
-              className={`rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${TINTA_SITUACAO[c.situacao]}`}
+              className={`rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${TINTA_SITUACAO[c.situacao]}`}
             >
               {ROTULO_SITUACAO[c.situacao]}
               {c.situacao === 'atrasada' ? ` · ${c.diasDeAtraso}d` : ''}
@@ -141,7 +141,7 @@ export function ListaDeCobrancas({
               {c.situacao === 'atrasada' && c.telefone ? (
                 <a
                   href={`tel:${c.telefone.replace(/\D/g, '')}`}
-                  className="inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-mais-suave"
+                  className="inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
                 >
                   Ligar
                 </a>
@@ -178,7 +178,7 @@ export function ListaDeCobrancas({
             </span>
 
             {c.motivoCancelamento ? (
-              <p className="w-full text-[11.5px] text-tinta-media">
+              <p className="w-full text-[12.5px] text-tinta-media">
                 Cancelada: {c.motivoCancelamento}
               </p>
             ) : null}
@@ -186,13 +186,13 @@ export function ListaDeCobrancas({
             {c.pagamentos.length > 0 ? (
               <ul className="flex w-full flex-col gap-1 border-t border-linha-suave pt-2">
                 {c.pagamentos.map((p) => (
-                  <li key={p.id} className="flex flex-wrap items-center gap-2 text-[12px]">
+                  <li key={p.id} className="flex flex-wrap items-center gap-2 text-[13px]">
                     <span className={p.estornado ? 'text-tinta-fraca line-through' : ''}>
                       {emReais(p.valorCent)} · {ROTULO_FORMA[p.forma]} ·{' '}
                       {dataCurta(p.recebidoEm)}
                     </span>
                     {p.estornado ? (
-                      <span className="text-[11.5px] text-tinta-media">
+                      <span className="text-[12.5px] text-tinta-media">
                         estornado: {p.motivoEstorno}
                       </span>
                     ) : (
@@ -208,7 +208,7 @@ export function ListaDeCobrancas({
                         {p.recibo ? (
                           <Link
                             href={`/recibos/${p.recibo.id}`}
-                            className="text-[11.5px] text-marca underline"
+                            className="text-[12.5px] text-marca underline"
                           >
                             {p.recibo.descricao}
                             {p.recibo.cancelado ? ' (cancelado)' : ''}
@@ -219,7 +219,7 @@ export function ListaDeCobrancas({
                             onClick={() => agir(
                               () => emitirRecibo(p.id), 'Recibo emitido')}
                             disabled={pendente}
-                            className="cursor-pointer text-[11.5px] text-marca underline disabled:opacity-50"
+                            className="cursor-pointer text-[12.5px] text-marca underline disabled:opacity-50"
                           >
                             emitir recibo
                           </button>
@@ -227,7 +227,7 @@ export function ListaDeCobrancas({
                         <button
                           type="button"
                           onClick={() => setModo({ tipo: 'estornar', c, pagamentoId: p.id })}
-                          className="cursor-pointer text-[11.5px] text-tinta-media underline"
+                          className="cursor-pointer text-[12.5px] text-tinta-media underline"
                         >
                           estornar
                         </button>
@@ -412,7 +412,7 @@ function Miudo({
     <button
       type="button"
       {...resto}
-      className={`min-h-9 cursor-pointer rounded-peca border px-3 text-[12.5px] disabled:opacity-50 ${
+      className={`min-h-9 cursor-pointer rounded-peca border px-3 text-[13.5px] disabled:opacity-50 ${
         perigo
           ? 'border-alerta-linha bg-superficie text-alerta hover:bg-alerta-superficie'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'

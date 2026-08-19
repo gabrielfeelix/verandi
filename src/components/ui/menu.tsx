@@ -80,7 +80,7 @@ export function Menu({ titulo, itens }: { titulo: string; itens: ItemMenu[] }) {
                 setAberto(false)
                 i.aoEscolher()
               }}
-              className={`flex min-h-10 cursor-pointer items-center gap-2.5 rounded-peca px-2.5 text-left text-[13px] transition-colors duration-150 hover:bg-superficie-suave ${
+              className={`flex min-h-10 cursor-pointer items-center gap-2.5 rounded-peca px-2.5 text-left text-[14px] transition-colors duration-150 hover:bg-superficie-suave ${
                 i.perigo ? 'text-alerta' : 'text-tinta'
               }`}
             >

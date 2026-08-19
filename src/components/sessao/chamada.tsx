@@ -135,7 +135,7 @@ export function EtiquetaEstado({ cancelada = false }: { cancelada?: boolean }) {
     : estadoDe(registrados, total)
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[11.5px] font-medium ${e.cor}`}
+      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${e.cor}`}
     >
       <span aria-hidden className="size-1.5 rounded-full bg-current" />
       {e.rotulo}
@@ -154,7 +154,7 @@ export function NotaDeRegistro({ comecaEm }: { comecaEm: string | null }) {
   const texto = registrados === 0
     ? ['Nenhum registro ainda', comecaEm].filter(Boolean).join(' · ')
     : `${registrados} de ${total} registrados`
-  return <p className="text-[12px] text-tinta-media">{texto}</p>
+  return <p className="text-[13px] text-tinta-media">{texto}</p>
 }
 
 export function BotaoMarcarTodos({ miudo = false }: { miudo?: boolean }) {
@@ -166,7 +166,7 @@ export function BotaoMarcarTodos({ miudo = false }: { miudo?: boolean }) {
       disabled={ocupado}
       onClick={marcarTodos}
       className={`cursor-pointer rounded-media bg-escuro font-semibold whitespace-nowrap text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover active:translate-y-px disabled:opacity-50 ${
-        miudo ? 'min-h-11 px-[18px] text-[13.5px]' : 'min-h-12 px-4 text-[14px]'
+        miudo ? 'min-h-11 px-[18px] text-[14.5px]' : 'min-h-12 px-4 text-[15px]'
       }`}
     >
       Marcar todos presentes
@@ -186,7 +186,7 @@ export function BotaoEncaixar({
     <button
       type="button"
       onClick={abrirEncaixe}
-      className={`min-h-11 cursor-pointer rounded-media border border-linha bg-superficie-suave px-3 text-[13px] whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave ${className}`}
+      className={`min-h-11 cursor-pointer rounded-media border border-linha bg-superficie-suave px-3 text-[14px] whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave ${className}`}
     >
       {rotulo}
     </button>
@@ -216,7 +216,7 @@ export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
     <button
       type="button"
       onClick={abrirCancelar}
-      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media border border-alerta-linha bg-alerta-superficie px-3.5 text-[13px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-fundo"
+      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media border border-alerta-linha bg-alerta-superficie px-3.5 text-[14px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-fundo"
     >
       <Icone nome="proibido" tamanho={18} />
       {rotulo}
@@ -230,8 +230,8 @@ export function ResumoChamada() {
 
   return (
     <section className={`${cartao} p-4`}>
-      <h2 className="font-titulo text-[17px] font-semibold">Resumo da chamada</h2>
-      <p className="pt-1 pb-3.5 text-[12px] text-tinta-media">
+      <h2 className="font-titulo text-[18px] font-semibold">Resumo da chamada</h2>
+      <p className="pt-1 pb-3.5 text-[13px] text-tinta-media">
         {registrados} de {total} registrados
       </p>
       <ul className="flex flex-col gap-2.5">
@@ -243,8 +243,8 @@ export function ResumoChamada() {
         ] as const).map(([rotulo, n, cor]) => (
           <li key={rotulo} className="flex items-center gap-2.5">
             <span aria-hidden className={`size-2 rounded-full ${cor}`} />
-            <span className="flex-1 text-[13px]">{rotulo}</span>
-            <span className="font-mono text-[13px] text-tinta-media">{n}</span>
+            <span className="flex-1 text-[14px]">{rotulo}</span>
+            <span className="font-mono text-[14px] text-tinta-media">{n}</span>
           </li>
         ))}
       </ul>
@@ -272,7 +272,7 @@ export function BarraChamada({ cancelada }: { cancelada: boolean }) {
     <div className="sticky bottom-3.5 z-20 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 shadow-[0_16px_34px_-22px_rgba(20,26,24,.5)] md:hidden">
       <div className="flex min-w-0 items-center gap-3">
         <EtiquetaEstado cancelada={cancelada} />
-        <span className="text-[12.5px] text-tinta-media">
+        <span className="text-[13.5px] text-tinta-media">
           {registrados} de {total} registrados
         </span>
       </div>

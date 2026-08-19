@@ -106,7 +106,7 @@ export default async function Config({
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Configuração da conta
           </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             É aqui que o sistema deixa de ser genérico e vira o sistema do
             negócio.
           </p>
@@ -130,7 +130,7 @@ export default async function Config({
               >
                 <Icone nome={x.icone} tamanho={18} />
                 <span
-                  className={`text-[13.5px] ${secao === x.chave ? 'font-medium' : ''}`}
+                  className={`text-[14.5px] ${secao === x.chave ? 'font-medium' : ''}`}
                 >
                   {rotuloDaSecao(x.chave, rotulos)}
                 </span>

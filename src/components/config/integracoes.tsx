@@ -81,11 +81,11 @@ export function SecaoIntegracoes({
         <div className="flex flex-wrap items-start justify-between gap-3 rounded-grande border border-linha-suave bg-superficie-suave p-4">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2">
-              <span className="text-[14.5px] font-medium">AutoFluxos</span>
+              <span className="text-[15px] font-medium">AutoFluxos</span>
               <Etiqueta tinta="positivo">Recomendado</Etiqueta>
               {ligado ? <Etiqueta tinta="info">Ativo</Etiqueta> : null}
             </span>
-            <span className="text-[12.5px] leading-relaxed text-tinta-media">
+            <span className="text-[13.5px] leading-relaxed text-tinta-media">
               O atendimento automático responde no WhatsApp e marca direto aqui. Ele oferece só
               horário com vaga, e nunca abre turma nem passa da lotação: isso
               continua sendo decisão de quem está no balcão.
@@ -103,12 +103,12 @@ export function SecaoIntegracoes({
           */}
         {segredo ? (
           <div className="flex flex-col gap-2 rounded-padrao border border-linha p-3">
-            <span className="text-[12.5px] font-medium">
+            <span className="text-[13.5px] font-medium">
               Copie agora, esta chave não aparece de novo
             </span>
             <input
               readOnly value={segredo} aria-label="Chave de API"
-              className={`${entrada} font-mono text-[12px]`}
+              className={`${entrada} font-mono text-[13px]`}
               onFocus={(e) => e.currentTarget.select()}
             />
             <div className="flex flex-wrap gap-2">
@@ -143,15 +143,15 @@ export function SecaoIntegracoes({
         <div className="flex flex-wrap items-start justify-between gap-3 rounded-grande border border-linha-suave px-4 py-3.5">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2">
-              <span className="text-[12.5px] font-medium">Notificações</span>
+              <span className="text-[13.5px] font-medium">Notificações</span>
               {aviso?.ativo ? <Etiqueta tinta="info">Ativo</Etiqueta> : null}
             </span>
-            <span className="text-[12.5px] leading-relaxed text-tinta-media">
+            <span className="text-[13.5px] leading-relaxed text-tinta-media">
               A Verandi manda um aviso para o seu sistema quando alguém é marcado,
               quando alguém desmarca e quando um horário é cancelado.
             </span>
             {aviso?.ativo ? (
-              <span className="truncate font-mono text-[11.5px] text-tinta-fraca">
+              <span className="truncate font-mono text-[12.5px] text-tinta-fraca">
                 {aviso.url}
               </span>
             ) : null}
@@ -173,12 +173,12 @@ export function SecaoIntegracoes({
 
         {segredoAviso ? (
           <div className="flex flex-col gap-2 rounded-padrao border border-linha p-3">
-            <span className="text-[12.5px] font-medium">
+            <span className="text-[13.5px] font-medium">
               Copie agora, este segredo não aparece de novo
             </span>
             <input
               readOnly value={segredoAviso} aria-label="Segredo de assinatura"
-              className={`${entrada} font-mono text-[12px]`}
+              className={`${entrada} font-mono text-[13px]`}
               onFocus={(e) => e.currentTarget.select()}
             />
             <Botao
@@ -207,19 +207,19 @@ export function SecaoIntegracoes({
           * alcança. Chave sem endereço é um cadeado sem porta.
           */}
         <div className="flex flex-col gap-1.5 rounded-grande border border-linha-suave px-4 py-3.5">
-          <span className="text-[12.5px] font-medium">Para quem vai programar</span>
-          <span className="text-[12.5px] leading-relaxed text-tinta-media">
+          <span className="text-[13.5px] font-medium">Para quem vai programar</span>
+          <span className="text-[13.5px] leading-relaxed text-tinta-media">
             A agenda tem uma API para consultar horários com vaga, cadastrar,
             marcar e desmarcar.
           </span>
-          <span className="pt-0.5 font-mono text-[12px] text-tinta-fraca">
+          <span className="pt-0.5 font-mono text-[13px] text-tinta-fraca">
             {`${ENDERECO_PUBLICO}/api/v1`}
           </span>
           <a
             href="/api-docs"
             target="_blank"
             rel="noreferrer"
-            className="pt-1 text-[12.5px] font-medium text-marca hover:text-marca-forte"
+            className="pt-1 text-[13.5px] font-medium text-marca hover:text-marca-forte"
           >
             Ver a documentação
           </a>

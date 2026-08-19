@@ -144,7 +144,7 @@ function Titulo({ glifo = '+', tom = 'positivo', titulo, sub, perigo = false }: 
     <header className="flex shrink-0 items-start gap-3 px-6 pt-[22px] pr-14 pb-4">
       <span
         aria-hidden
-        className={`flex size-9 shrink-0 items-center justify-center rounded-padrao text-[15px] ${TINTA[perigo ? 'alerta' : tom]}`}
+        className={`flex size-9 shrink-0 items-center justify-center rounded-padrao text-[16px] ${TINTA[perigo ? 'alerta' : tom]}`}
       >
         {perigo ? '!' : glifo}
       </span>
@@ -152,7 +152,7 @@ function Titulo({ glifo = '+', tom = 'positivo', titulo, sub, perigo = false }: 
         <h2 className="font-titulo text-[20px] font-semibold tracking-[-.02em]">
           {titulo}
         </h2>
-        {sub ? <p className="text-[12.5px] text-tinta-apagada">{sub}</p> : null}
+        {sub ? <p className="text-[13.5px] text-tinta-apagada">{sub}</p> : null}
       </div>
     </header>
   )

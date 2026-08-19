@@ -174,8 +174,8 @@ export function SecaoRecibo({
         <div className="flex flex-col gap-3 rounded-media border border-linha-suave bg-superficie-mais-suave p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h3 className="text-[13.5px] font-medium">Assinatura</h3>
-              <p className="pt-[2px] text-[12px] leading-[1.5] text-tinta-media">
+              <h3 className="text-[14.5px] font-medium">Assinatura</h3>
+              <p className="pt-[2px] text-[13px] leading-[1.5] text-tinta-media">
                 Aparece em cima da linha, no papel e no recibo enviado. Sem ela,
                 a linha sai em branco para assinar à mão.
               </p>
@@ -197,7 +197,7 @@ export function SecaoRecibo({
                     router.refresh()
                   })}
                   disabled={pendente}
-                  className="cursor-pointer text-[12.5px] text-tinta-media underline disabled:opacity-50"
+                  className="cursor-pointer text-[13.5px] text-tinta-media underline disabled:opacity-50"
                 >
                   remover
                 </button>
@@ -246,12 +246,12 @@ export function SecaoRecibo({
               type="file" name="assinatura" required
               accept="image/png,image/jpeg,image/webp"
               aria-label="Arquivo da assinatura"
-              className="max-w-full text-[12.5px] text-tinta-media file:mr-3 file:cursor-pointer file:rounded-peca file:border file:border-linha-suave file:bg-superficie file:px-3 file:py-2 file:text-[12.5px]"
+              className="max-w-full text-[13.5px] text-tinta-media file:mr-3 file:cursor-pointer file:rounded-peca file:border file:border-linha-suave file:bg-superficie file:px-3 file:py-2 file:text-[13.5px]"
             />
             <Botao tom="secundario" type="submit">
               {assinatura ? 'Trocar imagem' : 'Enviar imagem'}
             </Botao>
-            <span className="text-[11.5px] text-tinta-fraca">
+            <span className="text-[12.5px] text-tinta-fraca">
               PNG, JPEG ou WEBP, até 1 MB. Fundo branco fica melhor no papel.
             </span>
           </form>

@@ -43,7 +43,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
       <h1 className="font-titulo text-[27px] font-semibold tracking-[-.02em]">
         Que bom te ver
       </h1>
-      <p className="pt-2 pb-6 text-[13.5px] leading-relaxed text-tinta-media">
+      <p className="pt-2 pb-6 text-[14.5px] leading-relaxed text-tinta-media">
         Entre com o e-mail que recebeu o convite do estúdio.
       </p>
 
@@ -75,12 +75,12 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
                  cursor tem que estar no único campo que falta */
               autoFocus={Boolean(emailInicial)}
               type={verSenha ? 'text' : 'password'}
-              className="min-h-12 min-w-0 flex-1 bg-transparent px-[15px] text-[14px] tracking-[.02em] outline-none"
+              className="min-h-12 min-w-0 flex-1 bg-transparent px-[15px] text-[15px] tracking-[.02em] outline-none"
             />
             <button
               type="button"
               onClick={() => setVerSenha((v) => !v)}
-              className="min-h-9 cursor-pointer rounded-peca px-2 text-[12px] font-medium text-marca hover:text-marca-forte"
+              className="min-h-9 cursor-pointer rounded-peca px-2 text-[13px] font-medium text-marca hover:text-marca-forte"
             >
               {verSenha ? 'ocultar' : 'mostrar'}
             </button>
@@ -90,7 +90,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
         {/* O erro nunca diz se o e-mail existe — dizer é entregar uma lista de
             quem trabalha no estúdio para quem só tem um formulário. */}
         {estado?.erro ? (
-          <p className="flex items-center gap-2.5 rounded-padrao border border-alerta-linha bg-alerta-superficie px-3 py-2.5 text-[12.5px] text-alerta-texto">
+          <p className="flex items-center gap-2.5 rounded-padrao border border-alerta-linha bg-alerta-superficie px-3 py-2.5 text-[13.5px] text-alerta-texto">
             <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-alerta" />
             {estado.erro}
           </p>
@@ -99,7 +99,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
         <Botao
           type="submit"
           disabled={carregando}
-          className="mt-2 min-h-13 w-full rounded-media text-[14.5px] font-semibold"
+          className="mt-2 min-h-13 w-full rounded-media text-[15px] font-semibold"
         >
           {carregando ? 'Entrando…' : 'Entrar'}
         </Botao>
@@ -107,7 +107,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
         {/* Junto do botão, e não no rodapé: aceite só vale se a pessoa teve como
             ler o que aceitou, e link escondido no pé da página é a versão fraca
             disso. O registro de quem aceitou o quê fica em `aceite_de_termos`. */}
-        <p className="pt-1 text-center text-[11.5px] leading-[1.6] text-tinta-fraca">
+        <p className="pt-1 text-center text-[12.5px] leading-[1.6] text-tinta-fraca">
           Ao entrar, você concorda com os{' '}
           <Link href="/termos" className="text-marca hover:text-marca-forte">
             Termos de uso
@@ -123,7 +123,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
       {/* O link por e-mail passou a existir, mas o caminho pela pessoa continua
           e não é redundância: domínio de envio novo cai em spam, e quem opera um
           estúdio resolve pelo WhatsApp em dez segundos. */}
-      <p className="pt-4 text-center text-[12.5px] leading-[1.5] text-tinta-fraca">
+      <p className="pt-4 text-center text-[13.5px] leading-[1.5] text-tinta-fraca">
         <Link href="/esqueci" className="font-medium text-marca hover:text-marca-forte">
           Esqueci a senha
         </Link>

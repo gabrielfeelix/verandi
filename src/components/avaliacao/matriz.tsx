@@ -37,10 +37,10 @@ export function Matriz({
   return (
     <section className={cartao}>
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-[18px] py-3.5">
-        <h2 className="font-titulo text-[17px] font-semibold">
+        <h2 className="font-titulo text-[18px] font-semibold">
           {avaliacoes.length === 1 ? 'A avaliação' : `As ${avaliacoes.length} avaliações`}
         </h2>
-        <span className="text-[12px] text-tinta-fraca">
+        <span className="text-[13px] text-tinta-fraca">
           {posicoes.length} posições · clique na foto para ampliar
         </span>
       </header>
@@ -52,9 +52,9 @@ export function Matriz({
             gridTemplateColumns: `160px repeat(${avaliacoes.length}, 96px) 120px`,
           }}
         >
-          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">Posição</span>
+          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">Posição</span>
           {avaliacoes.map((a) => (
-            <span key={a.id} className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-fraca uppercase font-mono">
+            <span key={a.id} className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase font-mono">
               {dataCurta(a.data)}
             </span>
           ))}
@@ -104,7 +104,7 @@ function LinhaDaPosicao({
 
   return (
     <>
-      <span className="py-2 text-[13.5px] font-medium">{posicao.nome}</span>
+      <span className="py-2 text-[14.5px] font-medium">{posicao.nome}</span>
 
       {avaliacoes.map((a) => {
         const foto = a.fotos.find((f) => f.posicaoId === posicao.id)
