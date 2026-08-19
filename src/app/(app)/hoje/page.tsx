@@ -24,7 +24,9 @@ import { caixaDoMes } from '@/server/financeiro/consultas'
 import { variacao } from '@/core/financeiro/metricas'
 import { emReais } from '@/core/planos/plano'
 
-type Busca = Promise<{ dia?: string; todos?: string }>
+type Busca = Promise<{
+  dia?: string; todos?: string; periodo?: string; prof?: string
+}>
 
 /** Manhã até 12h, tarde até 18h, noite depois — a divisão que o protótipo usa. */
 function periodoDe(hora: string) {
@@ -58,7 +60,7 @@ function dataLonga(dia: string, fuso: string) {
 }
 
 export default async function Hoje({ searchParams }: { searchParams: Busca }) {
-  const { dia: diaParam, todos } = await searchParams
+  const { dia: diaParam, todos, periodo: periodoBruto, prof } = await searchParams
   const conta = await exigirConta()
   const db = await clienteServidor()
 
@@ -131,9 +133,42 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
   const horaLocal = horaEm(fuso, agora)
 
-  const porPeriodo = ['Manhã', 'Tarde', 'Noite']
-    .map((p) => ({ periodo: p, itens: sessoes.filter((s) => periodoDe(s.hora) === p) }))
+  /*
+   * O recorte rápido da agenda: período e profissional.
+   *
+   * Uma agenda de quinze aulas cabe na tela e mesmo assim ninguém a lê inteira:
+   * quem abre às oito quer a manhã, e quem cobre a Nathália quer a Nathália.
+   * O recorte vale **só para a lista** — a próxima turma e os números do dia
+   * continuam falando do dia inteiro, porque "quem entra na sala agora" não
+   * muda por causa de um filtro.
+   */
+  const PERIODOS = ['Manhã', 'Tarde', 'Noite'] as const
+  const periodoFiltro = PERIODOS.find((p) => p === periodoBruto) ?? null
+  const profFiltro = prof && vivas.some((s) => s.profissional === prof) ? prof : null
+
+  const daAgenda = sessoes.filter((s) =>
+    (!periodoFiltro || periodoDe(s.hora) === periodoFiltro)
+    && (!profFiltro || s.profissional === profFiltro))
+
+  const porPeriodo = PERIODOS
+    .map((p) => ({ periodo: p, itens: daAgenda.filter((s) => periodoDe(s.hora) === p) }))
     .filter((g) => g.itens.length > 0)
+
+  /* quantas aulas cada recorte tem, para o filtro não oferecer lista vazia */
+  const quantasNoPeriodo = (p: string) => sessoes.filter((s) =>
+    periodoDe(s.hora) === p && (!profFiltro || s.profissional === profFiltro)).length
+
+  const recorte = (mudanca: Record<string, string | null>) => {
+    const b = new URLSearchParams()
+    if (dia !== hoje) b.set('dia', dia)
+    if (verTodos) b.set('todos', '1')
+    const atual: Record<string, string | null> = {
+      periodo: periodoFiltro, prof: profFiltro, ...mudanca,
+    }
+    for (const [k, v] of Object.entries(atual)) if (v) b.set(k, v)
+    const q = b.toString()
+    return q ? `/hoje?${q}` : '/hoje'
+  }
 
   /*
    * O arranjo da tela, desta pessoa.
@@ -197,86 +232,6 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         />
       </div>
     ),
-
-    /*
-     * O caixa na tela inicial.
-     *
-     * O rail já traz o número de cobranças em atraso, e ele resolve "tem
-     * alguém para ligar?". O que ele não resolve é "quanto", que é a pergunta
-     * que faz alguém abrir o Financeiro: a lista de atraso com dez linhas de
-     * R$ 90 e a com dez linhas de R$ 700 pedem manhãs diferentes.
-     */
-    caixa: caixa ? (
-      <section key="caixa" className={`flex flex-wrap items-center gap-x-6 gap-y-3.5 ${cartao} px-5 py-4`}>
-        <Link
-          href="/financeiro?aba=pagas"
-          className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
-        >
-          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
-            Entrou neste mês
-          </span>
-          <span className="font-titulo text-[24px] leading-none font-semibold text-positivo">
-            {emReais(caixa.recebidoCent)}
-          </span>
-          {/*
-            * A comparação é com o **mesmo trecho** do mês passado.
-            *
-            * No dia 5, comparar cinco dias com um mês inteiro diria que o
-            * faturamento caiu 80%, e número que mente é pior que número que
-            * falta. Quando não há com o que comparar, a linha some: sair de
-            * zero para quatro mil não é aumento infinito, é o primeiro mês.
-            */}
-          <span className="text-[12.5px] text-tinta-media">
-            {variou === null
-              ? 'sem mês anterior para comparar'
-              : `${variou >= 0 ? '+' : ''}${variou}% ante o mesmo trecho do mês passado`}
-          </span>
-        </Link>
-
-        <span aria-hidden className="w-px self-stretch bg-linha-fina" />
-
-        <Link
-          href="/financeiro?aba=a_vencer"
-          className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
-        >
-          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
-            Ainda vence neste mês
-          </span>
-          <span className="font-titulo text-[24px] leading-none font-semibold">
-            {emReais(caixa.aVencerCent)}
-          </span>
-          <span className="text-[12.5px] text-tinta-media">o que falta entrar</span>
-        </Link>
-
-        <span aria-hidden className="w-px self-stretch bg-linha-fina" />
-
-        <Link
-          href="/financeiro?aba=atrasadas"
-          className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
-        >
-          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
-            Em atraso
-          </span>
-          <span
-            className={`font-titulo text-[24px] leading-none font-semibold ${caixa.atrasadas ? 'text-alerta' : ''}`}
-          >
-            {emReais(caixa.atrasadoCent)}
-          </span>
-          <span className="text-[12.5px] text-tinta-media">
-            {caixa.atrasadas === 0
-              ? 'nada vencido'
-              : `${caixa.atrasadas} ${caixa.atrasadas === 1 ? 'cobrança' : 'cobranças'}, de qualquer mês`}
-          </span>
-        </Link>
-
-        <Link
-          href="/financeiro?aba=fechamento"
-          className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
-        >
-          Ver o fechamento
-        </Link>
-      </section>
-    ) : null,
 
     proxima: (
       <div key="proxima" className="contents">
@@ -362,12 +317,67 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       </section>
     ) : (
       <section key="agenda" className={`flex flex-col ${cartao} px-2 pt-1.5 pb-2.5`}>
-        <div className="flex items-center justify-between px-3 pt-3 pb-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-3 pt-3 pb-2">
           <h2 className="font-titulo text-[18px] font-semibold">Agenda do dia</h2>
           <span className="text-[13px] text-tinta-media">
-            {vivas.length} {rotulos.sessao.plural.toLowerCase()} ·{' '}
-            {pendentes} chamada(s) pendente(s)
+            {periodoFiltro || profFiltro
+              ? `${daAgenda.length} de ${sessoes.length} ${rotulos.sessao.plural.toLowerCase()}`
+              : `${vivas.length} ${rotulos.sessao.plural.toLowerCase()} · ${pendentes} chamada(s) pendente(s)`}
           </span>
+        </div>
+
+        {/*
+          * O recorte rápido, dentro do bloco que ele recorta.
+          *
+          * Período e profissional são as duas perguntas que se faz olhando para
+          * a lista: quem abre às oito quer a manhã, e quem está cobrindo a
+          * colega quer só as aulas dela. Um período sem aula nenhuma aparece
+          * desligado em vez de sumir: some quer dizer "não existe", e desligado
+          * quer dizer "hoje não tem", que são coisas diferentes para quem monta
+          * a grade.
+          */}
+        <div
+          data-imprimir="fora"
+          className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-linha-fina px-3 pt-1 pb-3"
+        >
+          <div className="flex flex-wrap items-center gap-1.5">
+            <FiltroDaAgenda href={recorte({ periodo: null })} ligado={!periodoFiltro}>
+              Dia todo
+            </FiltroDaAgenda>
+            {PERIODOS.map((p) => {
+              const n = quantasNoPeriodo(p)
+              return (
+                <FiltroDaAgenda
+                  key={p}
+                  href={recorte({ periodo: p })}
+                  ligado={periodoFiltro === p}
+                  vazio={n === 0}
+                >
+                  {p} <span className="text-[12px] opacity-70">{n}</span>
+                </FiltroDaAgenda>
+              )
+            })}
+          </div>
+
+          {profs.length > 1 ? (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[12px] text-tinta-fraca">
+                {rotulos.profissional.singular}
+              </span>
+              <FiltroDaAgenda href={recorte({ prof: null })} ligado={!profFiltro}>
+                Todos
+              </FiltroDaAgenda>
+              {profs.map((p) => (
+                <FiltroDaAgenda
+                  key={p.nome}
+                  href={recorte({ prof: p.nome })}
+                  ligado={profFiltro === p.nome}
+                >
+                  {p.nome.split(' ')[0]}
+                </FiltroDaAgenda>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="flex flex-col" aria-label={rotulos.sessao.plural}>
@@ -388,6 +398,16 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               ))}
             </div>
           ))}
+
+          {porPeriodo.length === 0 ? (
+            <p className="px-3 py-6 text-center text-[13.5px] text-tinta-media">
+              Nada neste recorte.{' '}
+              <Link href={recorte({ periodo: null, prof: null })} className="text-marca underline">
+                Ver o dia todo
+              </Link>
+              .
+            </p>
+          ) : null}
         </div>
       </section>
     ),
@@ -470,16 +490,84 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       </Bloco>
     ),
 
-    dica: (
-      <section key="dica" className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-        <p className="text-[13.5px] leading-relaxed text-tinta-media">
-          Lotação cheia não é bloqueio:{' '}
-          <strong className="font-semibold text-tinta">5/4</strong> aparece em
-          laranja e o encaixe segue permitido, quem decide é quem está na
-          recepção, com nome e registro.
-        </p>
-      </section>
-    ),
+    /*
+     * O caixa, na coluna estreita e depois da equipe.
+     *
+     * Ele nasceu na coluna larga e ali disputava a atenção com o que a tela
+     * existe para responder: quem entra na sala agora. Dinheiro na tela inicial
+     * serve para dar o pulso do mês de relance, e o pulso cabe num cartão ao
+     * lado; quem quiser detalhe abre o Financeiro, que é onde ele mora.
+     */
+    caixa: caixa ? (
+      <Bloco
+        key="caixa"
+        titulo="Caixa do mês"
+        acao={
+          <Link href="/financeiro" className="text-[13px] font-medium text-marca">
+            Abrir
+          </Link>
+        }
+      >
+        <div className="flex flex-col gap-2.5">
+          <Link
+            href="/financeiro?aba=pagas"
+            className="flex items-baseline justify-between gap-3 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
+          >
+            <span className="flex min-w-0 flex-col">
+              <span className="text-[13.5px] font-medium">Entrou</span>
+              {/*
+                * A comparação é com o **mesmo trecho** do mês passado.
+                *
+                * No dia 5, comparar cinco dias com um mês inteiro diria que o
+                * faturamento caiu 80%, e número que mente é pior que número que
+                * falta. Sem mês anterior, a linha some: sair de zero para
+                * quatro mil não é aumento infinito, é o primeiro mês.
+                */}
+              <span className="text-[12px] text-tinta-media">
+                {variou === null
+                  ? 'sem mês anterior para comparar'
+                  : `${variou >= 0 ? '+' : ''}${variou}% ante o mesmo trecho`}
+              </span>
+            </span>
+            <span className="shrink-0 font-mono text-[15px] font-semibold text-positivo tabular-nums">
+              {emReais(caixa.recebidoCent)}
+            </span>
+          </Link>
+
+          <Link
+            href="/financeiro?aba=a_vencer"
+            className="flex items-baseline justify-between gap-3 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
+          >
+            <span className="flex min-w-0 flex-col">
+              <span className="text-[13.5px] font-medium">Ainda vence</span>
+              <span className="text-[12px] text-tinta-media">neste mês</span>
+            </span>
+            <span className="shrink-0 font-mono text-[15px] font-semibold tabular-nums">
+              {emReais(caixa.aVencerCent)}
+            </span>
+          </Link>
+
+          <Link
+            href="/financeiro?aba=atrasadas"
+            className="flex items-baseline justify-between gap-3 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
+          >
+            <span className="flex min-w-0 flex-col">
+              <span className="text-[13.5px] font-medium">Em atraso</span>
+              <span className="text-[12px] text-tinta-media">
+                {caixa.atrasadas === 0
+                  ? 'nada vencido'
+                  : `${caixa.atrasadas} ${caixa.atrasadas === 1 ? 'cobrança' : 'cobranças'}, de qualquer mês`}
+              </span>
+            </span>
+            <span
+              className={`shrink-0 font-mono text-[15px] font-semibold tabular-nums ${caixa.atrasadas ? 'text-alerta' : ''}`}
+            >
+              {emReais(caixa.atrasadoCent)}
+            </span>
+          </Link>
+        </div>
+      </Bloco>
+    ) : null,
   }
 
   return (
@@ -556,4 +644,37 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
 function primeiro(nome: string) {
   return (nome.split('@')[0] ?? nome).trim().split(/\s+/)[0] ?? nome
+}
+
+/**
+ * Uma opção do recorte rápido da agenda.
+ *
+ * `<Link>` e não botão: o recorte mora na URL, então ele sobrevive ao recarregar
+ * e ao voltar do navegador, e o endereço pode ser mandado para alguém. Filtro
+ * que some ao apertar "voltar" é filtro que a pessoa aplica duas vezes.
+ */
+function FiltroDaAgenda({
+  href, ligado, vazio = false, children,
+}: {
+  href: string
+  ligado: boolean
+  /** não há nada neste recorte hoje: continua clicável e sai do caminho do olho */
+  vazio?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={ligado ? 'true' : undefined}
+      className={`inline-flex min-h-9 items-center gap-1 rounded-peca border px-2.5 text-[13px] ${
+        ligado
+          ? 'border-marca bg-positivo-superficie font-medium text-marca'
+          : vazio
+            ? 'border-linha-fina bg-superficie text-tinta-inativa'
+            : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
+      }`}
+    >
+      {children}
+    </Link>
+  )
 }

@@ -13,7 +13,7 @@ import { admin, contaDeTeste, usuarioDe, entrar } from './apoio'
 const HOJE = () => new Date().toLocaleDateString('en-CA')
 
 async function cenario(nome: string) {
-  const { contaId, marca, servicoId } = await contaDeTeste(nome)
+  const { contaId, marca, servicoId, profissionalId } = await contaDeTeste(nome)
   const { email } = await usuarioDe(contaId, 'dono', marca)
 
   const { data: pessoa } = await admin.from('pessoa')
@@ -32,7 +32,10 @@ async function cenario(nome: string) {
     criado_em: `${HOJE()}T09:00:00Z`,
   }).select('id').single<{ id: string }>()
 
-  return { contaId, email, pessoaId: pessoa!.id, contratoId: contrato!.id }
+  return {
+    contaId, email, servicoId, profissionalId,
+    pessoaId: pessoa!.id, contratoId: contrato!.id,
+  }
 }
 
 test('receber adiantado abre os próximos meses do contrato', async ({ page }) => {
@@ -75,22 +78,32 @@ test('arrumar a tela inicial muda a ordem, e só para quem arrumou', async ({ pa
   const painel = page.getByRole('dialog')
   await expect(painel.getByRole('heading', { name: 'Coluna larga' })).toBeVisible()
 
-  // o caixa nasce embaixo dos números do dia, e sobe um lugar
-  await painel.getByRole('button', { name: 'Subir Caixa' }).click()
-  // e a nota de lotação sai de vez
-  await painel.getByRole('checkbox', { name: /Nota sobre lotação/ }).uncheck()
+  // o caixa nasce embaixo da equipe, na coluna estreita, e sobe um lugar
+  await painel.getByRole('button', { name: 'Subir Caixa do mês' }).click()
+  // e a equipe sai de vez
+  await painel.getByRole('checkbox', { name: /Equipe hoje/ }).uncheck()
   await painel.getByRole('button', { name: 'Salvar' }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await page.reload()
-  await expect(page.getByText('Lotação cheia não é bloqueio')).toHaveCount(0)
-  await expect(page.getByRole('link', { name: 'Ver o fechamento' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Caixa do mês' })).toBeVisible()
 
-  // o arranjo é da pessoa: o que foi gravado tem o caixa na frente
+  /*
+   * O que se confere é o painel, e não o título do cartão: o cartão da equipe
+   * se chama com a palavra do cliente ("Profissionais", "Professores"), e o
+   * rótulo do painel vem do catálogo e não muda de conta para conta.
+   */
+  await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
+  await expect(page.getByRole('dialog').getByRole('checkbox', { name: /Equipe hoje/ }))
+    .not.toBeChecked()
+  await page.getByRole('dialog').getByRole('button', { name: 'Fechar' }).click()
+
+  // o arranjo é da pessoa, e o caixa passou a equipe na coluna estreita
   const { data } = await admin.from('preferencia_home')
     .select('blocos').eq('conta_id', c.contaId).single<{ blocos: Array<{ id: string; visivel: boolean }> }>()
-  expect(data!.blocos[0].id).toBe('caixa')
-  expect(data!.blocos.find((b) => b.id === 'dica')!.visivel).toBe(false)
+  const ids = data!.blocos.map((b) => b.id)
+  expect(ids.indexOf('caixa')).toBeLessThan(ids.indexOf('equipe'))
+  expect(data!.blocos.find((b) => b.id === 'equipe')!.visivel).toBe(false)
 })
 
 test('voltar ao padrão apaga a preferência, e não grava uma foto do padrão', async ({ page }) => {
@@ -99,7 +112,7 @@ test('voltar ao padrão apaga a preferência, e não grava uma foto do padrão',
   await page.goto('/hoje')
 
   await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
-  await page.getByRole('dialog').getByRole('checkbox', { name: /Nota sobre lotação/ }).uncheck()
+  await page.getByRole('dialog').getByRole('checkbox', { name: /Equipe hoje/ }).uncheck()
   await page.getByRole('dialog').getByRole('button', { name: 'Salvar' }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
@@ -116,7 +129,13 @@ test('voltar ao padrão apaga a preferência, e não grava uma foto do padrão',
       .select('*', { count: 'exact', head: true }).eq('conta_id', c.contaId)
     return count ?? 0
   }).toBe(0)
-  await expect(page.getByText('Lotação cheia não é bloqueio')).toBeVisible()
+
+  // recarrega antes de conferir: o painel copia o arranjo do servidor ao abrir,
+  // e sem a volta ao servidor ele leria a versão que estava na tela
+  await page.reload()
+  await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
+  await expect(page.getByRole('dialog').getByRole('checkbox', { name: /Equipe hoje/ }))
+    .toBeChecked()
 })
 
 test('o financeiro diz quanto, e não só quantas', async ({ page }) => {
@@ -156,4 +175,52 @@ test('a ficha responde se a pessoa está em dia', async ({ page }) => {
   await expect(page.getByText('Já pagou')).toBeVisible()
   await expect(page.getByText('Em atraso', { exact: true })).toBeVisible()
   await expect(page.getByText('Último pagamento')).toBeVisible()
+})
+
+test('a agenda do dia se recorta por período e por profissional', async ({ page }) => {
+  const c = await cenario('Estúdio do recorte')
+
+  /*
+   * Três aulas hoje, uma em cada período: sem aula nenhuma o bloco mostra o
+   * estado vazio, e recortar o vazio não é pergunta que alguém faça.
+   */
+  const hoje = new Date().toLocaleDateString('en-CA')
+  await admin.from('sessao').insert(
+    ['08:00', '14:00', '19:00'].map((hora) => ({
+      conta_id: c.contaId, servico_id: c.servicoId,
+      profissional_id: c.profissionalId,
+      inicio: `${hoje}T${hora}:00-03:00`, duracao_min: 60, capacidade: 4,
+      status: 'prevista',
+    })),
+  )
+
+  await entrar(page, c.email)
+  await page.goto('/hoje')
+
+  const agenda = page.locator('section', { has: page.getByRole('heading', { name: 'Agenda do dia' }) })
+  await expect(agenda.getByRole('link', { name: 'Dia todo' })).toBeVisible()
+
+  /*
+   * O recorte mora na URL e não em estado de componente: assim ele sobrevive ao
+   * recarregar e ao voltar do navegador, e o endereço pode ser mandado para
+   * alguém. Filtro que some ao apertar "voltar" é filtro que se aplica duas
+   * vezes.
+   */
+  await agenda.getByRole('link', { name: /^Manhã/ }).click()
+  await expect(page).toHaveURL(/periodo=Manh/)
+
+  await page.reload()
+  await expect(agenda.getByRole('link', { name: /^Manhã/ })).toHaveAttribute('aria-current', 'true')
+
+  await agenda.getByRole('link', { name: 'Dia todo' }).click()
+  await expect(page).not.toHaveURL(/periodo=/)
+})
+
+test('a tela inicial não repete o lembrete de lotação', async ({ page }) => {
+  const c = await cenario('Estúdio sem lembrete')
+  await entrar(page, c.email)
+  await page.goto('/hoje')
+
+  // era um parágrafo fixo na coluna estreita, lido uma vez e ignorado depois
+  await expect(page.getByText('Lotação cheia não é bloqueio')).toHaveCount(0)
 })

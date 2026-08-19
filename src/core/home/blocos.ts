@@ -42,13 +42,6 @@ export const BLOCOS: Bloco[] = [
     faixa: 'principal',
   },
   {
-    id: 'caixa',
-    titulo: 'Caixa',
-    sobre: 'quanto está em atraso e quanto vence nos próximos dias',
-    faixa: 'principal',
-    operacional: true,
-  },
-  {
     id: 'proxima',
     titulo: 'Próxima turma',
     sobre: 'quem entra na sala agora, e em quanto tempo',
@@ -74,11 +67,21 @@ export const BLOCOS: Bloco[] = [
     sobre: 'quantas aulas cada profissional aplica no dia',
     faixa: 'lateral',
   },
+  /*
+   * O caixa é da coluna estreita, e vem depois da equipe.
+   *
+   * Ele nasceu na coluna larga, em cima da agenda, e ali disputava a atenção
+   * com o que a tela existe para responder: quem entra na sala agora. Dinheiro
+   * na tela inicial serve para dar o pulso do mês de relance, e o pulso cabe
+   * num cartão estreito ao lado — quem quiser detalhe abre o Financeiro, que é
+   * onde ele mora.
+   */
   {
-    id: 'dica',
-    titulo: 'Nota sobre lotação',
-    sobre: 'o lembrete de que turma cheia não bloqueia encaixe',
+    id: 'caixa',
+    titulo: 'Caixa do mês',
+    sobre: 'quanto entrou, quanto ainda vence e quanto está em atraso',
     faixa: 'lateral',
+    operacional: true,
   },
 ]
 

@@ -43,12 +43,14 @@ describe('o arranjo salvo, casado com a tela de hoje', () => {
     expect(a.find((b) => b.id === 'caixa')?.visivel).toBe(true)
   })
 
+  /* a nota sobre lotação existiu e saiu: um arranjo salvo com ela não pode
+     segurar um `id` que nenhuma tela desenha */
   it('bloco salvo que não existe mais some, e não segura lugar', () => {
     const salvo: Arranjo[] = [
-      { id: 'bloco-que-morreu', visivel: true },
+      { id: 'dica', visivel: true },
       { id: 'agenda', visivel: true },
     ]
-    expect(ids(arranjoEfetivo(salvo))).not.toContain('bloco-que-morreu')
+    expect(ids(arranjoEfetivo(salvo))).not.toContain('dica')
   })
 
   it('id repetido no arranjo entra uma vez só', () => {
@@ -67,10 +69,10 @@ describe('o arranjo salvo, casado com a tela de hoje', () => {
   })
 
   it('o desligado continua no arranjo, e some só de `daFaixa`', () => {
-    const salvo: Arranjo[] = [{ id: 'dica', visivel: false }]
+    const salvo: Arranjo[] = [{ id: 'equipe', visivel: false }]
     const a = arranjoEfetivo(salvo)
-    expect(ids(a)).toContain('dica')
-    expect(ids(daFaixa(a, 'lateral'))).not.toContain('dica')
+    expect(ids(a)).toContain('equipe')
+    expect(ids(daFaixa(a, 'lateral'))).not.toContain('equipe')
   })
 })
 
@@ -140,5 +142,12 @@ describe('o catálogo', () => {
 
   it('tem exatamente um bloco fixo, e ele é a agenda', () => {
     expect(BLOCOS.filter((b) => b.fixo).map((b) => b.id)).toEqual(['agenda'])
+  })
+
+  /* dinheiro na tela inicial dá o pulso do mês de relance, e o pulso cabe num
+     cartão estreito; o detalhe mora no Financeiro */
+  it('o caixa é da coluna estreita, e vem depois da equipe', () => {
+    const lateral = BLOCOS.filter((b) => b.faixa === 'lateral').map((b) => b.id)
+    expect(lateral).toEqual(['pendencias', 'equipe', 'caixa'])
   })
 })
