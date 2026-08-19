@@ -12,9 +12,9 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 18/ago/2026, na sessão em que a tabela de preços do cliente
-entrou em produção e o ciclo administrativo passou de ponta a ponta pela
-primeira vez.
+Última revisão: 19/ago/2026, na sessão em que a produção deixou de abrir vazia:
+a tabela de preços do cliente entrou, o ciclo administrativo passou de ponta a
+ponta, e as telas ganharam movimento financeiro para dar para olhar.
 
 ---
 
@@ -30,30 +30,51 @@ a cada push na `main`.
 | Tabelas em `app_verandi` | **40**, todas com RLS | conferido em produção |
 | Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção |
 | Banco | **16 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | **543** de unidade e banco · **222** de navegador | as duas suítes verdes em 18/08 |
+| Testes | **543** de unidade e banco · **223** de navegador | as duas suítes verdes em 19/08 |
 | Planos em produção | **29**, em 11 serviços | a tabela do cliente inteira, conferida linha a linha |
+| Movimento em produção | **18 contratos · 46 cobranças · 40 recibos** | **é ensaio, e sai com um comando**; ver o quadro abaixo |
 | API v1 | nove operações e quatro eventos de webhook, com documentação em `/api-docs` | |
 | Telas | 14 no sistema, mais acesso, legais e `/api-docs` | |
 
 > ## PEGUE POR AQUI
 >
-> **A tabela de preços entrou; falta o resto do cadastro.** Em produção, hoje:
-> **29 planos, 11 serviços, 0 contratos, 0 cobranças, 0 recibos**, contra 84
-> pessoas e 485 sessões. O catálogo do cliente foi digitado inteiro, e o ciclo
-> administrativo já passou de ponta a ponta com ele em ensaio local
-> (`e2e/ensaio-administrativo.spec.ts`). O que falta para o produto virar uso são
-> duas coisas, e as duas dependem de dado que ninguém tem escrito:
+> **Produção está cheia de dado de ensaio, e ele precisa sair antes de o cliente
+> usar.** Hoje, na conta MGM Pilates: **29 planos e 11 serviços que são reais**,
+> e **18 contratos, 46 cobranças, 41 pagamentos e 40 recibos que não são**. Foram
+> criados de propósito, para as telas pararem de abrir vazias e dar para ver o
+> módulo funcionando; as pessoas e os planos são de verdade, o movimento
+> financeiro não.
 >
-> 1. **Os dados de quem emite o recibo** (Configuração → Recibo): razão social,
->    CNPJ e endereço do MGM. **Não existem em lugar nenhum** — nem no `.docx`,
->    nem no repositório. Sem eles a recepção clica em "emitir recibo" e leva
->    recusa, que é o comportamento certo: número gasto em recibo sem emitente
->    não volta.
-> 2. **As matrículas em curso**, na ficha de cada pessoa. A planilha de turma tem
->    nome, matrícula, telefone e vencimento; **ela não diz qual plano cada pessoa
->    comprou**, e sem isso não há como digitar as 84 sem inventar. Atenção ao que
->    o sistema faz de propósito: **a cobrança começa no mês do cadastro**, e não
->    no início retroativo do contrato. Quem digitar precisa avisar o cliente.
+> Apagar é um comando, e ele está no scratchpad da sessão de 19/08
+> (`enche-producao.ts --desfazer`). Se o arquivo tiver sumido, é este SQL, e ele
+> não encosta em plano, pessoa, série nem sessão:
+>
+> ```sql
+> set search_path = app_verandi;
+> begin;
+> delete from recibo   where conta_id = (select id from conta where slug = 'mgm-pilates');
+> delete from contador_recibo where conta_id = (select id from conta where slug = 'mgm-pilates');
+> delete from pagamento where conta_id = (select id from conta where slug = 'mgm-pilates');
+> delete from cobranca  where conta_id = (select id from conta where slug = 'mgm-pilates');
+> delete from contrato  where conta_id = (select id from conta where slug = 'mgm-pilates');
+> commit;
+> ```
+>
+> **Faça isso antes da primeira venda de verdade.** Recibo emitido gasta número,
+> e a numeração não pode ter buraco: se o ensaio ficar, a primeira venda real do
+> estúdio sai como A-000041 e os quarenta anteriores viram papel que não existe.
+>
+> ### O que continua faltando, e depende do cliente
+>
+> 1. **A razão social de verdade.** Hoje está `MGM Pilates`, preenchida
+>    provisoriamente para os recibos poderem sair. O CNPJ já está na conta, digitado
+>    pelo Gabriel; o texto que vai impresso no papel é o do cartão de CNPJ, e
+>    ninguém o tem aqui. O endereço continua vazio.
+> 2. **As matrículas em curso.** A planilha de turma tem nome, matrícula,
+>    telefone e vencimento; **ela não diz qual plano cada pessoa comprou**, e sem
+>    isso não há como digitar as 84 sem inventar. Atenção ao que o sistema faz de
+>    propósito: **a cobrança começa no mês do cadastro**, e não no início
+>    retroativo do contrato. Quem digitar precisa avisar o cliente.
 >
 > ### O que a tabela do cliente tinha de errado, e o que foi feito
 >
@@ -99,6 +120,42 @@ a cada push na `main`.
 
 **Quem atende vê o dia dele, a chamada e a avaliação. Não vê dinheiro.** A
 separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
+
+---
+
+## O que a sessão de 19/ago fez
+
+| O quê | Onde |
+|---|---|
+| Produção cheia, para as telas pararem de abrir vazias | 18 contratos, 46 cobranças, 41 pagamentos e 40 recibos na conta MGM Pilates, com as pessoas e os planos reais. **Sai com o comando do quadro acima.** |
+| Três defeitos no formulário do emitente | `src/components/config/recibo.tsx` e `src/server/config/acoes.ts` |
+| A lentidão de toda navegação | `src/server/conta.ts` e `src/app/(app)/layout.tsx` |
+
+**Os três defeitos do emitente vieram de uma queixa só**, e a queixa era "preenchi
+e a tela de Recibos continuou dizendo que está vazio". A tela estava certa:
+
+1. **O placeholder do campo era o nome da conta.** O campo vazio mostrava "MGM
+   Pilates", que é exatamente o texto que a pessoa ia digitar. Ele digitou CNPJ e
+   telefone, salvou, e saiu certo de que tinha terminado. **Sugerir o valor certo
+   no lugar errado custa mais do que não sugerir nada.**
+2. **Salvar aceitava meio emitente e respondia "Emitente salvo".** O asterisco
+   dos dois campos prometia uma conferência que não existia em lugar nenhum.
+3. **A recusa nem chegava à tela.** Erro lançado dentro de Server Action não
+   atravessa a rede com o nosso texto. As duas conferências que já existiam ali,
+   documento e série, **nunca mostraram a própria mensagem desde que foram
+   escritas**: quem errava o CNPJ lia "alguma coisa quebrou".
+
+**A lentidão foi medida, não adivinhada.** Cada `clienteServidor()` criava um
+cliente Supabase novo, e o **primeiro `getUser()` de cada cliente é uma ida ao
+servidor de autenticação** — 90 ms com o banco na própria máquina, mais em
+produção. Eram quatro ou cinco por navegação: o proxy, o layout, `contaAtiva`,
+`contasDoUsuario` e a página. Com `cache()` do React virou uma, e as quatro
+consultas do trilho passaram a ir juntas em vez de em fila.
+
+**O que ficou de fora e continua incomodando:** clicar numa aba (`?aba=...`) não
+mostra nada acontecendo. `loading.tsx` só dispara na entrada do segmento, não
+quando muda só o parâmetro, então a tela fica parada durante a ida ao servidor e
+parece travada. Está na lista de higiene abaixo.
 
 ---
 
@@ -224,6 +281,10 @@ O recibo, que é do estúdio e sai na hora, já existe e não depende de nada di
 
 ### 6. Higiene que pode esperar
 
+- **Clicar numa aba não mostra espera.** As abas de `/financeiro`, `/recibos` e
+  `/pessoas` são `<Link>` com `?aba=`, e o `loading.tsx` não dispara quando só o
+  parâmetro muda: a tela fica parada até o servidor responder. Não é lentidão de
+  consulta, é falta de estado de espera. `useLinkStatus` resolve.
 - A **busca global** do cabeçalho é uma caixa desabilitada dizendo que entra no
   próximo marco.
 - **A reentrega do webhook só dispara quando um evento novo é enfileirado**,
@@ -346,6 +407,9 @@ coluna ou tabela com dado de cliente).
 | Entidade nova no log | acrescente ao `check` de `log_configuracao.entidade` **na mesma migration** que cria a tabela, e ao tipo em `src/server/log.ts`. `registrar()` engole o erro de propósito, e a linha some calada. |
 | Tipo derivado do banco | mora em `src/server/banco.ts`. **Nunca** em `banco.types.ts`, que é reescrito inteiro a cada geração. |
 | Janela de período | monte com `instante(data, hora, fuso)`, nunca com `` `${data}T00:00:00Z` ``. Isso é meia-noite em Londres e corta as três últimas horas do dia brasileiro. |
+| Recusa em Server Action | volta como **valor** (`{ ok: false, erro }`), nunca como `throw`. Erro lançado ali não atravessa a rede com o nosso texto: o Next entrega um genérico com identificador, e a tela mostra "alguma coisa quebrou". Já aconteceu duas vezes, em `planos/acoes.ts` e em `config/acoes.ts`. |
+| Cliente do Supabase | `clienteServidor()` é `cache()` do React, um por pedido. Não crie um cliente novo dentro de função nova: **o primeiro `getUser()` de cada cliente é uma ida ao servidor de autenticação**, e elas somam sem aparecer em lugar nenhum. |
+| Placeholder de campo | nunca o valor que a pessoa ia digitar. Campo vazio com o texto certo dentro parece campo preenchido, e quem preencheu o resto sai achando que terminou. |
 | Rota nova da API | chame a função de `server/`, que já recebe `contaId` e filtra por ele. Sem sessão não há RLS, e um `select` sem `conta_id` lê a conta de todo mundo. |
 | Função que não confere papel | fora de arquivo `'use server'`. Tudo que um arquivo desses exporta vira endereço chamável de fora. Ver `server/financeiro/materializar.ts`. |
 | `insert` em lote no PostgREST | todas as linhas com as mesmas chaves. Ele usa as colunas da primeira e manda `null` explícito nas outras, e o erro fala de coluna nula sem dizer por quê. |

@@ -12,7 +12,7 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 18/ago/2026 (sétima passagem: a tabela de preços do
+**Última atualização:** 19/ago/2026 (sétima passagem: a tabela de preços do
 cliente em produção, e o ciclo administrativo fechando de ponta a ponta) · **A
 Verandi está no ar em `https://verandi.4yu.com.br`, com uma conta de cliente,
 e-mail saindo de verdade, onboarding, a porta do bot aberta, o acompanhamento
@@ -23,8 +23,11 @@ por foto e o catálogo do cliente digitado.**
 > aluno" são os dois preços da mesma linha. O ciclo inteiro — catálogo pela
 > tela, matrícula, cobrança, recebimento, recibo, fechamento — passa em ensaio
 > com esse tamanho, em `e2e/ensaio-administrativo.spec.ts`. O que ainda não
-> existe em produção é contrato: falta o emitente do recibo e falta saber quem
-> está em qual plano, e as duas respostas são do cliente. As cinco anomalias
+> existe em produção é matrícula de verdade: as 18 que estão lá, com as 46
+> cobranças e os 40 recibos, são **ensaio**, e saem com um comando antes da
+> primeira venda — recibo gasta número, e número gasto não volta. Falta saber
+> quem está em qual plano e a razão social do cartão de CNPJ, e as duas
+> respostas são do cliente. As cinco anomalias
 > encontradas na tabela dele estão listadas no [`HANDOFF.md`](HANDOFF.md).
 
 O último trabalho de código é de 16/ago, e este arquivo tinha ficado em 15/ago:
