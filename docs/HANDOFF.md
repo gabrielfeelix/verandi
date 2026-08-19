@@ -147,6 +147,43 @@ separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
 >
 > A `0058` já está lá desde 19/08, conferida fora do console.
 
+## A tela inicial arrumada, e a fonte trocada, em 19/ago
+
+**O texto virou Inter.** Subir a escala resolveu metade: DM Sans é geométrica e
+bonita em título, e no corpo de 12 a 14px ela afina, com altura-de-x baixa que
+deixa as minúsculas pequenas dentro da linha. Inter foi desenhada para tela —
+altura-de-x alta, aberturas largas, espaçamento pensado para o pequeno. O
+título continua Bricolage Grotesque, porque a identidade mora ali e o problema
+nunca foi o título.
+
+Duas features tipográficas ligadas no corpo: `cv05`, que desambigua o `l`
+minúsculo do `I` maiúsculo (num sistema cheio de nome próprio e código de plano
+é a confusão que mais aparece), e `tnum`, que dá largura igual a todo algarismo
+para a coluna de dinheiro não dançar de linha em linha. E o texto de 11 a 12,5px
+ganhou entrelinha e espaçamento próprios: abaixo de 13px a entrelinha de 1,55
+fecha e as linhas grudam.
+
+**A agenda do dia ganhou recorte rápido**, por período e por profissional. Uma
+agenda de quinze aulas cabe na tela e mesmo assim ninguém a lê inteira: quem
+abre às oito quer a manhã, e quem cobre a colega quer só as aulas dela. O
+recorte mora na URL, então sobrevive ao recarregar, ao voltar do navegador e ao
+mandar o endereço para alguém.
+
+Ele vale **só para a lista**: a próxima turma e os números do dia continuam
+falando do dia inteiro, porque "quem entra na sala agora" não muda por causa de
+um filtro. Período sem aula aparece desligado em vez de sumir — sumir quer
+dizer "não existe", desligado quer dizer "hoje não tem".
+
+**O caixa saiu da coluna larga.** Ele nasceu em cima da agenda e ali disputava a
+atenção com o que a tela existe para responder. Virou cartão estreito, embaixo
+de Professores hoje: dinheiro na tela inicial dá o pulso do mês de relance, e o
+detalhe mora no Financeiro.
+
+**A nota de lotação saiu.** Era um parágrafo fixo na coluna estreita, lido uma
+vez e ignorado depois de sempre — o bloco `dica` deixou de existir, e o arranjo
+salvo de quem o tinha some sozinho, porque `arranjoEfetivo` derruba `id` que
+nenhuma tela desenha.
+
 ## O envio do recibo, e a legibilidade, em 19/ago
 
 **O destino do envio deixou de ser uma pergunta.** O modal abria com um campo
@@ -603,6 +640,7 @@ coluna ou tabela com dado de cliente).
 | Palavra do cliente | nem artigo nem adjetivo colado nela: o gênero é da palavra e a palavra é do cliente. Lint em `tests/unit/regua-do-vocabulario.test.ts`. |
 | Cor de texto | tem contraste mínimo, medido em `tests/unit/contraste.test.ts`. Não clareie para ficar igual ao protótipo. |
 | Tela | ler o código do protótipo não substitui abrir a tela dele. [`VESTIR.md`](VESTIR.md). |
+| Fonte | **Inter** no corpo, Bricolage Grotesque no título. DM Sans afina no pequeno, e o pequeno é a maior parte deste produto. `cv05` e `tnum` ligados no `body`. |
 | Tamanho de texto | piso de **11px**, e o corpo em 15px. O protótipo desce mais, e o que o produto ganha descendo junto é uma tela que passa na WCAG e cansa quem lê o dia inteiro. Há teste medindo. |
 | Destino de e-mail | o que o cadastro já sabe **não se pergunta de novo**. Campo vazio pedindo um dado que está na ficha é o caminho mais curto para ele sair digitado errado. |
 | Conta de teste nova | cai no onboarding. `e2e/apoio.ts` pula os dois roteiros por padrão; passe `{ pularOnboarding: false }` para testá-lo. |

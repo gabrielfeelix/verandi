@@ -410,6 +410,21 @@ estão em atraso, e isso responde "tem alguém para ligar?". O que ele não
 responde é "quanto", que é a pergunta que faz alguém abrir o Financeiro: dez
 linhas de R$ 90 e dez linhas de R$ 700 pedem manhãs diferentes.
 
+## O recorte da agenda e o lugar do caixa, em 19/08
+
+A agenda do dia ganhou recorte por período e por profissional. Quinze aulas
+cabem na tela e ninguém as lê inteiras: quem abre às oito quer a manhã, e quem
+cobre a colega quer só as aulas dela. O recorte mora na URL, sobrevive ao
+recarregar e ao voltar, e vale **só para a lista** — a próxima turma e os
+números do dia continuam falando do dia inteiro.
+
+O caixa saiu da coluna larga e virou cartão estreito embaixo da equipe. Em cima
+da agenda ele disputava a atenção com o que a tela existe para responder; o
+pulso do mês cabe num cartão ao lado, e o detalhe mora no Financeiro.
+
+A nota sobre lotação saiu: era parágrafo fixo, lido uma vez e ignorado depois.
+O bloco `dica` deixou de existir e o arranjo salvo de quem o tinha some sozinho.
+
 ## A legibilidade, medida em 19/08
 
 O contraste passava em AA em todos os tokens de texto, e as telas continuavam
@@ -418,7 +433,10 @@ cansativas de ler. O problema era **tamanho**: 93 lugares em 11,5px, 42 em
 pequeno, lida em pé, num balcão.
 
 O corpo subiu de 13px para 15px com `line-height: 1.55` explícito, a escala
-inteira das telas subiu junto, e o piso virou 11px com teste medindo. O texto
+inteira das telas subiu junto, e o piso virou 11px com teste medindo. **E a
+fonte do corpo virou Inter**, porque subir a escala resolveu metade: DM Sans
+tem altura-de-x baixa e afina no pequeno, e Inter foi desenhada para tela. O
+título continua Bricolage Grotesque. O texto
 de apoio escureceu de 4,78:1 para 6,56:1 sobre `#F1F5F3`, e o rótulo fraco de
 4,78:1 para 6,38:1.
 
