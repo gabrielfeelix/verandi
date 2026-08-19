@@ -126,8 +126,15 @@ export async function criarPessoas(contaId: string, nomes: string[]) {
  * Não é `selectOption`: o componente não é um `<select>` nativo — ele abre um
  * painel próprio, com grupo e detalhe em cada linha, justamente porque o nativo
  * não mostra nada disso. Aqui a interação é a mesma de quem usa: abre e clica.
+ *
+ * Acha pelo papel, e não por `getByLabel`. O `<Campo obrigatorio>` põe um
+ * asterisco dentro do `<label>`, e o `getByLabel` compara com o texto do
+ * rótulo, asterisco incluído: `'Serviço'` não casa com `Serviço*` e a espera
+ * morre no tempo limite sem dizer por quê. O nome acessível do botão vem da
+ * computação de acessibilidade, que descarta o `aria-hidden` do asterisco, e
+ * por isso é o mesmo nos dois casos. Custou cinco minutos de espera muda.
  */
 export async function escolher(page: Page, campo: string, opcao: string | RegExp) {
-  await page.getByLabel(campo, { exact: true }).click()
+  await page.getByRole('combobox', { name: campo, exact: true }).click()
   await page.getByRole('option', { name: opcao }).first().click()
 }
