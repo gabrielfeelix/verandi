@@ -7,7 +7,14 @@ import { Botao } from '@/components/ui/botao'
 import { Rotulo, entrada } from '@/components/ui/pecas'
 import { entrar, type EstadoEntrar } from './acoes'
 
-export default function Entrar() {
+/**
+ * O formulário de entrada.
+ *
+ * Vive separado da rota porque `emailInicial` vem da barra de endereço, e ler
+ * `searchParams` é coisa de componente de servidor. A tela em si continua toda
+ * do cliente: o estado do botão, o mostrar/ocultar da senha e o erro.
+ */
+export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string }) {
   const [estado, acao, pendente] = useActionState<EstadoEntrar, FormData>(entrar, null)
   const [verSenha, setVerSenha] = useState(false)
 
@@ -51,6 +58,7 @@ export default function Entrar() {
           </label>
           <input
             id="email" name="email" type="email" required autoComplete="email"
+            defaultValue={emailInicial}
             placeholder="voce@estudio.com.br"
             className={entrada}
           />
@@ -63,6 +71,9 @@ export default function Entrar() {
           <div className="campo-caixa pr-2">
             <input
               id="senha" name="senha" required autoComplete="current-password"
+              /* quem acabou de criar a senha chega com o e-mail preenchido: o
+                 cursor tem que estar no único campo que falta */
+              autoFocus={Boolean(emailInicial)}
               type={verSenha ? 'text' : 'password'}
               className="min-h-12 min-w-0 flex-1 bg-transparent px-[15px] text-[14px] tracking-[.02em] outline-none"
             />

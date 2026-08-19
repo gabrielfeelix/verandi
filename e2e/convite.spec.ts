@@ -54,7 +54,9 @@ test('quem recebe o link define senha e entra na conta com o papel do convite', 
   await page.getByRole('button', { name: 'Entrar na conta' }).click()
 
   await page.waitForURL(/\/entrar/)
-  await page.getByLabel('E-mail').fill(novo)
+  // o e-mail chega preenchido: quem acabou de criar a senha não redigita o
+  // endereço que a tela do convite acabou de mostrar
+  await expect(page.getByLabel('E-mail')).toHaveValue(novo)
   await page.getByLabel('Senha').fill('senha-nova-123')
   await page.getByRole('button', { name: 'Entrar' }).click()
   await page.waitForURL((u) => !u.pathname.startsWith('/entrar'))

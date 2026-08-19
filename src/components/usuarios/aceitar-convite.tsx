@@ -20,7 +20,7 @@ const RECUSA: Record<string, string> = {
  * O e-mail vem do convite e não é editável: quem escolhe para quem o acesso vai
  * é quem convidou, não quem abre o link.
  */
-export function AceitarConvite({ token }: { token: string }) {
+export function AceitarConvite({ token, email }: { token: string; email: string }) {
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
@@ -42,7 +42,15 @@ export function AceitarConvite({ token }: { token: string }) {
             setErro(RECUSA[r.motivo])
             return
           }
-          router.push('/entrar?novo=1')
+          /*
+           * O e-mail vai junto, e a entrada chega preenchida.
+           *
+           * Antes daqui o botão levava a `/entrar?novo=1`, um parâmetro que
+           * ninguém lia: quem acabou de criar a senha caía num formulário vazio
+           * e tinha que digitar de novo o endereço que o sistema mostrou dois
+           * parágrafos acima. Estava anotado no `HANDOFF` como atrito conhecido.
+           */
+          router.push(`/entrar?email=${encodeURIComponent(email)}`)
         } catch (e) {
           setErro(erroLegivel(e))
         }

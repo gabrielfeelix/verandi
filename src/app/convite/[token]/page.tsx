@@ -58,7 +58,7 @@ export default async function Convite({
               continua o mesmo.
             </p>
           )}
-          <AceitarConvite token={token} />
+          <AceitarConvite token={token} email={r.email} />
 
           {/*
             O aceite aparece onde ele acontece: criar a senha é o primeiro ato
