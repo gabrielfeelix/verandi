@@ -147,6 +147,40 @@ separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
 >
 > A `0058` já está lá desde 19/08, conferida fora do console.
 
+## O envio do recibo, e a legibilidade, em 19/ago
+
+**O destino do envio deixou de ser uma pergunta.** O modal abria com um campo
+vazio perguntando "para onde?", e o recibo é de quem pagou: o e-mail está na
+ficha, e pedir que a recepção digite de novo, toda vez, um dado que o sistema
+já tem é pedir que ela digite errado uma hora. Agora o destino aparece como
+fato, e o que se acrescenta são **cópias** — o marido que cuida das contas, a
+empresa que reembolsa, a contadora. Até cinco, em `cc` e não em `bcc`: quem
+paga tem o direito de saber para quem mais o comprovante dele foi.
+
+Ficha sem e-mail é a única vez em que se digita um endereço, e ele **entra na
+ficha**: guardar só para aquele envio deixaria a próxima pessoa na mesma
+parede. Cada destinatário vira uma linha em `envio_de_recibo`, porque "eu nunca
+recebi" é uma frase sobre um endereço.
+
+**A escala de texto subiu, e o motivo não é norma.** O contraste passava em AA
+em todos os tokens, e as telas continuavam cansativas: 93 lugares em 11,5px,
+42 em 10,5px, 16 em 10px e 6 em 9,5px, numa fonte geométrica (DM Sans) que
+afina no pequeno, lida em pé, num balcão, por quem está entre um aluno e outro.
+
+O que mudou:
+
+| O quê | De | Para |
+|---|---|---|
+| Corpo da página | 13px | **15px**, com `line-height: 1.55` explícito |
+| Piso da escala | 9,5px | **11px**, com teste guardando |
+| Texto de apoio (`tinta-media`) | `#5D6B66`, 4,78:1 | `#4D5A55`, **6,56:1** |
+| Rótulo fraco (`tinta-fraca`) | `#656E6A`, 4,78:1 | `#525B57`, **6,38:1** |
+
+Norma cumprida não é o mesmo que texto legível: 4,78:1 em 11,5px passa na AA e
+cansa. O teste em `tests/unit/contraste.test.ts` agora mede as duas coisas, o
+contraste e o **tamanho**, porque sem número "só este rótulo pode ser menor"
+acontece uma vez por semana até a escala voltar ao que era.
+
 ## O que a sessão das telas usáveis fez, em 19/ago
 
 A pergunta que faltava era de dono de negócio, e não de quem testa: **dá para
@@ -569,6 +603,8 @@ coluna ou tabela com dado de cliente).
 | Palavra do cliente | nem artigo nem adjetivo colado nela: o gênero é da palavra e a palavra é do cliente. Lint em `tests/unit/regua-do-vocabulario.test.ts`. |
 | Cor de texto | tem contraste mínimo, medido em `tests/unit/contraste.test.ts`. Não clareie para ficar igual ao protótipo. |
 | Tela | ler o código do protótipo não substitui abrir a tela dele. [`VESTIR.md`](VESTIR.md). |
+| Tamanho de texto | piso de **11px**, e o corpo em 15px. O protótipo desce mais, e o que o produto ganha descendo junto é uma tela que passa na WCAG e cansa quem lê o dia inteiro. Há teste medindo. |
+| Destino de e-mail | o que o cadastro já sabe **não se pergunta de novo**. Campo vazio pedindo um dado que está na ficha é o caminho mais curto para ele sair digitado errado. |
 | Conta de teste nova | cai no onboarding. `e2e/apoio.ts` pula os dois roteiros por padrão; passe `{ pularOnboarding: false }` para testá-lo. |
 | Antes de dizer que acabou | `npm test`, `npm run build`, `npm run test:e2e`, `npm run segredos`. |
 | Conta de demonstração | MGM Pilates · dona `contato@4yu.com.br` · senha no cofre da equipe. |

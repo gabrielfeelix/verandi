@@ -410,6 +410,33 @@ estão em atraso, e isso responde "tem alguém para ligar?". O que ele não
 responde é "quanto", que é a pergunta que faz alguém abrir o Financeiro: dez
 linhas de R$ 90 e dez linhas de R$ 700 pedem manhãs diferentes.
 
+## A legibilidade, medida em 19/08
+
+O contraste passava em AA em todos os tokens de texto, e as telas continuavam
+cansativas de ler. O problema era **tamanho**: 93 lugares em 11,5px, 42 em
+10,5px, 16 em 10px e 6 em 9,5px, em DM Sans, que é geométrica e afina no
+pequeno, lida em pé, num balcão.
+
+O corpo subiu de 13px para 15px com `line-height: 1.55` explícito, a escala
+inteira das telas subiu junto, e o piso virou 11px com teste medindo. O texto
+de apoio escureceu de 4,78:1 para 6,56:1 sobre `#F1F5F3`, e o rótulo fraco de
+4,78:1 para 6,38:1.
+
+**Norma cumprida não é o mesmo que texto legível**, e é por isso que o teste
+mede agora as duas coisas. Sem número, "só este rótulo pode ser menor" acontece
+uma vez por semana até a escala voltar ao que era.
+
+## O destino do e-mail do recibo, em 19/08
+
+O modal abria com um campo vazio perguntando para onde enviar, e o recibo é de
+quem pagou: o e-mail está na ficha. Pedir que a recepção digite de novo, toda
+vez, um dado que o sistema já tem é pedir que ela digite errado uma hora.
+
+O destino passou a aparecer como fato, e o que se acrescenta são cópias, até
+cinco, em `cc` e não em `bcc`: quem paga tem o direito de saber para quem mais
+o comprovante dele foi. Ficha sem e-mail é a única vez em que se digita um
+endereço, e ele entra na ficha.
+
 ## As telas que passaram a se responder, em 19/08
 
 O produto passava nos testes e não era operável. O Financeiro dizia "10
