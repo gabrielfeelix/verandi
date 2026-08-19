@@ -70,9 +70,13 @@ AutoFluxos.
 item 7 sem criar tabela nenhuma, e fechou junto o pedaço do item 9 que faltava:
 a foto da avaliação agora amplia a partir do comparador.
 
-**O que sobra do administrativo é nota fiscal**, e ela espera uma decisão
-comercial que não é de agente: qual emissor. O recibo, que é do estúdio, já
-existe.
+**O que sobra do administrativo é nota fiscal**, e ela não é uma tarefa de
+código esperando permissão. **Quem emite é o cliente, com o CNPJ dele, para o
+aluno dele**: o estúdio é o prestador e o aluno é o tomador, e a 4YU não aparece
+no documento. Isso faz da nota uma **configuração por conta**, e não uma
+integração única: certificado digital A1, inscrição municipal, regime tributário,
+código de serviço e alíquota de ISS, com o layout mudando a cada prefeitura. O
+recibo, que é do estúdio e sai na hora, já existe e não depende de nada disso.
 
 **As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
 tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do

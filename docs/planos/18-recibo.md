@@ -111,6 +111,12 @@ Verandi vai pedir a nota a um emissor quando houver decisão comercial sobre
 qual. Uma linha na tela evita a conversa "então já posso parar de emitir nota?",
 que custa muito mais caro que a linha.
 
+**Quem emitiria a nota é o cliente, com o CNPJ dele, para o aluno dele.** O
+estúdio é o prestador, o aluno é o tomador, e a 4YU não aparece no documento. Por
+isso a nota nunca vai ser uma chave da 4YU num emissor: é certificado digital,
+inscrição municipal, regime tributário, código de serviço e alíquota de ISS, tudo
+por conta, e o layout muda com a prefeitura de cada cidade.
+
 **Quem emite fica gravado, e por isso a emissão exige usuário.** "Quem imprimiu
 este recibo" é a primeira pergunta quando um valor não bate, e ela não tem
 resposta possível depois se ninguém a gravar no ato.

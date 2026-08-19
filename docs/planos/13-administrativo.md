@@ -179,6 +179,20 @@ quem é o código.
 hora, numeração nossa. A nota é da prefeitura, e cada cidade tem um padrão: a
 Verandi vai **pedir** a nota a um emissor, nunca falar com a prefeitura direto.
 
+**E quem emite a nota é o cliente, não a 4YU.** A NFS-e é do CNPJ do estúdio
+para o aluno: o estúdio é o prestador, o aluno é o tomador, e o serviço é a aula.
+A 4YU não aparece nesse documento em lugar nenhum. Escrever isto aqui não é
+preciosismo: a frase "a Verandi emite nota" faria alguém construir uma chave da
+4YU num emissor, e nota emitida com o CNPJ errado é problema fiscal do cliente,
+não defeito de software.
+
+**A consequência prática é que nota fiscal não é uma decisão, é uma
+configuração por cliente.** Cada conta que quiser emitir traz certificado
+digital A1, inscrição municipal, regime tributário, código de serviço e alíquota
+de ISS, e cada prefeitura tem o próprio layout, que é exatamente o motivo de
+existir intermediário. O trabalho não acaba quando a integração funcionar para o
+MGM: ele recomeça no segundo cliente, em outra cidade.
+
 **Recibo não se edita: corrige-se.** A correção cria versão nova e guarda a
 anterior, porque a via impressa continua existindo no mundo. Cancelar exige
 motivo, e o número fica cancelado e vazio: buraco na sequência é a primeira
