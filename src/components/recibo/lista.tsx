@@ -36,11 +36,13 @@ const ROTULO: Record<string, string> = {
  * alguém e é preciso poder explicá-la.
  */
 export function ListaDeRecibos({
-  linhas, envios = {},
+  linhas, envios = {}, emails = {},
 }: {
   linhas: ReciboLinha[]
   /** o último envio de cada recibo, por id: responde "já mandei isso?" */
   envios?: Record<string, { para: string; em: string }>
+  /** o e-mail da ficha de cada pagador, por id de pessoa */
+  emails?: Record<string, string>
 }) {
   const [modo, setModo] = useState<
     { tipo: 'cancelar' | 'corrigir'; r: ReciboLinha } | null
@@ -100,25 +102,25 @@ export function ListaDeRecibos({
           <span className="flex min-w-[210px] flex-1 flex-col">
             <Link
               href={`/recibos/${r.id}`}
-              className={`font-mono text-[13.5px] font-medium hover:underline ${
+              className={`font-mono text-[14.5px] font-medium hover:underline ${
                 r.status === 'cancelado' ? 'text-tinta-media line-through' : ''
               }`}
             >
               {descricaoDoRecibo(r)}
             </Link>
-            <span className="text-[12px] text-tinta-media">
+            <span className="text-[13px] text-tinta-media">
               {r.pessoaNome} · emitido em {dataCurta(r.emitidoEm.slice(0, 10))}
             </span>
           </span>
 
           {/* `tabular-nums` e largura mínima: coluna de dinheiro que dança
               horizontalmente não se soma de olho */}
-          <span className="min-w-[104px] text-right font-mono text-[13.5px] tabular-nums">
+          <span className="min-w-[104px] text-right font-mono text-[14.5px] tabular-nums">
             {emReais(r.valorCent)}
           </span>
 
           <span
-            className={`w-[92px] shrink-0 rounded-peca px-2.5 py-[5px] text-center text-[11.5px] font-medium ${TINTA[r.status]}`}
+            className={`w-[92px] shrink-0 rounded-peca px-2.5 py-[5px] text-center text-[12.5px] font-medium ${TINTA[r.status]}`}
           >
             {ROTULO[r.status]}
           </span>
@@ -126,7 +128,7 @@ export function ListaDeRecibos({
           <span className="flex w-[168px] shrink-0 justify-end gap-2">
             <Link
               href={`/recibos/${r.id}`}
-              className="inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[12.5px] text-tinta-media hover:bg-superficie-mais-suave"
+              className="inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
             >
               Ver e imprimir
             </Link>
@@ -160,19 +162,20 @@ export function ListaDeRecibos({
             <EnviarRecibo
               reciboId={r.id}
               numero={descricaoDoRecibo(r)}
-              paraSugerido={null}
+              pagadorNome={r.pessoaNome}
+              emailDaFicha={r.pessoaId ? emails[r.pessoaId] ?? null : null}
               botao="linha"
               jaEnviado={envios[r.id] ?? null}
             />
             {envios[r.id] ? (
-              <span className="text-[11.5px] text-tinta-media">
+              <span className="text-[12.5px] text-tinta-media">
                 enviado para {envios[r.id].para} em {envios[r.id].em}
               </span>
             ) : null}
           </span>
 
           {r.motivo ? (
-            <p className="w-full text-[11.5px] text-tinta-media">
+            <p className="w-full text-[12.5px] text-tinta-media">
               {r.status === 'cancelado' ? 'Cancelado: ' : 'Correção: '}{r.motivo}
             </p>
           ) : null}
@@ -281,7 +284,7 @@ function Miudo({
     <button
       type="button"
       {...resto}
-      className={`min-h-9 cursor-pointer rounded-peca border px-3 text-[12.5px] disabled:opacity-50 ${
+      className={`min-h-9 cursor-pointer rounded-peca border px-3 text-[13.5px] disabled:opacity-50 ${
         perigo
           ? 'border-alerta-linha bg-superficie text-alerta hover:bg-alerta-superficie'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'

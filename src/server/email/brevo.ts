@@ -24,6 +24,15 @@ export type Envio = {
   texto: string
   /** Para quem a resposta vai. No convite, quem convidou. */
   responderPara?: { email: string; nome?: string }
+  /**
+   * Cópias, à vista de quem recebe.
+   *
+   * `cc` e não `bcc`: quem paga tem o direito de saber que o comprovante dele
+   * também foi para o marido e para a contadora. Cópia oculta num documento
+   * financeiro é o tipo de coisa que ninguém pediu e que fica difícil de
+   * explicar depois.
+   */
+  copias?: string[]
 }
 
 /**
@@ -54,6 +63,7 @@ export async function envia(envio: Envio): Promise<boolean> {
       body: JSON.stringify({
         sender: { name: nomeDeRemetente(envio.de), email: REMETENTE },
         to: [{ email: envio.para }],
+        ...(envio.copias?.length ? { cc: envio.copias.map((email) => ({ email })) } : {}),
         ...(envio.responderPara ? { replyTo: envio.responderPara } : {}),
         subject: envio.assunto,
         htmlContent: envio.html,

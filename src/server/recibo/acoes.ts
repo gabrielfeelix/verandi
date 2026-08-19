@@ -308,17 +308,24 @@ export async function corrigirRecibo(
  * até a impressora. O corpo da mensagem **é** o recibo, e não um aviso com
  * link, porque o aluno não tem login neste produto.
  *
- * **Cada envio vira uma linha, e reenviar é normal.** "Eu nunca recebi" é a
- * frase que este registro responde, e ela chega meses depois. Sobrescrever uma
- * data no recibo apagaria justamente o histórico que a pergunta exige.
+ * **O destino não é uma pergunta.** O recibo é de quem pagou, e o e-mail de
+ * quem pagou está na ficha: perguntar "para onde?" a cada envio é pedir que a
+ * recepção digite de novo, toda vez, um dado que o sistema já tem — e digitar
+ * de novo é digitar errado uma hora. O que se acrescenta são **cópias**: o
+ * marido que cuida das contas, a empresa que reembolsa, a contadora.
  *
- * O endereço padrão é o da ficha, e quem envia pode trocar: o aluno dita outro
- * no balcão o tempo todo, e obrigar a editar o cadastro antes de mandar um
- * comprovante é atrito no lugar errado.
+ * Sem e-mail na ficha, o envio pede um e ele **entra na ficha**. Guardar só
+ * para este envio deixaria a próxima pessoa na mesma parede, e o endereço de
+ * quem paga é dado de cadastro, não de mensagem avulsa.
+ *
+ * **Cada destinatário vira uma linha** em `envio_de_recibo`. "Eu nunca
+ * recebi" é uma frase sobre um endereço, e um registro por envio não
+ * responderia qual dos três recebeu.
  */
 export async function enviarReciboPorEmail(
-  reciboId: string, paraOutro?: string | null,
-): Promise<Resultado<string>> {
+  reciboId: string,
+  opcoes: { copias?: string[]; emailDoPagador?: string | null } = {},
+): Promise<Resultado<{ para: string; copias: string[] }>> {
   try {
     const conta = await exigirCaixa()
     const db = await clienteServidor()
@@ -334,17 +341,28 @@ export async function enviarReciboPorEmail(
       }
     }
 
-    let para = paraOutro?.trim() ?? ''
-    if (!para && r.pessoa_id) {
-      const { data: p } = await db.from('pessoa')
-        .select('email').eq('id', r.pessoa_id).eq('conta_id', conta.contaId)
-        .maybeSingle()
-      para = p?.email?.trim() ?? ''
+    const para = await destinoDoRecibo(
+      db, conta.contaId, r.pessoa_id, opcoes.emailDoPagador,
+    )
+    if (!para.ok) return para
+
+    /*
+     * As cópias são limpas antes de sair: o que não é endereço some, o
+     * repetido some, e o que for igual ao destinatário some também — mandar
+     * para alguém em `to` e em `cc` entrega duas mensagens à mesma pessoa.
+     */
+    const copias: string[] = []
+    for (const bruto of opcoes.copias ?? []) {
+      const email = bruto.trim().toLowerCase()
+      if (!enderecoPlausivel(email)) continue
+      if (email === para.valor.toLowerCase()) continue
+      if (copias.includes(email)) continue
+      copias.push(email)
     }
-    if (!enderecoPlausivel(para)) {
+    if (copias.length > MAXIMO_DE_COPIAS) {
       return {
         ok: false,
-        erro: 'Escreva o e-mail de quem vai receber. A ficha desta pessoa está sem endereço.',
+        erro: `São no máximo ${MAXIMO_DE_COPIAS} cópias por envio. Acima disso o recibo vira lista de transmissão, e o provedor trata como tal.`,
       }
     }
 
@@ -352,7 +370,8 @@ export async function enviarReciboPorEmail(
     const cancelado = r.status === 'cancelado'
 
     const saiu = await envia({
-      para,
+      para: para.valor,
+      copias,
       de: corpo.emitenteNome,
       assunto: assuntoDoRecibo(r.serie, r.numero, corpo.emitenteNome),
       html: htmlDoRecibo(corpo, r.serie, r.numero, cancelado),
@@ -360,19 +379,29 @@ export async function enviarReciboPorEmail(
     })
 
     const { data: { user } } = await db.auth.getUser()
-    await db.from('envio_de_recibo').insert({
-      conta_id: conta.contaId,
-      recibo_id: reciboId,
-      para,
-      enviado_por_usuario_id: user?.id ?? null,
-      entregue: saiu,
-      erro: saiu ? null : 'o provedor de e-mail recusou o envio',
-    })
+    /*
+     * Uma linha por endereço, e todas com as mesmas chaves: o PostgREST monta
+     * o `insert` em lote com as colunas da primeira linha e manda `null`
+     * explícito nas outras.
+     */
+    await db.from('envio_de_recibo').insert(
+      [para.valor, ...copias].map((endereco) => ({
+        conta_id: conta.contaId,
+        recibo_id: reciboId,
+        para: endereco,
+        enviado_por_usuario_id: user?.id ?? null,
+        entregue: saiu,
+        erro: saiu ? null : 'o provedor de e-mail recusou o envio',
+      })),
+    )
 
     await registrar(db, {
       contaId: conta.contaId, entidade: 'envio_de_recibo', entidadeId: reciboId,
       acao: 'criou',
-      detalhe: { numero: numeroFormatado(r.serie, r.numero), para, entregue: saiu },
+      detalhe: {
+        numero: numeroFormatado(r.serie, r.numero),
+        para: para.valor, copias: copias.length, entregue: saiu,
+      },
     })
 
     revalidatePath('/recibos')
@@ -390,10 +419,56 @@ export async function enviarReciboPorEmail(
         erro: 'O e-mail não saiu. A tentativa ficou registrada; tente de novo em alguns minutos.',
       }
     }
-    return { ok: true, valor: para }
+    return { ok: true, valor: { para: para.valor, copias } }
   } catch (e) {
     return falha(e, 'Não foi possível enviar o recibo.')
   }
+}
+
+/** Acima disto o recibo vira lista de transmissão, e o provedor trata como tal. */
+const MAXIMO_DE_COPIAS = 5
+
+/**
+ * Para quem o recibo vai, que é quem pagou.
+ *
+ * Quando a ficha não tem e-mail, aceita um e **grava na ficha**: o endereço de
+ * quem paga é dado de cadastro, e guardá-lo só para este envio deixaria a
+ * próxima pessoa exatamente na mesma parede.
+ */
+async function destinoDoRecibo(
+  db: Awaited<ReturnType<typeof clienteServidor>>,
+  contaId: string, pessoaId: string | null, informado: string | null | undefined,
+): Promise<{ ok: true; valor: string } | { ok: false; erro: string }> {
+  if (!pessoaId) {
+    return {
+      ok: false,
+      erro: 'Este recibo não está ligado a ninguém no cadastro, e por isso não há para quem enviar.',
+    }
+  }
+
+  const { data: p } = await db.from('pessoa')
+    .select('nome, email').eq('id', pessoaId).eq('conta_id', contaId).maybeSingle()
+  if (!p) return { ok: false, erro: 'Esta pessoa não está mais no cadastro.' }
+
+  const daFicha = p.email?.trim()
+  if (daFicha) return { ok: true, valor: daFicha }
+
+  const novo = informado?.trim()
+  if (!novo) {
+    return {
+      ok: false,
+      erro: `A ficha de ${p.nome} está sem e-mail. Escreva o endereço aqui: ele fica salvo na ficha, e os próximos recibos já saem sozinhos.`,
+    }
+  }
+  if (!enderecoPlausivel(novo)) {
+    return { ok: false, erro: 'Confira o e-mail: falta a arroba ou o domínio.' }
+  }
+
+  const { error } = await db.from('pessoa')
+    .update({ email: novo }).eq('id', pessoaId).eq('conta_id', contaId)
+  if (error) throw error
+
+  return { ok: true, valor: novo }
 }
 
 /**

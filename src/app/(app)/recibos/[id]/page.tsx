@@ -50,7 +50,7 @@ export default async function Recibo({
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Recibo
           </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             duas vias na mesma folha: uma fica com quem pagou, a outra com o
             estúdio
           </p>
@@ -67,14 +67,15 @@ export default async function Recibo({
             <EnviarRecibo
               reciboId={recibo.id}
               numero={descricaoDoRecibo(recibo)}
-              paraSugerido={email}
+              pagadorNome={recibo.corpo.pagadorNome}
+              emailDaFicha={email}
               jaEnviado={enviado
                 ? { para: enviado.para, em: dataCurta(enviado.em.slice(0, 10)) }
                 : null}
             />
             <BotaoImprimir rotulo="Imprimir" />
           </div>
-          <p className="text-[11.5px] text-tinta-fraca">
+          <p className="text-[12.5px] text-tinta-fraca">
             para salvar em PDF, use Imprimir e escolha &quot;Salvar como PDF&quot;
           </p>
         </div>
@@ -91,7 +92,7 @@ export default async function Recibo({
       />
 
       {enviado ? (
-        <p data-imprimir="fora" className="text-[12px] text-tinta-media">
+        <p data-imprimir="fora" className="text-[13px] text-tinta-media">
           Enviado por e-mail para {enviado.para} em{' '}
           {dataCurta(enviado.em.slice(0, 10))}.
         </p>

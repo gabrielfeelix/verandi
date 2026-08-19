@@ -4,7 +4,7 @@ import { clienteServidor, exigirConta } from '@/server/conta'
 import { emitenteDaConta } from '@/server/config/consultas'
 import {
   listarRecibos, POR_PAGINA, resumoDosRecibos, TETO_DO_RESUMO_RECIBO,
-  ultimosEnvios, type FiltroRecibo,
+  emailsDosPagadores, ultimosEnvios, type FiltroRecibo,
 } from '@/server/recibo/consultas'
 import { dataCurta } from '@/core/agenda/datas'
 import { hojeEm } from '@/server/agenda/fuso'
@@ -66,7 +66,10 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
     emitenteDaConta(db, conta.contaId),
   ])
 
-  const envios = await ultimosEnvios(db, conta.contaId, linhas.map((l) => l.id))
+  const [envios, emails] = await Promise.all([
+    ultimosEnvios(db, conta.contaId, linhas.map((l) => l.id)),
+    emailsDosPagadores(db, conta.contaId, linhas.map((l) => l.pessoaId)),
+  ])
 
   const endereco = (n: number) => {
     const b = new URLSearchParams({ aba })
@@ -85,7 +88,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
             Recibos
           </h1>
-          <p className="pt-[3px] text-[13.5px] text-tinta-media">
+          <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {/* o singular carrega o particípio junto: "1 recibo emitidos" era
                 o que saía quando só o substantivo variava */}
             {total === 0
@@ -125,7 +128,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
                 key={a.id}
                 href={`/recibos?${b}`}
                 aria-current={ligado ? 'page' : undefined}
-                className={`inline-flex min-h-10 items-center rounded-padrao px-3.5 text-[13px] whitespace-nowrap ${
+                className={`inline-flex min-h-10 items-center rounded-padrao px-3.5 text-[14px] whitespace-nowrap ${
                   ligado
                     ? 'bg-escuro text-tinta-clara'
                     : 'text-tinta-media hover:bg-superficie-mais-suave'
@@ -180,6 +183,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
             envios={Object.fromEntries([...envios].map(([id, e]) => [
               id, { para: e.para, em: dataCurta(e.em.slice(0, 10)) },
             ]))}
+            emails={Object.fromEntries(emails)}
           />
           {total > POR_PAGINA ? (
             <Paginacao

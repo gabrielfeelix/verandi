@@ -328,3 +328,35 @@ export async function ultimosEnvios(
   }
   return mapa
 }
+
+
+/**
+ * O e-mail da ficha de cada pagador, para a lista de recibos.
+ *
+ * O destino do envio é quem pagou, e a lista precisa saber disso antes de
+ * abrir o modal: um modal que abre perguntando "para onde?" é o modal que pede
+ * à recepção que digite de novo, toda vez, um dado que o sistema já tem.
+ *
+ * Uma consulta só para a página inteira. Não vem por junção no `select` do
+ * recibo de propósito: o nome no papel sai do `corpo` congelado, e uma junção
+ * com `pessoa` traria "Pessoa removida" para quem pediu exclusão, que é
+ * exatamente o que este módulo evita.
+ */
+export async function emailsDosPagadores(
+  db: Db, contaId: string, pessoaIds: Array<string | null>,
+): Promise<Map<string, string>> {
+  const ids = [...new Set(pessoaIds.filter((x): x is string => !!x))]
+  if (!ids.length) return new Map()
+
+  const { data, error } = await db.from('pessoa')
+    .select('id, email').eq('conta_id', contaId).in('id', ids)
+    .returns<Array<{ id: string; email: string | null }>>()
+  if (error) throw error
+
+  const mapa = new Map<string, string>()
+  for (const p of data ?? []) {
+    const email = p.email?.trim()
+    if (email) mapa.set(p.id, email)
+  }
+  return mapa
+}
