@@ -24,23 +24,24 @@ a cada push na `main`.
 | | | |
 |---|---|---|
 | Contas de cliente em produção | **1** (MGM Pilates) | conferido 18/08 |
-| Migrations aplicadas | **27**, da `0030` à `0056` | aplicadas e conferidas em 18/08 |
-| Tabelas em `app_verandi` | **38**, todas com RLS | conferido em produção 18/08 |
+| Migrations aplicadas | **28**, da `0030` à `0057` | aplicadas e conferidas em 18/08 |
+| Tabelas em `app_verandi` | **40**, todas com RLS | conferido em produção 18/08 |
 | Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção 18/08 |
 | Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | **494** de unidade e banco · **200** de navegador | as duas suítes verdes em 18/08, depois do módulo 17 |
+| Testes | **526** de unidade e banco · **208** de navegador | as duas suítes verdes em 18/08, depois do módulo 18 |
 | API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
 
-> **PEGUE POR AQUI: o documento do cliente voltou, e ele já corrigiu o módulo
-> 17.** `SISTEMA ADMINISTRATIVO PARA STUDIO MGM PILATES.docx` está na raiz de
-> novo (fora do git). Os sete relatórios do item 4 tinham sido reconstruídos de
-> memória, e **cinco dos sete estavam errados**: o que ele pede é faturado por
-> dia/semana/mês/ano, faturamento por plano e modalidade, recibos emitidos e
-> cancelados, estornos, clientes ativos, clientes inativos e novos clientes no
-> mês. Seis já estão no ar; o de recibos chega com o módulo 18.
+> **PEGUE POR AQUI: o emitente do recibo está vazio, e é dado do Gabriel.**
+> Enquanto `razao_social` e `documento` da conta estiverem em branco, a recepção
+> clica em "emitir recibo" e leva uma recusa. A tela existe e diz onde
+> preencher, em Configuração, Recibo, mas os dados são da empresa e ninguém
+> além dele pode digitá-los. É a mesma lista de
+> [`juridico/README.md`](juridico/README.md), que também espera razão social e
+> CNPJ desde 15/08.
 >
-> **A lição, para o próximo módulo:** nenhum teste pegaria aquilo, porque todas
-> as somas estavam certas. O que faltava não era código, era o documento.
+> **A política de privacidade subiu para a versão 1.1**, e isso faz o aceite ser
+> pedido de novo a quem já aceitou. É o comportamento certo, e é bom saber antes
+> de alguém estranhar.
 
 **O produto opera.** Uma conta nasce vazia, se configura inteira pela tela,
 monta a grade, registra chamada, controla reposição, manda convite e senha por
@@ -55,21 +56,21 @@ funcionalidade. Está na seção seguinte, em ordem.
 
 ## Comece por aqui
 
-**Os módulos 15, 16 e 17 do administrativo estão no ar desde 18/08**, com as
-migrations `0054`, `0055` e `0056` aplicadas em produção e conferidas fora do
-console: as cinco tabelas novas (`plano`, `contrato`, `pausa`, `cobranca`,
-`pagamento`) nasceram com RLS e uma política cada, a view `cobranca_resumo` está
-com `security_invoker`, e `public` continua intacto com as 22 do AutoFluxos.
+**Os módulos 15, 16, 17 e 18 do administrativo estão no ar desde 18/08**, com as
+migrations `0054` a `0057` aplicadas em produção e conferidas fora do console:
+as sete tabelas novas (`plano`, `contrato`, `pausa`, `cobranca`, `pagamento`,
+`recibo`, `contador_recibo`) nasceram com RLS e uma política cada, a view
+`cobranca_resumo` está com `security_invoker`, a função que aloca número de
+recibo está `security definer`, e `public` continua intacto com as 22 do
+AutoFluxos.
 
-**A suíte inteira rodou depois do 17**, e é o que fecha a pendência que o
-HANDOFF anterior deixou aberta: 494 de unidade e banco, 200 de navegador.
+**A suíte inteira rodou depois do 18**: 526 de unidade e banco, 208 de navegador.
 
-**O próximo módulo é o 18, o recibo**, e o plano dele está em
-[`planos/18-recibo.md`](planos/18-recibo.md), revisto contra o documento:
-numeração sem buraco alocada no banco, corpo congelado, correção por versão,
-cancelamento com motivo, os dados do emitente na Configuração, e as duas tarefas
-de LGPD que já estão decididas (o recibo sobrevive à anonimização por cinco
-anos, e a política precisa dizer isso, o que sobe a versão dela).
+**O próximo módulo é o 19, aulas por professor**, que é o item 7 do documento e o
+último dos nove pedidos que ainda não existe. O documento pede pouco e pede
+claro: "planilha de controle de quantidade de aulas aplicadas pelo professor por
+dia/semana/mês". O plano dele ainda não está escrito, e a regra da casa é que ele
+seja escrito quando chegar a vez, não antes.
 
 **As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
 tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do
@@ -312,7 +313,7 @@ está anotada no plano 12.
   Nove tokens de cor e umas vinte frases mudaram em 14/08, a suíte passou
   inteira, e ele avisa se algo ficar estranho.
 
-### 8. O financeiro está no ar, e três coisas ficaram anotadas
+### 8. O financeiro e o recibo estão no ar, e quatro coisas ficaram anotadas
 
 Nenhuma delas impede vender, e as três estão no
 [`planos/17-financeiro.md`](planos/17-financeiro.md):
@@ -326,6 +327,9 @@ Nenhuma delas impede vender, e as três estão no
   digitar as matrículas em curso, a cobrança começa no mês do cadastro. O que
   ficou para trás é conversa do estúdio com o aluno, fora do sistema, e quem
   fizer a migração dos dados precisa avisar isso ao cliente.
+- **O recibo não é nota fiscal, e a folha diz isso.** A nota depende de decisão
+  comercial sobre qual emissor, que continua sem ser tomada. Enquanto isso, o
+  estúdio emite a nota como sempre emitiu.
 
 ### 9. Higiene que pode esperar
 

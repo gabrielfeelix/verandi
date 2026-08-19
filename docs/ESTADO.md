@@ -12,7 +12,7 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 18/ago/2026 (quarta passagem: o financeiro, módulo 17, no ar) · **A Verandi está no ar em
+**Última atualização:** 18/ago/2026 (quinta passagem: o recibo, módulo 18, no ar) · **A Verandi está no ar em
 `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
 verdade, onboarding, a porta do bot aberta e o acompanhamento por foto.**
 
@@ -274,6 +274,44 @@ cartão da carteira, porque a planilha do item 4 os pressupõe.
 **A lição vale mais que o módulo:** nenhum teste pegaria aquilo. Todas as somas
 estavam certas, e o que faltava não era código, era o documento.
 
+## O módulo 18, o recibo, no ar em 18/08
+
+Migration `0057`: `recibo`, `contador_recibo`, os cinco campos do emitente em
+`conta` e a função que aloca o número. A tela é `/recibos`, a emissão nasce da
+linha do pagamento no Financeiro, e a folha sai em duas vias com linha de corte.
+
+**O número sai do banco, e não do aplicativo.** `select max(numero) + 1` entrega
+o mesmo número a dois balcões que clicam ao mesmo tempo, e o defeito só aparece
+quando os dois papéis já estão na mão de duas pessoas. A função trava a linha do
+contador; o teste dispara dez pedidos juntos e exige dez números distintos e sem
+buraco. Contador em tabela, e não `sequence`: `sequence` é global ao schema e
+não sabe de conta.
+
+**A numeração não pula, e é por isso que cancelar não apaga.** O número
+cancelado continua ocupado e listado com o motivo, e a correção cria versão nova
+do mesmo número em vez de queimar outro. Buraco na sequência é a primeira coisa
+que uma fiscalização pergunta.
+
+**O corpo é congelado.** Nome, documento, matrícula, endereço, o que foi pago, o
+valor por extenso e quem emitiu entram no `jsonb` no ato. A segunda via de um
+recibo de dois anos atrás sai igual ao papel que está na pasta, mesmo depois de
+a pessoa mudar de endereço, de o plano mudar de preço e de o cadastro dela ser
+apagado.
+
+**O recibo é a única exceção à anonimização**, decidida em 18/08 e agora escrita
+em três lugares: no código, no teste e na política de privacidade, que subiu para
+a versão 1.1 e passou a dizer o prazo de cinco anos e a listar CPF, endereço e a
+relação comercial. Subir a versão faz o aceite ser pedido de novo, que é o ponto
+de guardar a versão aceita.
+
+**O sétimo relatório do item 4 entrou junto**, e a lista dos sete está completa.
+
+**Dois defeitos de fuso apareceram rodando a suíte inteira às 21h**, e nenhum
+deles apareceria de tarde: o fechamento montava a janela do período com
+`T00:00:00Z`, que é meia-noite em Londres, e cortava as três últimas horas do dia
+brasileiro. Recibo emitido às 21h30 sumia do fechamento de hoje. É a armadilha de
+UTC que o `core/` documenta desde o começo, chegando por uma porta nova.
+
 ## O próximo passo, em ordem
 
 **O produto opera; o negócio não está pronto para vender.** A lista completa,
@@ -410,12 +448,12 @@ mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
 | contas de cliente | **1** (MGM Pilates) |
 | `https://verandi.4yu.com.br` | raiz responde 307 para `/entrar`, que responde 200; `/termos` 200 |
 
-**Rodando a suíte, em 18/08, depois do módulo 17:**
+**Rodando a suíte, em 18/08, depois do módulo 18:**
 
 | O quê | Resultado |
 |---|---|
-| `npm test` | **494 passaram** |
-| `npm run test:e2e` | **200 passaram**, em 5,3 minutos |
+| `npm test` | **526 passaram** |
+| `npm run test:e2e` | **208 passaram**, em 5,6 minutos |
 | `npm run build` | passou |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
 | `tsc --noEmit` | passou |

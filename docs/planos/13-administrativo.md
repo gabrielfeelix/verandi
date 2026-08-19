@@ -20,18 +20,25 @@ um sistema que já mudou, e foi o que a Tarefa 10 do plano 03 ensinou.
 
 | # | O documento pede | Estado | Onde |
 |---|---|---|---|
-| 1 | Cadastro de matrícula, com foto | **parte feito** | ficha existe com foto; faltam CPF, endereço e os demais campos do papel |
-| 2 | Planos e valores, com código | **nasce** | módulo 15 |
-| 3 | Turmas e horários | **feito** | grade fixa; falta o número da turma |
-| 4 | Controle financeiro, com sete relatórios | **nasce** | módulo 17 |
+| 1 | Cadastro de matrícula, com foto | **feito** | módulo 16, com CPF, endereço e os campos do papel |
+| 2 | Planos e valores, com código | **feito** | módulo 15, no ar em 18/08 |
+| 3 | Turmas e horários | **feito** | grade fixa, com o número da turma desde a `0054` |
+| 4 | Controle financeiro, com sete relatórios | **feito** | módulos 17 e 18, no ar em 18/08 |
 | 5 | Presenças e reposição | **feito** | desde o plano 02 |
 | 6 | Cadastro de professores, com foto | **feito** | desde a `0038` |
 | 7 | Aulas por professor | **nasce** | módulo 19 |
-| 8 | Emissão de recibo | **nasce** | módulo 18 |
+| 8 | Emissão de recibo | **feito** | módulo 18, no ar em 18/08 |
 | 9 | Avaliação postural com fotos | **feito** | plano 14, no ar em 18/08 |
 
-Quatro dos nove já estão de pé. O que falta é a espinha comercial: quanto custa,
-quem contratou, quem pagou, e o papel que comprova.
+**Oito dos nove estão de pé desde 18/08.** Falta o item 7, aulas por professor,
+que é o módulo 19. A espinha comercial inteira nasceu num dia: quanto custa,
+quem contratou, quem pagou e o papel que comprova.
+
+Uma leitura que só o documento deu, e vale escrever: o item 9 termina com "as
+imagens deverão ser grandes (permitir ampliar)". O comparador do módulo 14 abre
+as fotos lado a lado com linha de prumo; **ninguém conferiu se dá para ampliar
+uma delas**. Quem for mexer no 19 olha isso antes, porque é uma frase pedida por
+escrito e não custa nada.
 
 **Nada disso vira coluna do MGM.** Os quinze planos de pilates, os vinte e sete
 de terapia, as setenta turmas e as seis posições da avaliação são linhas que a
@@ -127,10 +134,11 @@ Financeiro e Recibos são trabalho de quem está sentado na recepção.
 3. **16, matrícula e contrato.** A ficha ampliada, o contrato, as vagas que
    nascem dele, e o que o documento chama de licença e prorrogação. É aqui que
    "gerir contrato" começa a ser verdade.
-4. **17, financeiro.** Cobrança, registro de pagamento e os sete relatórios do
-   item 4. A tela abre no que precisa de decisão, não no extrato do mês.
-5. **18, recibo.** Numeração, arquivo, cancelamento e correção, como o item 8
-   pede com essas palavras.
+4. **17, financeiro.** ✔ feito em 18/08. Cobrança materializada do contrato,
+   pagamento com estorno, e seis dos sete relatórios do item 4.
+5. **18, recibo.** ✔ feito em 18/08. Numeração alocada no banco, arquivo com
+   busca, cancelamento com motivo e correção por versão, como o item 8 pede com
+   essas palavras. O sétimo relatório entrou junto.
 6. **19, aulas por professor.** O item 7: quantas aulas cada um aplicou por dia,
    semana e mês, com o feriado explicado, porque número que acusa a pessoa
    errada é pior que número nenhum.
