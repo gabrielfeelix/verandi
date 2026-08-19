@@ -198,7 +198,7 @@ test('cancelar pede motivo, e a cobrança continua listada com ele', async ({ pa
   await page.getByRole('button', { name: /Mais sobre a cobrança/ }).first().click()
   await page.getByRole('menuitem', { name: 'Cancelar a cobrança' }).click()
   await page.getByLabel('Motivo').fill('cortesia combinada com a dona')
-  await page.getByRole('button', { name: 'Cancelar cobrança' }).click()
+  await page.getByRole('button', { name: 'Confirmar cancelamento' }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await page.goto('/financeiro?aba=canceladas')

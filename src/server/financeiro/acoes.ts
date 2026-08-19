@@ -6,6 +6,7 @@ import { registrar } from '../log'
 import { hojeEm } from '../agenda/fuso'
 import { materializarCobrancas } from './materializar'
 import type { Forma } from '@/core/financeiro/fechamento'
+import { MAXIMO_MESES_ANTECIPADOS } from '@/core/financeiro/cobranca'
 
 /**
  * O dinheiro que entra, e a cobrança que o espera.
@@ -49,6 +50,75 @@ export async function materializarAgora(): Promise<Resultado<number>> {
     return { ok: true, valor: criadas }
   } catch (e) {
     return falha(e, 'Não foi possível atualizar as cobranças.')
+  }
+}
+
+/**
+ * Abrir as cobranças dos próximos meses de um contrato, para receber adiantado.
+ *
+ * O sistema materializa até o mês que vem, e isso está certo para a tela: uma
+ * agenda que já nasce com doze meses de dívida aberta transforma "a vencer"
+ * numa lista que ninguém lê. Mas a aluna que chega em agosto querendo pagar
+ * até dezembro não tinha o que pagar: as cobranças de outubro em diante não
+ * existiam, e a recepção só conseguia receber dois meses.
+ *
+ * Então a antecipação é **um pedido, e não uma configuração**: quem está no
+ * balcão diz quantos meses, as cobranças daquele contrato nascem com o
+ * vencimento que o contrato manda, e o pagamento entra em cada uma. O
+ * histórico continua honesto, porque cada mês pago tem a cobrança dele, com a
+ * competência dele, e o fechamento de dezembro não vai achar que dezembro foi
+ * faturado em agosto.
+ *
+ * Não inventa mês além do contrato: `cobrancasPrevistas` já para no fim dele e
+ * pula o que estiver trancado, então pedir doze meses num plano trimestral
+ * abre três e para.
+ */
+export async function anteciparCobrancas(
+  contratoId: string, meses: number,
+): Promise<Resultado<number>> {
+  try {
+    const conta = await exigirCaixa()
+    const db = await clienteServidor()
+
+    if (!Number.isInteger(meses) || meses < 1) {
+      return { ok: false, erro: 'Diga quantos meses quer abrir, a partir de um.' }
+    }
+    if (meses > MAXIMO_MESES_ANTECIPADOS) {
+      return {
+        ok: false,
+        erro: `São no máximo ${MAXIMO_MESES_ANTECIPADOS} meses de uma vez. Além disso o contrato provavelmente já mudou de preço.`,
+      }
+    }
+
+    const { data: c } = await db.from('contrato')
+      .select('id, pessoa_id, status').eq('id', contratoId)
+      .eq('conta_id', conta.contaId).maybeSingle()
+    if (!c) return { ok: false, erro: 'Este contrato não existe mais.' }
+    if (c.status === 'encerrado') {
+      return { ok: false, erro: 'Este contrato foi encerrado, e não há mês novo para abrir.' }
+    }
+    if (c.status === 'trancado') {
+      return {
+        ok: false,
+        erro: 'Este contrato está trancado. Retome antes de abrir os próximos meses, senão eles nasceriam já cancelados.',
+      }
+    }
+
+    const criadas = await materializarCobrancas(
+      db, conta.contaId, hojeEm(conta.fuso), contratoId, meses,
+    )
+
+    await registrar(db, {
+      contaId: conta.contaId, entidade: 'contrato', entidadeId: contratoId,
+      acao: 'editou',
+      detalhe: { antecipou: meses, cobrancasAbertas: criadas },
+    })
+
+    revalidatePath('/financeiro')
+    revalidatePath(`/pessoas/${c.pessoa_id}`)
+    return { ok: true, valor: criadas }
+  } catch (e) {
+    return falha(e, 'Não foi possível abrir os próximos meses.')
   }
 }
 

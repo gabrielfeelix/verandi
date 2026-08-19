@@ -12,6 +12,8 @@ import { useAviso } from '@/components/ui/desfazer'
 import {
   criarContrato, trancarContrato, retomarContrato, encerrarContrato,
 } from '@/server/contratos/acoes'
+import { anteciparCobrancas } from '@/server/financeiro/acoes'
+import { MAXIMO_MESES_ANTECIPADOS } from '@/core/financeiro/cobranca'
 import type { ContratoLinha } from '@/server/contratos/consultas'
 import type { PlanoLinha } from '@/server/planos/consultas'
 import { comoCobra, emReais } from '@/core/planos/plano'
@@ -259,7 +261,10 @@ export function ContratosDaFicha({
   pessoaNome: string
 }) {
   const [modo, setModo] = useState<
-    { tipo: 'trancar' | 'retomar' | 'encerrar'; contrato: ContratoLinha } | null
+    {
+      tipo: 'trancar' | 'retomar' | 'encerrar' | 'antecipar'
+      contrato: ContratoLinha
+    } | null
   >(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, comecar] = useTransition()
@@ -355,6 +360,17 @@ export function ContratosDaFicha({
                   Retomar
                 </BotaoMiudo>
               )}
+              {/*
+                * O sistema abre as cobranças até o mês que vem, e é isso que
+                * mantém "a vencer" legível. Quem chega querendo pagar até
+                * dezembro pede aqui, e as cobranças nascem na hora, cada uma
+                * com a competência dela.
+                */}
+              {c.status === 'ativo' ? (
+                <BotaoMiudo onClick={() => setModo({ tipo: 'antecipar', contrato: c })}>
+                  Receber adiantado
+                </BotaoMiudo>
+              ) : null}
               <BotaoMiudo
                 perigo
                 onClick={() => setModo({ tipo: 'encerrar', contrato: c })}
@@ -369,21 +385,39 @@ export function ContratosDaFicha({
       {modo ? (
         <ModalFormulario
           aberto
-          glifo={modo.tipo === 'encerrar' ? '⨯' : '⏸'}
-          tom={modo.tipo === 'encerrar' ? 'alerta' : 'neutro'}
+          glifo={
+            modo.tipo === 'encerrar' ? '⨯'
+              : modo.tipo === 'antecipar' ? 'R$' : '⏸'
+          }
+          tom={
+            modo.tipo === 'encerrar' ? 'alerta'
+              : modo.tipo === 'antecipar' ? 'positivo' : 'neutro'
+          }
           titulo={
             modo.tipo === 'trancar' ? 'Trancar o contrato'
               : modo.tipo === 'retomar' ? 'Retomar o contrato'
+              : modo.tipo === 'antecipar' ? 'Receber adiantado'
               : 'Encerrar o contrato'
           }
           sub={modo.contrato.planoNome}
           primario={
             modo.tipo === 'trancar' ? 'Trancar'
-              : modo.tipo === 'retomar' ? 'Retomar' : 'Encerrar'
+              : modo.tipo === 'retomar' ? 'Retomar'
+              : modo.tipo === 'antecipar' ? 'Abrir os meses' : 'Encerrar'
           }
           pendente={pendente}
           aoFechar={() => { setModo(null); setErro(null) }}
           aoEnviar={(f) => {
+            if (modo.tipo === 'antecipar') {
+              const meses = Number(String(f.get('meses') ?? '').replace(/\D/g, ''))
+              if (!meses) {
+                return setErro('Escreva quantos meses quer abrir, a partir de um.')
+              }
+              return agir(
+                () => anteciparCobrancas(modo.contrato.id, meses),
+                'Meses abertos para receber',
+              )
+            }
             const data = String(f.get('data') ?? hoje)
             if (modo.tipo === 'trancar') {
               agir(() => trancarContrato(modo.contrato.id, data,
@@ -395,6 +429,27 @@ export function ContratosDaFicha({
             }
           }}
         >
+          {modo.tipo === 'antecipar' ? (
+            <>
+              <Campo
+                rotulo="Quantos meses abrir"
+                htmlFor="ct-meses"
+                dica={`a partir deste mês, até ${MAXIMO_MESES_ANTECIPADOS}`}
+                obrigatorio
+              >
+                <input
+                  id="ct-meses" name="meses" inputMode="numeric" pattern="[0-9]*"
+                  defaultValue="3" maxLength={2} className={entrada}
+                />
+              </Campo>
+              <Nota tom="neutro">
+                As cobranças nascem uma por mês, com o vencimento que o contrato
+                manda, e cada uma se recebe na lista do Financeiro. Cada mês
+                pago fica com a competência dele: o fechamento de dezembro não
+                vai achar que dezembro foi faturado hoje.
+              </Nota>
+            </>
+          ) : (
           <Campo
             rotulo={
               modo.tipo === 'trancar' ? 'Para de vir em'
@@ -405,6 +460,7 @@ export function ContratosDaFicha({
           >
             <CampoData id="ct-data" nome="data" valorInicial={hoje} limpavel={false} />
           </Campo>
+          )}
 
           {modo.tipo === 'trancar' ? (
             <>

@@ -31,8 +31,18 @@ export async function materializarCobrancas(
   db: Db, contaId: string, hoje: string,
   /** quando dado, só este contrato; é o caminho de logo depois de matricular */
   contratoId?: string,
+  /**
+   * Quantos meses à frente do atual materializar. Um é o padrão e é o que a
+   * abertura de tela usa; mais que isso é decisão de quem está no balcão com
+   * alguém pagando adiantado, e por isso chega por parâmetro em vez de virar
+   * regra da casa. Ver `anteciparCobrancas`.
+   */
+  mesesAdiante = 1,
 ): Promise<number> {
-  const horizonte = proximaCompetencia(competenciaDe(hoje))
+  let horizonte = competenciaDe(hoje)
+  for (let i = 0; i < Math.max(1, mesesAdiante); i++) {
+    horizonte = proximaCompetencia(horizonte)
+  }
 
   let q = db.from('contrato')
     .select(`id, pessoa_id, inicio, fim, status, dia_vencimento, criado_em,

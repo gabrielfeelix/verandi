@@ -21,6 +21,18 @@ const DIA = 86_400_000
 export const competenciaDe = (iso: string): string => `${iso.slice(0, 7)}-01`
 
 /** A competência seguinte, sem escorregar de dezembro para o mês 13. */
+/**
+ * Até onde a antecipação pode ir, em meses.
+ *
+ * Doze porque é o horizonte em que o preço do contrato ainda é o preço: além
+ * disso a tabela do estúdio já mudou, e cobranças abertas com o valor velho
+ * viram uma discussão de balcão que ninguém tem como ganhar.
+ *
+ * Mora aqui, e não em `acoes.ts`, porque um arquivo `'use server'` só pode
+ * exportar função async, e o formulário precisa do número para escrever a dica.
+ */
+export const MAXIMO_MESES_ANTECIPADOS = 12
+
 export function proximaCompetencia(competencia: string): string {
   const d = paraData(competencia)
   return paraIso(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)))

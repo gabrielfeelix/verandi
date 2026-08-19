@@ -295,6 +295,9 @@ export function ListaDeCobrancas({
         </ModalFormulario>
       ) : null}
 
+      {/* o botão de fechar não se chama "Cancelar" aqui: dois botões lado a
+          lado com a mesma palavra, um para desistir e o outro para executar, é
+          a hora errada de ela ter dois sentidos */}
       {modo?.tipo === 'cancelar' ? (
         <ModalFormulario
           aberto
@@ -302,7 +305,8 @@ export function ListaDeCobrancas({
           tom="alerta"
           titulo="Cancelar a cobrança"
           sub={`${modo.c.pessoaNome} · ${competenciaCurta(modo.c.competencia)}`}
-          primario="Cancelar cobrança"
+          primario="Confirmar cancelamento"
+          secundario="Voltar"
           perigo
           pendente={pendente}
           aoFechar={() => { setModo(null); setErro(null) }}

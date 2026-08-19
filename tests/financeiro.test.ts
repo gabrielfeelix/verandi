@@ -214,6 +214,50 @@ describe('a materialização das cobranças', () => {
     expect(await materializarCobrancas(db, contaId, '2026-03-12')).toBe(0)
   })
 
+  /*
+   * A aluna que chega querendo pagar até dezembro não tinha o que pagar: as
+   * cobranças de dois meses à frente não existiam, e a recepção só conseguia
+   * receber o mês corrente e o seguinte. Abrir mais é um pedido, e não uma
+   * mudança de regra: o padrão continua sendo um mês.
+   */
+  it('antecipar abre os meses pedidos, e só do contrato pedido', async () => {
+    const { materializarCobrancas } = await import('../src/server/financeiro/materializar')
+
+    const { data: ct } = await db.from('contrato').insert({
+      conta_id: contaId, pessoa_id: pessoaId, plano_id: planoId,
+      inicio: '2026-03-01', dia_vencimento: 10, preco_aplicado_cent: 45000,
+      criado_em: '2026-03-01T09:00:00Z',
+    }).select().single()
+
+    await materializarCobrancas(db, contaId, '2026-03-12', ct!.id, 5)
+
+    const { data } = await db.from('cobranca').select('competencia, vencimento')
+      .eq('contrato_id', ct!.id).order('competencia')
+    expect(data!.map((c) => c.competencia)).toEqual([
+      '2026-03-01', '2026-04-01', '2026-05-01',
+      '2026-06-01', '2026-07-01', '2026-08-01',
+    ])
+    // o vencimento continua sendo o que o contrato manda, e não a data de hoje
+    expect(data![1].vencimento).toBe('2026-04-10')
+
+    // o contrato do vizinho não ganhou mês nenhum
+    const { data: outro } = await db.from('cobranca').select('competencia')
+      .eq('contrato_id', contratoId).order('competencia', { ascending: false })
+    expect(outro![0].competencia).toBe('2026-04-01')
+  })
+
+  it('antecipar duas vezes não cria a mesma competência de novo', async () => {
+    const { materializarCobrancas } = await import('../src/server/financeiro/materializar')
+    const { data: ct } = await db.from('contrato').insert({
+      conta_id: contaId, pessoa_id: pessoaId, plano_id: planoId,
+      inicio: '2026-03-01', dia_vencimento: 10, preco_aplicado_cent: 45000,
+      criado_em: '2026-03-01T09:00:00Z',
+    }).select().single()
+
+    expect(await materializarCobrancas(db, contaId, '2026-03-12', ct!.id, 3)).toBe(4)
+    expect(await materializarCobrancas(db, contaId, '2026-03-12', ct!.id, 3)).toBe(0)
+  })
+
   it('trancar cancela o mês que já tinha nascido à frente, e retomar reabre', async () => {
     const { sincronizarCobrancas } = await import('../src/server/financeiro/materializar')
 
