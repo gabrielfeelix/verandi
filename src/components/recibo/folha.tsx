@@ -1,8 +1,9 @@
 import { emReais } from '@/core/planos/plano'
 import {
-  documentoFormatado, numeroFormatado, type CorpoDoRecibo,
+  dataPorExtenso, documentoFormatado, localDeEmissao, numeroFormatado,
+  quemEmitiu, type CorpoDoRecibo,
 } from '@/core/recibo/recibo'
-import { dataCurta } from '@/core/agenda/datas'
+import { exibirTelefone } from '@/core/telefone'
 
 /**
  * A folha do recibo, em duas vias.
@@ -13,6 +14,14 @@ import { dataCurta } from '@/core/agenda/datas'
  *
  * Duas vias na mesma folha, com a linha de corte no meio, porque é assim que o
  * talão funciona: uma fica com quem pagou e a outra com o estúdio.
+ *
+ * **O desenho é o do talão de papel, e não é enfeite.** Um recibo brasileiro é
+ * reconhecido por cinco coisas, e todas as cinco estavam faltando ou escondidas
+ * aqui: a palavra RECIBO em destaque, o valor em algarismos numa caixa que se
+ * acha de longe, o mesmo valor por extenso, o local e a data de emissão, e a
+ * linha de assinatura com o nome de quem recebeu embaixo. O corpo em parágrafo
+ * continua, porque é ele que diz de quem, quanto e referente a quê numa frase
+ * só; o que mudou é que ele deixou de ser a única coisa na folha.
  */
 export function FolhaDoRecibo({
   serie, numero, versao, status, corpo, motivo,
@@ -25,20 +34,22 @@ export function FolhaDoRecibo({
   motivo: string | null
 }) {
   return (
-    <div data-folha className="flex flex-col gap-6">
+    <div data-folha className="flex flex-col gap-5">
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
-        corpo={corpo} motivo={motivo} via="via de quem pagou"
+        corpo={corpo} motivo={motivo} via="1ª via · de quem pagou"
       />
       <div
         aria-hidden
-        className="border-t border-dashed border-linha-tracejada text-center text-[10px] text-tinta-fraca"
+        className="relative border-t border-dashed border-linha-tracejada"
       >
-        corte aqui
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-fundo px-2 text-[10px] tracking-[.14em] text-tinta-fraca uppercase">
+          corte aqui
+        </span>
       </div>
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
-        corpo={corpo} motivo={motivo} via="via do estúdio"
+        corpo={corpo} motivo={motivo} via="2ª via · do estúdio"
       />
     </div>
   )
@@ -55,70 +66,127 @@ function Via({
   motivo: string | null
   via: string
 }) {
+  const local = localDeEmissao(corpo.emitenteEndereco)
+  const emitiu = quemEmitiu(corpo.emitidoPor)
+  const documentoEmitente = documentoFormatado(corpo.emitenteDocumento)
+
   return (
     <article
       data-via
-      className="relative rounded-cartao border border-linha bg-superficie p-6"
+      className="relative overflow-hidden rounded-cartao border border-linha bg-superficie px-7 py-6"
     >
       {/*
         * O carimbo de cancelado atravessa a folha. Um recibo cancelado
         * impresso e confundido com um válido é o defeito mais caro que esta
         * tela permite, e etiqueta discreta no canto não impede isso.
+        *
+        * A rotação mora numa camada interna, e não no elemento que ocupa a
+        * folha: girar o próprio elemento posicionado empurrava o texto para
+        * fora do cartão à direita, e o carimbo saía cortado justamente na
+        * ponta em que se lê a palavra.
         */}
       {status !== 'valido' ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 flex items-center justify-center text-[54px] font-bold tracking-[.1em] text-alerta opacity-20"
-          style={{ transform: 'rotate(-14deg)' }}
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
         >
-          {status === 'cancelado' ? 'CANCELADO' : 'SUBSTITUÍDO'}
+          <span
+            className="text-[clamp(38px,9vw,72px)] font-bold tracking-[.14em] whitespace-nowrap text-alerta opacity-[.16]"
+            style={{ transform: 'rotate(-14deg)' }}
+          >
+            {status === 'cancelado' ? 'CANCELADO' : 'SUBSTITUÍDO'}
+          </span>
         </span>
       ) : null}
 
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-linha-fina pb-4">
-        <div>
-          <h2 className="font-titulo text-[19px] font-semibold">
+      {/* o emitente e o valor dividem o topo: quem emitiu à esquerda, quanto
+          entrou à direita, que são as duas perguntas que se faz olhando de
+          longe uma pilha de recibos na mesa */}
+      <header className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+        <div className="min-w-[220px] flex-1">
+          <h2 className="font-titulo text-[17px] leading-[1.2] font-semibold">
             {corpo.emitenteNome}
           </h2>
-          <p className="text-[12px] text-tinta-media">
-            {corpo.emitenteDocumento
-              ? `CNPJ/CPF ${documentoFormatado(corpo.emitenteDocumento)}` : null}
-            {corpo.emitenteEndereco ? ` · ${corpo.emitenteEndereco}` : null}
-            {corpo.emitenteTelefone ? ` · ${corpo.emitenteTelefone}` : null}
+          <p className="pt-[3px] text-[11.5px] leading-[1.6] text-tinta-media">
+            {documentoEmitente ? <>CNPJ/CPF {documentoEmitente}<br /></> : null}
+            {corpo.emitenteEndereco}
+            {corpo.emitenteEndereco && corpo.emitenteTelefone ? <br /> : null}
+            {corpo.emitenteTelefone ? exibirTelefone(corpo.emitenteTelefone) : null}
           </p>
         </div>
-        <div className="text-right">
-          <p className="font-mono text-[15px] font-medium">
-            {numeroFormatado(serie, numero)}
+
+        <div className="shrink-0 rounded-media border border-linha-suave bg-superficie-mais-suave px-4 py-2.5 text-right">
+          <p className="text-[10px] tracking-[.14em] text-tinta-media uppercase">
+            valor recebido
           </p>
-          <p className="text-[11.5px] text-tinta-media">
-            recibo{versao > 1 ? ` · correção ${versao}` : ''} · {via}
+          <p className="font-mono text-[24px] leading-[1.15] font-semibold tabular-nums">
+            {emReais(corpo.valorCent)}
           </p>
         </div>
       </header>
 
-      <p className="pt-5 text-[15px] leading-[1.7]">
+      {/* a palavra RECIBO e o número, na faixa que separa o cabeçalho do
+          corpo: é o que um recibo tem de mais reconhecível, e estava reduzido
+          a uma linha de onze pixels no canto */}
+      <div className="relative mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-y border-linha-fina py-2.5">
+        <h3 className="font-titulo text-[20px] leading-none font-semibold tracking-[.22em] uppercase">
+          Recibo
+        </h3>
+        <p className="text-[11.5px] text-tinta-media">
+          <span className="font-mono text-[13.5px] font-medium text-tinta">
+            nº {numeroFormatado(serie, numero)}
+          </span>
+          {versao > 1 ? ` · correção ${versao}` : ''} · {via}
+        </p>
+      </div>
+
+      <p className="relative pt-4 text-[14.5px] leading-[1.75]">
         Recebemos de <strong>{corpo.pagadorNome}</strong>
         {corpo.pagadorDocumento
           ? <>, CPF {documentoFormatado(corpo.pagadorDocumento)}</> : null}
         {corpo.pagadorMatricula ? <>, matrícula nº {corpo.pagadorMatricula}</> : null}
         {corpo.pagadorEndereco ? <>, {corpo.pagadorEndereco}</> : null}
         {' '}a importância de <strong>{emReais(corpo.valorCent)}</strong>{' '}
-        ({corpo.valorPorExtenso}), referente a {corpo.referente}, pagos em{' '}
-        {corpo.forma} no dia {dataCurta(corpo.recebidoEm)}.
+        (<strong>{corpo.valorPorExtenso}</strong>), referente a{' '}
+        {corpo.referente}, pagos em {corpo.forma} no dia{' '}
+        {dataPorExtenso(corpo.recebidoEm)}.
       </p>
 
-      <footer className="flex flex-wrap items-end justify-between gap-4 pt-8">
-        <p className="text-[11.5px] text-tinta-media">
-          Emitido por {corpo.emitidoPor} em{' '}
-          {dataCurta(corpo.emitidoEm.slice(0, 10))}.
-          {motivo ? <> Observação: {motivo}.</> : null}
-          <br />
-          Este documento é um recibo, e não uma nota fiscal.
-        </p>
-        <div className="min-w-[220px] border-t border-tinta-media pt-1 text-center text-[11.5px] text-tinta-media">
-          assinatura
+      {/*
+        * Local e data de emissão, na linha própria e por extenso.
+        *
+        * É um dos elementos que se espera de um recibo, e sem ele o papel não
+        * diz onde a quitação aconteceu. A cidade sai do endereço do emitente
+        * quando dá para ter certeza, e some quando não dá: data sozinha é uma
+        * lacuna, cidade errada é uma afirmação falsa.
+        */}
+      <p className="relative pt-5 text-[13.5px]">
+        {local ? `${local}, ` : ''}
+        {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
+      </p>
+
+      {/* a assinatura leva o nome e o documento embaixo da linha: é quem
+          recebeu que assina, e a linha anônima não diz de quem é o traço */}
+      <div className="relative flex justify-end pt-9">
+        <div className="min-w-[260px] border-t border-tinta-media pt-1.5 text-center">
+          <p className="text-[12.5px] font-medium">{corpo.emitenteNome}</p>
+          {documentoEmitente ? (
+            <p className="text-[11px] text-tinta-media">{documentoEmitente}</p>
+          ) : null}
         </div>
+      </div>
+
+      <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-6">
+        <p className="max-w-[440px] text-[10.5px] leading-[1.6] text-tinta-media">
+          {emitiu ? <>Emitido por {emitiu}. </> : null}
+          Este documento é um recibo, e não uma nota fiscal.
+          {motivo ? <> Observação: {motivo}.</> : null}
+        </p>
+        {status !== 'valido' ? (
+          <p className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[11px] font-medium text-alerta">
+            {status === 'cancelado' ? 'Cancelado' : 'Substituído'}
+          </p>
+        ) : null}
       </footer>
     </article>
   )

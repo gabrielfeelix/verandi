@@ -155,6 +155,16 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         ? <FaixaSuporte conta={conta.nome} /> : null}
 
       <div className="flex min-h-dvh">
+        {/*
+          * `data-imprimir="fora"` num invólucro `contents`, que não existe para
+          * a tela e existe para o papel.
+          *
+          * Sem isto o trilho inteiro ia junto no papel do recibo e da grade:
+          * não como cabeçalho, mas **por baixo** da folha, com o nome das
+          * telas atravessando o texto. `display: contents` some do fluxo na
+          * tela, e a regra de impressão o apaga com os filhos dentro.
+          */}
+        <div data-imprimir="fora" className="contents">
         <Rail
           itens={itens}
           conta={conta.nome}
@@ -163,6 +173,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           podeTrocar={contas.length > 1}
           sair={<Sair />}
         />
+        </div>
 
         {/* `data-guia="tela"` é o alvo de reserva do onboarding: quando o
             elemento apontado não existe naquela conta, o balão aponta a área de
@@ -171,7 +182,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           {/* A conta ativa aparece em toda tela de propósito: operar na conta
               errada é o erro mais caro que este sistema permite, e é silencioso.
               No rail ela está sempre no topo; em celular, aqui. */}
-          <p className="mb-3 flex items-center gap-2 md:hidden">
+          <p data-imprimir="fora" className="mb-3 flex items-center gap-2 md:hidden">
             <span className="font-titulo text-[15px] font-semibold">{conta.nome}</span>
             <span className="text-[11.5px] text-tinta-media">
               {PAPEL[conta.papel] ?? conta.papel}
@@ -187,11 +198,15 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
           {/* mora dentro do `main` para respeitar o `pb-24` que a barra do
               celular exige: fora dele, o rodapé nasceria escondido atrás dela */}
-          <RodapeLegal className="pt-8" />
+          <div data-imprimir="fora">
+            <RodapeLegal className="pt-8" />
+          </div>
         </main>
       </div>
 
-      <BarraInferior itens={tabs} />
+      <div data-imprimir="fora" className="contents">
+        <BarraInferior itens={tabs} />
+      </div>
 
       {mostrarBoasVindas ? (
         <BoasVindas

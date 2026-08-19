@@ -431,9 +431,10 @@ test.describe.serial('o ciclo administrativo, de ponta a ponta', () => {
     await expect(page.getByText('A-000001')).toBeVisible()
     await expect(page.getByText('A-000002')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Cancelar' }).first().click()
+    await page.getByRole('button', { name: /Mais sobre o recibo/ }).first().click()
+    await page.getByRole('menuitem', { name: 'Cancelar o recibo' }).click()
     await page.getByLabel('Motivo').fill('emitido no nome errado')
-    await page.getByRole('button', { name: 'Cancelar recibo' }).click()
+    await page.getByRole('button', { name: 'Confirmar cancelamento' }).click()
     await expect(page.locator('dialog[open]')).toHaveCount(0)
     await expect(page.getByText('Cancelado: emitido no nome errado')).toBeVisible()
 

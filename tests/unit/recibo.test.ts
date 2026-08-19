@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
-  descricaoDoRecibo, documentoFormatado, emitenteCompleto, montarCorpo,
-  numeroFormatado, podeCancelar, podeCorrigir, porExtenso,
+  dataPorExtenso, descricaoDoRecibo, documentoFormatado, emitenteCompleto,
+  localDeEmissao, montarCorpo, numeroFormatado, podeCancelar, podeCorrigir,
+  porExtenso, quemEmitiu,
 } from '@/core/recibo/recibo'
 
 describe('o número do recibo', () => {
@@ -110,5 +111,73 @@ describe('o que se pode fazer com um recibo', () => {
     expect(podeCancelar('cancelado')).toBe(false)
     // corrigir o substituído corrigiria uma versão que ninguém tem na mão
     expect(podeCorrigir('substituido')).toBe(false)
+  })
+})
+
+describe('a data por extenso', () => {
+  it('escreve o mês por extenso, como um recibo escreve', () => {
+    expect(dataPorExtenso('2026-08-19')).toBe('19 de agosto de 2026')
+    expect(dataPorExtenso('2026-01-01')).toBe('1 de janeiro de 2026')
+    expect(dataPorExtenso('2026-12-31')).toBe('31 de dezembro de 2026')
+  })
+
+  it('aceita a data com hora colada, que é como o corpo guarda a emissão', () => {
+    expect(dataPorExtenso('2026-03-04T23:40:00.000Z')).toBe('4 de março de 2026')
+  })
+
+  /*
+   * O dia 1 é o caso que quebra quando alguém troca isto por `new Date`: o
+   * servidor em UTC lê `2026-08-01` como meia-noite em Londres, que é 31 de
+   * julho às 21h no Brasil, e o recibo sai com o mês errado.
+   */
+  it('não anda para trás no dia 1', () => {
+    expect(dataPorExtenso('2026-08-01')).toBe('1 de agosto de 2026')
+  })
+
+  it('data que não é data sai como veio, em vez de virar mês vazio', () => {
+    expect(dataPorExtenso('sem data')).toBe('sem data')
+  })
+})
+
+describe('o local de emissão', () => {
+  it('lê a cidade quando o endereço termina em UF', () => {
+    expect(localDeEmissao('Rua das Acácias, 204, Maringá, PR')).toBe('Maringá')
+    expect(localDeEmissao('Av. Brasil, 2450, Apto 902, São Paulo, SP')).toBe('São Paulo')
+  })
+
+  /*
+   * Cidade errada num recibo é pior que cidade ausente: a ausente é uma lacuna
+   * que alguém percebe, e a errada é uma afirmação que ninguém confere.
+   */
+  it('não chuta quando o endereço não termina em UF', () => {
+    expect(localDeEmissao('Rua das Acácias, 204')).toBeNull()
+    expect(localDeEmissao('Rua das Acácias 204 Maringá Paraná')).toBeNull()
+    expect(localDeEmissao('Maringá')).toBeNull()
+    expect(localDeEmissao(null)).toBeNull()
+  })
+})
+
+describe('quem emitiu, no papel', () => {
+  it('devolve o nome de gente', () => {
+    expect(quemEmitiu('Marina Toledo')).toBe('Marina Toledo')
+  })
+
+  /*
+   * O corpo é congelado, e por meses ele guardou o e-mail de quem emitiu,
+   * porque quem responde pelo negócio raramente está cadastrado como
+   * profissional. Esse endereço pessoal ia impresso na via que fica com o
+   * aluno. A emissão nova nunca mais grava e-mail; isto aqui é o que resolve o
+   * que já está gravado.
+   */
+  it('nunca devolve e-mail, mesmo estando gravado no corpo antigo', () => {
+    expect(quemEmitiu('dono@dev.local')).toBeNull()
+    expect(quemEmitiu('contato@4yu.com.br')).toBeNull()
+  })
+
+  it('trata vazio e o antigo "Não informado" como ausência', () => {
+    expect(quemEmitiu('')).toBeNull()
+    expect(quemEmitiu('   ')).toBeNull()
+    expect(quemEmitiu(null)).toBeNull()
+    expect(quemEmitiu('Não informado')).toBeNull()
   })
 })

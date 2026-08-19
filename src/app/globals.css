@@ -397,6 +397,11 @@ select:focus-visible {
  * que a pessoa precisa dobrar antes de pendurar. `[data-imprimir="fora"]`
  * marca o que fica na tela e some no papel.
  */
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
 @media print {
   [data-imprimir='fora'] {
     display: none !important;
@@ -422,20 +427,34 @@ select:focus-visible {
    * `data-imprimir="fora"`, e o que resta ocupa a largura da folha. As duas
    * vias ficam uma embaixo da outra, com a linha de corte no meio, porque é
    * assim que o talão de papel funciona e é o que a recepção espera cortar.
+   *
+   * **No fluxo, e não `position: absolute`.** Tirar a folha do fluxo a fazia
+   * flutuar por cima do que sobrasse na página em vez de ocupá-la, e enquanto
+   * o trilho ainda imprimia isso punha o menu por baixo do recibo, com os
+   * nomes das telas atravessando o texto que o aluno leva embora.
    */
   [data-folha] {
-    position: absolute;
-    inset: 0;
     margin: 0;
     padding: 0;
     width: 100%;
     box-shadow: none !important;
-    border: 0 !important;
   }
 
+  /*
+   * As cores do papel são as do papel.
+   *
+   * O navegador tira fundo e clareia texto para poupar tinta, e no recibo isso
+   * apagava a caixa do valor e a faixa do RECIBO, que são justamente o que se
+   * enxerga de longe. `print-color-adjust: exact` manda imprimir o que está na
+   * tela; a borda fica cinza escuro porque a da tela é fraca demais no papel.
+   */
   [data-via] {
     break-inside: avoid;
     page-break-inside: avoid;
+    border-color: #9b9b96 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 

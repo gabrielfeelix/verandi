@@ -30,6 +30,71 @@ export function numeroFormatado(serie: string, numero: number): string {
   return `${serie}-${String(numero).padStart(6, '0')}`
 }
 
+const MESES = [
+  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto',
+  'setembro', 'outubro', 'novembro', 'dezembro',
+]
+
+/**
+ * `19 de agosto de 2026`, que é como um recibo escreve a data.
+ *
+ * Por extenso e não `19/08/26` pelo mesmo motivo do valor: o papel fica anos
+ * numa pasta, e `03/04/26` é 3 de abril para quem escreveu e 4 de março para
+ * quem leu depois. Recebe a data como o banco guarda, `aaaa-mm-dd`, e monta o
+ * texto na mão: `Date` aqui traria o fuso do servidor junto e o dia 1 viraria
+ * o último dia do mês anterior.
+ */
+export function dataPorExtenso(iso: string): string {
+  const [ano, mes, dia] = iso.slice(0, 10).split('-')
+  const m = MESES[Number(mes) - 1]
+  if (!m) return iso
+  return `${Number(dia)} de ${m} de ${ano}`
+}
+
+/**
+ * A cidade onde o recibo foi emitido, tirada do endereço do emitente.
+ *
+ * "Local e data" é um dos elementos que se espera de um recibo, e o endereço do
+ * emitente é um campo de texto livre: ninguém digitou a cidade separada. Então
+ * a cidade se lê do fim, quando o fim é uma UF de duas letras
+ * (`Rua das Acácias, 204, Maringá, PR` dá `Maringá`).
+ *
+ * **Quando não dá para ter certeza, devolve `null` e a folha imprime só a
+ * data.** Cidade errada num recibo é pior que cidade ausente: a ausente é uma
+ * lacuna que alguém percebe, e a errada é uma afirmação que ninguém confere.
+ */
+export function localDeEmissao(endereco: string | null): string | null {
+  if (!endereco) return null
+  const partes = endereco.split(',').map((p) => p.trim()).filter(Boolean)
+  if (partes.length < 2) return null
+  const ultima = partes[partes.length - 1]
+  if (!/^[A-Za-zÀ-ÿ]{2}$/.test(ultima)) return null
+  const cidade = partes[partes.length - 2]
+  return cidade || null
+}
+
+/**
+ * Quem apertou o botão, quando isso é um nome de gente.
+ *
+ * O corpo é congelado e não se recalcula, e por meses ele guardou o **e-mail**
+ * de quem emitiu, porque quem responde pelo negócio muitas vezes não está
+ * cadastrado como profissional. Esse e-mail ia impresso na via que fica com o
+ * aluno: o endereço pessoal de quem manda no estúdio, entregue a cada pagamento
+ * a quem só precisa saber que pagou.
+ *
+ * A emissão nova nunca mais grava e-mail. Esta função é o que resolve o que já
+ * está gravado: reconhece o e-mail e devolve `null`, e a folha imprime a linha
+ * sem o "por fulano". O corpo continua intacto, e a auditoria continua no
+ * `emitido_por_usuario_id`, que é onde ela sempre coube melhor.
+ */
+export function quemEmitiu(emitidoPor: string | null | undefined): string | null {
+  const nome = emitidoPor?.trim()
+  if (!nome) return null
+  if (nome.includes('@')) return null
+  if (nome === 'Não informado') return null
+  return nome
+}
+
 const UNIDADES = [
   '', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove',
   'dez', 'onze', 'doze', 'treze', 'catorze', 'quinze', 'dezesseis', 'dezessete',

@@ -116,10 +116,13 @@ test('corrigir mantém o número e guarda a versão anterior', async ({ page }) 
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   await page.goto('/recibos')
-  await page.getByRole('button', { name: 'Corrigir' }).click()
+  // corrigir e cancelar moram no menu da linha, como no Financeiro: soltos ao
+  // lado do valor, eles faziam a linha do cancelado ter largura diferente da
+  // linha do válido, e a lista perdia as colunas
+  await page.getByRole('button', { name: /Mais sobre o recibo/ }).click()
+  await page.getByRole('menuitem', { name: 'Corrigir o texto' }).click()
   await page.getByLabel('Nome de quem pagou').fill('Marina Ferraz Silva')
   await page.getByLabel('O que estava errado').fill('nome incompleto')
-  // o primário do modal, e não o botão da linha, que tem o mesmo nome
   await page.getByRole('dialog').getByRole('button', { name: 'Corrigir' }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
@@ -136,9 +139,12 @@ test('cancelar pede motivo, e o número continua ocupado', async ({ page }) => {
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   await page.goto('/recibos')
-  await page.getByRole('button', { name: 'Cancelar' }).click()
+  await page.getByRole('button', { name: /Mais sobre o recibo/ }).click()
+  await page.getByRole('menuitem', { name: 'Cancelar o recibo' }).click()
   await page.getByLabel('Motivo').fill('valor errado')
-  await page.getByRole('button', { name: 'Cancelar recibo' }).click()
+  // o botão que fecha se chama "Voltar": dois "Cancelar" lado a lado, um para
+  // desistir e outro para executar, é a hora errada de a palavra ter dois sentidos
+  await page.getByRole('button', { name: 'Confirmar cancelamento' }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await expect(page.getByText('Cancelado: valor errado')).toBeVisible()

@@ -95,6 +95,17 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
       .select('nome').eq('conta_id', conta.contaId)
       .eq('usuario_id', user?.id ?? '').maybeSingle()
 
+    /*
+     * **Nunca o e-mail.** Quem responde pelo negócio raramente está cadastrado
+     * como profissional, então o caminho comum caía no e-mail dele, e ele saía
+     * impresso na via que fica com o aluno. Endereço pessoal de quem manda no
+     * estúdio, entregue a cada pagamento a quem só precisa saber que pagou.
+     *
+     * Sem nome de gente, a linha sai sem o "por fulano": quem emitiu continua
+     * gravado em `emitido_por_usuario_id`, que é auditoria e não papel.
+     */
+    const nomeDeQuemEmite = quemEmite?.nome?.trim() || ''
+
     const endereco = [
       pessoa?.endereco, pessoa?.endereco_numero, pessoa?.bairro,
       pessoa?.cidade, pessoa?.uf,
@@ -116,7 +127,7 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
       valorCent: pg.valor_cent,
       forma: ROTULO_FORMA[pg.forma as Forma] ?? pg.forma,
       recebidoEm: pg.recebido_em,
-      emitidoPor: quemEmite?.nome ?? user?.email ?? 'Não informado',
+      emitidoPor: nomeDeQuemEmite,
       emitidoEm: new Date().toISOString(),
     })
 
