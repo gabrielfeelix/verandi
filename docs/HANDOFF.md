@@ -12,7 +12,7 @@ inteiro e é a leitura obrigatória.
 **Leia nesta ordem:** `ESTADO.md` inteiro → este arquivo → o plano do que você
 for fazer.
 
-Última revisão: 18/ago/2026, com o financeiro (módulo 17) no ar.
+Última revisão: 18/ago/2026, com o administrativo inteiro no ar (módulos 14 a 19).
 
 ---
 
@@ -28,7 +28,7 @@ a cada push na `main`.
 | Tabelas em `app_verandi` | **40**, todas com RLS | conferido em produção 18/08 |
 | Tabelas em `public` (AutoFluxos) | **22**, intactas | conferido em produção 18/08 |
 | Banco | **15 MB** de 500 do plano gratuito, dividido com o AutoFluxos | conferido 18/08 |
-| Testes | **526** de unidade e banco · **208** de navegador | as duas suítes verdes em 18/08, depois do módulo 18 |
+| Testes | **543** de unidade e banco · **215** de navegador | as duas suítes verdes em 18/08, depois do módulo 19 |
 | API v1 | nove operações e quatro eventos de webhook, com documentação pública em `/api-docs` | |
 
 > **PEGUE POR AQUI: o emitente do recibo está vazio, e é dado do Gabriel.**
@@ -56,7 +56,7 @@ funcionalidade. Está na seção seguinte, em ordem.
 
 ## Comece por aqui
 
-**Os módulos 15, 16, 17 e 18 do administrativo estão no ar desde 18/08**, com as
+**O administrativo inteiro está no ar desde 18/08**, módulos 14 a 19,, com as
 migrations `0054` a `0057` aplicadas em produção e conferidas fora do console:
 as sete tabelas novas (`plano`, `contrato`, `pausa`, `cobranca`, `pagamento`,
 `recibo`, `contador_recibo`) nasceram com RLS e uma política cada, a view
@@ -64,13 +64,15 @@ as sete tabelas novas (`plano`, `contrato`, `pausa`, `cobranca`, `pagamento`,
 recibo está `security definer`, e `public` continua intacto com as 22 do
 AutoFluxos.
 
-**A suíte inteira rodou depois do 18**: 526 de unidade e banco, 208 de navegador.
+**A suíte inteira rodou depois do 19**: 543 de unidade e banco, 215 de navegador.
 
-**O próximo módulo é o 19, aulas por professor**, que é o item 7 do documento e o
-último dos nove pedidos que ainda não existe. O documento pede pouco e pede
-claro: "planilha de controle de quantidade de aulas aplicadas pelo professor por
-dia/semana/mês". O plano dele ainda não está escrito, e a regra da casa é que ele
-seja escrito quando chegar a vez, não antes.
+**Os nove pedidos do documento do cliente estão de pé.** O módulo 19 fechou o
+item 7 sem criar tabela nenhuma, e fechou junto o pedaço do item 9 que faltava:
+a foto da avaliação agora amplia a partir do comparador.
+
+**O que sobra do administrativo é nota fiscal**, e ela espera uma decisão
+comercial que não é de agente: qual emissor. O recibo, que é do estúdio, já
+existe.
 
 **As três verificações do plano 14 rodaram em 18/08, e passaram.** `npm run
 tipos` reescreveu `banco.types.ts` inteiro, e as entradas das três tabelas do

@@ -12,7 +12,7 @@ diz o que a última sessão fez e por qual ponta pegar o que falta.
 > Auth, Storage, extensões, Data API, cotas e backup são globais. Produção usa
 > somente `node scripts/aplica-em-producao.mjs`, nunca `supabase db push`.
 
-**Última atualização:** 18/ago/2026 (quinta passagem: o recibo, módulo 18, no ar) · **A Verandi está no ar em
+**Última atualização:** 18/ago/2026 (sexta passagem: o administrativo inteiro no ar) · **A Verandi está no ar em
 `https://verandi.4yu.com.br`, com uma conta de cliente, e-mail saindo de
 verdade, onboarding, a porta do bot aberta e o acompanhamento por foto.**
 
@@ -312,6 +312,34 @@ deles apareceria de tarde: o fechamento montava a janela do período com
 brasileiro. Recibo emitido às 21h30 sumia do fechamento de hoje. É a armadilha de
 UTC que o `core/` documenta desde o começo, chegando por uma porta nova.
 
+## O módulo 19, aulas por professor, no ar em 18/08
+
+O item 7, e o último dos nove pedidos do documento. **Sem migration:** a
+resposta já estava em `sessao`, `participacao` e `excecao_calendario`.
+
+**A pergunta que decidiu tudo foi o que conta como aula aplicada**, porque o
+documento não define e quatro respostas são defensáveis. Ficou: a sessão que já
+passou e não foi cancelada, mesmo sem ninguém presente, porque quem atende foi
+ao estúdio e esperou. As outras três leituras (teve chamada, teve presença,
+existiu na agenda) viraram colunas ao lado, para o dono conferir o número em vez
+de acreditar nele.
+
+**O feriado é explicado.** Quem tem duas segundas de feriado no mês parece ter
+trabalhado menos que o colega da terça, e um relatório que só mostra o total
+transforma calendário em acusação.
+
+**Quem cobriu a aula de outro aparece com ela**, e isso não custou código: a
+sessão guarda o profissional como cópia desde a `0033`, e o relatório lê a
+sessão, não a série.
+
+**O item 9 fechou junto.** O documento termina pedindo que as fotos da avaliação
+sejam grandes e permitam ampliar. O visor existia desde o módulo 14 e só abria
+pela matriz, que é a leitura secundária; agora a foto do comparador amplia com
+um toque.
+
+**Os nove pedidos do documento estão de pé.** O que sobra do administrativo é
+nota fiscal, que espera decisão comercial sobre qual emissor.
+
 ## O próximo passo, em ordem
 
 **O produto opera; o negócio não está pronto para vender.** A lista completa,
@@ -448,12 +476,12 @@ mede contra **produção** vale no dia em que se mede, e o que se mede rodando a
 | contas de cliente | **1** (MGM Pilates) |
 | `https://verandi.4yu.com.br` | raiz responde 307 para `/entrar`, que responde 200; `/termos` 200 |
 
-**Rodando a suíte, em 18/08, depois do módulo 18:**
+**Rodando a suíte, em 18/08, depois do módulo 19:**
 
 | O quê | Resultado |
 |---|---|
-| `npm test` | **526 passaram** |
-| `npm run test:e2e` | **208 passaram**, em 5,6 minutos |
+| `npm test` | **543 passaram** |
+| `npm run test:e2e` | **215 passaram**, em 5,9 minutos |
 | `npm run build` | passou |
 | `npm run segredos` | nenhuma credencial de produção no repositório |
 | `tsc --noEmit` | passou |

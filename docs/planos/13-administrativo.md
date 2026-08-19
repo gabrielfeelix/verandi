@@ -26,19 +26,19 @@ um sistema que já mudou, e foi o que a Tarefa 10 do plano 03 ensinou.
 | 4 | Controle financeiro, com sete relatórios | **feito** | módulos 17 e 18, no ar em 18/08 |
 | 5 | Presenças e reposição | **feito** | desde o plano 02 |
 | 6 | Cadastro de professores, com foto | **feito** | desde a `0038` |
-| 7 | Aulas por professor | **nasce** | módulo 19 |
+| 7 | Aulas por professor | **feito** | módulo 19, no ar em 18/08 |
 | 8 | Emissão de recibo | **feito** | módulo 18, no ar em 18/08 |
 | 9 | Avaliação postural com fotos | **feito** | plano 14, no ar em 18/08 |
 
-**Oito dos nove estão de pé desde 18/08.** Falta o item 7, aulas por professor,
-que é o módulo 19. A espinha comercial inteira nasceu num dia: quanto custa,
-quem contratou, quem pagou e o papel que comprova.
+**Os nove estão de pé desde 18/08.** A espinha comercial inteira nasceu num dia:
+quanto custa, quem contratou, quem pagou e o papel que comprova.
 
-Uma leitura que só o documento deu, e vale escrever: o item 9 termina com "as
-imagens deverão ser grandes (permitir ampliar)". O comparador do módulo 14 abre
-as fotos lado a lado com linha de prumo; **ninguém conferiu se dá para ampliar
-uma delas**. Quem for mexer no 19 olha isso antes, porque é uma frase pedida por
-escrito e não custa nada.
+A última frase do item 9, "as imagens deverão ser grandes (permitir ampliar)",
+foi fechada junto com o módulo 19: o visor existia e só abria pela matriz, e
+agora a foto amplia também a partir do comparador, que é a leitura principal.
+
+O que sobra é a nota fiscal, fora desta lista até haver decisão comercial sobre
+qual emissor.
 
 **Nada disso vira coluna do MGM.** Os quinze planos de pilates, os vinte e sete
 de terapia, as setenta turmas e as seis posições da avaliação são linhas que a
@@ -139,9 +139,9 @@ Financeiro e Recibos são trabalho de quem está sentado na recepção.
 5. **18, recibo.** ✔ feito em 18/08. Numeração alocada no banco, arquivo com
    busca, cancelamento com motivo e correção por versão, como o item 8 pede com
    essas palavras. O sétimo relatório entrou junto.
-6. **19, aulas por professor.** O item 7: quantas aulas cada um aplicou por dia,
-   semana e mês, com o feriado explicado, porque número que acusa a pessoa
-   errada é pior que número nenhum.
+6. **19, aulas por professor.** ✔ feito em 18/08. Quantas aulas cada um aplicou
+   por dia, semana e mês, com o feriado explicado, porque número que acusa a
+   pessoa errada é pior que número nenhum.
 7. **Nota fiscal.** Fora desta lista até haver decisão comercial sobre qual
    emissor. Até lá a tela desenhada fica como desenho.
 
