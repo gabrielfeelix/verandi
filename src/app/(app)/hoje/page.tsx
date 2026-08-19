@@ -20,7 +20,8 @@ import { cartao } from '@/components/ui/pecas'
 import { ArrumarHome } from '@/components/hoje/arrumar'
 import { arranjoSalvo } from '@/server/home/consultas'
 import { arranjoEfetivo, daFaixa } from '@/core/home/blocos'
-import { resumoDoCaixa } from '@/server/financeiro/consultas'
+import { caixaDoMes } from '@/server/financeiro/consultas'
+import { variacao } from '@/core/financeiro/metricas'
 import { emReais } from '@/core/planos/plano'
 
 type Busca = Promise<{ dia?: string; todos?: string }>
@@ -150,9 +151,8 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
    * O caixa só é consultado se o bloco estiver ligado. Quem desligou não paga
    * a consulta, e quem não pode ver dinheiro nem chega aqui.
    */
-  const caixa = mostra('caixa')
-    ? await resumoDoCaixa(db, conta.contaId, hoje, somarDias(hoje, 7))
-    : null
+  const caixa = mostra('caixa') ? await caixaDoMes(db, conta.contaId, hoje) : null
+  const variou = caixa ? variacao(caixa.recebidoCent, caixa.recebidoAntesCent) : null
 
   const blocosPrincipais = daFaixa(arranjo, 'principal')
   const blocosLaterais = daFaixa(arranjo, 'lateral')
@@ -209,35 +209,71 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
     caixa: caixa ? (
       <section key="caixa" className={`flex flex-wrap items-center gap-x-6 gap-y-3.5 ${cartao} px-5 py-4`}>
         <Link
-          href="/financeiro?aba=atrasadas"
+          href="/financeiro?aba=pagas"
           className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
         >
-          <span className={`font-titulo text-[24px] leading-none font-semibold ${caixa.atrasadas ? 'text-alerta' : 'text-tinta'}`}>
-            {emReais(caixa.atrasadoCent)}
+          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+            Entrou neste mês
           </span>
+          <span className="font-titulo text-[24px] leading-none font-semibold text-positivo">
+            {emReais(caixa.recebidoCent)}
+          </span>
+          {/*
+            * A comparação é com o **mesmo trecho** do mês passado.
+            *
+            * No dia 5, comparar cinco dias com um mês inteiro diria que o
+            * faturamento caiu 80%, e número que mente é pior que número que
+            * falta. Quando não há com o que comparar, a linha some: sair de
+            * zero para quatro mil não é aumento infinito, é o primeiro mês.
+            */}
           <span className="text-[11.5px] text-tinta-media">
-            em atraso · {caixa.atrasadas}{' '}
-            {caixa.atrasadas === 1 ? 'cobrança' : 'cobranças'}
+            {variou === null
+              ? 'sem mês anterior para comparar'
+              : `${variou >= 0 ? '+' : ''}${variou}% ante o mesmo trecho do mês passado`}
           </span>
         </Link>
+
         <span aria-hidden className="w-px self-stretch bg-linha-fina" />
+
         <Link
           href="/financeiro?aba=a_vencer"
           className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
         >
+          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+            Ainda vence neste mês
+          </span>
           <span className="font-titulo text-[24px] leading-none font-semibold">
             {emReais(caixa.aVencerCent)}
           </span>
+          <span className="text-[11.5px] text-tinta-media">o que falta entrar</span>
+        </Link>
+
+        <span aria-hidden className="w-px self-stretch bg-linha-fina" />
+
+        <Link
+          href="/financeiro?aba=atrasadas"
+          className="flex flex-col gap-0.5 rounded-media px-1 py-0.5 hover:bg-superficie-mais-suave"
+        >
+          <span className="text-[10.5px] font-semibold tracking-[.1em] text-tinta-media uppercase">
+            Em atraso
+          </span>
+          <span
+            className={`font-titulo text-[24px] leading-none font-semibold ${caixa.atrasadas ? 'text-alerta' : ''}`}
+          >
+            {emReais(caixa.atrasadoCent)}
+          </span>
           <span className="text-[11.5px] text-tinta-media">
-            vence em até 7 dias · {caixa.aVencer}{' '}
-            {caixa.aVencer === 1 ? 'cobrança' : 'cobranças'}
+            {caixa.atrasadas === 0
+              ? 'nada vencido'
+              : `${caixa.atrasadas} ${caixa.atrasadas === 1 ? 'cobrança' : 'cobranças'}, de qualquer mês`}
           </span>
         </Link>
+
         <Link
-          href="/financeiro"
+          href="/financeiro?aba=fechamento"
           className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[13px] hover:bg-[#EDF3F0]"
         >
-          Abrir o financeiro
+          Ver o fechamento
         </Link>
       </section>
     ) : null,

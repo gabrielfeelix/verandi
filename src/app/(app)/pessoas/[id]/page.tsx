@@ -22,6 +22,12 @@ import { NovaAvaliacao } from '@/components/avaliacao/nova-avaliacao'
 import { NovaMatricula, ContratosDaFicha } from '@/components/contratos/matricula'
 import { contratosDaPessoa } from '@/server/contratos/consultas'
 import { cobrancasDaPessoa } from '@/server/financeiro/consultas'
+import { recibosDaPessoa, ultimosEnvios } from '@/server/recibo/consultas'
+import { ListaDeRecibos } from '@/components/recibo/lista'
+import { FaixaDeNumeros } from '@/components/ui/faixa-numeros'
+import { resumoDaPessoa } from '@/core/financeiro/metricas'
+import { ROTULO_FORMA, type Forma } from '@/core/financeiro/fechamento'
+import { emReais } from '@/core/planos/plano'
 import { ListaDeCobrancas } from '@/components/financeiro/lista'
 import { listarPlanos } from '@/server/planos/consultas'
 import { listarSeries } from '@/server/grade/consultas'
@@ -147,6 +153,35 @@ export default async function Pessoa({
       ])
     : [[], []]
   const contratosEmVigor = contratos.filter((c) => c.status === 'ativo').length
+
+  /*
+   * O retrato financeiro da pessoa.
+   *
+   * A aba listava as cobranças e não respondia nenhuma das perguntas que se faz
+   * olhando para alguém: está em dia? paga desde quando? deve quanto? Ler dez
+   * linhas e somar de cabeça na frente de quem está esperando não é resposta.
+   */
+  const recibosDela = operacional
+    ? await recibosDaPessoa(db, conta.contaId, id) : []
+  const enviosDela = recibosDela.length
+    ? await ultimosEnvios(db, conta.contaId, recibosDela.map((r) => r.id))
+    : new Map<string, { para: string; em: string }>()
+
+  const dinheiro = resumoDaPessoa(
+    cobrancas.map((c) => ({
+      valorCent: c.valorCent,
+      valorPagoCent: c.valorPagoCent,
+      situacao: c.situacao,
+      vencimento: c.vencimento,
+    })),
+    cobrancas.flatMap((c) => c.pagamentos.map((p) => ({
+      valorCent: p.valorCent,
+      recebidoEm: p.recebidoEm,
+      forma: p.forma,
+      estornado: p.estornado,
+    }))),
+    hoje,
+  )
   const [avaliacoes, posicoes, quemAvalia] = vendoAvaliacao
     ? await Promise.all([
         avaliacoesDaPessoa(id),
@@ -615,6 +650,40 @@ export default async function Pessoa({
                 />
               </div>
 
+              <FaixaDeNumeros
+                itens={[
+                  {
+                    rotulo: 'Já pagou',
+                    valor: dinheiro.pagoCent > 0 ? emReais(dinheiro.pagoCent) : '—',
+                    tom: 'positivo',
+                    nota: dinheiro.primeiroPagamento
+                      ? `desde ${mesAno(dinheiro.primeiroPagamento)}`
+                      : 'nenhum pagamento ainda',
+                  },
+                  {
+                    rotulo: 'Em atraso',
+                    valor: dinheiro.atrasadoCent > 0 ? emReais(dinheiro.atrasadoCent) : '—',
+                    tom: dinheiro.atrasadoCent > 0 ? 'alerta' : 'neutro',
+                    nota: dinheiro.quantidadeAtrasada > 0
+                      ? `${dinheiro.quantidadeAtrasada} ${dinheiro.quantidadeAtrasada === 1 ? 'cobrança vencida' : 'cobranças vencidas'}`
+                      : 'nada vencido',
+                  },
+                  {
+                    rotulo: 'Em aberto',
+                    valor: dinheiro.abertoCent > 0 ? emReais(dinheiro.abertoCent) : '—',
+                    nota: 'vencido e a vencer, somados',
+                  },
+                  {
+                    rotulo: 'Último pagamento',
+                    valor: dinheiro.ultimoPagamento
+                      ? curta(dinheiro.ultimoPagamento) : '—',
+                    nota: dinheiro.formaMaisUsada
+                      ? `costuma pagar em ${ROTULO_FORMA[dinheiro.formaMaisUsada as Forma] ?? dinheiro.formaMaisUsada}`
+                      : 'sem histórico',
+                  },
+                ]}
+              />
+
               <ContratosDaFicha contratos={contratos} pessoaNome={ficha.pessoa.nome} />
 
               <div className="flex flex-col gap-2.5">
@@ -627,6 +696,25 @@ export default async function Pessoa({
                   }}
                 />
               </div>
+
+              {/*
+                * Os recibos da pessoa, na ficha dela.
+                *
+                * O recibo aparecia pendurado na linha do pagamento, e só. Quem
+                * pergunta "manda de novo aquele recibo de março" não tinha por
+                * onde começar sem abrir cobrança por cobrança.
+                */}
+              {recibosDela.length > 0 ? (
+                <div className="flex flex-col gap-2.5">
+                  <h3 className="font-titulo text-[17px] font-semibold">Recibos</h3>
+                  <ListaDeRecibos
+                    linhas={recibosDela}
+                    envios={Object.fromEntries([...enviosDela].map(([rid, e]) => [
+                      rid, { para: e.para, em: curta(e.em.slice(0, 10)) },
+                    ]))}
+                  />
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -829,7 +917,9 @@ export default async function Pessoa({
                       ? '1 contrato em vigor'
                       : `${contratosEmVigor} contratos em vigor`}
                   </Link>
-                  {' '}dizem o preço e geram as cobranças.
+                  {contratosEmVigor === 1
+                    ? ' diz o preço e gera as cobranças.'
+                    : ' dizem o preço e geram as cobranças.'}
                 </>
               ) : (
                 <>
