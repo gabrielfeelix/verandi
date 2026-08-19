@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Visor } from './visor'
 import { cartao, Chip } from '../ui/pecas'
 import { Escolha } from '../ui/escolha'
 import { dataCurta } from '@/core/agenda/datas'
@@ -30,6 +31,16 @@ export function Comparador({
   const [antes, setAntes] = useState(par?.antes ?? '')
   const [depois, setDepois] = useState(par?.depois ?? '')
   const [prumo, setPrumo] = useState(true)
+  /*
+   * A foto grande a partir daqui.
+   *
+   * O documento do cliente termina o item 9 pedindo que as imagens sejam
+   * grandes e permitam ampliar, e o visor existe desde o módulo 14. Só que ele
+   * abria pela matriz, e a matriz é a leitura secundária: quem compara duas
+   * datas lado a lado é quem mais precisa aproximar o olho, e clicar na foto
+   * aqui não fazia nada.
+   */
+  const [ampliada, setAmpliada] = useState<string | null>(null)
 
   if (!par) {
     return (
@@ -41,6 +52,17 @@ export function Comparador({
       </section>
     )
   }
+
+  const posicao = posicoes.find((p) => p.id === posicaoId)
+  const fotoDe = (data: string) =>
+    avaliacoes.find((a) => a.data === data)?.fotos.find((f) => f.posicaoId === posicaoId)
+
+  /*
+   * As setas do visor andam pelas datas que **têm foto desta posição**, e não
+   * por todas as avaliações: parar numa tela vazia no meio da comparação é o
+   * jeito mais rápido de alguém achar que a foto sumiu.
+   */
+  const comFoto = avaliacoes.filter((a) => fotoDe(a.data)).map((a) => a.data)
 
   const opcoes = avaliacoes.map((a) => ({
     valor: a.data,
@@ -76,24 +98,46 @@ export function Comparador({
           posicaoId={posicaoId}
           posicoes={posicoes}
           prumo={prumo}
+          aoAmpliar={() => setAmpliada(antes)}
         />
         <Lado
           rotulo="Depois"
           data={depois}
           opcoes={opcoes}
           aoTrocar={setDepois}
+          aoAmpliar={() => setAmpliada(depois)}
           avaliacoes={avaliacoes}
           posicaoId={posicaoId}
           posicoes={posicoes}
           prumo={prumo}
         />
       </div>
+
+      {/* uma instância para os dois lados: `ampliada` guarda qual data abriu, e
+          as setas continuam andando pelas datas da mesma posição */}
+      {ampliada && fotoDe(ampliada) ? (
+        <Visor
+          aberto
+          posicao={posicao?.nome ?? ''}
+          data={ampliada}
+          url={fotoDe(ampliada)!.url}
+          observacao={fotoDe(ampliada)!.observacao}
+          temAnterior={comFoto.indexOf(ampliada) > 0}
+          temProxima={comFoto.indexOf(ampliada) < comFoto.length - 1}
+          aoAndar={(passo) => {
+            const i = comFoto.indexOf(ampliada) + passo
+            if (i >= 0 && i < comFoto.length) setAmpliada(comFoto[i])
+          }}
+          aoFechar={() => setAmpliada(null)}
+        />
+      ) : null}
     </section>
   )
 }
 
 function Lado({
   rotulo, data, opcoes, aoTrocar, avaliacoes, posicaoId, posicoes, prumo,
+  aoAmpliar,
 }: {
   rotulo: string
   data: string
@@ -103,6 +147,7 @@ function Lado({
   posicaoId: string
   posicoes: PosicaoNaTela[]
   prumo: boolean
+  aoAmpliar: () => void
 }) {
   const avaliacao = avaliacoes.find((a) => a.data === data)
   const foto = avaliacao?.fotos.find((f) => f.posicaoId === posicaoId)
@@ -135,6 +180,17 @@ function Lado({
               src={foto.url}
               alt={`${nome} em ${dataCurta(data)}`}
               className="size-full object-contain"
+            />
+            {/*
+              * O botão cobre a foto inteira em vez de ser um ícone no canto:
+              * o gesto que a pessoa faz para ver de perto é tocar na imagem, e
+              * um alvo de 480px de altura não precisa ser descoberto.
+              */}
+            <button
+              type="button"
+              onClick={aoAmpliar}
+              aria-label={`Ampliar ${nome.toLowerCase()} de ${dataCurta(data)}`}
+              className="absolute inset-0 cursor-zoom-in"
             />
           </>
         ) : (

@@ -180,3 +180,58 @@ test('posição nova aparece na hora em que é adicionada', async ({ page }) => 
   // o botão não funcionou e clica de novo, e aí recebe erro de nome repetido
   await expect(page.getByText('Perfil direito').first()).toBeVisible()
 })
+
+/**
+ * O pedido que fecha o item 9: "as imagens deverão ser grandes (permitir
+ * ampliar)".
+ *
+ * O visor existia desde o módulo 14 e só abria pela matriz. A comparação lado a
+ * lado é a leitura principal, e é justamente onde alguém aproxima o olho: até
+ * 18/08, clicar na foto ali não fazia nada.
+ */
+test('a foto amplia a partir do comparador, que é a leitura principal', async ({ page }) => {
+  const { contaId, marca } = await contaDeTeste('Estúdio do comparador')
+  const { email } = await usuarioDe(contaId, 'dono', marca)
+  const { data: pessoa } = await admin.from('pessoa')
+    .insert({ conta_id: contaId, nome: `Marina ${marca}`, ativo: true })
+    .select('id').single<{ id: string }>()
+
+  await entrar(page, email)
+
+  // duas avaliações com foto na mesma posição: sem duas datas não há o que
+  // comparar, e o comparador diz isso em vez de aparecer vazio
+  for (const dia of ['2026-03-10', '2026-08-10']) {
+    await page.goto(`/pessoas/${pessoa!.id}?aba=avaliacao`)
+    await page.getByRole('button', { name: 'Nova avaliação' }).click()
+    // dentro do modal: na segunda volta a matriz já mostra a posição atrás dele
+    await expect(page.getByRole('dialog').getByText('Flexão de coluna')).toBeVisible()
+
+    const foto = await fotoPesada(page, 200)
+    await page.locator('input[type=file]').first().setInputFiles({
+      name: 'frente.png', mimeType: 'image/png',
+      buffer: Buffer.from(foto.base64, 'base64'),
+    })
+    await expect(page.getByText('Desfazer a escolha')).toBeVisible()
+    // pelo id: a ficha tem o campo de renovação com o mesmo rótulo acessível
+    await page.locator('#data-avaliacao').fill(dia.split('-').reverse().join('/'))
+    await page.getByRole('button', { name: 'Registrar', exact: true }).click()
+    await expect(page.locator('dialog[open]')).toHaveCount(0)
+  }
+
+  await expect.poll(async () => {
+    const { data } = await admin.from('avaliacao_foto').select('path')
+      .eq('conta_id', contaId)
+    return data?.length ?? 0
+  }, { timeout: 20_000 }).toBe(2)
+
+  await page.goto(`/pessoas/${pessoa!.id}?aba=avaliacao`)
+  await expect(page.getByRole('heading', { name: 'Comparar' })).toBeVisible()
+
+  await page.getByRole('button', { name: /^Ampliar/ }).first().click()
+
+  // o visor: a foto na altura da janela, com as setas andando pelas datas da
+  // mesma posição
+  const visor = page.getByRole('dialog', { name: /Frente/ })
+  await expect(visor).toBeVisible()
+  await expect(visor.getByRole('button', { name: 'Fechar a foto' })).toBeVisible()
+})

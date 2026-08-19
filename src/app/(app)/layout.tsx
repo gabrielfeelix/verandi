@@ -115,7 +115,16 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         ] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'dono' || conta.papel === 'suporte'
-      ? ([{ href: '/config', rotulo: 'Configuração', curto: 'Config', icone: 'config', guia: 'rail-config' }] satisfies ItemRail[])
+      ? ([
+          {
+            href: '/aulas',
+            rotulo: 'Aulas',
+            curto: 'Aulas',
+            icone: 'regua',
+            guia: 'rail-aulas',
+          },
+          { href: '/config', rotulo: 'Configuração', curto: 'Config', icone: 'config', guia: 'rail-config' },
+        ] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'suporte'
       ? ([{ href: '/contas-4yu', rotulo: 'Contas (4YU)', curto: '4YU', icone: 'conta' }] satisfies ItemRail[])
