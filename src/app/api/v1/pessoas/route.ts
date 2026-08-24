@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { listarPessoas } from '@/server/pessoas/consultas'
+import { acharPorTelefone, listarPessoas } from '@/server/pessoas/consultas'
 import { inserirPessoa } from '@/server/pessoas/registro'
 import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
 import { comIdempotencia, lerCorpo } from '@/server/api/idempotencia'
@@ -22,11 +22,55 @@ import { primeiro, texto } from '@/core/api/pedido'
  * tela, e quem lê tem papel para isso.
  *
  *   GET /api/v1/pessoas?busca=cecilia
+ *   GET /api/v1/pessoas?telefone=5544998887766
  */
 export const GET = comChave(async (req: NextRequest, ctx: Contexto) => {
-  const busca = (req.nextUrl.searchParams.get('busca') ?? '').trim()
+  const parametros = req.nextUrl.searchParams
+  const telefone = (parametros.get('telefone') ?? '').trim()
+  const busca = (parametros.get('busca') ?? '').trim()
+
+  /*
+   * Procurar pelo número é o caminho do robô; pelo nome, o de quem digitou.
+   *
+   * **Sem este ramo, o bot começa toda conversa em "qual o seu nome?"** —
+   * inclusive com quem faz aula aqui há dois anos e acabou de mandar mensagem
+   * para remarcar. Quem escreve "oi" não disse nome nenhum, então a busca por
+   * nome não tem o que procurar.
+   *
+   * Vem primeiro porque é mais específico: quem manda os dois quer o número.
+   */
+  if (telefone !== '') {
+    const pessoa = await acharPorTelefone(ctx.db, ctx.contaId, telefone)
+
+    /*
+     * Não achar é **200 com lista vazia**, e não 404.
+     *
+     * No dado real 30% das pessoas não têm telefone cadastrado, e quem chega
+     * pelo WhatsApp pode nunca ter passado por aqui. Não reconhecer é o caminho
+     * normal desta rota, não uma falha — e um 404 faria o integrador tratar
+     * como erro o que é metade das chamadas.
+     */
+    return NextResponse.json({
+      total: pessoa ? 1 : 0,
+      pessoas: pessoa
+        ? [
+            {
+              pessoaId: pessoa.id,
+              nome: pessoa.nome,
+              telefone: pessoa.telefone,
+              ativa: pessoa.ativo,
+            },
+          ]
+        : [],
+    })
+  }
+
   if (busca.length < 2) {
-    return erro(400, 'busca precisa de pelo menos duas letras', 'busca')
+    return erro(
+      400,
+      'informe telefone=, ou busca= com pelo menos duas letras',
+      'busca',
+    )
   }
 
   const { linhas, total } = await listarPessoas(ctx.db, ctx.contaId, { busca })

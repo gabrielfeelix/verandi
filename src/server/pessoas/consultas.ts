@@ -1,6 +1,7 @@
 import type { Db } from '../supabase'
 import { localDe } from '../agenda/fuso'
 import { statusComCredito } from '@/core/agenda/ocupacao'
+import { chavesDeBusca } from '@/core/telefone'
 
 /** os status que deixam a pessoa devendo uma reposição, ver `statusComCredito` */
 const COM_CREDITO = new Set<string>(statusComCredito(true))
@@ -113,6 +114,53 @@ function aplicarFiltros<T extends { eq: unknown }>(
   }
   return q as T
   /* eslint-enable @typescript-eslint/no-explicit-any */
+}
+
+/**
+ * Quem é o dono deste número?
+ *
+ * **É o que faz o bot reconhecer quem já é aluno.** A automação chega com o
+ * identificador do WhatsApp e, sem esta consulta, começa toda conversa em
+ * "qual o seu nome?" — inclusive com quem faz aula aqui há dois anos e acabou
+ * de mandar mensagem para remarcar. A busca por nome não resolve: quem escreve
+ * "oi" não disse nome nenhum.
+ *
+ * Procura por **todas** as formas em que o mesmo aparelho pode estar gravado
+ * (ver `chavesDeBusca`): com e sem o nono dígito, com e sem o país. Número sem
+ * DDD não gera chave nenhuma e devolve `null` — chutar o DDD casaria a conversa
+ * de uma pessoa com a ficha de outra, e isso não tem conserto.
+ *
+ * Devolve **uma** pessoa, a mais recentemente cadastrada quando há duas com o
+ * mesmo número. Duas fichas com o mesmo telefone acontecem (mãe e filha, casal),
+ * e a decisão de qual é qual é da conversa, não do banco: o bot pergunta o nome
+ * quando precisar. Escolher a mais nova é o palpite menos pior porque é a que
+ * alguém acabou de digitar.
+ */
+export async function acharPorTelefone(
+  db: Db,
+  contaId: string,
+  telefone: string,
+): Promise<PessoaLinha | null> {
+  const chaves = chavesDeBusca(telefone)
+  if (chaves.length === 0) return null
+
+  const { data, error } = await db
+    .from('pessoa_resumo')
+    .select('*')
+    .eq('conta_id', contaId)
+    .in('telefone', chaves)
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .returns<LinhaResumo[]>()
+
+  if (error) throw error
+
+  const linha = (data ?? [])[0]
+  if (!linha) return null
+
+  const pessoa = paraLinha(linha)
+  await enriquecer(db, contaId, [pessoa])
+  return pessoa
 }
 
 export async function listarPessoas(

@@ -108,11 +108,14 @@ export const ROTAS: Rota[] = [
     caminho: '/pessoas',
     titulo: 'Procurar uma pessoa',
     resumo:
-      'Procura por nome, sem acento e sem diferenciar maiúscula. Chame sempre antes de cadastrar, senão a mesma pessoa vira três cadastros porque escreveu o nome de três jeitos.',
+      'Por telefone, para reconhecer quem chegou; ou por nome, sem acento e sem diferenciar maiúscula. Chame sempre antes de cadastrar, senão a mesma pessoa vira três cadastros porque escreveu o nome de três jeitos.',
+    atencao:
+      'Pelo telefone é como um robô reconhece quem está falando: quem escreve "oi" não disse nome nenhum. Procuramos por todas as formas do mesmo número (com e sem o país, com e sem o nono dígito), porque contas antigas do WhatsApp vêm sem ele. Número sem DDD não é procurado: ele pode ser de onze estados, e reconhecer a pessoa errada não tem conserto. Não achar responde 200 com lista vazia, e não 404: no cadastro real 30% não têm telefone, então não reconhecer é o caminho normal desta rota.',
     parametros: [
-      { nome: 'busca', tipo: 'texto', obrigatorio: true, descricao: 'no mínimo duas letras' },
+      { nome: 'telefone', tipo: 'texto', descricao: 'com DDD; aceita máscara e o país' },
+      { nome: 'busca', tipo: 'texto', descricao: 'no mínimo duas letras; use quando não tiver o número' },
     ],
-    exemplo: `curl "${BASE}/pessoas?busca=marina" \\
+    exemplo: `curl "${BASE}/pessoas?telefone=5544998887766" \\
   -H "Authorization: Bearer vr_sua_chave_aqui"`,
     resposta: `{
   "total": 1,

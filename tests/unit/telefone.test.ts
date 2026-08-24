@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  chavesDeBusca,
   erroDoTelefone, exibirTelefone, mascararTelefone, normalizarTelefone,
   telefoneValido,
 } from '@/core/telefone'
@@ -69,5 +70,44 @@ describe('exibirTelefone', () => {
   it('não inventa formato para número de tamanho impossível', () => {
     expect(exibirTelefone('123')).toBe('123')
     expect(exibirTelefone('')).toBe('')
+  })
+})
+
+/**
+ * O bot chega com o identificador do WhatsApp e precisa achar a ficha.
+ *
+ * É o que faz a conversa começar com "Oi, Marina!" em vez de "qual seu nome?"
+ * para quem faz aula aqui há dois anos.
+ */
+describe('chavesDeBusca', () => {
+  it('tira o país, que o WhatsApp manda e o cadastro não guarda', () => {
+    expect(chavesDeBusca('5544998887766')).toContain('44998887766')
+  })
+
+  it('gera a forma sem o nono dígito, porque conta antiga do WhatsApp vem assim', () => {
+    expect(chavesDeBusca('5544998887766').sort()).toEqual(['4498887766', '44998887766'])
+  })
+
+  it('e a forma com o nono, quando o cadastro é que está antigo', () => {
+    expect(chavesDeBusca('4498887766').sort()).toEqual(['4498887766', '44998887766'])
+  })
+
+  it('fixo não ganha nono dígito — ele nunca teve um', () => {
+    expect(chavesDeBusca('4433334444')).toEqual(['4433334444'])
+  })
+
+  it('aceita máscara, porque o número pode vir digitado', () => {
+    expect(chavesDeBusca('+55 (44) 99888-7766')).toContain('44998887766')
+  })
+
+  // Chutar o DDD casaria a conversa de uma pessoa com a ficha de outra. Não
+  // reconhecer é caminho normal; reconhecer errado não tem conserto.
+  it('não procura por número sem DDD', () => {
+    expect(chavesDeBusca('998887766')).toEqual([])
+    expect(chavesDeBusca('')).toEqual([])
+  })
+
+  it('não procura por DDD que não existe', () => {
+    expect(chavesDeBusca('5510998887766')).toEqual([])
   })
 })

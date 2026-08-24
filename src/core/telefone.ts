@@ -98,3 +98,55 @@ export function exibirTelefone(bruto: string | null | undefined): string {
   if (n.length === 8) return `(XX) ${n.slice(0, 4)}-${n.slice(4)}`
   return n
 }
+
+/** O código do Brasil, que o WhatsApp manda e o cadastro não guarda. */
+const DDI_BRASIL = '55'
+
+/**
+ * As formas em que este número pode estar gravado, para procurar o cadastro.
+ *
+ * **É o que permite o bot reconhecer quem já é aluno.** A automação chega com o
+ * identificador do WhatsApp — `5544998887766`, com país e sem máscara — e o
+ * cadastro guarda `44998887766`, sem país, porque é o que a recepção digita.
+ * Comparar literalmente diz que são duas pessoas.
+ *
+ * Devolve **lista**, e não um valor único, por causa do nono dígito. Celular
+ * brasileiro ganhou um `9` na frente em 2016, mas o identificador de contas
+ * antigas do WhatsApp continua vindo sem ele: o mesmo aparelho aparece como
+ * `5544998887766` na conversa e `4498887766` na ficha. Em vez de eleger uma
+ * forma canônica e torcer para o outro lado ter escolhido a mesma, geramos
+ * todas as que significam o mesmo aparelho e procuramos por qualquer uma.
+ *
+ * Lista vazia quer dizer **não dá para procurar com segurança**, e é o caso do
+ * número sem DDD: `98765-4321` pode ser de onze estados, e chutar o DDD da conta
+ * casaria a conversa de uma pessoa com a ficha de outra. Não reconhecer é um
+ * caminho normal — reconhecer errado não tem conserto.
+ */
+export function chavesDeBusca(bruto: string): string[] {
+  const todos = soDigitos(bruto)
+  if (!todos) return []
+
+  const semDdi =
+    todos.startsWith(DDI_BRASIL) && (todos.length === 12 || todos.length === 13)
+      ? todos.slice(2)
+      : todos
+
+  if (semDdi.length !== 10 && semDdi.length !== 11) return []
+  if (!DDDS.has(Number(semDdi.slice(0, 2)))) return []
+
+  const ddd = semDdi.slice(0, 2)
+  const numero = semDdi.slice(2)
+  const chaves = new Set([`${ddd}${numero}`])
+
+  if (numero.length === 9 && numero.startsWith('9')) {
+    // Com o nono dígito: gera também a forma antiga, sem ele.
+    chaves.add(`${ddd}${numero.slice(1)}`)
+  } else if (numero.length === 8 && /^[6-9]/.test(numero)) {
+    // Sem o nono, e o primeiro dígito diz que é celular. Fixo começa com 2 a 5
+    // e nunca ganhou nono dígito — inventar um criaria uma chave que não existe
+    // em cadastro nenhum.
+    chaves.add(`${ddd}9${numero}`)
+  }
+
+  return [...chaves]
+}

@@ -280,6 +280,83 @@ test.describe('pessoas', () => {
     expect(JSON.stringify(achou.corpo)).not.toContain('1980')
   })
 
+  /*
+   * O caminho do robô: ele chega com o identificador do WhatsApp, não com um
+   * nome. Sem isto, a automação começa toda conversa em "qual o seu nome?",
+   * inclusive com quem faz aula aqui há dois anos.
+   */
+  test('acha pelo telefone, que é como o bot reconhece quem chegou', async ({ request }) => {
+    const c = await contaComChave()
+    await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Marina Alves', telefone: '44998887766' })
+
+    // o WhatsApp manda com o país; o cadastro guarda sem
+    const { status, corpo } = await json(
+      request, '/api/v1/pessoas?telefone=5544998887766', com(c.segredo),
+    )
+    expect(status).toBe(200)
+    expect(corpo.total).toBe(1)
+    expect(corpo.pessoas[0]).toMatchObject({ nome: 'Marina Alves', ativa: true })
+  })
+
+  test('o nono dígito não separa a mesma pessoa em duas', async ({ request }) => {
+    const c = await contaComChave()
+    // cadastro antigo, sem o nono dígito
+    await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Rita Antiga', telefone: '4433221100' })
+
+    const { corpo } = await json(
+      request, '/api/v1/pessoas?telefone=5544934221100', com(c.segredo),
+    )
+    expect(corpo.pessoas).toEqual([])
+
+    // e o contrário: conta antiga do WhatsApp manda sem o nono
+    const semNono = await json(
+      request, '/api/v1/pessoas?telefone=554433221100', com(c.segredo),
+    )
+    expect(semNono.corpo.pessoas[0]).toMatchObject({ nome: 'Rita Antiga' })
+  })
+
+  /*
+   * No cadastro real 30% não têm telefone, e quem chega pelo WhatsApp pode
+   * nunca ter passado por aqui. Um 404 faria o integrador tratar como erro o
+   * que é metade das chamadas.
+   */
+  test('não achar é 200 com lista vazia, e não erro', async ({ request }) => {
+    const c = await contaComChave()
+
+    const { status, corpo } = await json(
+      request, '/api/v1/pessoas?telefone=5544900000000', com(c.segredo),
+    )
+    expect(status).toBe(200)
+    expect(corpo).toMatchObject({ total: 0, pessoas: [] })
+  })
+
+  // Chutar o DDD casaria a conversa de uma pessoa com a ficha de outra.
+  test('número sem DDD não procura ninguém', async ({ request }) => {
+    const c = await contaComChave()
+    await admin.from('pessoa')
+      .insert({ conta_id: c.contaId, nome: 'Sem Ddd', telefone: '44912345678' })
+
+    const { status, corpo } = await json(
+      request, '/api/v1/pessoas?telefone=912345678', com(c.segredo),
+    )
+    expect(status).toBe(200)
+    expect(corpo.pessoas).toEqual([])
+  })
+
+  test('uma conta não acha a pessoa da outra pelo telefone', async ({ request }) => {
+    const a = await contaComChave('Estúdio A')
+    const b = await contaDeTeste('Salão B')
+    await admin.from('pessoa')
+      .insert({ conta_id: b.contaId, nome: 'Zulmira Secreta', telefone: '44911112222' })
+
+    const { corpo } = await json(
+      request, '/api/v1/pessoas?telefone=5544911112222', com(a.segredo),
+    )
+    expect(corpo.pessoas).toEqual([])
+  })
+
   test('uma conta não acha a pessoa da outra', async ({ request }) => {
     const a = await contaComChave('Estúdio A')
     const b = await contaDeTeste('Salão B')
