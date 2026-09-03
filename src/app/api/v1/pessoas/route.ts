@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { acharPorTelefone, listarPessoas } from '@/server/pessoas/consultas'
 import { inserirPessoa } from '@/server/pessoas/registro'
 import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
-import { erroDoTelefone } from '@/core/telefone'
+import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
 import { comIdempotencia, lerCorpo } from '@/server/api/idempotencia'
 import { primeiro, texto } from '@/core/api/pedido'
 
@@ -135,7 +135,10 @@ export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
       corpo: {
         pessoaId: id,
         nome: nome.valor,
-        telefone: telefone.valor,
+        // O que ficou gravado, e não o que chegou: o cadastro guarda sem o
+        // país, e devolver `5544…` faria o integrador acreditar numa ficha
+        // que a busca por telefone não acha com aquele valor.
+        telefone: normalizarTelefone(telefone.valor),
         ativa: true,
       },
     }
