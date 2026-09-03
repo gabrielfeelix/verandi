@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { acharPorTelefone, listarPessoas } from '@/server/pessoas/consultas'
 import { inserirPessoa } from '@/server/pessoas/registro'
 import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
+import { erroDoTelefone } from '@/core/telefone'
 import { comIdempotencia, lerCorpo } from '@/server/api/idempotencia'
 import { primeiro, texto } from '@/core/api/pedido'
 
@@ -110,6 +111,18 @@ export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
 
   const ruim = primeiro(nome.erro, telefone.erro, externo.erro)
   if (ruim) return erroDePedido(ruim)
+
+  /*
+   * Telefone inválido é **400**, e não 500.
+   *
+   * `inserirPessoa` valida com `throw`, porque quem a chama pela tela trata a
+   * exceção. Aqui a exceção caía no `catch` genérico da casca e virava
+   * "não deu para responder agora" — a resposta que faz o integrador procurar
+   * defeito no servidor quando o problema está no corpo que ele mandou, e que
+   * na automação vira handoff em vez de uma correção possível.
+   */
+  const erroFone = erroDoTelefone(telefone.valor)
+  if (erroFone) return erro(400, erroFone, 'telefone')
 
   return comIdempotencia(req, ctx, 'POST /pessoas', corpo.bruto, async () => {
     const { id } = await inserirPessoa(ctx.db, ctx.contaId, {

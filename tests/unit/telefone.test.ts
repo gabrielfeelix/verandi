@@ -111,3 +111,36 @@ describe('chavesDeBusca', () => {
     expect(chavesDeBusca('5510998887766')).toEqual([])
   })
 })
+
+describe('o número que chega do WhatsApp', () => {
+  /**
+   * O bot identifica alguém por `5544998887766`; a recepção digita
+   * `44998887766`. Recusar o primeiro é recusar todo cadastro vindo da
+   * conversa — que é justamente quem nunca passou pela recepção.
+   */
+  it('aceita o número com o código do país', () => {
+    expect(erroDoTelefone('5544998887766')).toBeNull()
+    expect(erroDoTelefone('+55 44 99888-7766')).toBeNull()
+    // fixo com DDI: 12 dígitos
+    expect(erroDoTelefone('554433334444')).toBeNull()
+  })
+
+  it('guarda sem o país, para bater com o que a recepção cadastra', () => {
+    expect(normalizarTelefone('5544998887766')).toBe('44998887766')
+    expect(normalizarTelefone('44998887766')).toBe('44998887766')
+  })
+
+  /*
+   * O corte é por tamanho, e não por prefixo: 55 também é DDD do Rio Grande
+   * do Sul, e cortá-lo de um número nacional mutilaria cadastro legítimo.
+   */
+  it('não confunde o DDD 55 com o código do país', () => {
+    expect(normalizarTelefone('55998887766')).toBe('55998887766')
+    expect(erroDoTelefone('55998887766')).toBeNull()
+  })
+
+  it('continua recusando o que não disca', () => {
+    expect(erroDoTelefone('998887766')).toContain('DDD')
+    expect(erroDoTelefone('5510998887766')).toContain('DDD')
+  })
+})

@@ -27,6 +27,25 @@ const DDDS = new Set([
 
 export const soDigitos = (v: string): string => v.replace(/\D/g, '')
 
+/** O código do Brasil, que o WhatsApp manda e o cadastro não guarda. */
+const DDI_BRASIL = '55'
+
+/**
+ * O número sem o país, que é a forma em que o cadastro vive.
+ *
+ * O WhatsApp identifica alguém por `5544998887766`; a recepção digita
+ * `44998887766`. As duas são o mesmo aparelho, e guardar a primeira criaria
+ * uma ficha que a busca por telefone não acha e que a tela exibe torta.
+ *
+ * O corte só vale para 12 ou 13 dígitos: `5511987654321` sem DDI seria
+ * `11987654321`, mas `5598765432` é um fixo do Maranhão (DDD 55 é do RS,
+ * aliás) — cortar por prefixo sem conferir o tamanho mutila número legítimo.
+ */
+export function semDdi(bruto: string | null | undefined): string {
+  const n = soDigitos(bruto ?? '')
+  return n.startsWith(DDI_BRASIL) && (n.length === 12 || n.length === 13) ? n.slice(2) : n
+}
+
 /**
  * `(44) 99999-9999` enquanto se digita, sem exigir que a pessoa digite os
  * parênteses. Aceita o número incompleto: a máscara acompanha, não trava.
@@ -46,7 +65,10 @@ export function mascararTelefone(bruto: string): string {
  * jeito mais rápido de fazer a recepção inventar número.
  */
 export function erroDoTelefone(bruto: string | null | undefined): string | null {
-  const n = soDigitos(bruto ?? '')
+  // Sem o país: quem chega pela API do bot manda `5544998887766`, e recusar
+  // isso é recusar todo cadastro vindo do WhatsApp — que é a origem de quem
+  // nunca passou pela recepção.
+  const n = semDdi(bruto)
   if (!n) return null
 
   if (n.length === 8 || n.length === 9) {
@@ -70,9 +92,14 @@ export function erroDoTelefone(bruto: string | null | undefined): string | null 
 export const telefoneValido = (bruto: string | null | undefined): boolean =>
   erroDoTelefone(bruto) === null
 
-/** O que vai para o banco: só dígitos, ou `null` quando não há telefone. */
+/**
+ * O que vai para o banco: só dígitos e **sem o país**, ou `null` sem telefone.
+ *
+ * Guardar o DDI faria a ficha do bot divergir da ficha da recepção — mesma
+ * pessoa, duas grafias — e `chavesDeBusca` não acharia a segunda.
+ */
 export function normalizarTelefone(bruto: string | null | undefined): string | null {
-  return soDigitos(bruto ?? '') || null
+  return semDdi(bruto) || null
 }
 
 /**
@@ -99,9 +126,6 @@ export function exibirTelefone(bruto: string | null | undefined): string {
   return n
 }
 
-/** O código do Brasil, que o WhatsApp manda e o cadastro não guarda. */
-const DDI_BRASIL = '55'
-
 /**
  * As formas em que este número pode estar gravado, para procurar o cadastro.
  *
@@ -123,19 +147,14 @@ const DDI_BRASIL = '55'
  * caminho normal — reconhecer errado não tem conserto.
  */
 export function chavesDeBusca(bruto: string): string[] {
-  const todos = soDigitos(bruto)
-  if (!todos) return []
+  const nacional = semDdi(bruto)
+  if (!nacional) return []
 
-  const semDdi =
-    todos.startsWith(DDI_BRASIL) && (todos.length === 12 || todos.length === 13)
-      ? todos.slice(2)
-      : todos
+  if (nacional.length !== 10 && nacional.length !== 11) return []
+  if (!DDDS.has(Number(nacional.slice(0, 2)))) return []
 
-  if (semDdi.length !== 10 && semDdi.length !== 11) return []
-  if (!DDDS.has(Number(semDdi.slice(0, 2)))) return []
-
-  const ddd = semDdi.slice(0, 2)
-  const numero = semDdi.slice(2)
+  const ddd = nacional.slice(0, 2)
+  const numero = nacional.slice(2)
   const chaves = new Set([`${ddd}${numero}`])
 
   if (numero.length === 9 && numero.startsWith('9')) {
