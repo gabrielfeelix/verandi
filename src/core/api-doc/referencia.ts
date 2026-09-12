@@ -76,13 +76,20 @@ export const ROTAS: Rota[] = [
     resumo:
       'Os horários de um intervalo, separados em livres e cheios. É a rota que responde "tem aula quinta de manhã?".',
     atencao:
-      'Ofereça apenas o que vier em livres. Horário cheio nunca entra nessa lista, nem quando falta pouco: a decisão de encaixar alguém acima da lotação é de quem está no balcão, olhando para a pessoa. cheios existe para o seu sistema saber a diferença entre "não há horário nesse dia" e "há, e está lotado", que são duas conversas diferentes.',
+      'Ofereça apenas o que vier em livres. Horário cheio nunca entra nessa lista, nem quando falta pouco: a decisão de encaixar alguém acima da lotação é de quem está no balcão, olhando para a pessoa. cheios existe para o seu sistema saber a diferença entre "não há horário nesse dia" e "há, e está lotado", que são duas conversas diferentes. Para quem ainda não é aluno, use experimental=1: a aula experimental tem grade própria, mais estreita que a agenda, e oferecer fora dela é prometer o que o estúdio não dá.',
     parametros: [
       { nome: 'de', tipo: 'data', obrigatorio: true, descricao: 'primeiro dia, AAAA-MM-DD' },
       { nome: 'ate', tipo: 'data', obrigatorio: true, descricao: 'último dia, no máximo 90 dias depois de de' },
       { nome: 'servico', tipo: 'id', descricao: 'filtra por serviço' },
       { nome: 'profissional', tipo: 'id', descricao: 'filtra por quem atende' },
       { nome: 'local', tipo: 'id', descricao: 'filtra por sala' },
+      {
+        nome: 'experimental',
+        tipo: 'texto',
+        descricao:
+          'use 1 para ver só o que o estúdio aceita dar como aula experimental. ' +
+          'A grade dela é própria, mais estreita que a agenda de quem já é aluno',
+      },
     ],
     exemplo: `curl "${BASE}/disponibilidade?de=2026-08-17&ate=2026-08-23" \\
   -H "Authorization: Bearer vr_sua_chave_aqui"`,

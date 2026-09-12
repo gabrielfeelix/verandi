@@ -17,6 +17,8 @@ export type SessaoResumo = {
   data: string
   hora: string
   duracaoMin: number
+  /** o id, e não só o nome: a grade da experimental é por serviço */
+  servicoId: string
   servico: string
   profissionalId: string | null
   profissional: string | null
@@ -86,7 +88,7 @@ export type SessaoDetalhe = SessaoResumo & {
 
 const CAMPOS_RESUMO = `
   id, inicio, duracao_min, capacidade, status, motivo_cancelamento,
-  profissional_id, local_id,
+  profissional_id, local_id, servico_id,
   servico:servico_id(nome),
   profissional:profissional_id(nome, cor),
   local:local_id(nome),
@@ -103,6 +105,7 @@ type LinhaResumo = {
   motivo_cancelamento: string | null
   profissional_id: string | null
   local_id: string | null
+  servico_id: string
   servico: Embutido
   profissional: ({ nome: string; cor: string | null }) | null
   local: Embutido
@@ -121,6 +124,7 @@ function paraResumo(l: LinhaResumo, fuso: string): SessaoResumo {
     data,
     hora,
     duracaoMin: l.duracao_min,
+    servicoId: l.servico_id,
     servico: l.servico?.nome ?? 'sem registro',
     profissionalId: l.profissional_id,
     profissional: l.profissional?.nome ?? null,
@@ -258,7 +262,7 @@ export async function sessaoDetalhe(
     .from('sessao')
     .select(`
       id, conta_id, serie_id, criado_em, inicio, duracao_min, capacidade,
-      status, motivo_cancelamento, profissional_id, local_id,
+      status, motivo_cancelamento, profissional_id, local_id, servico_id,
       servico:servico_id(nome),
       profissional:profissional_id(nome, cor),
       local:local_id(nome),

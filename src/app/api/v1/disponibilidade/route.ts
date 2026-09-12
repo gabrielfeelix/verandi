@@ -20,8 +20,13 @@ import type { SessaoResumo } from '@/server/agenda/consultas'
  * recepção vê e o que o bot promete destrói a confiança no sistema inteiro, e é
  * por isso que aqui não há consulta própria.
  *
+ * `experimental=1` estreita a lista para o que o estúdio aceita dar como aula
+ * experimental — outro serviço e outra grade de horário que a do aluno
+ * matriculado. Sem o parâmetro, nada muda: a tela e o aluno continuam vendo a
+ * agenda inteira.
+ *
  *   GET /api/v1/disponibilidade?de=2026-08-15&ate=2026-08-22
- *                              [&servico=][&profissional=][&local=]
+ *                              [&servico=][&profissional=][&local=][&experimental=1]
  */
 
 function comoJson(s: SessaoResumo) {
@@ -65,6 +70,7 @@ export const GET = comChave(async (req: NextRequest, ctx: Contexto) => {
     servicoId: p.get('servico') ?? undefined,
     profissionalId: p.get('profissional') ?? undefined,
     localId: p.get('local') ?? undefined,
+    experimental: p.get('experimental') === '1',
   })
 
   return NextResponse.json({

@@ -3,6 +3,7 @@ import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
 import { idObrigatorio } from '@/core/api/pedido'
 import { avisar } from '@/server/webhook/eventos'
 import { avisarQuemEspera } from '@/server/agenda/espera'
+import { avaliarAviso } from '@/core/agenda/cancelamento'
 
 /**
  * Desmarcar, que é diferente de apagar.
@@ -26,6 +27,13 @@ import { avisarQuemEspera } from '@/server/agenda/espera'
  *
  * **Só o futuro.** Desmarcar uma aula que já aconteceu seria reescrever a
  * chamada que a professora fez, pelo WhatsApp, depois do fato.
+ *
+ * **O crédito depende da antecedência.** Quem avisa em cima da hora desmarca
+ * do mesmo jeito — a vaga abre, e recusar o cancelamento só faria a pessoa
+ * sumir sem avisar —, mas não ganha a aula de volta. Quanto é "em cima da
+ * hora" é `conta.horas_minimas_cancelamento` (migration `0061`), que nasce `0`
+ * e vale 2h no MGM. A resposta diz `temCredito` para o bot poder avisar antes
+ * de confirmar.
  *
  *   DELETE /api/v1/participacoes/<uuid>
  */
@@ -60,14 +68,47 @@ export const DELETE = comChave<{ id: string }>(async (
    * repete. Responder 409 na segunda faria a esteira tratar como falha algo que
    * está exatamente do jeito que ela queria.
    */
-  if (p.status === 'falta_avisada') {
+  if (p.status === 'falta_avisada' || p.status === 'falta') {
     return NextResponse.json({
-      participacaoId: p.id, status: p.status, jaEstavaAssim: true,
+      participacaoId: p.id,
+      status: p.status,
+      jaEstavaAssim: true,
+      temCredito: p.status === 'falta_avisada',
     })
   }
 
+  /*
+   * O aviso é agora: quem chama esta rota é o bot, no instante em que a pessoa
+   * mandou a mensagem. É esse instante que decide o crédito, e é por isso que
+   * ele vai para `avisado_em` em vez de ficar só em `registrado_em` — que
+   * continua sendo quando a linha foi escrita.
+   */
+  const avisadoEm = new Date()
+
+  const { data: conta } = await ctx.db
+    .from('conta')
+    .select('horas_minimas_cancelamento')
+    .eq('id', ctx.contaId)
+    .maybeSingle()
+
+  const veredito = avaliarAviso(
+    avisadoEm,
+    new Date(sessao.inicio),
+    (conta as { horas_minimas_cancelamento: number } | null)?.horas_minimas_cancelamento ?? 0,
+  )
+
+  /*
+   * Sem crédito vira `falta`, e não `falta_avisada`.
+   *
+   * As duas liberam a vaga; só a segunda entra na lista de reposição em aberto
+   * (índice `participacao_falta_aberta_ix`, e a busca da `0034`). Gravar
+   * `falta_avisada` para quem avisou tarde daria a reposição de volta pela
+   * porta dos fundos, que é exatamente o que o estúdio pediu para não
+   * acontecer.
+   */
   const { error } = await ctx.db.from('participacao').update({
-    status: 'falta_avisada',
+    status: veredito.temCredito ? 'falta_avisada' : 'falta',
+    avisado_em: avisadoEm.toISOString(),
     registrado_por_usuario_id: null,
     registrado_por_origem: 'bot',
     registrado_em: new Date().toISOString(),
@@ -88,7 +129,10 @@ export const DELETE = comChave<{ id: string }>(async (
 
   return NextResponse.json({
     participacaoId: p.id,
-    status: 'falta_avisada',
+    status: veredito.temCredito ? 'falta_avisada' : 'falta',
     jaEstavaAssim: false,
+    temCredito: veredito.temCredito,
+    horasDeAntecedencia: Math.round(veredito.horasDeAntecedencia * 10) / 10,
+    horasExigidas: veredito.horasExigidas,
   })
 })
