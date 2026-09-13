@@ -38,9 +38,12 @@ Verandi. Nenhum substitui o outro.
    `node scripts/aplica-em-producao.mjs`.** O controle é
    `app_verandi.migrations_aplicadas`; não use nem altere o histórico global do
    CLI para tentar conciliar os dois repositórios.
-6. **O nome da próxima migration vem do diretório.** Hoje a última é `0042`; a
-   próxima é `0043`, enquanto nenhuma nova tiver sido criada. Use o formato
-   `NNNN_vr_descricao.sql`.
+6. **O nome da próxima migration vem do diretório.** Hoje a última é `0061`; a
+   próxima é `0062`, enquanto nenhuma nova tiver sido criada. Use o formato
+   `NNNN_vr_descricao.sql`. Esta linha já esteve dezenove números atrasada —
+   dizia `0042` quando o disco tinha `0061` —, e é exatamente por isso que a
+   regra é `ls supabase/migrations/ | tail -1`, inclusive quando um documento
+   afirma um número.
 7. **RLS e `GRANT` são camadas diferentes.** Toda tabela de domínio nasce com
    RLS e política por `conta_id`. Tabela técnica sem dono recebe RLS sem política
    e `revoke all from anon, authenticated`.
