@@ -43,6 +43,37 @@ crédito de reposição. Apagar a linha destruiria os dois, e o histórico junto
 Apagar de verdade continua existindo na tela, porque marcação feita por engano
 quem reconhece é gente.
 
+**Avisar tarde libera a vaga e não dá crédito**, e a resposta diz qual dos dois
+aconteceu. A conta define quantas horas de antecedência valem, em Configurações
+→ Padrões → "Aviso mínimo para ganhar reposição". Zero, que é o padrão, quer
+dizer que todo aviso vale. O instante do aviso é o da chamada, não o da
+digitação da recepção, e é isso que faz o bot poder cancelar às 23h sem tirar
+reposição de quem avisou de manhã.
+
+```json
+{
+  "participacaoId": "…",
+  "status": "falta_avisada",
+  "jaEstavaAssim": false,
+  "temCredito": true,
+  "horasDeAntecedencia": 26.4,
+  "horasExigidas": 2
+}
+```
+
+| Campo | Para quê |
+|---|---|
+| `temCredito` | `true` = entra na lista de reposição. É o único campo que o fluxo precisa para decidir a mensagem |
+| `status` | `falta_avisada` com crédito, `falta` sem. Os dois liberam a vaga |
+| `horasDeAntecedencia` | Quanto a pessoa avisou antes, para a mensagem poder ser específica |
+| `horasExigidas` | O que a conta pede hoje. Serve para explicar sem chutar o número |
+| `jaEstavaAssim` | A aula já estava cancelada. Chamar duas vezes não muda nada nem duplica evento |
+
+Num fluxo do AutoFluxos: o bloco de API guarda `temCredito`, e uma condição
+`temCredito igual true` separa as duas despedidas. Sem isso o bot confirma o
+cancelamento e deixa a pessoa achando que tem reposição quando não tem, que é a
+ligação que a recepção recebe no dia seguinte.
+
 **Sem sessão não há RLS**, então quem isola conta de conta é o `conta_id` na
 consulta da rota. É por isso que as rotas chamam as funções de `server/`, que já
 recebem `contaId`, em vez de montarem consulta própria. Um `select` daqui sem

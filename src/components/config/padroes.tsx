@@ -21,6 +21,7 @@ const DE_FABRICA = {
   duracaoPadraoMin: 50,
   intervaloMin: 10,
   prazoReposicaoDias: 60,
+  horasMinimasCancelamento: 0,
   encaixeAcima: true,
   creditoFaltaAvisada: true,
   horariosSugeridos: [
@@ -33,7 +34,7 @@ const DE_FABRICA = {
  * A seção Padrões: os números que o resto do sistema assume quando ninguém diz
  * o contrário, e as duas regras que mudam o comportamento da agenda.
  *
- * Cada linha é rótulo e consequência de um lado, controle do outro — a forma do
+ * Cada linha é rótulo e consequência de um lado, controle do outro, que é a forma do
  * protótipo. Um formulário de campos numerados obrigaria a pessoa a adivinhar o
  * que cada número faz.
  */
@@ -68,6 +69,7 @@ export function SecaoPadroes({
           duracaoPadraoMin: v.duracaoPadraoMin,
           intervaloMin: v.intervaloMin,
           prazoReposicaoDias: v.prazoReposicaoDias,
+          horasMinimasCancelamento: v.horasMinimasCancelamento,
           encaixeAcima: v.encaixeAcima,
           creditoFaltaAvisada: v.creditoFaltaAvisada,
           horariosSugeridos: v.horariosSugeridos,
@@ -144,6 +146,30 @@ export function SecaoPadroes({
             max={365}
             unidade="dias"
             aoMudar={(n) => setV({ ...v, prazoReposicaoDias: n })}
+          />
+        </LinhaPadrao>
+
+        {/*
+          Vem logo depois do prazo da reposição porque as duas perguntas são
+          sobre o mesmo crédito e as pessoas confundem: esta decide **quem
+          ganha** o crédito, a de cima decide **até quando** ele vale.
+
+          O campo existia no banco desde a 0061 e não tinha tela. O 2h do MGM
+          foi escrito na mão, direto no SQL, e nenhum outro estúdio tinha como
+          chegar nele. Regra de negócio que só o desenvolvedor consegue mudar
+          não é configuração, é constante com passo extra.
+        */}
+        <LinhaPadrao
+          rotulo="Aviso mínimo para ganhar reposição"
+          detalhe="Quem avisa com menos que isso libera a vaga mas não ganha crédito. Em zero, todo aviso vale"
+        >
+          <Contador
+            rotulo="Aviso mínimo para ganhar reposição"
+            valor={v.horasMinimasCancelamento}
+            min={0}
+            max={72}
+            unidade="horas"
+            aoMudar={(n) => setV({ ...v, horasMinimasCancelamento: n })}
           />
         </LinhaPadrao>
 
@@ -303,7 +329,7 @@ function Contador({
     // os botões ficam com "menos" e "mais" secos de propósito: repetir o rótulo
     // do campo neles faria o nome acessível casar com três elementos, e aí nem
     // teste nem leitor de tela consegue apontar o campo. O que dá contexto é a
-    // ordem — o rótulo da linha vem imediatamente antes
+    // ordem: o rótulo da linha vem imediatamente antes
     <div className="flex flex-wrap items-center gap-2.5">
       <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
         <button

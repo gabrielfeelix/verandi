@@ -43,6 +43,7 @@ export async function salvarPadroes(p: {
   duracaoPadraoMin: number
   intervaloMin: number
   prazoReposicaoDias: number
+  horasMinimasCancelamento: number
   encaixeAcima: boolean
   creditoFaltaAvisada: boolean
   horariosSugeridos: string[]
@@ -54,6 +55,15 @@ export async function salvarPadroes(p: {
   if (p.duracaoPadraoMin < 1) throw new Error('a duração padrão precisa ser ao menos 1 minuto')
   if (p.intervaloMin < 0) throw new Error('o intervalo não pode ser negativo')
   if (p.prazoReposicaoDias < 1) throw new Error('o prazo da reposição precisa ser ao menos 1 dia')
+  /*
+   * Zero é resposta legítima: quer dizer "todo aviso vale", que é como a conta
+   * nasce e como o produto se comportou até a 0061. O teto de 72h existe para
+   * barrar o dedo escorregado, três dias de antecedência já é mais rígido do
+   * que qualquer estúdio pediu.
+   */
+  if (p.horasMinimasCancelamento < 0 || p.horasMinimasCancelamento > 72) {
+    throw new Error('as horas de antecedência precisam ficar entre 0 e 72')
+  }
 
   const horarios = [...new Set(p.horariosSugeridos.filter(Boolean))].sort()
 
@@ -62,6 +72,7 @@ export async function salvarPadroes(p: {
     duracao_padrao_min: p.duracaoPadraoMin,
     intervalo_min: p.intervaloMin,
     prazo_reposicao_dias: p.prazoReposicaoDias,
+    horas_minimas_cancelamento: p.horasMinimasCancelamento,
     encaixe_acima: p.encaixeAcima,
     credito_falta_avisada: p.creditoFaltaAvisada,
     horarios_sugeridos: horarios,
@@ -109,7 +120,7 @@ export async function salvarEmitente(e: {
    *
    * Esta tela tem uma função só: destravar a emissão de recibo. Aceitar o CNPJ
    * sem a razão social gravava metade, respondia "Emitente salvo" e deixava a
-   * emissão barrada exatamente como antes — a pessoa saía daqui achando que
+   * emissão barrada exatamente como antes, e a pessoa saía daqui achando que
    * tinha terminado, e a conta ia descobrir no balcão. Aconteceu em produção,
    * na primeira vez que alguém preencheu esta tela.
    *
@@ -333,7 +344,7 @@ export async function salvarFuncionamento(
  * sessão sem tocar em `participacao` deixava quarenta pessoas sem a aula e sem
  * crédito nenhum: quem perdeu o dia foi o negócio que fechou, não quem faltou.
  * O status é `cancelada`, que é o que `/pendencias` lê como crédito, e nunca
- * `falta_avisada` — essa diria que a pessoa avisou, e ainda dependeria de a
+ * `falta_avisada`, porque essa diria que a pessoa avisou, e ainda dependeria de a
  * conta ter ligado o crédito para falta avisada, que é outra pergunta.
  *
  * O nome do valor no banco continua `cancelar_avisar`, de quando o aviso
@@ -516,7 +527,7 @@ export async function salvarProfissional(entrada: FormData): Promise<{ id: strin
 /**
  * Tira a foto, e tira do balde também.
  *
- * Apagar só a coluna deixaria o arquivo lá — dado pessoal órfão que ninguém
+ * Apagar só a coluna deixaria o arquivo lá, dado pessoal órfão que ninguém
  * lembra de existir é o pior tipo de dado pessoal.
  */
 export async function removerFoto(profissionalId: string): Promise<void> {

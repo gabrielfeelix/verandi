@@ -11,6 +11,8 @@ export type Padroes = {
   duracaoPadraoMin: number
   intervaloMin: number
   prazoReposicaoDias: number
+  /** Horas de antecedência para o aviso valer crédito. `0` = todo aviso vale. */
+  horasMinimasCancelamento: number
   encaixeAcima: boolean
   creditoFaltaAvisada: boolean
   horariosSugeridos: string[]
@@ -43,7 +45,7 @@ export type ServicoLinha = {
   /** o grupo em que a tabela de preços mostra esta modalidade; opcional */
   categoria: string | null
   ativo: boolean
-  /** quantas séries vigentes usam este serviço — desativar sem saber é cego */
+  /** quantas séries vigentes usam este serviço, e desativar sem saber é cego */
   emUso: number
 }
 
@@ -80,7 +82,7 @@ export async function carregarPadroes(db: Db, contaId: string): Promise<Padroes>
   const { data, error } = await db
     .from('conta')
     .select(`capacidade_padrao, duracao_padrao_min, intervalo_min,
-             prazo_reposicao_dias, encaixe_acima, credito_falta_avisada,
+             prazo_reposicao_dias, horas_minimas_cancelamento, encaixe_acima, credito_falta_avisada,
              horarios_sugeridos`)
     .eq('id', contaId)
     .single()
@@ -92,6 +94,7 @@ export async function carregarPadroes(db: Db, contaId: string): Promise<Padroes>
     duracaoPadraoMin: data.duracao_padrao_min,
     intervaloMin: data.intervalo_min,
     prazoReposicaoDias: data.prazo_reposicao_dias,
+    horasMinimasCancelamento: data.horas_minimas_cancelamento ?? 0,
     encaixeAcima: data.encaixe_acima,
     creditoFaltaAvisada: data.credito_falta_avisada,
     horariosSugeridos: (data.horarios_sugeridos ?? []).map(hhmm).sort(),
@@ -231,7 +234,7 @@ export async function sessoesFuturasPor(
 /**
  * Os sete dias, sempre.
  *
- * Dia sem linha é dia fechado — a tela mostra os sete e deixa o usuário abrir,
+ * Dia sem linha é dia fechado, e a tela mostra os sete e deixa o usuário abrir,
  * em vez de esconder o que não existe. "Cadê o domingo" é pergunta que não
  * deveria precisar ser feita.
  */
@@ -289,7 +292,7 @@ export type UltimaAlteracao = { quando: string; quem: string | null }
  *
  * "Tudo salvo" sozinho responde à máquina; numa conta com quatro pessoas com
  * acesso, a pergunta real é **quem mudou o padrão**. Sai de `log_configuracao`,
- * que já grava toda edição — não é coluna nova nem estado duplicado.
+ * que já grava toda edição, e não é coluna nova nem estado duplicado.
  *
  * O nome vem do e-mail de acesso: é o único identificador que existe para
  * usuário do sistema, e é o mesmo que a seção Usuários mostra.
