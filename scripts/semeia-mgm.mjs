@@ -131,10 +131,20 @@ const PLANOS = [
   { cod: '151', servico: 'Toque de Tensigridade', nome: 'Toque de Tensigridade — pacote 10 sessões', recorrencia: 'pacote', parcelas: 1, sessoes: 10, validade: 6, vinculado: 2430, avulso: 2700 },
 ]
 
-/** Os nomes que aparecem na lista de turma. Os dados de contato são do cliente. */
-const PROFISSIONAIS = ['Márcia', 'Nathália', 'Pérsio']
+/**
+ * Quem dá aula, pela lista que o cliente mandou em 18/set. O Daniel Mutti é o
+ * administrador e não aparece aqui: ele é usuário da conta, não profissional
+ * com agenda. O Pérsio, que estava na lista de turma antiga, não está mais na
+ * equipe. Os dados de contato são do cliente e ainda não vieram.
+ */
+const PROFISSIONAIS = [
+  'Márcia Gramani Mutti', // coordenadora técnica e instrutora
+  'Nathália Pereira Sandalo de Toledo',
+  'Thalya Mendes Santos de Jesus',
+  'Carolina Cristina Molina Santana',
+]
 
-/** O documento não diz quantas salas são; a lista de turma tem uma só em uso. */
+/** O estúdio tem uma sala só, confirmado pelo cliente. A capacidade não. */
 const LOCAIS = [{ nome: 'Estúdio', capacidade: 5 }]
 
 async function sql(query) {
