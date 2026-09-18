@@ -13,6 +13,22 @@ const nextConfig: NextConfig = {
      * volta a acontecer fora do nosso alcance, na plataforma.
      */
     serverActions: { bodySizeLimit: '4mb' },
+
+    /*
+     * Reabrir uma tela vista há pouco não volta ao servidor, e por isso não
+     * volta ao esqueleto.
+     *
+     * Desde o Next 15 o cache do cliente para rota dinâmica nasce com 0s: sair
+     * de Pessoas, entrar numa ficha e voltar refazia tudo, com esqueleto no
+     * meio, para mostrar exatamente a mesma lista. Trinta segundos é a janela
+     * em que a resposta anterior ainda vale.
+     *
+     * O que muda por aqui não fica velho: toda ação nossa chama
+     * `revalidatePath`, e isso apaga a entrada do cache na hora. A janela só
+     * existe para mudança feita em outro aparelho, e trinta segundos de atraso
+     * nesse caso é menos caro que esqueleto em toda abertura.
+     */
+    staleTimes: { dynamic: 30 },
   },
 
   async headers() {

@@ -6,6 +6,7 @@ import { Comparador } from './comparador'
 import { NovaAvaliacao } from './nova-avaliacao'
 import { Vazio } from '../ui/pecas'
 import { BlocoEsqueleto } from '../ui/esqueleto-tela'
+import { useEsperaLonga } from '../ui/troca'
 import type { AvaliacaoNaTela, PosicaoNaTela } from './tipos'
 
 type Dados = {
@@ -13,6 +14,17 @@ type Dados = {
   posicoes: PosicaoNaTela[]
   profissionais: Array<{ id: string; nome: string }>
 }
+
+/**
+ * O que já veio, por pessoa, enquanto a ficha estiver aberta.
+ *
+ * Sem isto a aba volta ao esqueleto toda vez que é reaberta, e reabrir é o que
+ * mais acontece: olha a foto, vai ao contrato, volta. Buscar de novo o que está
+ * na tela há dez segundos é gastar Storage para mostrar espera.
+ *
+ * Morre com a navegação de página, que é o tempo em que a informação ainda vale.
+ */
+const jaVeio = new Map<string, Dados>()
 
 /**
  * A aba de avaliação, que busca o que precisa quando é aberta.
@@ -35,13 +47,18 @@ export function PainelDeAvaliacao({
   aoRegistrar: (dados: FormData) => Promise<void>
   aoAdicionarPosicao: (nome: string) => Promise<void>
 }) {
-  const [dados, setDados] = useState<Dados | null>(null)
+  const [dados, setDados] = useState<Dados | null>(() => jaVeio.get(pessoaId) ?? null)
   const [erro, setErro] = useState(false)
+  const demorou = useEsperaLonga(!dados && !erro)
 
   useEffect(() => {
+    if (jaVeio.has(pessoaId)) return
     let vivo = true
     carregar(pessoaId)
-      .then((d) => { if (vivo) setDados(d) })
+      .then((d) => {
+        jaVeio.set(pessoaId, d)
+        if (vivo) setDados(d)
+      })
       .catch(() => { if (vivo) setErro(true) })
     return () => { vivo = false }
   }, [carregar, pessoaId])
@@ -57,6 +74,8 @@ export function PainelDeAvaliacao({
   }
 
   if (!dados) {
+    /* espera curta não ganha esqueleto: piscar caixa cinza e sumir é ruído */
+    if (!demorou) return null
     return (
       <div className="flex flex-col gap-3.5">
         <BlocoEsqueleto bloco={{ tipo: 'cards' }} />

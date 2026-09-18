@@ -2,8 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import {
-  createContext, useCallback, useContext, useMemo, useState, useTransition,
-  type MouseEvent, type ReactNode,
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  useTransition, type MouseEvent, type ReactNode,
 } from 'react'
 
 /**
@@ -68,7 +68,47 @@ export function cliqueSimples(e: MouseEvent): boolean {
 }
 
 /**
- * A área que vira esqueleto enquanto a próxima tela não chega.
+ * Quanto tempo a espera precisa durar para valer um esqueleto.
+ *
+ * Abaixo disto o esqueleto **atrapalha**: boa parte das trocas resolve em
+ * dezenas de milissegundos, porque o Next já tem a rota no cache do roteador
+ * (prefetch do link, voltar, avançar, tela visitada há pouco). Piscar caixa
+ * cinza nesses casos é inventar uma espera que não existia, e a tela parece
+ * mais lenta do que se nada tivesse aparecido.
+ *
+ * 160ms é onde as duas coisas se encontram: acima disso a pessoa já percebe a
+ * demora e quer sinal; abaixo, a troca chega antes de o olho notar. Quem dá o
+ * retorno imediato do clique é o controle, que acende no primeiro quadro sem
+ * custar nada.
+ */
+const ATRASO_DO_ESQUELETO = 160
+
+/**
+ * Verdadeiro só quando a espera passa do limiar.
+ *
+ * Fica aqui, e não em cada tela, porque o limiar é uma decisão de produto e não
+ * pode variar por lugar: esqueleto aparecendo com régua diferente em cada
+ * canto é a mesma inconsistência que ele deveria resolver.
+ */
+export function useEsperaLonga(esperando: boolean): boolean {
+  const [longa, setLonga] = useState(false)
+
+  useEffect(() => {
+    if (!esperando) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect --
+         apagar o sinal quando a espera acaba é o propósito do efeito */
+      setLonga(false)
+      return
+    }
+    const t = setTimeout(() => setLonga(true), ATRASO_DO_ESQUELETO)
+    return () => clearTimeout(t)
+  }, [esperando])
+
+  return longa
+}
+
+/**
+ * A área que vira esqueleto **se** a próxima tela demorar.
  *
  * Fica dentro da página, em volta do que depende de `searchParams`. O esqueleto
  * é o `loading.tsx` da própria rota, nunca um giro no meio da tela, que é a
@@ -81,5 +121,7 @@ export function AreaQueTroca({
   children: ReactNode
 }) {
   const troca = useTroca()
-  return troca?.pendente ? <>{esqueleto}</> : <>{children}</>
+  const demorou = useEsperaLonga(troca?.pendente ?? false)
+
+  return demorou ? <>{esqueleto}</> : <>{children}</>
 }
