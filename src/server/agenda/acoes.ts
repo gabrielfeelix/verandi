@@ -8,6 +8,7 @@ import { avisar } from '../webhook/eventos'
 import { avisarQuemEspera } from './espera'
 import type { OrigemParticipacao } from './consultas'
 import { semAcento } from '../pessoas/consultas'
+import { CANDIDATOS_EM_MEMORIA } from '@/core/pessoas/busca'
 
 /** De qual lado do balcão veio o registro. Serve auditoria, não permissão. */
 async function quemRegistra() {
@@ -307,6 +308,52 @@ export async function trocarProfissionalDaSessao(
  * "Maria Silva" escreve o sobrenome, e não rola uma lista de trinta com a
  * pessoa esperando no balcão.
  */
+/**
+ * A lista inteira de quem pode ser encaixado, **uma vez**, quando o modal abre.
+ *
+ * Buscar tecla a tecla no servidor custa três idas em série por consulta, e só
+ * a terceira é a busca: antes dela vêm validar a sessão no servidor de auth e
+ * descobrir a conta do usuário. Com alguém esperando no balcão, isso aparece
+ * como um campo que demora a responder.
+ *
+ * Isto **não** é voltar ao que havia antes. O que era caro era descer a conta
+ * inteira no HTML de *toda* abertura de chamada, inclusive quando ninguém ia
+ * encaixar ninguém. Aqui a lista só desce se alguém abrir o modal, uma vez por
+ * abertura, e não pesa no carregamento da tela.
+ *
+ * Acima de `CANDIDATOS_EM_MEMORIA` a busca volta a ser do servidor: filtrar
+ * seiscentos nomes no navegador é instantâneo, dez mil não é, e nem cabe na
+ * memória do celular da recepção.
+ */
+export async function listarCandidatos(): Promise<{
+  lista: Array<{ id: string; nome: string; detalhe: string }>
+  completa: boolean
+}> {
+  const conta = await exigirConta()
+  const db = await clienteServidor()
+
+  const { data, error } = await db
+    .from('pessoa')
+    .select('id, nome, telefone, identificador_externo')
+    .eq('conta_id', conta.contaId)
+    .eq('ativo', true)
+    .order('nome')
+    // um a mais do que cabe: é assim que se sabe que não coube
+    .limit(CANDIDATOS_EM_MEMORIA + 1)
+
+  if (error) throw error
+
+  const linhas = data ?? []
+  return {
+    completa: linhas.length <= CANDIDATOS_EM_MEMORIA,
+    lista: linhas.slice(0, CANDIDATOS_EM_MEMORIA).map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      detalhe: p.telefone ?? p.identificador_externo ?? 'sem telefone',
+    })),
+  }
+}
+
 export async function buscarCandidatos(
   termo: string,
 ): Promise<Array<{ id: string; nome: string; detalhe: string }>> {

@@ -2,7 +2,10 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import type { Ocupacao } from '@/core/agenda/ocupacao'
-import { ajustarCapacidade, buscarCandidatos, encaixar } from '@/server/agenda/acoes'
+import { filtrarPorNome } from '@/core/pessoas/busca'
+import {
+  ajustarCapacidade, buscarCandidatos, encaixar, listarCandidatos,
+} from '@/server/agenda/acoes'
 import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { Avatar, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
@@ -38,31 +41,57 @@ export function ModalEncaixe({
   const [excedente, setExcedente] = useState<string | null>(null)
 
   const [achados, setAchados] = useState<Candidato[]>([])
+  /** a conta inteira, baixada uma vez ao abrir; `null` enquanto não chegou ou
+   *  quando a conta é grande demais para caber no navegador */
+  const [emMemoria, setEmMemoria] = useState<Candidato[] | null>(null)
 
   /*
-   * A busca acontece no servidor, e não numa lista baixada de véspera.
+   * A lista desce uma vez, quando o modal abre, e a busca acontece aqui.
    *
-   * Descer a conta inteira para filtrar aqui era rápido de escrever e caro em
-   * toda abertura de chamada: 800 cadastros viravam 800 linhas de nome e
-   * telefone no HTML da página, para uma busca que só começa com duas letras.
+   * Buscar no servidor a cada tecla custava três idas em série — validar a
+   * sessão, descobrir a conta, e só então procurar —, e quem está no balcão com
+   * a turma entrando sente isso como um campo que não responde.
    *
-   * Os 200ms de espera existem porque quem digita "cec" não quer três buscas;
-   * e `cancelado` protege contra a resposta velha chegar depois da nova e
+   * Isto não é o que havia no começo, que era descer a conta inteira no HTML de
+   * **toda** abertura de chamada, inclusive quando ninguém ia encaixar ninguém.
+   * Aqui nada desce enquanto o modal não abre.
+   *
+   * Conta grande demais para caber no navegador continua buscando no servidor,
+   * com os 200ms de espera de sempre: quem digita "cec" não quer três buscas, e
+   * `cancelado` protege contra a resposta velha chegar depois da nova e
    * repintar o resultado errado.
    */
-  // o que aparece é derivado do texto: com menos de duas letras não há lista,
-  // sem um setState dentro do efeito só para esvaziá-la
-  const lista = busca.trim().length < 2 ? [] : achados
+  useEffect(() => {
+    if (!encaixeAberto) return
+    let cancelado = false
+    listarCandidatos().then((r) => {
+      if (!cancelado) setEmMemoria(r.completa ? r.lista : null)
+    }).catch(() => {
+      // sem a lista em memória a busca no servidor continua valendo: o campo
+      // fica mais lento, não quebrado
+      if (!cancelado) setEmMemoria(null)
+    })
+    return () => { cancelado = true }
+  }, [encaixeAberto])
 
   useEffect(() => {
-    if (busca.trim().length < 2) return
+    if (emMemoria || busca.trim().length < 2) return
     let cancelado = false
     const t = setTimeout(async () => {
       const r = await buscarCandidatos(busca)
       if (!cancelado) setAchados(r)
     }, 200)
     return () => { cancelado = true; clearTimeout(t) }
-  }, [busca])
+  }, [busca, emMemoria])
+
+  // o que aparece é derivado do texto: com menos de duas letras não há lista,
+  // sem um setState dentro do efeito só para esvaziá-la
+  const termo = busca.trim()
+  const lista = termo.length < 2
+    ? []
+    : emMemoria
+      ? filtrarPorNome(emMemoria, termo)
+      : achados
 
   /**
    * Encaixar acima da capacidade **pede confirmação explícita**.

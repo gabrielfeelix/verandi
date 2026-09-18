@@ -6,10 +6,14 @@ import { chavesDeBusca } from '@/core/telefone'
 /** os status que deixam a pessoa devendo uma reposição, ver `statusComCredito` */
 const COM_CREDITO = new Set<string>(statusComCredito(true))
 
-/** Mesma normalização que a coluna gerada `pessoa.nome_busca` faz no banco. */
-export function semAcento(t: string): string {
-  return t.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
-}
+/**
+ * Mesma normalização que a coluna gerada `pessoa.nome_busca` faz no banco.
+ *
+ * Mora no core porque o modal de encaixe filtra no navegador com ela: duas
+ * cópias divergindo viram um cadastro que o servidor acha e a tela não.
+ */
+export { semAcento } from '@/core/pessoas/busca'
+import { semAcento } from '@/core/pessoas/busca'
 
 export type FiltroPessoa =
   | 'sem_telefone' | 'sem_horario_fixo' | 'plano_vencendo' | 'plano_vencido'
