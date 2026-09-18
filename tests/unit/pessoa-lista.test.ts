@@ -50,8 +50,25 @@ describe('situação na lista', () => {
     expect(situacaoDe({ ...base, faltasRecentes: 1 }, hoje).rotulo).toBe('ativa')
   })
 
-  it('plano já vencido continua sendo aviso, não silêncio', () => {
+  it('plano já vencido é outra palavra, não a mesma de quem está para vencer', () => {
+    // O estúdio mantém entre os ativos quem venceu e não voltou, esperando
+    // retorno. Chamar isso de "vencendo" some com a lista de quem sumiu: quem
+    // vence sexta recebe ligação de renovação, quem venceu em julho recebe
+    // outra conversa.
     expect(situacaoDe({ ...base, vencimentoPlano: '2026-07-01' }, hoje).rotulo)
+      .toBe('plano vencido')
+    expect(situacaoDe({ ...base, vencimentoPlano: '2026-08-12' }, hoje).rotulo)
+      .toBe('plano vencido')
+  })
+
+  it('vence hoje ainda está vencendo, não vencido', () => {
+    expect(situacaoDe({ ...base, vencimentoPlano: '2026-08-13' }, hoje).rotulo)
       .toBe('plano vencendo')
+  })
+
+  it('vencido ganha de faltando: quem sumiu e perdeu o plano é uma linha só', () => {
+    expect(situacaoDe(
+      { ...base, faltasRecentes: 3, vencimentoPlano: '2026-06-01' }, hoje,
+    ).rotulo).toBe('plano vencido')
   })
 })

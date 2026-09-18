@@ -16,6 +16,9 @@ const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   { valor: 'sem_telefone',     rotulo: 'Telefone incompleto' },
   { valor: 'sem_horario_fixo', rotulo: 'Sem horário fixo' },
   { valor: 'plano_vencendo',   rotulo: 'Plano vencendo' },
+  // Vencido vem logo depois de vencendo porque a leitura é a mesma pergunta em
+  // dois tempos: quem renova esta semana, e quem já deixou passar.
+  { valor: 'plano_vencido',    rotulo: 'Plano vencido' },
   { valor: 'faltou_duas',      rotulo: 'Duas faltas seguidas' },
   { valor: 'inativa',          rotulo: 'Inativa' },
 ]

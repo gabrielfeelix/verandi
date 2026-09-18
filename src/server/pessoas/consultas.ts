@@ -12,7 +12,8 @@ export function semAcento(t: string): string {
 }
 
 export type FiltroPessoa =
-  | 'sem_telefone' | 'sem_horario_fixo' | 'plano_vencendo' | 'faltou_duas' | 'inativa'
+  | 'sem_telefone' | 'sem_horario_fixo' | 'plano_vencendo' | 'plano_vencido'
+  | 'faltou_duas' | 'inativa'
 
 export type PessoaLinha = {
   id: string
@@ -105,12 +106,26 @@ function aplicarFiltros<T extends { eq: unknown }>(
   if (filtros.includes('sem_telefone')) q = q.eq('telefone_disca', false)
   if (filtros.includes('sem_horario_fixo')) q = q.eq('vagas_ativas', 0)
   if (filtros.includes('faltou_duas')) q = q.gte('faltas_recentes', 2)
+  /*
+   * Vencendo e vencido são duas listas, e o corte entre elas é hoje.
+   *
+   * Antes "vencendo" pegava tudo até daqui a quinze dias, e um plano que venceu
+   * em maio também é menor que isso: quem sumiu ficava escondido no meio de
+   * quem só precisa renovar. São duas conversas diferentes, e o estúdio guarda
+   * de propósito, entre os ativos, quem venceu e de quem ainda espera retorno.
+   *
+   * As duas datas saem no fuso da conta, não em UTC: às 21h em Brasília o corte
+   * em UTC já é o dia seguinte, e o filtro passa a mentir por um dia.
+   */
+  const hojeLocal = localDe(new Date().toISOString(), opts.fuso ?? 'UTC').data
   if (filtros.includes('plano_vencendo')) {
-    // "daqui a 15 dias" no fuso da conta, não em UTC: às 21h em Brasília o
-    // corte em UTC já é o dia seguinte, e o filtro passa a mentir por um dia
     const limite = new Date(Date.now() + 15 * 86_400_000).toISOString()
     q = q.not('vencimento_plano', 'is', null)
+         .gte('vencimento_plano', hojeLocal)
          .lte('vencimento_plano', localDe(limite, opts.fuso ?? 'UTC').data)
+  }
+  if (filtros.includes('plano_vencido')) {
+    q = q.not('vencimento_plano', 'is', null).lt('vencimento_plano', hojeLocal)
   }
   return q as T
   /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -285,15 +300,17 @@ export async function contarPessoas(
     return count ?? 0
   }
 
-  const [ativos, semTelefone, semHorario, planoVencendo, faltouDuas, inativos] =
-    await Promise.all([
-      conta([]),
-      conta(['sem_telefone']),
-      conta(['sem_horario_fixo']),
-      conta(['plano_vencendo']),
-      conta(['faltou_duas']),
-      conta(['inativa']),
-    ])
+  const [
+    ativos, semTelefone, semHorario, planoVencendo, planoVencido, faltouDuas, inativos,
+  ] = await Promise.all([
+    conta([]),
+    conta(['sem_telefone']),
+    conta(['sem_horario_fixo']),
+    conta(['plano_vencendo']),
+    conta(['plano_vencido']),
+    conta(['faltou_duas']),
+    conta(['inativa']),
+  ])
 
   // as etiquetas são livres por conta: a lista de chips sai do que existe, e
   // não de uma lista fixa no código que envelheceria na primeira conta nova
@@ -316,6 +333,7 @@ export async function contarPessoas(
       sem_telefone: semTelefone,
       sem_horario_fixo: semHorario,
       plano_vencendo: planoVencendo,
+      plano_vencido: planoVencido,
       faltou_duas: faltouDuas,
       inativa: inativos,
     },
