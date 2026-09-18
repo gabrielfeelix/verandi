@@ -40,7 +40,7 @@ const nextConfig: NextConfig = {
          *
          * O padrão do Next para `public/` é `max-age=0`, que na segunda visita
          * ainda custa uma ida ao servidor para ouvir "não mudou". Aqui o
-         * conteúdo é fixo, então vale o cache eterno — arte nova entra com nome
+         * conteúdo é fixo, então vale o cache eterno: arte nova entra com nome
          * novo, nunca sobrescrevendo o mesmo arquivo.
          */
         source: "/acesso/:arquivo*",
