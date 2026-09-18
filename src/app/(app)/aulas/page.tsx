@@ -8,6 +8,8 @@ import { ressalvaDoTotal } from '@/core/relatorio/aulas'
 import { competenciaDe } from '@/core/financeiro/cobranca'
 import { dataCurta, somarDias } from '@/core/agenda/datas'
 import { Vazio, cartao } from '@/components/ui/pecas'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 /**
  * Quantas aulas cada profissional aplicou.
@@ -54,6 +56,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
   )
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
@@ -171,6 +174,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
         )}
       </div>
     </div>
+    </AreaQueTroca>
   )
 }
 

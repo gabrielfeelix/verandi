@@ -5,7 +5,7 @@ import { cartao, Esqueleto } from './pecas'
  *
  * Não existe um esqueleto genérico: cada tela monta o **seu**, com a forma do
  * conteúdo que vai chegar. É a diferença entre a página parecer que já está
- * quase lá e um giro no meio da tela dizendo "espera" — o segundo não informa
+ * quase lá e um giro no meio da tela dizendo "espera": o segundo não informa
  * nada, e faz o carregamento parecer mais longo do que é.
  *
  * As larguras alternam de linha para linha porque esqueleto com todas as barras
@@ -34,7 +34,7 @@ export type Bloco =
   /** conteúdo principal com painel de apoio à direita */
   | { tipo: 'painel'; itens?: number }
   /**
-   * navegação estreita à esquerda e conteúdo à direita — Configuração e Vaga.
+   * navegação estreita à esquerda e conteúdo à direita: Configuração e Vaga.
    *
    * Existe separado do `painel` porque o lado importa: um esqueleto que põe a
    * coluna estreita à direita e a tela a traz à esquerda faz o conteúdo saltar
@@ -76,6 +76,20 @@ export function EsqueletoTela({
       {blocos.map((b, i) => (
         <div key={i}>{desenhar(b)}</div>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Um bloco solto, para o pedaço de tela que carrega sozinho.
+ *
+ * A aba de avaliação da ficha é o caso: ela abre no primeiro quadro e busca o
+ * próprio dado depois, então precisa do esqueleto sem precisar da tela inteira.
+ */
+export function BlocoEsqueleto({ bloco }: { bloco: Bloco }) {
+  return (
+    <div role="status" aria-busy="true" aria-label="Carregando">
+      {desenhar(bloco)}
     </div>
   )
 }

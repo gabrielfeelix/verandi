@@ -12,6 +12,8 @@ import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
 import { cartao, Chip, Vazio } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 type Busca = Promise<{
   de?: string
@@ -137,6 +139,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const doDia = sessoes.filter((s) => s.data === diaFoco)
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
@@ -186,7 +189,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         </div>
       </header>
 
-      {/* Filtro por pessoa é o mais usado — a pergunta frequente é "como está a
+      {/* Filtro por pessoa é o mais usado: a pergunta frequente é "como está a
           semana da Marina". O de local só aparece quando há mais de um lugar. */}
       <div data-imprimir="fora" className="flex flex-wrap items-center gap-1.5">
         <Chip href={q({ profissional: undefined })} ativo={!p.profissional}>
@@ -339,5 +342,6 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         <span className="text-tinta-fraca">No celular, a agenda mostra um dia por vez.</span>
       </div>
     </div>
+    </AreaQueTroca>
   )
 }

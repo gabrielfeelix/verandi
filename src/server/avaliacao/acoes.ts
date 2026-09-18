@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
-import { BALDE_AVALIACAO, podeVerAvaliacao } from './consultas'
+import {
+  BALDE_AVALIACAO, avaliacoesDaPessoa, podeVerAvaliacao, posicoesDaConta,
+} from './consultas'
 import { proximaOrdem } from '@/core/avaliacao/posicoes'
 
 import { TIPOS_DE_FOTO, LIMITE_ENVIO_MB, MB } from '@/core/foto'
@@ -197,4 +199,30 @@ export async function registrarAvaliacao(dados: FormData): Promise<void> {
   }
 
   revalidatePath(`/pessoas/${pessoaId}`)
+}
+
+/**
+ * Tudo que a aba de avaliação precisa, numa ida só.
+ *
+ * Existe porque a aba agora troca sem passar pelo servidor: o resto da ficha já
+ * está em mãos quando ela abre, e este módulo não. Carregar isto junto com a
+ * ficha seria assinar vinte e quatro endereços do Storage em toda abertura de
+ * ficha para o que quase ninguém abre, que é exatamente o que já se evitava
+ * antes. Então ele vem quando a aba é aberta, com esqueleto no lugar enquanto
+ * não chega.
+ */
+export async function painelDeAvaliacao(pessoaId: string) {
+  const conta = await exigirQuemAtende()
+  const db = await clienteServidor()
+
+  const [avaliacoes, posicoes, profissionais] = await Promise.all([
+    avaliacoesDaPessoa(pessoaId),
+    posicoesDaConta(),
+    db.from('profissional').select('id, nome')
+      .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
+      .returns<Array<{ id: string; nome: string }>>()
+      .then((r) => r.data ?? []),
+  ])
+
+  return { avaliacoes, posicoes, profissionais }
 }

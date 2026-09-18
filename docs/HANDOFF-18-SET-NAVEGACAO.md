@@ -14,6 +14,14 @@ coisa pendente de código.
 
 ## A TAREFA: toda troca de tela tem que ser instantânea
 
+> **Feita em 18/set.** A ficha troca de aba sem ir ao servidor (`AbasDaFicha`,
+> `src/components/pessoas/abas-da-ficha.tsx`), e as telas que mudam só o
+> `searchParams` viram o esqueleto da própria rota no clique
+> (`src/components/ui/troca.tsx`, ligado em `(app)/layout.tsx`). A aba de
+> avaliação continua sendo a única que busca dado ao abrir, agora pelo cliente,
+> com esqueleto no lugar. O que segue abaixo é o enunciado original.
+
+
 **Este é o pedido, nas palavras do Gabriel:** "toda vez que eu clico numa aba
 dentro do contato ou em outras abas do sistema, ele demora, e só aí muda. Todas
 têm que mudar INSTANTANEAMENTE, pode até não carregar na hora pelos dados, mas

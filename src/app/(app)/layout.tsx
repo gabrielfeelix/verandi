@@ -12,6 +12,7 @@ import { Sair } from '@/components/ui/sair'
 import { FaixaSuporte } from '@/components/ui/faixa-suporte'
 import { Rail, BarraInferior, type ItemRail } from '@/components/ui/rail'
 import { RodapeLegal } from '@/components/ui/rodape-legal'
+import { ProvedorDeTroca } from '@/components/ui/troca'
 
 const PAPEL: Record<string, string> = {
   dono: 'Dono',
@@ -194,7 +195,9 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
             ) : null}
           </p>
 
-          {children}
+          {/* a troca de tela precisa ser sentida no primeiro quadro, e quem
+              muda só o `searchParams` não atravessa `loading.tsx` */}
+          <ProvedorDeTroca>{children}</ProvedorDeTroca>
 
           {/* mora dentro do `main` para respeitar o `pb-24` que a barra do
               celular exige: fora dele, o rodapé nasceria escondido atrás dela */}

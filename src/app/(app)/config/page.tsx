@@ -27,6 +27,8 @@ import { avisoDaConta } from '@/server/webhook/consultas'
 import { listarChaves } from '@/server/api/chave'
 import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
 import { cartao } from '@/components/ui/pecas'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 // os glifos são os do protótipo: mono, discretos, e o suficiente para achar a
 // seção pelo canto do olho depois da terceira visita
@@ -81,7 +83,7 @@ const EXPLICA: Record<ChaveVocabulario, string> = {
  * A Configuração da conta: é aqui que a Verandi deixa de ser genérica e vira o
  * sistema daquele negócio.
  *
- * Uma seção por vez, escolhida pela URL — assim recarregar cai no mesmo lugar e
+ * Uma seção por vez, escolhida pela URL: assim recarregar cai no mesmo lugar e
  * o link de "vem ver isto aqui" funciona.
  */
 export default async function Config({
@@ -100,6 +102,7 @@ export default async function Config({
   const rotulos = resolverRotulos(voc)
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <header>
@@ -229,6 +232,7 @@ export default async function Config({
         </div>
       </div>
     </ProvedorDeAviso>
+    </AreaQueTroca>
   )
 }
 

@@ -7,6 +7,8 @@ import { hojeEm } from '@/server/agenda/fuso'
 import { AvatarProf } from '@/components/hoje/pecas'
 import { cartao, Chip, Rotulo, Vazio } from '@/components/ui/pecas'
 import type { SessaoResumo } from '@/server/agenda/consultas'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 type Busca = Promise<{
   dias?: string
@@ -108,6 +110,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
   }
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
@@ -184,7 +187,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
           {/*
            * O lotado não some da busca: ele entra na mesma lista, marcado, com
            * "Encaixar" no lugar de "Marcar". Numa lista à parte lá embaixo,
-           * ninguém rolava — e a recepção prometia vaga sem ver o quase-cheio.
+           * ninguém rolava, e a recepção prometia vaga sem ver o quase-cheio.
            */}
           <Link
             href={q({ lotados: comLotados ? undefined : 'sim' })}
@@ -305,6 +308,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
         </div>
       </div>
     </div>
+    </AreaQueTroca>
   )
 }
 

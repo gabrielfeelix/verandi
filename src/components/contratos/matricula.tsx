@@ -387,7 +387,11 @@ export function ContratosDaFicha({
           aberto
           glifo={
             modo.tipo === 'encerrar' ? '⨯'
-              : modo.tipo === 'antecipar' ? 'R$' : '⏸'
+              : modo.tipo === 'antecipar' ? 'R$' : undefined
+          }
+          icone={
+            modo.tipo === 'trancar' ? 'cadeado'
+              : modo.tipo === 'retomar' ? 'cadeado-aberto' : undefined
           }
           tom={
             modo.tipo === 'encerrar' ? 'alerta'

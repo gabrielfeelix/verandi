@@ -11,6 +11,8 @@ import { BuscaDePessoas } from '@/components/pessoas/busca'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { cartao, Chip, Paginacao, Vazio } from '@/components/ui/pecas'
 import { TINTA } from '@/components/ui/tintas'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   { valor: 'sem_telefone',     rotulo: 'Telefone incompleto' },
@@ -27,7 +29,7 @@ const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
  * Sem gênero e sem interpolar o rótulo da conta.
  *
  * O vocabulário é escolhido por quem usa, e há rótulo masculino e feminino
- * entre as escolhas possíveis — juntar o rótulo com "inativa" produz frases
+ * entre as escolhas possíveis: juntar o rótulo com "inativa" produz frases
  * que só aparecem depois de a conta trocar a palavra, muito longe daqui.
  */
 const NOTA_INATIVA = 'quem está inativo não some, fica fora do padrão'
@@ -65,7 +67,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
   /*
    * O contador do topo conta a busca inteira, não a página: com paginação, "24
    * cadastrados" tinha virado "20 cadastrados" a cada vez que a lista passasse
-   * de uma página — um número errado que ninguém desconfiaria.
+   * de uma página, um número errado que ninguém desconfiaria.
    */
   const endereco = (mudanca: (b: URLSearchParams) => void) => {
     const base = new URLSearchParams()
@@ -93,6 +95,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
   const exportar = endereco(() => {}).replace('/pessoas', '/pessoas/exportar')
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
@@ -272,6 +275,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
         ) : null}
       </section>
     </div>
+    </AreaQueTroca>
   )
 }
 

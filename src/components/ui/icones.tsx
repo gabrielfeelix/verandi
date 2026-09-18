@@ -2,7 +2,7 @@
  * O vocabulário de ícones do design system.
  *
  * Um traço só, `viewBox` de 20, `currentColor`: o ícone herda a cor de quem o
- * contém e nunca precisa de uma variante escura. Sem biblioteca externa — um
+ * contém e nunca precisa de uma variante escura. Sem biblioteca externa: um
  * pacote de ícones traz mil desenhos para usar doze, e traz junto o dia em que
  * ele muda de estilo sozinho numa atualização.
  *
@@ -128,6 +128,23 @@ const TRACOS = {
       <path d="M9.4 9.4l6.2 6.2M13.2 13.2l-1.5 1.5M15.6 15.6l-1.4 1.4" />
     </>
   ),
+  /*
+   * Cadeado fechado e cadeado aberto são o par de trancar e retomar contrato.
+   * O aberto é o mesmo desenho com a haste solta de um lado: quem vê os dois
+   * lado a lado entende a diferença sem legenda.
+   */
+  cadeado: (
+    <>
+      <rect x="4.6" y="8.8" width="10.8" height="8" rx="2" />
+      <path d="M7.3 8.8V6.7a2.7 2.7 0 015.4 0v2.1" />
+    </>
+  ),
+  'cadeado-aberto': (
+    <>
+      <rect x="4.6" y="8.8" width="10.8" height="8" rx="2" />
+      <path d="M7.3 8.8V6.7a2.7 2.7 0 015.4 0" />
+    </>
+  ),
 
   /* ações */
   kebab: (
@@ -169,7 +186,7 @@ const TRACOS = {
    *
    * O protótipo desenha `⌫` como texto. Não dá: o glifo não existe nas três
    * fontes do produto, e o navegador substitui por um desenho de 8px que fica
-   * ilegível dentro de um botão de 44px — foi exatamente o que apareceu na
+   * ilegível dentro de um botão de 44px, e foi exatamente o que apareceu na
    * tela. Círculo cortado é o sinal universal de "cancelado" e é um traço só.
    */
   /*

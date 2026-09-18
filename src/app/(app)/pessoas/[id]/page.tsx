@@ -10,15 +10,13 @@ import {
 } from '@/components/pessoas/acoes-da-ficha'
 import { BotaoAgendar, ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
-import { Abas } from '@/components/ui/abas'
+import { AbasDaFicha } from '@/components/pessoas/abas-da-ficha'
 import { Etiqueta, Rotulo, Vazio, cartao } from '@/components/ui/pecas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Voltar } from '@/components/ui/voltar'
 import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas'
 import { erroDoTelefone, exibirTelefone, telefoneValido } from '@/core/telefone'
-import { Matriz } from '@/components/avaliacao/matriz'
-import { Comparador } from '@/components/avaliacao/comparador'
-import { NovaAvaliacao } from '@/components/avaliacao/nova-avaliacao'
+import { PainelDeAvaliacao } from '@/components/avaliacao/painel'
 import { NovaMatricula, ContratosDaFicha } from '@/components/contratos/matricula'
 import { contratosDaPessoa } from '@/server/contratos/consultas'
 import { cobrancasDaPessoa } from '@/server/financeiro/consultas'
@@ -31,8 +29,10 @@ import { emReais } from '@/core/planos/plano'
 import { ListaDeCobrancas } from '@/components/financeiro/lista'
 import { listarPlanos } from '@/server/planos/consultas'
 import { listarSeries } from '@/server/grade/consultas'
-import { avaliacoesDaPessoa, posicoesDaConta, podeVerAvaliacao } from '@/server/avaliacao/consultas'
-import { registrarAvaliacao, criarPosicao } from '@/server/avaliacao/acoes'
+import { podeVerAvaliacao } from '@/server/avaliacao/consultas'
+import {
+  criarPosicao, painelDeAvaliacao, registrarAvaliacao,
+} from '@/server/avaliacao/acoes'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 
@@ -127,14 +127,6 @@ export default async function Pessoa({
   const aba: Aba = ABAS.includes(abaBruta as Aba) ? (abaBruta as Aba) : 'agenda'
 
   /*
-   * A avaliação só é carregada quando a aba dela está aberta: são vinte e
-   * quatro endereços assinados no Storage para uma pessoa com quatro visitas, e
-   * pagar isso em toda abertura de ficha seria pagar pelo que quase ninguém
-   * abriu.
-   */
-  const vendoAvaliacao = aba === 'avaliacao' && podeVerAvaliacao(conta.papel)
-
-  /*
    * Quem atende não matricula ninguém. É a mesma linha que já separa a recepção
    * da avaliação postural, do outro lado: contrato é dinheiro, e dinheiro é da
    * recepção e de quem responde pelo negócio.
@@ -182,17 +174,6 @@ export default async function Pessoa({
     }))),
     hoje,
   )
-  const [avaliacoes, posicoes, quemAvalia] = vendoAvaliacao
-    ? await Promise.all([
-        avaliacoesDaPessoa(id),
-        posicoesDaConta(),
-        db.from('profissional').select('id, nome')
-          .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-          .returns<Array<{ id: string; nome: string }>>()
-          .then((r) => r.data ?? []),
-      ])
-    : [[], [], []]
-
   /*
    * Os horários que a pessoa pode ocupar, com o que decide a escolha.
    *
@@ -374,32 +355,25 @@ export default async function Pessoa({
         </div>
       </article>
 
-      <Abas
-        className="self-start"
-        rotuloDoGrupo="O que ver desta ficha"
-        ativo={aba}
+      <AbasDaFicha
+        inicial={aba}
+        base={`/pessoas/${id}`}
         itens={[
-          { id: 'agenda', rotulo: 'Agenda', href: `/pessoas/${id}` },
+          { id: 'agenda', rotulo: 'Agenda' },
           {
             id: 'historico',
             rotulo: 'Histórico',
             contagem: ficha.historico.length || undefined,
-            href: `/pessoas/${id}?aba=historico`,
           },
           {
             id: 'reposicoes',
             rotulo: 'Reposições',
             contagem: ficha.reposicoesAbertas.length || undefined,
-            href: `/pessoas/${id}?aba=reposicoes`,
           },
           // a recepção não vê: foto de corpo é dado de saúde, e quem marca
           // aula não precisa dela para trabalhar
           ...(podeVerAvaliacao(conta.papel)
-            ? [{
-                id: 'avaliacao',
-                rotulo: 'Avaliação',
-                href: `/pessoas/${id}?aba=avaliacao`,
-              }]
+            ? [{ id: 'avaliacao', rotulo: 'Avaliação' }]
             : []),
           // quem atende não matricula ninguém: contrato é dinheiro, e dinheiro
           // é da recepção e de quem responde pelo negócio
@@ -408,16 +382,12 @@ export default async function Pessoa({
                 id: 'contratos',
                 rotulo: 'Contratos',
                 contagem: contratos.filter((c) => c.status !== 'encerrado').length || undefined,
-                href: `/pessoas/${id}?aba=contratos`,
               }]
             : []),
-          { id: 'perfil', rotulo: 'Perfil', href: `/pessoas/${id}?aba=perfil` },
+          { id: 'perfil', rotulo: 'Perfil' },
         ]}
-      />
-
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_312px]">
-        <div className="flex min-w-0 flex-col gap-3.5">
-          {aba === 'agenda' ? (
+        paineis={{
+          agenda: (
             <>
               <section className={`${cartao} px-[18px] py-4`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3">
@@ -481,9 +451,9 @@ export default async function Pessoa({
                 )}
               </section>
             </>
-          ) : null}
+          ),
 
-          {aba === 'historico' ? (
+          historico: (
             <section className={`${cartao} px-[18px] py-4`}>
               <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3">
                 <h2 className="font-titulo text-[18px] font-semibold">Histórico</h2>
@@ -571,9 +541,9 @@ export default async function Pessoa({
                 </ul>
               )}
             </section>
-          ) : null}
+          ),
 
-          {aba === 'reposicoes' ? (
+          reposicoes: (
             <section className="rounded-cartao border border-atencao-linha bg-atencao-superficie p-4">
               <div className="flex items-center justify-between pb-3">
                 <h2 className="font-titulo text-[18px] font-semibold">
@@ -621,9 +591,9 @@ export default async function Pessoa({
                 falta pelo menu dela na tela do horário.
               </p>
             </section>
-          ) : null}
+          ),
 
-          {aba === 'contratos' && operacional ? (
+          contratos: operacional ? (
             <div className="flex flex-col gap-3.5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="font-titulo text-[19px] font-semibold">
@@ -717,43 +687,22 @@ export default async function Pessoa({
                 </div>
               ) : null}
             </div>
-          ) : null}
+          ) : null,
 
-          {aba === 'avaliacao' && vendoAvaliacao ? (
-            <div className="flex flex-col gap-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-titulo text-[19px] font-semibold">
-                  Acompanhamento por foto
-                </h2>
-                <NovaAvaliacao
-                  pessoaId={id}
-                  pessoaNome={ficha.pessoa.nome}
-                  posicoes={posicoes}
-                  profissionais={quemAvalia}
-                  aoRegistrar={registrarAvaliacao}
-                  aoAdicionarPosicao={async (nome: string) => {
-                    'use server'
-                    await criarPosicao(nome)
-                  }}
-                />
-              </div>
+          avaliacao: podeVerAvaliacao(conta.papel) ? (
+            <PainelDeAvaliacao
+              pessoaId={id}
+              pessoaNome={ficha.pessoa.nome}
+              carregar={painelDeAvaliacao}
+              aoRegistrar={registrarAvaliacao}
+              aoAdicionarPosicao={async (nome: string) => {
+                'use server'
+                await criarPosicao(nome)
+              }}
+            />
+          ) : null,
 
-              {avaliacoes.length === 0 ? (
-                <Vazio
-                  icone="pessoas"
-                  titulo="Nenhuma avaliação ainda"
-                  texto="A comparação aparece a partir da segunda. Não é falha de carregamento: ninguém registrou a primeira."
-                />
-              ) : (
-                <>
-                  <Comparador posicoes={posicoes} avaliacoes={avaliacoes} />
-                  <Matriz posicoes={posicoes} avaliacoes={avaliacoes} />
-                </>
-              )}
-            </div>
-          ) : null}
-
-          {aba === 'perfil' ? (
+          perfil: (
             <section className={`${cartao} px-[18px] py-4`}>
               <h2 className="pb-3.5 font-titulo text-[18px] font-semibold">
                 Dados cadastrais
@@ -782,9 +731,9 @@ export default async function Pessoa({
                 )}
               </div>
             </section>
-          ) : null}
-        </div>
-
+          ),
+        }}
+      >
         <aside className="flex flex-col gap-3.5 xl:sticky xl:top-4">
           {p.observacao ? (
             <section className="rounded-grande border border-atencao-linha bg-atencao-superficie px-4 py-4">
@@ -833,7 +782,7 @@ export default async function Pessoa({
               * Telefone sem DDD é telefone que não disca.
               *
               * O cadastro e a API já recusam, mas a base veio de planilha onde
-              * o número era anotado como se fala na recepção — "9.8109-1840".
+              * o número era anotado como se fala na recepção: "9.8109-1840".
               * Mostrar isso como telefone bom é prometer um aviso que não vai
               * sair: o `wa.me` precisa de país e DDD. Aqui ele aparece do jeito
               * que está, marcado, com o caminho para consertar.
@@ -978,7 +927,7 @@ export default async function Pessoa({
             <AtenderPedidoDeExclusao pessoaId={p.id} nome={p.nome} />
           ) : null}
         </aside>
-      </div>
+      </AbasDaFicha>
     </div>
     </ProvedorDeMatricula>
     </ProvedorDeAviso>

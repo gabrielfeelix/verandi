@@ -23,6 +23,8 @@ import { BarraDePeriodo } from '@/components/ui/barra-periodo'
 import { FaixaDeNumeros, type NumeroDaFaixa } from '@/components/ui/faixa-numeros'
 import { periodoDaBusca } from '@/core/financeiro/periodo'
 import type { ResumoDeCobrancas } from '@/core/financeiro/metricas'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 /**
  * O caixa da recepção.
@@ -105,6 +107,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
   const numeros = faixaDaAba(aba, resumo)
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <Cabecalho atrasadas={atrasadas} hoje={hoje} />
@@ -140,6 +143,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
         </div>
       </div>
     </ProvedorDeAviso>
+    </AreaQueTroca>
   )
 }
 

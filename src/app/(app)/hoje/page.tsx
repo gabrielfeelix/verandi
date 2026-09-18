@@ -23,12 +23,14 @@ import { arranjoEfetivo, daFaixa } from '@/core/home/blocos'
 import { caixaDoMes } from '@/server/financeiro/consultas'
 import { variacao } from '@/core/financeiro/metricas'
 import { emReais } from '@/core/planos/plano'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 type Busca = Promise<{
   dia?: string; todos?: string; periodo?: string; prof?: string
 }>
 
-/** Manhã até 12h, tarde até 18h, noite depois — a divisão que o protótipo usa. */
+/** Manhã até 12h, tarde até 18h, noite depois, a divisão que o protótipo usa. */
 function periodoDe(hora: string) {
   const h = Number(hora.slice(0, 2))
   return h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'
@@ -50,7 +52,7 @@ function saudacao(hora: number) {
   return hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
 }
 
-/** "Quarta, 12 de agosto" — sem o ano, que quem opera já sabe. */
+/** "Quarta, 12 de agosto", sem o ano, que quem opera já sabe. */
 function dataLonga(dia: string, fuso: string) {
   const texto = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long', day: 'numeric', month: 'long', timeZone: fuso,
@@ -138,7 +140,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
    *
    * Uma agenda de quinze aulas cabe na tela e mesmo assim ninguém a lê inteira:
    * quem abre às oito quer a manhã, e quem cobre a Nathália quer a Nathália.
-   * O recorte vale **só para a lista** — a próxima turma e os números do dia
+   * O recorte vale **só para a lista**: a próxima turma e os números do dia
    * continuam falando do dia inteiro, porque "quem entra na sala agora" não
    * muda por causa de um filtro.
    */
@@ -571,6 +573,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
   }
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4.5">
         <header className="flex flex-wrap items-center justify-between gap-5">
@@ -639,6 +642,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         </div>
       </div>
     </ProvedorDeAviso>
+    </AreaQueTroca>
   )
 }
 

@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { cliqueSimples, useTroca } from './troca'
 
 export type Aba = {
   id: string
@@ -16,7 +19,7 @@ export type Aba = {
  *
  * Para duas a cinco opções curtas isto substitui `<select>`. O menu suspenso
  * esconde as alternativas atrás de um clique e, num toque, cobre metade da tela
- * com uma lista do sistema — aqui as opções já estão à vista e o alvo é o dobro.
+ * com uma lista do sistema: aqui as opções já estão à vista e o alvo é o dobro.
  */
 export function Abas({
   itens,
@@ -28,10 +31,18 @@ export function Abas({
   itens: Aba[]
   ativo: string
   aoTrocar?: (id: string) => void
-  /** o que este grupo escolhe — lido por leitor de tela antes das opções */
+  /** o que este grupo escolhe, lido por leitor de tela antes das opções */
   rotuloDoGrupo: string
   className?: string
 }) {
+  const troca = useTroca()
+  /*
+   * A aba clicada acende no primeiro quadro, antes de o servidor responder.
+   * Sem isto ela só acende quando o dado chega, e o clique parece perdido.
+   */
+  const alvo = troca?.alvo
+  const ativoAgora = (alvo && itens.find((i) => i.href === alvo)?.id) || ativo
+
   return (
     <div
       role={aoTrocar ? 'tablist' : undefined}
@@ -44,10 +55,10 @@ export function Abas({
       className={`inline-flex max-w-full gap-[3px] overflow-x-auto rounded-media border border-linha bg-superficie p-1 ${className}`}
     >
       {itens.map((i) => {
-        const ligado = i.id === ativo
+        const ligado = i.id === ativoAgora
         /*
          * O hover do ativo continua escuro. Clarear o ativo ao passar o mouse
-         * faz parecer que ele desligou — o feedback contradiz o estado.
+         * faz parecer que ele desligou: o feedback contradiz o estado.
          */
         const estilo = `inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-padrao px-3 text-[14px] whitespace-nowrap transition-colors duration-150 ${
           ligado
@@ -76,6 +87,11 @@ export function Abas({
             href={i.href}
             aria-current={ligado ? 'page' : undefined}
             className={estilo}
+            onClick={(e) => {
+              if (!troca || !cliqueSimples(e)) return
+              e.preventDefault()
+              troca.ir(i.href!)
+            }}
           >
             {dentro}
           </Link>

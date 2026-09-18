@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Botao } from './botao'
-import { Icone } from './icones'
+import { Icone, type NomeIcone } from './icones'
 import { TINTA, type Tinta } from './tintas'
 
 /** 452 para confirmar, 520 para formulário, 588 quando há lista dentro. */
@@ -59,6 +59,8 @@ export function destravarPagina() {
 
 type Cabecalho = {
   glifo?: string
+  /** ícone do vocabulário, quando existe um; ganha do `glifo` */
+  icone?: NomeIcone
   tom?: Tinta
   titulo: string
   sub?: string
@@ -68,7 +70,7 @@ type Cabecalho = {
 /**
  * A casca do modal: `<dialog>` nativo, fundo escurecido, e o `pop` de .26s.
  *
- * Usa `<dialog>` porque ele já traz o que costuma ser reimplementado errado —
+ * Usa `<dialog>` porque ele já traz o que costuma ser reimplementado errado:
  * foco preso dentro, `Esc` para fechar, e o resto da página inerte para o leitor
  * de tela.
  *
@@ -110,7 +112,7 @@ function Casca({
        *
        * Com `both` a animação **continua aplicada** depois de terminar: o
        * último quadro diz `transform: none`, mas o computado vira
-       * `matrix(1,0,0,1,0,0)` — e qualquer transform, mesmo a identidade, faz
+       * `matrix(1,0,0,1,0,0)`, e qualquer transform, mesmo a identidade, faz
        * do elemento um bloco de contenção. Aí todo `position: fixed` dentro do
        * modal passa a se posicionar contra o card em vez da tela, e o
        * `overflow: hidden` daqui corta o que sair. Foi assim que o calendário
@@ -139,14 +141,14 @@ function Casca({
   )
 }
 
-function Titulo({ glifo = '+', tom = 'positivo', titulo, sub, perigo = false }: Cabecalho) {
+function Titulo({ glifo = '+', icone, tom = 'positivo', titulo, sub, perigo = false }: Cabecalho) {
   return (
     <header className="flex shrink-0 items-start gap-3 px-6 pt-[22px] pr-14 pb-4">
       <span
         aria-hidden
         className={`flex size-9 shrink-0 items-center justify-center rounded-padrao text-[16px] ${TINTA[perigo ? 'alerta' : tom]}`}
       >
-        {perigo ? '!' : glifo}
+        {perigo ? '!' : icone ? <Icone nome={icone} tamanho={18} /> : glifo}
       </span>
       <div className="flex flex-col gap-1">
         <h2 className="font-titulo text-[20px] font-semibold tracking-[-.02em]">
@@ -190,7 +192,7 @@ function Rodape({ children }: { children: ReactNode }) {
  * do corpo e do rodapé.
  */
 export function Modal({
-  aberto, glifo, tom, titulo, sub,
+  aberto, glifo, icone, tom, titulo, sub,
   primario, aoConfirmar, secundario = 'Cancelar', aoFechar,
   perigo = false, pendente = false, largura = 'formulario', children,
 }: Cabecalho & {
@@ -209,7 +211,7 @@ export function Modal({
 }) {
   return (
     <Casca aberto={aberto} aoFechar={aoFechar} largura={largura}>
-      <Titulo glifo={glifo} tom={tom} titulo={titulo} sub={sub} perigo={perigo} />
+      <Titulo glifo={glifo} icone={icone} tom={tom} titulo={titulo} sub={sub} perigo={perigo} />
       {children ? <Corpo>{children}</Corpo> : null}
       <Rodape>
         <Botao tom="secundario" onClick={aoFechar} className="min-w-[120px]">
@@ -240,7 +242,7 @@ export function Modal({
  * campo não envia e a validação nativa do navegador não roda.
  */
 export function ModalFormulario({
-  aberto, glifo, tom, titulo, sub,
+  aberto, glifo, icone, tom, titulo, sub,
   primario, aoEnviar, secundario = 'Cancelar', aoFechar,
   perigo = false, pendente = false, largura = 'formulario', children,
 }: Cabecalho & {
@@ -256,7 +258,7 @@ export function ModalFormulario({
 }) {
   return (
     <Casca aberto={aberto} aoFechar={aoFechar} largura={largura}>
-      <Titulo glifo={glifo} tom={tom} titulo={titulo} sub={sub} perigo={perigo} />
+      <Titulo glifo={glifo} icone={icone} tom={tom} titulo={titulo} sub={sub} perigo={perigo} />
       {/* o `form` começa depois do título e envolve corpo e rodapé, para o
           primário ser o `submit` sem deixar o cabeçalho rolar junto */}
       <form action={aoEnviar} className="flex min-h-0 flex-1 flex-col">

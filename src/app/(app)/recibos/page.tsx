@@ -17,6 +17,8 @@ import { ListaDeRecibos } from '@/components/recibo/lista'
 import { BuscaDeRecibo } from '@/components/recibo/busca'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Nota, Paginacao, cartao } from '@/components/ui/pecas'
+import { AreaQueTroca } from '@/components/ui/troca'
+import Carregando from './loading'
 
 /**
  * O arquivo de recibos: o item 8 do documento, na parte que diz "deverá ser
@@ -82,6 +84,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
   const recorte = periodoPorExtenso(periodo)
 
   return (
+    <AreaQueTroca esqueleto={<Carregando />}>
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <header>
@@ -194,5 +197,6 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
         </div>
       </div>
     </ProvedorDeAviso>
+    </AreaQueTroca>
   )
 }
