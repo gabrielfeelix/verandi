@@ -367,6 +367,19 @@ export type ParticipacaoHistorico = {
   origem: string
   status: string
   temReposicao: boolean
+  /**
+   * O instante em que a aula começa, em ISO/UTC.
+   *
+   * `data` e `hora` são o mesmo momento já traduzido para o fuso da conta, e
+   * servem para mostrar. Eles não servem para **contar**: remontar um instante
+   * a partir de "16/09" e "15:00" exige reaplicar o fuso, e é exatamente aí que
+   * o horário de verão entra e a conta erra em uma hora. Quem precisa saber se
+   * ainda dá tempo de avisar usa este campo.
+   *
+   * Ele já existia como `_inicio`, escondido atrás de um cast. Escondido, cada
+   * novo leitor tinha de descobrir o truque ou refazer a conta errada.
+   */
+  inicio: string
 }
 
 export type Ficha = {
@@ -520,15 +533,12 @@ export async function fichaDaPessoa(
         origem: x.origem,
         status: x.status,
         temReposicao: (x.reposicoes ?? []).length > 0,
-        _inicio: x.sessao!.inicio,
-      } as ParticipacaoHistorico & { _inicio: string }
+        inicio: x.sessao!.inicio,
+      }
     })
-    .sort((a, b) =>
-      (b as ParticipacaoHistorico & { _inicio: string })._inicio.localeCompare(
-        (a as ParticipacaoHistorico & { _inicio: string })._inicio))
+    .sort((a, b) => b.inicio.localeCompare(a.inicio))
 
-  const futuras = todas.filter(
-    (x) => (x as ParticipacaoHistorico & { _inicio: string })._inicio >= agora)
+  const futuras = todas.filter((x) => x.inicio >= agora)
 
   return {
     pessoa: { ...paraLinha(p), email: p.email, nascimento: p.nascimento,
@@ -566,8 +576,7 @@ export async function fichaDaPessoa(
       fim: v.fim,
     })),
     proximas: futuras.slice().reverse(),
-    historico: todas.filter(
-      (x) => (x as ParticipacaoHistorico & { _inicio: string })._inicio < agora),
+    historico: todas.filter((x) => x.inicio < agora),
     // o `REP 05/6` da planilha, agora consultável. A lista mais larga, como no
     // menu de apontar reposição: Padrões decide o que vira cobrança em
     // `/pendencias`, não o que a ficha da pessoa deixa ver.

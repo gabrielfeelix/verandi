@@ -166,7 +166,7 @@ export const ROTAS: Rota[] = [
     resumo:
       'Os horários fixos dela, o que vem pela frente e quantas reposições estão em aberto. É a rota que responde "quais são meus horários?" e "quantas aulas eu tenho para repor?".',
     atencao:
-      'É daqui que sai o participacaoId, e sem ele não há como desmarcar. Guarde o identificador quando marcar, ou consulte esta rota antes de cancelar. Observação e data de nascimento nunca aparecem aqui: são dados de ficha, e ficha é da tela.',
+      'É daqui que sai o participacaoId, e sem ele não há como desmarcar. Guarde o identificador quando marcar, ou consulte esta rota antes de cancelar. Cada item de proximas diz em podeReporSeCancelarAgora se cancelar neste momento ainda dá direito à reposição: consulte antes de confirmar o cancelamento, porque depois do DELETE a resposta chega tarde. O veredito envelhece, ele vale para o instante da consulta. Observação e data de nascimento nunca aparecem aqui: são dados de ficha, e ficha é da tela.',
     exemplo: `curl ${BASE}/pessoas/77c0... \\
   -H "Authorization: Bearer vr_sua_chave_aqui"`,
     resposta: `{
@@ -182,12 +182,15 @@ export const ROTAS: Rota[] = [
   ],
   "proximas": [
     { "participacaoId": "5e90...", "sessaoId": "a41f...", "data": "2026-08-18",
-      "hora": "07:00", "servico": "Pilates solo", "origem": "recorrente", "status": "esperada" }
+      "hora": "07:00", "inicio": "2026-08-18T10:00:00Z", "servico": "Pilates solo",
+      "origem": "recorrente", "status": "esperada",
+      "podeReporSeCancelarAgora": true, "minutosAteAula": 1440 }
   ],
   "reposicoesAbertas": [
     { "participacaoId": "1c44...", "data": "2026-08-04", "hora": "07:00",
       "servico": "Pilates solo", "motivo": "falta_avisada" }
-  ]
+  ],
+  "regraDeCancelamento": { "minutosMinimos": 120, "porExtenso": "2h" }
 }`,
   },
   {
@@ -228,13 +231,16 @@ export const ROTAS: Rota[] = [
     resumo:
       'Registra que a pessoa avisou que não vem. A vaga volta a ser oferecida na mesma hora, e a pessoa ganha o crédito de reposição se a conta trabalhar assim.',
     atencao:
-      'Apesar do verbo, nada é apagado: a marcação fica no histórico com o estado de falta avisada. É isso que preserva o crédito de reposição e a contagem do negócio. Só funciona para horário futuro; aula que já aconteceu tem a chamada feita por quem estava na sala.',
+      'Apesar do verbo, nada é apagado: a marcação fica no histórico com o estado de falta avisada. É isso que preserva o crédito de reposição e a contagem do negócio. Só funciona para horário futuro; aula que já aconteceu tem a chamada feita por quem estava na sala. Quem avisa com menos antecedência do que a conta exige desmarca do mesmo jeito, mas fica com status falta e temCredito false: a vaga abre e a reposição não. Chamar de novo devolve 200 com jaEstavaAssim true, para a reentrega não virar erro.',
     exemplo: `curl -X DELETE ${BASE}/participacoes/5e90... \\
   -H "Authorization: Bearer vr_sua_chave_aqui"`,
     resposta: `{
   "participacaoId": "5e90...",
   "status": "falta_avisada",
-  "jaEstavaAssim": false
+  "jaEstavaAssim": false,
+  "temCredito": true,
+  "minutosDeAntecedencia": 1440,
+  "minutosExigidos": 120
 }`,
   },
   {

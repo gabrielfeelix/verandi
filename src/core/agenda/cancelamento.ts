@@ -10,15 +10,21 @@
  * Puro e sem banco, como `encaixe.ts` e `experimental.ts`: é conta sobre tempo,
  * e o caso que mais interessa (faltam duas horas e um minuto) é impossível de
  * reproduzir à mão contra um banco de verdade.
+ *
+ * **A unidade é minuto, e passou a ser na `0062`.** A primeira versão contava
+ * horas inteiras porque o primeiro caso pedia 2h. O segundo pediu meia hora, e
+ * meia hora não existe em inteiro de horas: vira 0, que dá crédito a todo
+ * mundo, ou 1, que é o dobro do combinado. Quem escolhe o prazo é o estúdio, e
+ * o sistema não pode arredondar a escolha dele.
  */
 
 export type Veredito = {
   /** a pessoa fica com o direito de repor essa aula? */
   temCredito: boolean
-  /** quanto faltava para a aula quando ela avisou, em horas */
-  horasDeAntecedencia: number
-  /** o que a conta exige */
-  horasExigidas: number
+  /** quanto faltava para a aula quando ela avisou, em minutos */
+  minutosDeAntecedencia: number
+  /** o que a conta exige, em minutos */
+  minutosExigidos: number
 }
 
 /**
@@ -28,7 +34,7 @@ export type Veredito = {
  * fuso da conta antes de subtrair só criaria a chance de errar no horário de
  * verão.
  *
- * **`horasExigidas = 0` devolve crédito sempre**, que é como o sistema se
+ * **`minutosExigidos = 0` devolve crédito sempre**, que é como o sistema se
  * comportou até existir esta função. Conta que não configurou nada não pode
  * começar a negar reposição sozinha.
  *
@@ -38,19 +44,38 @@ export type Veredito = {
 export function avaliarAviso(
   avisadoEm: Date,
   inicio: Date,
-  horasExigidas: number,
+  minutosExigidos: number,
 ): Veredito {
-  const horas = (inicio.getTime() - avisadoEm.getTime()) / 3_600_000
+  const minutos = (inicio.getTime() - avisadoEm.getTime()) / 60_000
 
-  if (horas <= 0) {
-    return { temCredito: false, horasDeAntecedencia: horas, horasExigidas }
+  if (minutos <= 0) {
+    return { temCredito: false, minutosDeAntecedencia: minutos, minutosExigidos }
   }
 
   return {
-    temCredito: horas >= horasExigidas,
-    horasDeAntecedencia: horas,
-    horasExigidas,
+    temCredito: minutos >= minutosExigidos,
+    minutosDeAntecedencia: minutos,
+    minutosExigidos,
   }
+}
+
+/**
+ * O prazo escrito como gente fala.
+ *
+ * `120` vira "2h" e `30` vira "30 minutos", porque é assim que o estúdio diz a
+ * regra em voz alta. Imprimir "0.5h" ou "120 minutos" faria a frase do bot soar
+ * como relatório, e essa frase é a última coisa que a pessoa lê antes de perder
+ * a reposição: ela precisa ser entendida na primeira leitura.
+ *
+ * Meia hora e uma hora e meia entram como "1h30", que é como se lê um horário
+ * em português, e não "90 minutos".
+ */
+export function prazoPorExtenso(minutos: number): string {
+  if (minutos < 60) return `${minutos} minutos`
+
+  const horas = Math.floor(minutos / 60)
+  const resto = minutos % 60
+  return resto === 0 ? `${horas}h` : `${horas}h${String(resto).padStart(2, '0')}`
 }
 
 /**
@@ -72,7 +97,7 @@ export function avisoDeForaDoPrazo(
 
   return (
     `Você está tentando cancelar a aula ${quando} fora do prazo de ` +
-    `${veredito.horasExigidas}h. Se confirmar, essa aula não poderá ser reposta. ` +
-    `Deseja prosseguir?`
+    `${prazoPorExtenso(veredito.minutosExigidos)}. Se confirmar, essa aula não ` +
+    `poderá ser reposta. Deseja prosseguir?`
   )
 }

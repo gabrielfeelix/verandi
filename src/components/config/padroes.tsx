@@ -21,7 +21,7 @@ const DE_FABRICA = {
   duracaoPadraoMin: 50,
   intervaloMin: 10,
   prazoReposicaoDias: 60,
-  horasMinimasCancelamento: 0,
+  minutosMinimosCancelamento: 0,
   encaixeAcima: true,
   creditoFaltaAvisada: true,
   horariosSugeridos: [
@@ -69,7 +69,7 @@ export function SecaoPadroes({
           duracaoPadraoMin: v.duracaoPadraoMin,
           intervaloMin: v.intervaloMin,
           prazoReposicaoDias: v.prazoReposicaoDias,
-          horasMinimasCancelamento: v.horasMinimasCancelamento,
+          minutosMinimosCancelamento: v.minutosMinimosCancelamento,
           encaixeAcima: v.encaixeAcima,
           creditoFaltaAvisada: v.creditoFaltaAvisada,
           horariosSugeridos: v.horariosSugeridos,
@@ -158,6 +158,12 @@ export function SecaoPadroes({
           foi escrito na mão, direto no SQL, e nenhum outro estúdio tinha como
           chegar nele. Regra de negócio que só o desenvolvedor consegue mudar
           não é configuração, é constante com passo extra.
+
+          **Em minutos desde a 0062, e o passo é de 15.** A unidade era hora
+          inteira, e o segundo estúdio a perguntar pediu meia hora: em horas
+          isso não existe, vira 0 (todo aviso vale) ou 1 (o dobro do que se
+          pediu). O passo de 15 é o que se digita de verdade numa regra de
+          balcão, e quem quiser 20 minutos ainda escreve no campo.
         */}
         <LinhaPadrao
           rotulo="Aviso mínimo para ganhar reposição"
@@ -165,11 +171,12 @@ export function SecaoPadroes({
         >
           <Contador
             rotulo="Aviso mínimo para ganhar reposição"
-            valor={v.horasMinimasCancelamento}
+            valor={v.minutosMinimosCancelamento}
             min={0}
-            max={72}
-            unidade="horas"
-            aoMudar={(n) => setV({ ...v, horasMinimasCancelamento: n })}
+            max={72 * 60}
+            passo={15}
+            unidade="minutos"
+            aoMudar={(n) => setV({ ...v, minutosMinimosCancelamento: n })}
           />
         </LinhaPadrao>
 

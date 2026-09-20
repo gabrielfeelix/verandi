@@ -43,7 +43,7 @@ export async function salvarPadroes(p: {
   duracaoPadraoMin: number
   intervaloMin: number
   prazoReposicaoDias: number
-  horasMinimasCancelamento: number
+  minutosMinimosCancelamento: number
   encaixeAcima: boolean
   creditoFaltaAvisada: boolean
   horariosSugeridos: string[]
@@ -60,9 +60,12 @@ export async function salvarPadroes(p: {
    * nasce e como o produto se comportou até a 0061. O teto de 72h existe para
    * barrar o dedo escorregado, três dias de antecedência já é mais rígido do
    * que qualquer estúdio pediu.
+   *
+   * Em minutos desde a `0062`: meia hora não cabia em hora inteira, e virava
+   * zero (crédito para todo mundo) ou uma hora (o dobro do combinado).
    */
-  if (p.horasMinimasCancelamento < 0 || p.horasMinimasCancelamento > 72) {
-    throw new Error('as horas de antecedência precisam ficar entre 0 e 72')
+  if (p.minutosMinimosCancelamento < 0 || p.minutosMinimosCancelamento > 72 * 60) {
+    throw new Error('o aviso mínimo precisa ficar entre 0 e 4320 minutos (72h)')
   }
 
   const horarios = [...new Set(p.horariosSugeridos.filter(Boolean))].sort()
@@ -72,7 +75,7 @@ export async function salvarPadroes(p: {
     duracao_padrao_min: p.duracaoPadraoMin,
     intervalo_min: p.intervaloMin,
     prazo_reposicao_dias: p.prazoReposicaoDias,
-    horas_minimas_cancelamento: p.horasMinimasCancelamento,
+    minutos_minimos_cancelamento: p.minutosMinimosCancelamento,
     encaixe_acima: p.encaixeAcima,
     credito_falta_avisada: p.creditoFaltaAvisada,
     horarios_sugeridos: horarios,

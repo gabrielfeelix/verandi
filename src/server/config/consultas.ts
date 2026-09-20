@@ -12,7 +12,7 @@ export type Padroes = {
   intervaloMin: number
   prazoReposicaoDias: number
   /** Horas de antecedência para o aviso valer crédito. `0` = todo aviso vale. */
-  horasMinimasCancelamento: number
+  minutosMinimosCancelamento: number
   encaixeAcima: boolean
   creditoFaltaAvisada: boolean
   horariosSugeridos: string[]
@@ -82,7 +82,7 @@ export async function carregarPadroes(db: Db, contaId: string): Promise<Padroes>
   const { data, error } = await db
     .from('conta')
     .select(`capacidade_padrao, duracao_padrao_min, intervalo_min,
-             prazo_reposicao_dias, horas_minimas_cancelamento, encaixe_acima, credito_falta_avisada,
+             prazo_reposicao_dias, minutos_minimos_cancelamento, encaixe_acima, credito_falta_avisada,
              horarios_sugeridos`)
     .eq('id', contaId)
     .single()
@@ -94,7 +94,7 @@ export async function carregarPadroes(db: Db, contaId: string): Promise<Padroes>
     duracaoPadraoMin: data.duracao_padrao_min,
     intervaloMin: data.intervalo_min,
     prazoReposicaoDias: data.prazo_reposicao_dias,
-    horasMinimasCancelamento: data.horas_minimas_cancelamento ?? 0,
+    minutosMinimosCancelamento: data.minutos_minimos_cancelamento ?? 0,
     encaixeAcima: data.encaixe_acima,
     creditoFaltaAvisada: data.credito_falta_avisada,
     horariosSugeridos: (data.horarios_sugeridos ?? []).map(hhmm).sort(),

@@ -380,6 +380,7 @@ export type Database = {
           fuso: string
           horarios_sugeridos: string[]
           horas_minimas_cancelamento: number
+          minutos_minimos_cancelamento: number
           id: string
           interna: boolean
           intervalo_min: number
@@ -405,6 +406,7 @@ export type Database = {
           fuso?: string
           horarios_sugeridos?: string[]
           horas_minimas_cancelamento?: number
+          minutos_minimos_cancelamento?: number
           id?: string
           interna?: boolean
           intervalo_min?: number
@@ -430,6 +432,7 @@ export type Database = {
           fuso?: string
           horarios_sugeridos?: string[]
           horas_minimas_cancelamento?: number
+          minutos_minimos_cancelamento?: number
           id?: string
           interna?: boolean
           intervalo_min?: number

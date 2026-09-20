@@ -31,9 +31,9 @@ import { avaliarAviso } from '@/core/agenda/cancelamento'
  * **O crédito depende da antecedência.** Quem avisa em cima da hora desmarca
  * do mesmo jeito — a vaga abre, e recusar o cancelamento só faria a pessoa
  * sumir sem avisar —, mas não ganha a aula de volta. Quanto é "em cima da
- * hora" é `conta.horas_minimas_cancelamento` (migration `0061`), que nasce `0`
- * e vale 2h no MGM. A resposta diz `temCredito` para o bot poder avisar antes
- * de confirmar.
+ * hora" é `conta.minutos_minimos_cancelamento` (migration `0062`, antes em
+ * horas na `0061`), que nasce `0` e vale 120 no MGM. A resposta diz
+ * `temCredito` para o bot poder avisar antes de confirmar.
  *
  *   DELETE /api/v1/participacoes/<uuid>
  */
@@ -87,14 +87,14 @@ export const DELETE = comChave<{ id: string }>(async (
 
   const { data: conta } = await ctx.db
     .from('conta')
-    .select('horas_minimas_cancelamento')
+    .select('minutos_minimos_cancelamento')
     .eq('id', ctx.contaId)
     .maybeSingle()
 
   const veredito = avaliarAviso(
     avisadoEm,
     new Date(sessao.inicio),
-    (conta as { horas_minimas_cancelamento: number } | null)?.horas_minimas_cancelamento ?? 0,
+    (conta as { minutos_minimos_cancelamento: number } | null)?.minutos_minimos_cancelamento ?? 0,
   )
 
   /*
@@ -132,7 +132,7 @@ export const DELETE = comChave<{ id: string }>(async (
     status: veredito.temCredito ? 'falta_avisada' : 'falta',
     jaEstavaAssim: false,
     temCredito: veredito.temCredito,
-    horasDeAntecedencia: Math.round(veredito.horasDeAntecedencia * 10) / 10,
-    horasExigidas: veredito.horasExigidas,
+    minutosDeAntecedencia: Math.round(veredito.minutosDeAntecedencia),
+    minutosExigidos: veredito.minutosExigidos,
   })
 })
