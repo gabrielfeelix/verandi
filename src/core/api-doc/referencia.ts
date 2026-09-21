@@ -224,6 +224,36 @@ export const ROTAS: Rota[] = [
 }`,
   },
   {
+    id: 'ver-marcacao',
+    metodo: 'GET',
+    caminho: '/participacoes/{participacaoId}',
+    titulo: 'Uma marcação, e se dá tempo de cancelar',
+    resumo:
+      'Diz o dia, a hora e o serviço de uma marcação, e responde a pergunta que vem antes de cancelar: se desmarcar agora, a pessoa ainda ganha a reposição?',
+    atencao:
+      'Consulte esta rota depois que a pessoa escolher a aula e antes de chamar o DELETE. O campo avisoParaConfirmar já vem com a frase pronta para mostrar quando estiver fora do prazo, e vem null quando não há nada a avisar. O veredito vale para o instante da consulta e envelhece: quem grava a decisão é o DELETE, que refaz a conta na hora do aviso.',
+    exemplo: `curl ${BASE}/participacoes/5e90... \\
+  -H "Authorization: Bearer vr_sua_chave_aqui"`,
+    resposta: `{
+  "participacaoId": "5e90...",
+  "pessoaId": "77c0...",
+  "nome": "Marina Alves",
+  "sessaoId": "a41f...",
+  "data": "2026-08-18",
+  "hora": "07:00",
+  "inicio": "2026-08-18T10:00:00Z",
+  "servico": "Pilates solo",
+  "origem": "recorrente",
+  "status": "esperada",
+  "jaPassou": false,
+  "podeCancelar": true,
+  "podeReporSeCancelarAgora": false,
+  "minutosAteAula": 45,
+  "regraDeCancelamento": { "minutosMinimos": 120, "porExtenso": "2h" },
+  "avisoParaConfirmar": "Você está tentando cancelar a aula de 2026-08-18 às 07:00 fora do prazo de 2h. Se confirmar, essa aula não poderá ser reposta. Deseja prosseguir?"
+}`,
+  },
+  {
     id: 'desmarcar',
     metodo: 'DELETE',
     caminho: '/participacoes/{participacaoId}',

@@ -3,7 +3,102 @@ import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
 import { idObrigatorio } from '@/core/api/pedido'
 import { avisar } from '@/server/webhook/eventos'
 import { avisarQuemEspera } from '@/server/agenda/espera'
-import { avaliarAviso } from '@/core/agenda/cancelamento'
+import { avaliarAviso, avisoDeForaDoPrazo, prazoPorExtenso } from '@/core/agenda/cancelamento'
+import { localDe } from '@/server/agenda/fuso'
+
+/**
+ * Uma marcação, e o que acontece se ela for cancelada agora.
+ *
+ * Existe para a pergunta que vem **antes** do `DELETE`: a pessoa escolheu a
+ * aula no menu do bot, e agora é preciso saber se cancelar neste instante ainda
+ * dá direito a repor. A ficha da pessoa já responde isso para a lista inteira,
+ * mas responder por lista obriga quem consome a casar duas listas por posição —
+ * e no dia em que uma delas vier filtrada, a resposta passa a ser a da aula do
+ * vizinho, calada. Aqui o id é o pedido, então não há o que desalinhar.
+ *
+ * **O veredito vale para o instante da consulta.** Ele envelhece: uma aula que
+ * às 13h ainda podia ser cancelada com crédito já não pode às 14h. Quem grava a
+ * decisão é o `DELETE`, que refaz a conta no momento do aviso — o que sai daqui
+ * serve para escolher a frase, não para valer como registro.
+ *
+ * `avisoParaConfirmar` vem pronto e é `null` quando está dentro do prazo: a
+ * frase que o estúdio pediu, montada num lugar só, para cada integração não
+ * inventar a sua.
+ *
+ *   GET /api/v1/participacoes/<uuid>
+ */
+export const GET = comChave<{ id: string }>(async (
+  req: NextRequest,
+  ctx: Contexto,
+  params,
+) => {
+  const ruim = idObrigatorio(params.id, 'id')
+  if (ruim) return erroDePedido(ruim)
+
+  const { data: p } = await ctx.db
+    .from('participacao')
+    .select(`
+      id, status, origem, sessao_id,
+      sessao:sessao_id(inicio, servico:servico_id(nome)),
+      pessoa:pessoa_id(id, nome)
+    `)
+    .eq('id', params.id).eq('conta_id', ctx.contaId)
+    .maybeSingle()
+
+  if (!p) return erro(404, 'esta marcação não existe nesta conta')
+
+  const sessao = p.sessao as unknown as
+    { inicio: string; servico: { nome: string } | null } | null
+  if (!sessao) return erro(404, 'esta marcação não existe nesta conta')
+
+  const { data: conta } = await ctx.db
+    .from('conta')
+    .select('fuso, minutos_minimos_cancelamento')
+    .eq('id', ctx.contaId)
+    .maybeSingle()
+
+  const c = conta as
+    { fuso: string | null; minutos_minimos_cancelamento: number } | null
+  const fuso = c?.fuso ?? 'America/Sao_Paulo'
+  const minutosExigidos = c?.minutos_minimos_cancelamento ?? 0
+
+  const { data, hora } = localDe(sessao.inicio, fuso)
+  const veredito = avaliarAviso(new Date(), new Date(sessao.inicio), minutosExigidos)
+  const pessoa = p.pessoa as unknown as { id: string; nome: string } | null
+
+  /*
+   * Aula que já passou não é cancelável, e dizer só `podeReporSeCancelarAgora:
+   * false` esconderia o motivo: quem lê acharia que foi o prazo, e ofereceria
+   * "quer cancelar mesmo assim?" para uma aula que o `DELETE` vai recusar com
+   * 409. São duas respostas diferentes e o campo separa as duas.
+   */
+  const jaPassou = Date.parse(sessao.inicio) < Date.now()
+
+  return NextResponse.json({
+    participacaoId: p.id,
+    pessoaId: pessoa?.id ?? null,
+    nome: pessoa?.nome ?? null,
+    sessaoId: p.sessao_id,
+    data,
+    hora,
+    inicio: sessao.inicio,
+    servico: sessao.servico?.nome ?? 'sem registro',
+    origem: p.origem,
+    status: p.status,
+    jaPassou,
+    podeCancelar: !jaPassou && p.status !== 'falta_avisada' && p.status !== 'falta',
+    podeReporSeCancelarAgora: veredito.temCredito,
+    minutosAteAula: Math.round(veredito.minutosDeAntecedencia),
+    regraDeCancelamento: {
+      minutosMinimos: minutosExigidos,
+      porExtenso: prazoPorExtenso(minutosExigidos),
+    },
+    /* a frase do estúdio, pronta. `null` quando não há nada a avisar */
+    avisoParaConfirmar: jaPassou
+      ? null
+      : avisoDeForaDoPrazo(veredito, `de ${data} às ${hora}`),
+  })
+})
 
 /**
  * Desmarcar, que é diferente de apagar.
