@@ -30,6 +30,14 @@ export const GET = comChave(async (_req: NextRequest, ctx: Contexto) => {
 
   return NextResponse.json({
     servicos: catalogo.servicos,
+    /*
+     * A mesma lista, estreitada ao que o estúdio aceita dar como experimental.
+     *
+     * Vem separada em vez de o bot filtrar `servicos`: o motor de fluxo mapeia
+     * caminho de JSON, não sabe filtrar lista por campo, e sem esta chave o bot
+     * teria de oferecer tudo e descobrir o engano depois, na busca de horário.
+     */
+    servicosExperimentais: catalogo.servicos.filter((s) => s.aceitaExperimental),
     profissionais: catalogo.profissionais,
     locais: catalogo.locais,
     funcionamento: catalogo.funcionamento,

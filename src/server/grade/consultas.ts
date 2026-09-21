@@ -108,7 +108,21 @@ export async function listarSeries(
 
 /** O catálogo que o editor de série precisa para oferecer escolha. */
 export type CatalogoGrade = {
-  servicos: { id: string; nome: string; duracaoMin: number; capacidadePadrao: number }[]
+  servicos: {
+    id: string
+    nome: string
+    duracaoMin: number
+    capacidadePadrao: number
+    /**
+     * O estúdio aceita dar este serviço como aula experimental?
+     *
+     * Quem nunca veio só pode ser oferecido o que está marcado aqui, e o bot
+     * precisa saber disso **antes** de perguntar a modalidade: sem o campo, ele
+     * oferece a lista inteira, a pessoa escolhe fisioterapia e só então a busca
+     * de horário volta vazia, num "não temos vaga" que não é verdade.
+     */
+    aceitaExperimental: boolean
+  }[]
   profissionais: { id: string; nome: string }[]
   locais: { id: string; nome: string }[]
   funcionamento: { diaSemana: number; abre: string; fecha: string }[]
@@ -116,7 +130,7 @@ export type CatalogoGrade = {
 
 export async function catalogoDaGrade(db: Db, contaId: string): Promise<CatalogoGrade> {
   const [servicos, profissionais, locais, funcionamento] = await Promise.all([
-    db.from('servico').select('id, nome, duracao_min, capacidade_padrao')
+    db.from('servico').select('id, nome, duracao_min, capacidade_padrao, aceita_experimental')
       .eq('conta_id', contaId).eq('ativo', true).order('nome')
       ,
     db.from('profissional').select('id, nome')
@@ -134,6 +148,7 @@ export async function catalogoDaGrade(db: Db, contaId: string): Promise<Catalogo
     servicos: (servicos.data ?? []).map((s) => ({
       id: s.id, nome: s.nome,
       duracaoMin: s.duracao_min, capacidadePadrao: s.capacidade_padrao,
+      aceitaExperimental: s.aceita_experimental === true,
     })),
     profissionais: profissionais.data ?? [],
     locais: locais.data ?? [],
