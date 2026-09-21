@@ -107,6 +107,7 @@ export const GET = comChave<{ id: string }>(async (
         hora: p.hora,
         inicio: p.inicio,
         servico: p.servico,
+        servicoId: p.servicoId,
         origem: p.origem,
         status: p.status,
         /* cancelar agora ainda dá direito à reposição? */
@@ -121,6 +122,9 @@ export const GET = comChave<{ id: string }>(async (
       data: p.data,
       hora: p.hora,
       servico: p.servico,
+      /* o id vai junto do nome: é ele que `/disponibilidade?servico=` aceita, e
+         sem ele a busca da reposição não tem como ficar na mesma modalidade */
+      servicoId: p.servicoId,
       motivo: p.status,
     })),
 

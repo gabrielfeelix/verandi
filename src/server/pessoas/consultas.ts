@@ -364,6 +364,15 @@ export type ParticipacaoHistorico = {
   data: string
   hora: string
   servico: string
+  /**
+   * O id do serviço, ao lado do nome.
+   *
+   * O nome é para a pessoa ler; o id é o que `/disponibilidade?servico=` aceita.
+   * Sem ele, quem oferece reposição não tem como estreitar a busca para a mesma
+   * modalidade da aula perdida, e um aluno de pilates acaba vendo horário de
+   * fisioterapia numa lista que deveria ser só dele.
+   */
+  servicoId: string | null
   origem: string
   status: string
   temReposicao: boolean
@@ -514,7 +523,7 @@ export async function fichaDaPessoa(
     .from('participacao')
     .select(`
       id, origem, status, sessao_id,
-      sessao:sessao_id(inicio, servico:servico_id(nome)),
+      sessao:sessao_id(inicio, servico:servico_id(id, nome)),
       reposicoes:participacao!reposicao_de_id(id)
     `)
     .eq('pessoa_id', pessoaId)
@@ -530,6 +539,7 @@ export async function fichaDaPessoa(
         sessaoId: x.sessao_id,
         data, hora,
         servico: x.sessao!.servico?.nome ?? 'sem registro',
+        servicoId: x.sessao!.servico?.id ?? null,
         origem: x.origem,
         status: x.status,
         temReposicao: (x.reposicoes ?? []).length > 0,
