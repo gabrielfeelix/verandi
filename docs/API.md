@@ -23,8 +23,15 @@ e, da Fase 3 em diante, em
 | `GET /disponibilidade` · `/catalogo` · `/pessoas?busca=` | 2 |
 | `POST /pessoas` · `GET /pessoas/:id` | 3 |
 | `POST /participacoes` · `DELETE /participacoes/:id` | 3 |
+| `GET /funcionamento` | 3 |
 
 ## As decisões que não se deduzem lendo a rota
+
+**`/funcionamento` existe para o bot não ter um expediente próprio.** O horário
+e os feriados já moram na configuração da agenda; sem esta rota, o cliente
+configura a mesma coisa duas vezes, e as duas cópias divergem no primeiro
+feriado que alguém cadastra num lado só. Ela responde "a casa abre quando", e
+não "tem vaga quando", que é `/disponibilidade`.
 
 **O robô não decide nada.** Horário cheio não aparece em `livres`, o bot não
 abre turma, não muda capacidade e não passa da lotação. Isso não é limitação da
