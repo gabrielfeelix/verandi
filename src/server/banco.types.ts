@@ -379,7 +379,6 @@ export type Database = {
           endereco_emitente: string | null
           fuso: string
           horarios_sugeridos: string[]
-          horas_minimas_cancelamento: number
           minutos_minimos_cancelamento: number
           id: string
           interna: boolean
@@ -405,7 +404,6 @@ export type Database = {
           endereco_emitente?: string | null
           fuso?: string
           horarios_sugeridos?: string[]
-          horas_minimas_cancelamento?: number
           minutos_minimos_cancelamento?: number
           id?: string
           interna?: boolean
@@ -431,7 +429,6 @@ export type Database = {
           endereco_emitente?: string | null
           fuso?: string
           horarios_sugeridos?: string[]
-          horas_minimas_cancelamento?: number
           minutos_minimos_cancelamento?: number
           id?: string
           interna?: boolean
