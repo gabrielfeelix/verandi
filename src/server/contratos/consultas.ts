@@ -109,3 +109,41 @@ export async function temVinculo(
   return (data ?? []).some((c) =>
     c.plano?.servico_id !== servicoId && (c.fim === null || c.fim >= hoje))
 }
+
+/**
+ * A modalidade que a pessoa faz, para a ficha.
+ *
+ * Existe separada de `contratosDaPessoa` por causa de **quem lê**. Aquela só é
+ * chamada para papel operacional, porque contrato é dinheiro; a modalidade não
+ * é: o professor que abre a ficha antes da aula precisa saber se a pessoa faz
+ * Pilates aparelho ou Personal, e essa pergunta não tem preço dentro. Chamar a
+ * consulta inteira para tirar um nome de serviço traria plano, valor e forma de
+ * pagamento para uma tela que não pode mostrá-los.
+ *
+ * **Vem do contrato, e não da vaga.** A ficha já carrega as vagas com o serviço
+ * junto, e tirar a modalidade dali seria de graça, mas em produção a tabela
+ * `vaga` está vazia: as 63 pessoas com modalidade têm todas pelo contrato, e
+ * nenhuma pela vaga. Tirar da vaga daria branco para todo mundo.
+ *
+ * Devolve uma lista porque o schema permite mais de um contrato ativo, ainda
+ * que hoje ninguém tenha dois: quem chamar decide como mostrar.
+ */
+export async function modalidadesDaPessoa(
+  db: Db, contaId: string, pessoaId: string,
+): Promise<string[]> {
+  const { data, error } = await db
+    .from('contrato')
+    .select('plano(servico(nome))')
+    .eq('conta_id', contaId)
+    .eq('pessoa_id', pessoaId)
+    .eq('status', 'ativo')
+
+  if (error) throw error
+
+  const nomes: string[] = []
+  for (const c of data ?? []) {
+    const nome = c.plano?.servico?.nome
+    if (nome && !nomes.includes(nome)) nomes.push(nome)
+  }
+  return nomes
+}

@@ -18,7 +18,7 @@ import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas
 import { erroDoTelefone, exibirTelefone, telefoneValido } from '@/core/telefone'
 import { PainelDeAvaliacao } from '@/components/avaliacao/painel'
 import { NovaMatricula, ContratosDaFicha } from '@/components/contratos/matricula'
-import { contratosDaPessoa } from '@/server/contratos/consultas'
+import { contratosDaPessoa, modalidadesDaPessoa } from '@/server/contratos/consultas'
 import { cobrancasDaPessoa } from '@/server/financeiro/consultas'
 import { recibosDaPessoa, ultimosEnvios } from '@/server/recibo/consultas'
 import { ListaDeRecibos } from '@/components/recibo/lista'
@@ -147,6 +147,16 @@ export default async function Pessoa({
   const contratosEmVigor = contratos.filter((c) => c.status === 'ativo').length
 
   /*
+   * A modalidade, fora do `if (operacional)` de propósito.
+   *
+   * O Edu abriu a ficha e não achou o que a pessoa faz. Ela vinha existindo só
+   * dentro da aba Contratos, que é operacional: o professor que abre a ficha
+   * antes da aula não via modalidade nenhuma. Ela não é dinheiro, e por isso
+   * sobe para a faixa que todo papel lê, ao lado do identificador.
+   */
+  const modalidades = await modalidadesDaPessoa(db, conta.contaId, id)
+
+  /*
    * O retrato financeiro da pessoa.
    *
    * A aba listava as cobranças e não respondia nenhuma das perguntas que se faz
@@ -236,6 +246,13 @@ export default async function Pessoa({
     ['Telefone', p.telefone ? exibirTelefone(p.telefone) : 'Sem telefone', !p.telefone],
     ['E-mail', p.email ?? 'Sem e-mail'],
     ['Identificador', p.identificadorExterno ?? 'Sem identificador', !p.identificadorExterno],
+    /*
+     * Ao lado do identificador, que foi onde pediram: *"modalidade tem q ser
+     * ali do lado do ID, na ficha mesmo"*. Sem contrato ativo não é falta a
+     * corrigir (20 das 83 pessoas estão assim, e a maioria é histórico), então
+     * não vai em vermelho.
+     */
+    ['Modalidade', modalidades.length ? modalidades.join(' + ') : 'Sem contrato ativo'],
     ['Nascimento', p.nascimento ? curta(p.nascimento) : 'Sem registro'],
     [`${rotulos.pessoa.singular} desde`, mesAno(p.criadoEm.slice(0, 10))],
   ]

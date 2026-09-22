@@ -63,6 +63,18 @@ export function MarcarInativa({
  * é a única ação da ficha que não tem volta. Quem procura isto está com um
  * pedido na mão; quem não está não deve tropeçar nela.
  *
+ * **Discreta não é escondida, e a diferença custou três mensagens.** Quem
+ * testou procurou como excluir e não achou: *"não tem opção de excluir aluno /
+ * pera / escondido / achei"*. Era um texto sublinhado em cinza claro, que não
+ * se lê como coisa clicável, e a palavra que ele procurava, "excluir", não
+ * aparecia em lugar nenhum: o rótulo dizia "Atender pedido de exclusão", que é
+ * o nome certo do ato e o termo errado para procurar.
+ *
+ * O lugar continua o mesmo, e a confirmação também. O que muda é dar a ela
+ * forma de botão e as duas palavras: quem tem o pedido na mão acha, e quem não
+ * tem continua sem esbarrar, porque ela segue no pé da coluna, em cinza, longe
+ * das ações do dia.
+ *
  * Só o dono vê. Recepção atende quem liga, mas decidir que um cadastro some é
  * responsabilidade de quem responde pelo negócio perante o titular.
  */
@@ -85,9 +97,9 @@ export function AtenderPedidoDeExclusao({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="cursor-pointer self-start text-[13px] text-tinta-fraca underline underline-offset-2 hover:text-alerta"
+        className="cursor-pointer self-start rounded-media border border-linha px-3 py-1.5 text-[13px] text-tinta-fraca transition-colors hover:border-alerta hover:text-alerta"
       >
-        Atender pedido de exclusão
+        Excluir dados a pedido
       </button>
 
       <Modal
