@@ -39,7 +39,7 @@ export const GET = comChave<{ id: string }>(async (
     .from('participacao')
     .select(`
       id, status, origem, sessao_id,
-      sessao:sessao_id(inicio, servico:servico_id(nome)),
+      sessao:sessao_id(inicio, servico:servico_id(id, nome)),
       pessoa:pessoa_id(id, nome)
     `)
     .eq('id', params.id).eq('conta_id', ctx.contaId)
@@ -48,7 +48,7 @@ export const GET = comChave<{ id: string }>(async (
   if (!p) return erro(404, 'esta marcação não existe nesta conta')
 
   const sessao = p.sessao as unknown as
-    { inicio: string; servico: { nome: string } | null } | null
+    { inicio: string; servico: { id: string; nome: string } | null } | null
   if (!sessao) return erro(404, 'esta marcação não existe nesta conta')
 
   const { data: conta } = await ctx.db
@@ -83,6 +83,14 @@ export const GET = comChave<{ id: string }>(async (
     hora,
     inicio: sessao.inicio,
     servico: sessao.servico?.nome ?? 'sem registro',
+    /*
+     * O id do serviço, e não só o nome, pelo mesmo motivo da ficha da pessoa
+     * (`ae5bf27`): quem vai procurar outro horário para esta mesma aula precisa
+     * filtrar a disponibilidade, e a disponibilidade filtra por id. Sem ele, o
+     * bot de reposição da MGM ou oferece horário de qualquer modalidade, ou
+     * chama uma pessoa para fazer a conta à mão.
+     */
+    servicoId: sessao.servico?.id ?? null,
     origem: p.origem,
     status: p.status,
     jaPassou,

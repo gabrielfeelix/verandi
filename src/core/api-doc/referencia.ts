@@ -243,6 +243,7 @@ export const ROTAS: Rota[] = [
   "hora": "07:00",
   "inicio": "2026-08-18T10:00:00Z",
   "servico": "Pilates solo",
+  "servicoId": "b2d1...",
   "origem": "recorrente",
   "status": "esperada",
   "jaPassou": false,
