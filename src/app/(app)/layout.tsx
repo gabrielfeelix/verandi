@@ -82,6 +82,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
     : []
 
   const operacional = conta.papel === 'dono' || conta.papel === 'recepcao'
+    || conta.papel === 'suporte'
 
   /*
    * O número de cobranças em atraso vive no trilho porque é o único dado do
