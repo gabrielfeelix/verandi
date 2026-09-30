@@ -4,7 +4,7 @@ import { TINTA, TINTA_CHAPADA, PARES_AVATAR, type Tinta } from './tintas'
 import { Icone, type NomeIcone } from './icones'
 
 /**
- * As peças burras do design system. Nenhuma decide nada do domínio — quem sabe
+ * As peças burras do design system. Nenhuma decide nada do domínio, quem sabe
  * o que é uma reposição é o `core/`, não um componente.
  */
 
@@ -12,7 +12,7 @@ import { Icone, type NomeIcone } from './icones'
  * A superfície do cartão, sem estrutura nenhuma.
  *
  * Existe porque metade das seções do produto tem cabeçalho, rodapé ou grade
- * própria e não cabe dentro do `<Cartao>` — e o que não pode acontecer é cada
+ * própria e não cabe dentro do `<Cartao>`, e o que não pode acontecer é cada
  * uma dessas escrever a borda e o raio de novo, cada vez de um jeito. Quem tem
  * título e corpo usa `<Cartao>`; quem não tem, usa esta classe.
  */
@@ -64,7 +64,7 @@ export function Etiqueta({
  * Ocupação: `usadas/capacidade`, sempre.
  *
  * Passar da capacidade **não é erro**. Fica laranja e a turma continua aceitando
- * encaixe — quem decide se cabe mais uma é quem está na sala, não o sistema.
+ * encaixe, quem decide se cabe mais uma é quem está na sala, não o sistema.
  */
 export function Ocupacao({ usadas, capacidade }: { usadas: number; capacidade: number }) {
   const cheia = usadas > capacidade
@@ -81,7 +81,7 @@ export function Ocupacao({ usadas, capacidade }: { usadas: number; capacidade: n
 }
 
 /**
- * Chip de escolha. Ativo é escuro, inativo é branco com linha — o mesmo par do
+ * Chip de escolha. Ativo é escuro, inativo é branco com linha, o mesmo par do
  * protótipo. `ponto` desenha a cor do profissional antes do rótulo.
  *
  * Com `href` vira link, para filtro que mora na URL: assim a semana filtrada
@@ -170,7 +170,7 @@ export function Campo({
  * enfeite: numa configuração com trinta campos, é o que deixa ver de relance o
  * que já foi respondido sem ler nada.
  *
- * Os três estados moram no `@utility campo`, em `globals.css` — aqui é só o
+ * Os três estados moram no `@utility campo`, em `globals.css`, aqui é só o
  * nome, para nenhuma tela precisar reescrever a lista de classes e errar um
  * estado no caminho.
  */
@@ -208,7 +208,7 @@ export function ListaImpacto({
 /**
  * Nota que explica a **consequência**, não a mecânica.
  *
- * "As sessões que já aconteceram continuam no histórico" — não "vigência recebe
+ * "As sessões que já aconteceram continuam no histórico", não "vigência recebe
  * data de fim". Quem lê não tem o modelo de dados na cabeça.
  */
 export function Nota({
@@ -228,7 +228,7 @@ export function Nota({
  * Estado vazio: ícone, o que aconteceu, e **uma** ação.
  *
  * Dia sem aula é informação, não falha. "Nada marcado" e não "não foi possível
- * carregar" — a segunda frase manda a pessoa procurar um problema que não
+ * carregar", a segunda frase manda a pessoa procurar um problema que não
  * existe.
  */
 export function Vazio({
@@ -273,7 +273,7 @@ export function Paginacao({
   porPagina: number
   /** para lista que pagina no cliente */
   aoIr?: (p: number) => void
-  /** para lista que pagina pela URL — a página vira endereço e o voltar funciona */
+  /** para lista que pagina pela URL, a página vira endereço e o voltar funciona */
   hrefDe?: (p: number) => string
   /**
    * A ressalva que explica o que a contagem não diz.
@@ -333,7 +333,7 @@ function Seta({
   /*
    * Desligada vira `<span>`, não link desabilitado: link não tem `disabled`, e
    * um `<a>` sem `href` continua sendo alvo de clique para quem navega por
-   * teclado — só que não leva a lugar nenhum.
+   * teclado, só que não leva a lugar nenhum.
    */
   if (desligada || (!href && !aoClicar)) {
     return (
@@ -383,13 +383,13 @@ export function Avatar({
   nome: string
   foto?: string | null
   tamanho?: 24 | 32 | 40 | 56
-  /** cor do profissional, quando o avatar é de alguém da equipe */
+  /** cor do profissional, quando o avatar é de alguém da equipe: vira o fundo */
   anel?: string
   /**
    * O selo do canto: presente, falta, falta avisada, licença.
    *
    * Fica no avatar e não numa coluna à parte porque o que se procura numa lista
-   * de chamada é "quem ainda não tem marca" — e isso se vê varrendo os rostos,
+   * de chamada é "quem ainda não tem marca", e isso se vê varrendo os rostos,
    * não lendo linha por linha.
    */
   selo?: { tinta: Tinta; glifo: string }
@@ -397,7 +397,7 @@ export function Avatar({
    * O nome já está escrito ao lado.
    *
    * Sem isto o leitor de tela lê "Ruth Salgado, Ruth Salgado" em toda linha de
-   * lista — que é a forma mais comum de piorar a leitura tentando melhorar.
+   * lista, que é a forma mais comum de piorar a leitura tentando melhorar.
    */
   decorativo?: boolean
 }) {
@@ -413,10 +413,12 @@ export function Avatar({
         width: tamanho,
         height: tamanho,
         fontSize: fonte,
-        background: foto ? `url(${foto}) center/cover` : fundo,
-        color: foto ? 'transparent' : frente,
-        // o anel engrossa junto com o avatar; 1.5px some num de 56
-        boxShadow: anel ? `inset 0 0 0 ${tamanho >= 38 ? 2 : 1.5}px ${anel}` : undefined,
+        // o profissional pinta o avatar inteiro com a cor dele, escurecida para
+        // a inicial clara ler; anel por cima da letra embaralhava as duas
+        background: foto
+          ? `url(${foto}) center/cover`
+          : anel ? `color-mix(in srgb, ${anel} 82%, black)` : fundo,
+        color: foto ? 'transparent' : anel ? '#FFFFFF' : frente,
       }}
     >
       <span aria-hidden>{foto ? '' : iniciaisDe(nome)}</span>

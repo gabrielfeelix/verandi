@@ -70,18 +70,23 @@ export const GLIFO_PRESENCA = {
 } as const
 
 /**
- * Seis pares para avatar, escolhidos por hash do nome.
+ * Seis pares para avatar, escolhidos por hash do nome: fundo chapado escuro,
+ * inicial clara.
  *
  * Determinístico de propósito: a mesma pessoa tem a mesma cor em toda tela, e
  * isso é o que faz reconhecer alguém de relance numa lista de quarenta.
+ *
+ * Eram fundos pastel com a letra na cor forte, e com o anel do profissional
+ * por cima a borda ficava da grossura do traço das letras: as iniciais
+ * pareciam contornadas. Fundo escuro com letra clara passa de 4,5:1 em todos.
  */
 export const PARES_AVATAR = [
-  ['#DCEDE7', '#0E7C6B'],
-  ['#E4E9F5', '#42507A'],
-  ['#FBE4D9', '#B4562F'],
-  ['#E9E6F3', '#5B4C7C'],
-  ['#E5EFDC', '#4E6B37'],
-  ['#F6E7C9', '#8A6A22'],
+  ['#0B6B5C', '#E6F4EF'],
+  ['#3A4870', '#E9EDF7'],
+  ['#9A4524', '#FDEEE6'],
+  ['#4F416E', '#EFEBF7'],
+  ['#435D2F', '#EDF4E6'],
+  ['#735818', '#FBF1DC'],
 ] as const
 
 /** As cores que um profissional pode ter na grade. */

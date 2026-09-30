@@ -29,7 +29,7 @@ export type ItemRail = {
 const CHAVE = 'verandi:rail-aberto'
 
 /*
- * O rail aberto ou fechado é estado do navegador, não do React — por isso ele é
+ * O rail aberto ou fechado é estado do navegador, não do React, por isso ele é
  * lido com `useSyncExternalStore` em vez de um efeito que copia `localStorage`
  * para dentro de um `useState`. O servidor sempre responde "aberto"; o cliente
  * corrige na hidratação, sem render em cascata e sem piscar duas vezes.
@@ -67,7 +67,7 @@ function ativoEm(pathname: string, href: string) {
  * O rail escuro do protótipo: navegação em pé, do lado esquerdo, que encolhe
  * para caber mais tela.
  *
- * Fechado ele continua mostrando o rótulo curto embaixo do glifo — ícone sozinho
+ * Fechado ele continua mostrando o rótulo curto embaixo do glifo, ícone sozinho
  * com nove destinos vira adivinhação, e quem opera não deveria ter que passar o
  * mouse para descobrir onde clica.
  */
@@ -182,7 +182,7 @@ export function Rail({
         >
           <span
             aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F4A40] text-[12.5px] font-semibold text-[#BFEBDD] ring-2 ring-menta"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F4A40] text-[12.5px] font-semibold text-[#E6F4EF]"
           >
             {iniciais(pessoa)}
           </span>
