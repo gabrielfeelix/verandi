@@ -59,7 +59,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
           <input
             id="email" name="email" type="email" required autoComplete="email"
             defaultValue={emailInicial}
-            placeholder="voce@estudio.com.br"
+            placeholder="Insira seu e-mail aqui"
             className={entrada}
           />
         </div>
@@ -120,16 +120,10 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
         </p>
       </form>
 
-      {/* O link por e-mail passou a existir, mas o caminho pela pessoa continua
-          e não é redundância: domínio de envio novo cai em spam, e quem opera um
-          estúdio resolve pelo WhatsApp em dez segundos. */}
       <p className="pt-4 text-center text-[13.5px] leading-[1.5] text-tinta-fraca">
         <Link href="/esqueci" className="font-medium text-marca hover:text-marca-forte">
           Esqueci a senha
         </Link>
-        <br />
-        Quem convidou você também consegue gerar o link na hora, em
-        Configuração,&nbsp;Usuários.
       </p>
     </PainelAcesso>
   )
