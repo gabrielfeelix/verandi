@@ -39,23 +39,23 @@ const SITUACAO: Record<string, {
   faixa: string; borda: string; etiqueta: string; icone: NomeIcone
 }> = {
   atrasada: {
-    faixa: 'bg-alerta', borda: 'border-alerta-linha',
+    faixa: 'border-l-alerta', borda: 'border-alerta-linha',
     etiqueta: 'bg-alerta-fundo text-alerta', icone: 'aviso',
   },
   aberta: {
-    faixa: 'bg-linha', borda: 'border-linha-suave',
+    faixa: 'border-l-linha', borda: 'border-linha-suave',
     etiqueta: 'bg-neutro-fundo text-tinta-media', icone: 'relogio',
   },
   parcial: {
-    faixa: 'bg-atencao', borda: 'border-atencao-linha',
+    faixa: 'border-l-atencao', borda: 'border-atencao-linha',
     etiqueta: 'bg-atencao-fundo text-atencao', icone: 'relogio',
   },
   paga: {
-    faixa: 'bg-positivo', borda: 'border-linha-suave',
+    faixa: 'border-l-positivo', borda: 'border-linha-suave',
     etiqueta: 'bg-positivo-fundo text-positivo', icone: 'check',
   },
   cancelada: {
-    faixa: 'bg-linha-tracejada', borda: 'border-linha-suave',
+    faixa: 'border-l-linha-tracejada', borda: 'border-linha-suave',
     etiqueta: 'bg-neutro-fundo text-tinta-media', icone: 'proibido',
   },
 }
@@ -118,14 +118,15 @@ export function ListaDeCobrancas({
         return (
           <article
             key={c.id}
-            className={`relative overflow-hidden rounded-grande border bg-superficie py-3.5 pr-4 pl-5 shadow-[0_1px_2px_rgba(20,26,24,.04)] transition-shadow hover:shadow-elevado ${s.borda}`}
+            className={`rounded-grande border border-l-4 bg-superficie py-3.5 pr-4 pl-4 shadow-[0_1px_2px_rgba(20,26,24,.04)] transition-shadow hover:shadow-elevado ${s.borda} ${s.faixa}`}
           >
             {/*
-              * A faixa da esquerda é a situação, lida de relance: numa lista de
+              * A borda da esquerda é a situação, lida de relance: numa lista de
               * quarenta cobranças o olho procura o vermelho antes de ler nome.
               * Ela nunca anda sozinha, a etiqueta à direita diz o mesmo em texto.
+              * É borda, e não faixa por cima com `overflow-hidden`: o recorte
+              * engolia o menu dos três pontos, que abre para fora do cartão.
               */}
-            <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${s.faixa}`} />
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
               <span className="flex min-w-[220px] flex-1 items-center gap-3">
