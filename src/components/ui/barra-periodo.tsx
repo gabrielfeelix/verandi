@@ -76,7 +76,14 @@ export function BarraDePeriodo({
         * mesmo componente que a agenda usa, e ele já entrega o `aaaa-mm-dd` num
         * campo escondido, que é o que a URL precisa.
         */}
-      <form method="get" action={base} className="flex flex-wrap items-center gap-1.5">
+      {/*
+        * A `key` é o período: `CampoData` guarda o valor em estado, e o atalho
+        * navega sem remontar a página. Sem ela, clicar "Mês passado" depois de
+        * digitar o ano deixava os campos dizendo 01/01 a 31/12 ao lado de um
+        * recorte de setembro.
+        */}
+      <form key={`${periodo?.de ?? ''}:${periodo?.ate ?? ''}`}
+        method="get" action={base} className="flex flex-wrap items-center gap-1.5">
         {Object.entries(escondidos).map(([k, v]) =>
           v ? <input key={k} type="hidden" name={k} value={v} /> : null)}
         <CampoData nome="de" valorInicial={periodo?.de ?? ''} />
