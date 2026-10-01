@@ -93,7 +93,10 @@ export async function materializarCobrancas(
     }
   }
 
-  if (!novas.length) return 0
+  if (!novas.length) {
+    await quitarParcelasDoCartao(db, contaId, hoje)
+    return 0
+  }
 
   /*
    * `upsert` com `ignoreDuplicates`, e não `insert`: o índice único é a
@@ -104,7 +107,49 @@ export async function materializarCobrancas(
   const { error: erroInsert, count } = await db.from('cobranca')
     .upsert(novas, { onConflict: 'contrato_id,competencia', ignoreDuplicates: true, count: 'exact' })
   if (erroInsert) throw erroInsert
+  await quitarParcelasDoCartao(db, contaId, hoje)
   return count ?? novas.length
+}
+
+/**
+ * A parcela do cartão se paga no dia em que vence.
+ *
+ * Contrato no crédito foi pago pelo aluno no ato, parcelado na maquininha: quem
+ * paga cada parcela ao estúdio é a operadora, no mês dela. Deixar a parcela
+ * aberta acusaria de atraso quem não deve nada, e o "em atraso" do rail deixaria
+ * de dizer quem precisa de ligação. O pagamento nasce com `origem = 'cartao'` e
+ * a data do vencimento, que é quando o dinheiro cai.
+ *
+ * Só toca parcela sem pagamento nenhum, nem estornado: estorno é decisão de
+ * alguém, e o sistema não a desfaz. A corrida entre duas abas termina no índice
+ * único da `0065`, e o conflito é o "já foi feito", não erro.
+ */
+export async function quitarParcelasDoCartao(
+  db: Db, contaId: string, hoje: string,
+): Promise<number> {
+  const { data, error } = await db.from('cobranca')
+    .select('id, valor_cent, vencimento, contrato!inner(forma_pagamento), pagamento(id)')
+    .eq('conta_id', contaId).eq('status', 'aberta')
+    .eq('contrato.forma_pagamento', 'credito')
+    .lte('vencimento', hoje)
+  if (error) throw error
+
+  let quitadas = 0
+  for (const c of data ?? []) {
+    if (c.pagamento.length || c.valor_cent <= 0) continue
+    const { error: erro } = await db.from('pagamento').insert({
+      conta_id: contaId,
+      cobranca_id: c.id,
+      valor_cent: c.valor_cent,
+      forma: 'credito',
+      recebido_em: c.vencimento,
+      origem: 'cartao',
+      observacao: 'Parcela do cartão: o contrato foi pago no ato, parcelado',
+    })
+    if (erro && erro.code !== '23505') throw erro
+    if (!erro) quitadas++
+  }
+  return quitadas
 }
 
 /**

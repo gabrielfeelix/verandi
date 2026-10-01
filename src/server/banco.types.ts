@@ -964,6 +964,7 @@ export type Database = {
           id: string
           motivo_estorno: string | null
           observacao: string | null
+          origem: string
           recebido_em: string
           registrado_por_usuario_id: string | null
           valor_cent: number
@@ -977,6 +978,7 @@ export type Database = {
           id?: string
           motivo_estorno?: string | null
           observacao?: string | null
+          origem?: string
           recebido_em: string
           registrado_por_usuario_id?: string | null
           valor_cent: number
@@ -990,6 +992,7 @@ export type Database = {
           id?: string
           motivo_estorno?: string | null
           observacao?: string | null
+          origem?: string
           recebido_em?: string
           registrado_por_usuario_id?: string | null
           valor_cent?: number

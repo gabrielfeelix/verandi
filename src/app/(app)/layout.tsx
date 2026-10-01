@@ -2,6 +2,7 @@ import { exigirConta, clienteServidor, contasDoUsuario } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { estadoDoOnboarding, encerrado, contaVazia } from '@/server/onboarding/consultas'
 import { contarAtrasadas } from '@/server/financeiro/consultas'
+import { quitarParcelasDoCartao } from '@/server/financeiro/materializar'
 import { hojeEm } from '@/server/agenda/fuso'
 import { roteiroDe } from '@/core/onboarding/roteiro'
 import { boasVindas } from '@/core/onboarding/boas-vindas'
@@ -90,6 +91,12 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
    * contada, com índice, e só para quem pode ver dinheiro: para a profissional
    * ela nem é feita.
    */
+  // a parcela do cartão que venceu hoje não pode virar atraso no rail só
+  // porque ninguém abriu o financeiro ainda. Falha aqui não derruba a página:
+  // o financeiro tenta de novo quando abrir
+  if (operacional) {
+    await quitarParcelasDoCartao(db, conta.contaId, hojeEm(conta.fuso)).catch(() => 0)
+  }
   const atrasadas = operacional
     ? await contarAtrasadas(db, conta.contaId, hojeEm(conta.fuso))
     : 0
