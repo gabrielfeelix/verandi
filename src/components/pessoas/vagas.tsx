@@ -51,7 +51,7 @@ export function BotaoAgendar({ children }: { children: ReactNode }) {
     <button
       type="button"
       onClick={() => abrir?.()}
-      className="flex min-h-11 w-full items-center justify-center rounded-media bg-escuro px-4 text-[14.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
+      className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-media bg-escuro px-4 text-[14.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
     >
       {children}
     </button>

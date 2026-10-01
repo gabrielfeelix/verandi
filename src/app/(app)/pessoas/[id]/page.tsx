@@ -342,10 +342,16 @@ export default async function Pessoa({
             não abria nada, e quando a aba aberta era outra ele não levava a
             lugar nenhum.
           */}
-          <BotaoAgendar>Agendar</BotaoAgendar>
-          <div className="flex gap-2">
+          {/*
+            Quatro ações do mesmo tamanho, em duas linhas. Agendar ocupava a
+            largura inteira sozinho e empurrava o excluir para o pé da coluna
+            lateral, onde ninguém achava. Ele continua sendo o escuro: é o que
+            se faz todo dia.
+          */}
+          <div className="grid grid-cols-2 gap-2">
+            <BotaoAgendar>Agendar</BotaoAgendar>
             <EditarPessoa
-              className="flex-1"
+              className="w-full"
               pessoa={{
                 id: p.id,
                 nome: p.nome,
@@ -368,6 +374,9 @@ export default async function Pessoa({
               ativo={p.ativo}
               rotuloPessoa={rotulos.pessoa.plural}
             />
+            {!p.anonimizadaEm && (conta.papel === 'dono' || conta.papel === 'suporte') ? (
+              <AtenderPedidoDeExclusao pessoaId={p.id} nome={p.nome} />
+            ) : null}
           </div>
         </div>
       </article>
@@ -874,19 +883,21 @@ export default async function Pessoa({
               */}
             <p className="pb-3 text-[14px] leading-[1.5] text-tinta-media">
               {p.vencimentoPlano
-                ? `A agenda vai até ${curta(p.vencimentoPlano)}`
-                : 'Sem data de limite: a agenda segue enquanto houver horário.'}
+                // com o ano: "até 03/02" de um plano que vence em 2028 se lia
+                // como fevereiro que vem, e o cliente achava que estava errado
+                ? `O plano vale até ${p.vencimentoPlano.split('-').reverse().join('/')}.`
+                : 'Plano sem data de término.'}
               {contratosEmVigor > 0 ? (
                 <>
                   {' '}
                   <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
                     {contratosEmVigor === 1
-                      ? '1 contrato em vigor'
+                      ? 'O contrato em vigor'
                       : `${contratosEmVigor} contratos em vigor`}
                   </Link>
                   {contratosEmVigor === 1
-                    ? ' diz o preço e gera as cobranças.'
-                    : ' dizem o preço e geram as cobranças.'}
+                    ? ' tem o valor e as parcelas.'
+                    : ' têm o valor e as parcelas.'}
                 </>
               ) : (
                 <>
@@ -927,12 +938,8 @@ export default async function Pessoa({
             </dl>
           </section>
 
-          {/*
-            No pé, e só para quem responde pelo negócio: é a única ação da ficha
-            que não tem volta, e ninguém deve tropeçar nela procurando outra
-            coisa. Já anonimizada, o lugar do botão vira o registro do que
-            aconteceu.
-          */}
+          {/* já anonimizada, fica o registro do que aconteceu; o botão de
+              excluir mora junto das outras ações, no topo da ficha */}
           {p.anonimizadaEm ? (
             <p className="rounded-media bg-neutro-fundo px-3.5 py-3 text-[13.5px] leading-[1.55] text-tinta-media">
               Os dados desta pessoa foram apagados a pedido dela, em{' '}
@@ -940,8 +947,6 @@ export default async function Pessoa({
               de presença, sem nada que identifique alguém, e não dá para
               desfazer.
             </p>
-          ) : conta.papel === 'dono' || conta.papel === 'suporte' ? (
-            <AtenderPedidoDeExclusao pessoaId={p.id} nome={p.nome} />
           ) : null}
         </aside>
       </AbasDaFicha>

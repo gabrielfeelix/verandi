@@ -26,7 +26,7 @@ export function MarcarInativa({
 
   return (
     <>
-      <Botao tom="secundario" className="flex-1" onClick={() => setAberto(true)}>
+      <Botao tom="secundario" className="w-full" onClick={() => setAberto(true)}>
         {ativo ? 'Marcar inativa' : 'Reativar'}
       </Botao>
 
@@ -59,9 +59,9 @@ export function MarcarInativa({
 /**
  * Atender ao pedido de exclusão do titular do dado.
  *
- * Fica longe de "Editar" e de "Marcar inativa", no pé da coluna lateral, porque
- * é a única ação da ficha que não tem volta. Quem procura isto está com um
- * pedido na mão; quem não está não deve tropeçar nela.
+ * Mora junto de "Editar" e "Marcar inativa", no topo da ficha, desde
+ * 01/out/2026: no pé da coluna lateral ninguém achava. A proteção contra o
+ * clique distraído não é a distância, é o modal, que pede o nome digitado.
  *
  * **Discreta não é escondida, e a diferença custou três mensagens.** Quem
  * testou procurou como excluir e não achou: *"não tem opção de excluir aluno /
@@ -97,9 +97,9 @@ export function AtenderPedidoDeExclusao({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="cursor-pointer self-start rounded-media border border-linha px-3 py-1.5 text-[13px] text-tinta-fraca transition-colors hover:border-alerta hover:text-alerta"
+        className="min-h-11 w-full cursor-pointer rounded-media border border-linha bg-superficie px-4 text-[14.5px] text-alerta transition-colors hover:border-alerta-linha hover:bg-alerta-superficie"
       >
-        Excluir dados a pedido
+        Excluir dados
       </button>
 
       <Modal
