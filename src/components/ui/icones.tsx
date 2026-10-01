@@ -116,6 +116,13 @@ const TRACOS = {
       <path d="M10 4.8v10.4M7.6 15.2h4.8" />
     </>
   ),
+  // a folha com o pé serrilhado, que é como recibo se desenha em qualquer caixa
+  recibo: (
+    <>
+      <path d="M5.5 3.5h9v13l-1.8-1.2-1.8 1.2-1.9-1.2-1.8 1.2-1.7-1.2V3.5z" />
+      <path d="M8 7.2h4M8 10h4" />
+    </>
+  ),
   relogio: (
     <>
       <circle cx="10" cy="10" r="6.8" />

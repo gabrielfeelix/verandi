@@ -29,15 +29,16 @@ import Carregando from './loading'
 /**
  * O caixa da recepção.
  *
- * A tela **abre no que precisa de decisão**, e não no extrato do mês: em atraso
- * primeiro, com quantos dias e o telefone à mão. Quem usa está entre um aluno e
- * outro, com o telefone tocando, e a pergunta dela nunca é "quanto faturamos em
- * outubro". O fechamento é a última aba, e é onde essa pergunta mora.
+ * A tela abre em **Todas**, decisão do Gabriel em 01/out/2026: com o cartão
+ * quitando as próprias parcelas, abrir em "Em atraso" mostrava meia dúzia de
+ * linhas e escondia o caixa. O atraso continua a um clique, com o contador na
+ * aba e no rail, e o atalho da tela inicial ainda leva direto a ele. O
+ * fechamento é a última aba, e é onde "quanto faturamos" mora.
  */
 
 const ABAS: Array<{ id: FiltroCobranca | 'fechamento'; rotulo: string }> = [
-  { id: 'atrasadas', rotulo: 'Em atraso' },
   { id: 'todas', rotulo: 'Todas' },
+  { id: 'atrasadas', rotulo: 'Em atraso' },
   { id: 'a_vencer', rotulo: 'A vencer' },
   { id: 'pagas', rotulo: 'Recebidas' },
   { id: 'canceladas', rotulo: 'Canceladas' },
@@ -63,7 +64,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
    */
   await materializarCobrancas(db, conta.contaId, hoje)
 
-  const aba = (ABAS.find((a) => a.id === abaBruta)?.id ?? 'atrasadas')
+  const aba = (ABAS.find((a) => a.id === abaBruta)?.id ?? 'todas')
   const pagina = Math.max(1, Number(p) || 1)
 
   const atrasadas = await contarAtrasadas(db, conta.contaId, hoje)
