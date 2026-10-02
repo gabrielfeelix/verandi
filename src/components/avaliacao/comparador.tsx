@@ -47,7 +47,7 @@ export function Comparador({
       <section className={`${cartao} px-[18px] py-6`}>
         <p className="text-[14px] text-tinta-media">
           A comparação aparece a partir da segunda avaliação. Esta é a primeira,
-          e ela já está guardada: não é falha de carregamento.
+          e já está guardada.
         </p>
       </section>
     )

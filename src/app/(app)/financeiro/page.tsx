@@ -155,7 +155,7 @@ const VAZIO: Record<FiltroCobranca, { titulo: string; texto: string }> = {
   },
   atrasadas: {
     titulo: 'Ninguém em atraso',
-    texto: 'Toda cobrança vencida está paga. É o estado que esta tela existe para manter, e não é falha de carregamento.',
+    texto: 'Toda cobrança vencida está paga.',
   },
   a_vencer: {
     titulo: 'Nada a vencer por enquanto',

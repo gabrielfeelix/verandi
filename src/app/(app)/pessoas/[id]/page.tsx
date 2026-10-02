@@ -540,7 +540,7 @@ export default async function Pessoa({
                 <Vazio
                   icone="hoje"
                   titulo="Ainda não há histórico"
-                  texto="Quem acabou de ser cadastrado começa assim. Não é falha de carregamento."
+                  texto="As presenças e faltas aparecem aqui conforme forem registradas."
                 />
               ) : (
                 <ul className="flex flex-col">
