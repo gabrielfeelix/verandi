@@ -195,7 +195,7 @@ export function LinhaDaGrade({
           aberto
           largura="lista"
           glifo="◍"
-          titulo={`Quem ocupa ${serie.horaInicio}`}
+          titulo={`Ocupação das ${serie.horaInicio}`}
           sub={`${DIAS[serie.diaSemana]} · ${serie.servico}`}
           secundario="Fechar"
           aoFechar={fechar}

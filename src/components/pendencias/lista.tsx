@@ -42,8 +42,8 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
   if (total === 0) {
     return (
       <Nota tom="positivo">
-        Nada pendente. Chamada em dia, nenhuma reposição esperando, e ninguém na
-        fila, é assim que esta tela deve ficar na maior parte do tempo.
+        Tudo em dia: chamadas feitas, nenhuma reposição esperando e ninguém na
+        fila.
       </Nota>
     )
   }
@@ -174,8 +174,8 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
           </select>
         </label>
         <Nota tom="neutro">
-          Pendência que nunca zera vira ruído, por isso dispensar existe, com
-          motivo e com o nome de quem dispensou.
+          O item sai da lista e fica registrado com o motivo e o nome de quem
+          dispensou.
         </Nota>
       </Modal>
     </div>

@@ -181,7 +181,7 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
         <p className="pt-[3px] text-[14.5px] text-tinta-media">
           {atrasadas === 0
             ? `Nada em atraso hoje, ${dataCurta(hoje)}.`
-            : `${atrasadas} ${atrasadas === 1 ? 'cobrança em atraso' : 'cobranças em atraso'} · o objetivo é zerar`}
+            : `${atrasadas} ${atrasadas === 1 ? 'cobrança em atraso' : 'cobranças em atraso'}.`}
         </p>
       </div>
       <a
@@ -204,7 +204,6 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
  * jeito de nenhum deles ser lido.
  */
 function faixaDaAba(aba: FiltroCobranca, r: ResumoDeCobrancas): NumeroDaFaixa[] {
-  const emReaisOuTraco = (c: number) => c > 0 ? emReais(c) : '—'
   const quantas = (n: number) => `${n} ${n === 1 ? 'cobrança' : 'cobranças'}`
 
   if (aba === 'pagas') {
@@ -213,9 +212,9 @@ function faixaDaAba(aba: FiltroCobranca, r: ResumoDeCobrancas): NumeroDaFaixa[] 
         nota: quantas(r.quantidade) },
       { rotulo: 'Cobrado', valor: emReais(r.totalCent),
         nota: 'o que essas cobranças somavam' },
-      { rotulo: 'Ticket médio', valor: emReaisOuTraco(r.ticketCent),
-        nota: 'por cobrança do recorte' },
-      { rotulo: 'Ainda em aberto', valor: emReaisOuTraco(r.abertoCent),
+      { rotulo: 'Valor médio', valor: emReais(r.ticketCent),
+        nota: 'por cobrança' },
+      { rotulo: 'Ainda em aberto', valor: emReais(r.abertoCent),
         tom: r.abertoCent > 0 ? 'atencao' : 'neutro',
         nota: r.abertoCent > 0 ? 'diferença de arredondamento ou pagamento parcial' : 'nada pendente aqui' },
     ]
@@ -225,7 +224,7 @@ function faixaDaAba(aba: FiltroCobranca, r: ResumoDeCobrancas): NumeroDaFaixa[] 
     return [
       { rotulo: 'Canceladas', valor: String(r.quantidadeCancelada),
         nota: 'continuam na lista, com o motivo' },
-      { rotulo: 'Valor cancelado', valor: emReaisOuTraco(r.canceladasCent),
+      { rotulo: 'Valor cancelado', valor: emReais(r.canceladasCent),
         nota: 'fora de toda soma de faturamento' },
     ]
   }
@@ -236,16 +235,16 @@ function faixaDaAba(aba: FiltroCobranca, r: ResumoDeCobrancas): NumeroDaFaixa[] 
   return [
     {
       rotulo: rotuloDoTotal,
-      valor: emReaisOuTraco(r.abertoCent),
+      valor: emReais(r.abertoCent),
       tom: aba === 'atrasadas' && r.abertoCent > 0 ? 'alerta' : 'neutro',
       nota: quantas(r.quantidadeAberta),
     },
-    { rotulo: 'Já recebido', valor: emReaisOuTraco(r.pagoCent), tom: 'positivo',
+    { rotulo: 'Já recebido', valor: emReais(r.pagoCent), tom: 'positivo',
       nota: 'destas mesmas cobranças' },
-    { rotulo: 'Cobrado', valor: emReaisOuTraco(r.totalCent),
+    { rotulo: 'Cobrado', valor: emReais(r.totalCent),
       nota: quantas(r.quantidade - r.quantidadeCancelada) },
-    { rotulo: 'Ticket médio', valor: emReaisOuTraco(r.ticketCent),
-      nota: 'por cobrança do recorte' },
+    { rotulo: 'Valor médio', valor: emReais(r.ticketCent),
+      nota: 'por cobrança' },
   ]
 }
 
@@ -416,10 +415,9 @@ async function Fechamento({
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
         <section className={`${cartao} p-4`}>
-          <h2 className="pb-1 font-titulo text-[18px] font-semibold">Quem está em atraso</h2>
+          <h2 className="pb-1 font-titulo text-[18px] font-semibold">Cobranças em atraso</h2>
           <p className="pb-3 text-[13.5px] text-tinta-media">
-            hoje, e não só no período: do mais velho para o mais novo, que é a
-            ordem em que se liga
+            Situação de hoje, do atraso mais antigo para o mais recente.
           </p>
           {atraso.length === 0 ? (
             <Vazio
@@ -462,7 +460,7 @@ async function Fechamento({
         <div className="flex flex-col gap-3">
           <section className={`${cartao} p-4`}>
             <h2 className="pb-1 font-titulo text-[18px] font-semibold">
-              Quanto cada modalidade faturou
+              Faturamento por modalidade
             </h2>
             <p className="pb-3 text-[13.5px] text-tinta-media">
               sobre o que entrou, e não sobre o que foi cobrado
@@ -479,21 +477,26 @@ async function Fechamento({
           </section>
 
           <section className={`${cartao} p-4`}>
-            <h2 className="pb-3 font-titulo text-[18px] font-semibold">A carteira</h2>
+            {/* era um parágrafo com seis números dentro, e "preço de vínculo
+                custa" só fazia sentido para quem escreveu a regra */}
+            <h2 className="pb-3 font-titulo text-[18px] font-semibold">Contratos</h2>
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Par termo="Contratos novos" valor={String(cart.novos)} />
+              <Par termo="Novos" valor={String(cart.novos)} />
               <Par termo="Encerrados" valor={String(cart.encerrados)} />
               <Par termo="Em vigor hoje" valor={String(cart.emVigor)} />
-              <Par termo="Recorrente" valor={emReais(cart.recorrenteCent)} />
+              <Par termo="Mensalidades" valor={emReais(cart.recorrenteCent)} />
             </dl>
-            <p className="pt-3 text-[13px] text-tinta-media">
-              Recorrente é a soma dos contratos em vigor, sem os trancados: quem
-              está em licença não paga o período parado. Ainda vai vencer neste
-              mês: {emReais(receber.aVencerCent)}, e vencido e não pago hoje:{' '}
-              {emReais(vencido.vencidoCent)}. O mês seguinte deve gerar{' '}
-              {emReais(material.previstoCent)}, e o preço de vínculo custa{' '}
-              {emReais(vinculo.totalCent)} em {vinculo.contratos}{' '}
-              {vinculo.contratos === 1 ? 'contrato' : 'contratos'}.
+            <dl className="mt-4 flex flex-col gap-2 border-t border-linha-suave pt-3 text-[13.5px]">
+              <Linha termo="Ainda vence este mês" valor={emReais(receber.aVencerCent)} />
+              <Linha termo="Vencido sem pagamento" valor={emReais(vencido.vencidoCent)} />
+              <Linha termo="Previsto para o próximo mês" valor={emReais(material.previstoCent)} />
+              <Linha
+                termo={`Desconto para quem faz outra modalidade (${vinculo.contratos} ${vinculo.contratos === 1 ? 'contrato' : 'contratos'})`}
+                valor={emReais(vinculo.totalCent)}
+              />
+            </dl>
+            <p className="pt-3 text-[12.5px] text-tinta-fraca">
+              Mensalidades somam os contratos em vigor, sem os trancados.
             </p>
           </section>
 
@@ -541,6 +544,15 @@ function Numero({ titulo, valor, nota }: { titulo: string; valor: string; nota: 
       <p className="font-titulo text-[26px] leading-none font-semibold">{valor}</p>
       <p className="text-[13px] text-tinta-media">{nota}</p>
     </section>
+  )
+}
+
+function Linha({ termo, valor }: { termo: string; valor: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="text-tinta-media">{termo}</dt>
+      <dd className="shrink-0 font-mono">{valor}</dd>
+    </div>
   )
 }
 

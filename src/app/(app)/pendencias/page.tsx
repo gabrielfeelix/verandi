@@ -7,7 +7,7 @@ import { PONTO_GRUPO } from '@/components/pendencias/tintas'
 import { cartao } from '@/components/ui/pecas'
 
 /**
- * A primeira tela do dia de quem opera: o que exige ação humana hoje.
+ * A primeira tela do dia de quem opera: o que precisa de alguém hoje.
  *
  * Cada grupo é uma coisa que a planilha perde. Reposição em aberto hoje vive na
  * memória de quem escreveu "REP 05/6" numa célula — e some quando essa pessoa
@@ -34,16 +34,18 @@ export default async function Pendencias() {
             </h1>
             <p className="pt-[3px] text-[14.5px] text-tinta-media">
               {total === 0
-                ? 'Nada exige ação humana agora.'
-                : `${total} ${total === 1 ? 'item exige' : 'itens exigem'} ação humana · o objetivo é zerar`}
+                ? 'Nada pendente agora.'
+                : `${total} ${total === 1 ? 'item pendente' : 'itens pendentes'}.`}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
             {/* o número que mostra progresso, e não só dívida */}
-            <span className="text-[13px] text-tinta-media">
-              esvaziado hoje: {esvaziadas}
-            </span>
+            {esvaziadas > 0 ? (
+              <span className="text-[13px] text-tinta-media">
+                {esvaziadas} {esvaziadas === 1 ? 'resolvido' : 'resolvidos'} hoje
+              </span>
+            ) : null}
             <a
               href="/pendencias/exportar"
               download
@@ -82,8 +84,7 @@ export default async function Pendencias() {
 
             <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
               <p className="text-[13.5px] leading-relaxed text-tinta-media">
-                Pendência que nunca zera vira ruído. Por isso dispensar pede
-                motivo e o item sai da lista.
+                Dispensar tira o item da lista e guarda o motivo.
               </p>
             </section>
           </div>

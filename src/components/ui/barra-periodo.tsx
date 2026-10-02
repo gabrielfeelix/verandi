@@ -108,7 +108,7 @@ export function BarraDePeriodo({
           </Link>
         </>
       ) : (
-        <span className="text-[13px] text-tinta-fraca">sem recorte de data</span>
+        <span className="text-[13px] text-tinta-fraca">todas as datas</span>
       )}
     </div>
   )

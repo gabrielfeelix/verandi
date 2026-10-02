@@ -8,7 +8,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 
 ## Para quem continua (02/out, depois de `17fe970`)
 
-Feitos e no ar: 1 a 31, mais 45, 46, 55 e 56. Próximo: **32**. Um commit por item ou
+Feitos e no ar: 1 a 35, mais 45, 46, 55, 56 e 60. Próximo: **36**. Um commit por item ou
 por tela, push na hora (push na `main` publica na Vercel).
 
 - **Validar:** `npx tsc --noEmit -p .`, e só o spec e2e da tela mexida. Nunca a
@@ -83,10 +83,10 @@ por tela, push na hora (push na `main` publica na Vercel).
 - [x] 29. Estornar não avisa que o recibo será cancelado.
 - [x] 30. Recibo cancelado mantém "Enviar por e-mail".
 - [x] 31. "Cancelado: pagamento estornado: Teste" com dois-pontos duplicado.
-32. Pendências: "exigem ação humana", "o objetivo é zerar", "esvaziado hoje".
-33. Financeiro: "o objetivo é zerar", "Ticket médio", "sem recorte de data".
-34. Financeiro Todas abre pelas futuras (nov); atrasadas enterradas.
-35. Fechamento com texto de engenheiro ("A carteira", "preço de vínculo custa...").
+- [x] 32. Pendências: "exigem ação humana", "o objetivo é zerar", "esvaziado hoje".
+- [x] 33. Financeiro: "o objetivo é zerar", "Ticket médio", "sem recorte de data".
+- [x] 34. Financeiro Todas abre pelas futuras (nov); atrasadas enterradas.
+- [x] 35. Fechamento com texto de engenheiro ("A carteira", "preço de vínculo custa...").
 36. Grade fixa com nota interna no subtítulo (`grade/page.tsx:48,149`).
 37. Aulas: "Aula aplicada", "Com gente", "Por dar" (`aulas/page.tsx:149`).
 38. Sessão: "aplica na hora e sincroniza depois", "Turma criada pela série".
@@ -115,7 +115,7 @@ por tela, push na hora (push na `main` publica na Vercel).
 57. Botão "⧉" de copiar telefone vira quadrado vazio no Linux: ícone + "Copiar".
 58. Legenda da agenda da semana quase invisível; "+" de horário vazio claro demais.
 59. Grade fixa: hora em dois andares; "Encerrar" vermelho repetido 74 vezes.
-60. Fechamento: "Quem está em atraso" com o "Q" sublinhado.
+- [x] 60. Fechamento: "Quem está em atraso" com o "Q" sublinhado.
 
 Não testado: Trancar, Receber adiantado, Encerrar turma ou matrícula, convite,
 envio de e-mail, Histórico e Avaliação com dados.

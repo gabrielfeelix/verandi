@@ -160,7 +160,7 @@ export function MenuPessoa({
       ) : null}
 
       {aberto === 'reposicao' ? (
-        <Gaveta titulo={`Qual falta ${participacao.nome} está repondo?`} aoFechar={fechar}>
+        <Gaveta titulo={`${participacao.nome} está repondo qual falta?`} aoFechar={fechar}>
           {faltas.length === 0 ? (
             <p className="text-[13.5px] text-tinta-media">
               Nenhuma falta em aberto no prazo. Sem crédito para repor, isto

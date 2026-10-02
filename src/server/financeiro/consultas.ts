@@ -218,10 +218,16 @@ export async function listarCobrancas(
   const pessoaIds = await idsQueCasam(db, contaId, opcoes.busca)
   if (pessoaIds?.length === 0) return { linhas: [], total: 0 }
 
-  const base = db.from('cobranca_resumo')
+  const base = () => db.from('cobranca_resumo')
     .select(SELECT_LINHA, { count: 'exact' }).eq('conta_id', contaId)
 
-  const recortada = recortar(base, {
+  if (opcoes.filtro === 'todas') {
+    return todasEmBlocos(db, contaId, hoje, {
+      periodo: opcoes.periodo, pessoaIds, de,
+    })
+  }
+
+  const recortada = recortar(base(), {
     filtro: opcoes.filtro, periodo: opcoes.periodo, pessoaIds,
   }, hoje)
 
@@ -241,6 +247,63 @@ export async function listarCobrancas(
   const linhas = (data ?? []).map((c) => paraLinha(c, hoje))
   await juntarRecibos(db, contaId, linhas)
   return { linhas, total: count ?? 0 }
+}
+
+/**
+ * "Todas", na ordem do balcão: o que está em atraso, depois o que já venceu ou
+ * vence hoje (o mais recente na frente), e por último o que ainda vai vencer
+ * (o mais perto na frente).
+ *
+ * Ordenada só por vencimento, a aba abria pelas mensalidades de novembro, que
+ * o contrato gera adiantadas, e as atrasadas ficavam na última página. Não há
+ * coluna que dê essa ordem, então são três consultas, contadas antes, e a
+ * página pega de cada uma o pedaço que cai nela.
+ */
+async function todasEmBlocos(
+  db: Db, contaId: string, hoje: string,
+  r: { periodo?: { de: string; ate: string } | null; pessoaIds: string[] | null; de: number },
+): Promise<{ linhas: CobrancaLinha[]; total: number }> {
+  const recorte = { periodo: r.periodo, pessoaIds: r.pessoaIds }
+  const base = () => db.from('cobranca_resumo')
+    .select(SELECT_LINHA, { count: 'exact' }).eq('conta_id', contaId)
+  const blocos = [
+    { q: () => recortar(base(), { ...recorte, filtro: 'atrasadas' }, hoje), crescente: true },
+    {
+      q: () => recortar(base(), { ...recorte, filtro: 'todas' }, hoje)
+        .lte('vencimento', hoje)
+        .or(`situacao.not.in.(aberta,parcial),vencimento.eq.${hoje}`),
+      crescente: false,
+    },
+    { q: () => recortar(base(), { ...recorte, filtro: 'todas' }, hoje).gt('vencimento', hoje), crescente: true },
+  ]
+
+  const contagens = await Promise.all(blocos.map(async (b) => {
+    const { count, error } = await b.q().limit(0)
+    if (error) throw error
+    return count ?? 0
+  }))
+  const total = contagens.reduce((a, n) => a + n, 0)
+
+  const crus: LinhaCrua[] = []
+  let inicioDoBloco = 0
+  for (const [i, b] of blocos.entries()) {
+    const fimDoBloco = inicioDoBloco + contagens[i]
+    const de = Math.max(r.de, inicioDoBloco)
+    const ate = Math.min(r.de + POR_PAGINA, fimDoBloco)
+    if (de < ate) {
+      const { data, error } = await b.q()
+        .order('vencimento', { ascending: b.crescente })
+        .range(de - inicioDoBloco, ate - inicioDoBloco - 1)
+        .returns<LinhaCrua[]>()
+      if (error) throw error
+      crus.push(...(data ?? []))
+    }
+    inicioDoBloco = fimDoBloco
+  }
+
+  const linhas = crus.map((c) => paraLinha(c, hoje))
+  await juntarRecibos(db, contaId, linhas)
+  return { linhas, total }
 }
 
 /**
