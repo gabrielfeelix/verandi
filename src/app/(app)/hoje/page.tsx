@@ -84,7 +84,9 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
   const notificacoes = podeVerTodos
     ? await notificacoesDaConta(db, conta.contaId)
     : []
-  const verTodos = podeVerTodos && todos === '1'
+  // quem não dá aula não tem "minha agenda": abria nela vendo a de todos, com
+  // a aba errada acesa. Sem cadastro de profissional, é sempre "Todos"
+  const verTodos = podeVerTodos && (todos === '1' || !eu)
   const filtro = !verTodos && eu ? { profissionalId: eu.id } : {}
 
   const sessoes = await sessoesDoIntervalo(db, conta.contaId, dia, dia, filtro)
@@ -618,7 +620,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               depois={{ href: link(somarDias(dia, 1)), rotulo: 'Próximo dia' }}
             />
 
-            {podeVerTodos ? (
+            {podeVerTodos && eu ? (
               <Abas
                 rotuloDoGrupo="De quem é a agenda"
                 ativo={verTodos ? 'todos' : 'minha'}
