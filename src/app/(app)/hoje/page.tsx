@@ -16,6 +16,7 @@ import { ProximaTurma } from '@/components/hoje/proxima-turma'
 import {
   Bloco, CartaoNumero, FaixaPeriodo, LinhaAgenda, AvatarProf,
 } from '@/components/hoje/pecas'
+import { AvisoDeAcesso } from '@/components/ui/aviso-de-acesso'
 import { cartao } from '@/components/ui/pecas'
 import { ArrumarHome } from '@/components/hoje/arrumar'
 import { Saudacao } from '@/components/hoje/saudacao'
@@ -28,7 +29,7 @@ import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
 type Busca = Promise<{
-  dia?: string; todos?: string; periodo?: string; prof?: string
+  dia?: string; todos?: string; periodo?: string; prof?: string; restrita?: string
 }>
 
 /** Manhã até 12h, tarde até 18h, noite depois, a divisão que o protótipo usa. */
@@ -63,7 +64,7 @@ function dataLonga(dia: string, fuso: string) {
 }
 
 export default async function Hoje({ searchParams }: { searchParams: Busca }) {
-  const { dia: diaParam, todos, periodo: periodoBruto, prof } = await searchParams
+  const { dia: diaParam, todos, periodo: periodoBruto, prof, restrita } = await searchParams
   const conta = await exigirConta()
   const db = await clienteServidor()
 
@@ -313,15 +314,17 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         </span>
         <span className="max-w-[340px] text-[14px] leading-relaxed text-tinta-media">
           Pode ser domingo, feriado ou dia fechado na configuração de
-          funcionamento. Não é falha de carregamento.
+          funcionamento.
         </span>
         <div className="flex flex-wrap justify-center gap-2 pt-1.5">
-          <Link
-            href="/semana"
-            className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
-          >
-            Ver a semana
-          </Link>
+          {podeVerTodos ? (
+            <Link
+              href="/semana"
+              className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
+            >
+              Ver a semana
+            </Link>
+          ) : null}
           {!ehHoje ? (
             <Link
               href={link(hoje)}
@@ -590,6 +593,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
   return (
     <AreaQueTroca esqueleto={<Carregando />}>
     <ProvedorDeAviso>
+      {restrita ? <AvisoDeAcesso tela={restrita.slice(0, 40)} /> : null}
       <div className="flex flex-col gap-4.5">
         <header className="flex flex-wrap items-center justify-between gap-5">
           <div>

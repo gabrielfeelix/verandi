@@ -128,6 +128,28 @@ export async function exigirConta(): Promise<ContaAtiva> {
   return conta
 }
 
+/**
+ * A conta, só para quem o papel alcança a tela.
+ *
+ * Quem não alcança volta para Hoje **com o motivo**: voltar calado parecia
+ * defeito, e a recepção que abria `/config` por um link guardado achava que o
+ * sistema tinha caído. `tela` é o nome que aparece no aviso.
+ */
+export async function exigirPapel(
+  papeis: readonly Papel[], tela: string,
+): Promise<ContaAtiva> {
+  const conta = await exigirConta()
+  if (!papeis.includes(conta.papel)) {
+    redirect(`/hoje?restrita=${encodeURIComponent(tela)}`)
+  }
+  return conta
+}
+
+/** Quem opera a agenda e o cadastro: todo mundo menos quem só dá aula. */
+export const OPERA = ['dono', 'recepcao', 'suporte'] as const
+/** Quem administra a conta. */
+export const ADMINISTRA = ['dono', 'suporte'] as const
+
 /** Todas as contas do usuário, para a tela de troca. */
 export async function contasDoUsuario(): Promise<
   Array<{ contaId: string; nome: string; papel: Papel }>

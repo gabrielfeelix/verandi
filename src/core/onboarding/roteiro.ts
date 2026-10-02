@@ -56,7 +56,9 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
       href: '/hoje',
       alvo: 'tela',
       titulo: 'Esta é a sua tela de trabalho',
-      texto: `Aqui fica o dia: quem vem, a que horas e com quem. Vou levar você por cada parte do sistema, e dá para parar quando quiser.`,
+      texto: papel === 'profissional'
+        ? `Aqui fica o seu dia: quem vem, a que horas e em que sala. São dois passos, e dá para parar quando quiser.`
+        : `Aqui fica o dia: quem vem, a que horas e com quem. Vou levar você por cada parte do sistema, e dá para parar quando quiser.`,
     },
     {
       href: '/hoje',

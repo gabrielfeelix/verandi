@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { hojeEm } from '@/server/agenda/fuso'
 import { materializarCobrancas } from '@/server/financeiro/materializar'
 import {
@@ -48,9 +47,8 @@ const ABAS: Array<{ id: FiltroCobranca | 'fechamento'; rotulo: string }> = [
 type Busca = Promise<{ aba?: string; q?: string; p?: string; de?: string; ate?: string }>
 
 export default async function Financeiro({ searchParams }: { searchParams: Busca }) {
-  const conta = await exigirConta()
   // dinheiro é do dono e da recepção; quem atende cai onde ele trabalha
-  if (conta.papel === 'profissional') redirect('/hoje')
+  const conta = await exigirPapel(OPERA, 'Financeiro')
 
   const { aba: abaBruta, q, p, de: deBruto, ate: ateBruto } = await searchParams
   const db = await clienteServidor()

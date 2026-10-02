@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { ADMINISTRA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { hojeEm } from '@/server/agenda/fuso'
 import { aulasDoPeriodo } from '@/server/relatorio/consultas'
@@ -27,8 +26,7 @@ import Carregando from './loading'
 type Busca = Promise<{ de?: string; ate?: string }>
 
 export default async function Aulas({ searchParams }: { searchParams: Busca }) {
-  const conta = await exigirConta()
-  if (conta.papel !== 'dono' && conta.papel !== 'suporte') redirect('/hoje')
+  const conta = await exigirPapel(ADMINISTRA, 'Aulas')
 
   const { de: deBruto, ate: ateBruto } = await searchParams
   const db = await clienteServidor()

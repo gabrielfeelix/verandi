@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { horariosLivres } from '@/server/agenda/disponibilidade'
 import { somarDias, diaDaSemanaDe } from '@/core/agenda/datas'
@@ -42,7 +42,7 @@ function porExtenso(data: string) {
 
 export default async function BuscarVaga({ searchParams }: { searchParams: Busca }) {
   const p = await searchParams
-  const conta = await exigirConta()
+  const conta = await exigirPapel(OPERA, 'Buscar vaga')
   const db = await clienteServidor()
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
 

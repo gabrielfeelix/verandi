@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { emitenteDaConta } from '@/server/config/consultas'
 import {
   listarRecibos, POR_PAGINA, resumoDosRecibos, TETO_DO_RESUMO_RECIBO,
@@ -40,8 +39,7 @@ type Busca = Promise<{
 }>
 
 export default async function Recibos({ searchParams }: { searchParams: Busca }) {
-  const conta = await exigirConta()
-  if (conta.papel === 'profissional') redirect('/hoje')
+  const conta = await exigirPapel(OPERA, 'Recibos')
 
   const { aba: abaBruta, q, p, de, ate } = await searchParams
   const db = await clienteServidor()

@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { listarSeries, catalogoDaGrade } from '@/server/grade/consultas'
 import { EditorSerie } from '@/components/grade/editor-serie'
@@ -16,8 +15,7 @@ const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sáb
  * `profissional` não alcança esta tela: ele opera a agenda, não a monta.
  */
 export default async function Grade() {
-  const conta = await exigirConta()
-  if (conta.papel === 'profissional') redirect('/hoje')
+  const conta = await exigirPapel(OPERA, 'Grade fixa')
 
   const db = await clienteServidor()
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))

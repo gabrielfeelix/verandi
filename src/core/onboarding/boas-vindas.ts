@@ -66,11 +66,19 @@ export function boasVindas(papel: Papel, r: Rotulos): Cartao[] {
   const serie = r.serie.singular.toLowerCase()
 
   const comum: Cartao[] = [
-    {
-      titulo: 'A semana inteira em uma tela.',
-      texto: `A Verandi guarda quem vem, quando vem e com quem. As ${sessoes} nascem da grade, e o dia aparece pronto quando você abre.`,
-      arte: QUADRO,
-    },
+    // quem dá aula não tem a semana nem a grade: prometer as duas é prometer
+    // tela que não abre
+    papel === 'profissional'
+      ? {
+          titulo: 'O seu dia em uma tela.',
+          texto: `As suas ${sessoes} aparecem prontas quando você abre: o horário, a sala e quem vem.`,
+          arte: QUADRO,
+        }
+      : {
+          titulo: 'A semana inteira em uma tela.',
+          texto: `A Verandi guarda quem vem, quando vem e com quem. As ${sessoes} nascem da grade, e o dia aparece pronto quando você abre.`,
+          arte: QUADRO,
+        },
     {
       titulo: 'A chamada é o coração.',
       texto: `Marcar quem veio, quem faltou e quem avisou leva dois toques na tela da ${sessao}. É dessa marcação que sai a reposição, a vaga livre e a pendência.`,

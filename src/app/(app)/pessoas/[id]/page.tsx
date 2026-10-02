@@ -282,9 +282,14 @@ export default async function Pessoa({
             e a trilha só sabe levar para a lista */}
         <Voltar />
         <span aria-hidden className="font-mono">/</span>
-        <Link href="/pessoas" className="font-medium text-marca">
-          {rotulos.pessoa.plural}
-        </Link>
+        {/* quem dá aula não tem a lista de pessoas: a trilha sobe para Hoje */}
+        {operacional ? (
+          <Link href="/pessoas" className="font-medium text-marca">
+            {rotulos.pessoa.plural}
+          </Link>
+        ) : (
+          <Link href="/hoje" className="font-medium text-marca">Hoje</Link>
+        )}
         <span aria-hidden className="font-mono">/</span>
         <span className="text-tinta">{p.nome}</span>
       </nav>
@@ -348,6 +353,8 @@ export default async function Pessoa({
           </div>
         </div>
 
+        {/* quem dá aula consulta a ficha, mas cadastro e vaga são da recepção */}
+        {operacional ? (
         <div className="flex min-w-[200px] flex-[1_1_200px] flex-col gap-2.5">
           {/*
             O botão abre o mesmo modal do "Criar matrícula" que fica na aba
@@ -392,6 +399,7 @@ export default async function Pessoa({
             ) : null}
           </div>
         </div>
+        ) : null}
       </article>
 
       <AbasDaFicha
@@ -454,6 +462,7 @@ export default async function Pessoa({
                   series={opcoesSerie}
                   rotuloVaga={rotulos.vaga.singular}
                   rotuloSerie={rotulos.serie.singular}
+                  podeEditar={operacional}
                 />
               </section>
 

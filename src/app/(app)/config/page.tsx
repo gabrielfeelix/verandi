@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { ADMINISTRA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { PADRAO, type ChaveVocabulario, type Rotulos } from '@/core/vocabulario/padrao'
 import type { Db } from '@/server/supabase'
@@ -91,8 +90,7 @@ export default async function Config({
 }: {
   searchParams: Promise<{ s?: string }>
 }) {
-  const conta = await exigirConta()
-  if (conta.papel !== 'dono' && conta.papel !== 'suporte') redirect('/hoje')
+  const conta = await exigirPapel(ADMINISTRA, 'Configuração')
 
   const { s } = await searchParams
   const secao: Secao = SECOES.some((x) => x.chave === s) ? (s as Secao) : 'servicos'

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import {
   contarPessoas, listarPessoas, POR_PAGINA, type FiltroPessoa,
@@ -47,7 +47,7 @@ function quando(iso: string | null) {
 
 export default async function Pessoas({ searchParams }: { searchParams: Busca }) {
   const { q, f, t: tag, p: pag } = await searchParams
-  const conta = await exigirConta()
+  const conta = await exigirPapel(OPERA, 'Pessoas')
   const db = await clienteServidor()
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
 

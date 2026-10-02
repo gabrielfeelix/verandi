@@ -1,5 +1,5 @@
-import { notFound, redirect } from 'next/navigation'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { notFound } from 'next/navigation'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { reciboPorId, ultimosEnvios } from '@/server/recibo/consultas'
 import { emitenteDaConta, urlDaAssinatura } from '@/server/config/consultas'
 import { EnviarRecibo } from '@/components/recibo/enviar'
@@ -23,8 +23,7 @@ export default async function Recibo({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const conta = await exigirConta()
-  if (conta.papel === 'profissional') redirect('/hoje')
+  const conta = await exigirPapel(OPERA, 'Recibos')
 
   const db = await clienteServidor()
   const recibo = await reciboPorId(db, conta.contaId, id)

@@ -1,5 +1,4 @@
-import { redirect } from 'next/navigation'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { esvaziadasHoje, listarPendencias } from '@/server/pendencias/consultas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { ListaPendencias } from '@/components/pendencias/lista'
@@ -14,8 +13,7 @@ import { cartao } from '@/components/ui/pecas'
  * entra de férias.
  */
 export default async function Pendencias() {
-  const conta = await exigirConta()
-  if (conta.papel === 'profissional') redirect('/hoje')
+  const conta = await exigirPapel(OPERA, 'Pendências')
 
   const db = await clienteServidor()
   const [grupos, esvaziadas] = await Promise.all([

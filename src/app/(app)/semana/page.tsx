@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { clienteServidor, exigirConta } from '@/server/conta'
+import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { sessoesDoIntervalo } from '@/server/agenda/consultas'
 import { diaDaSemanaDe, somarDias } from '@/core/agenda/datas'
@@ -58,7 +58,7 @@ function faixaDaSemana(de: string, ate: string) {
 
 export default async function Semana({ searchParams }: { searchParams: Busca }) {
   const p = await searchParams
-  const conta = await exigirConta()
+  const conta = await exigirPapel(OPERA, 'Agenda')
   const db = await clienteServidor()
 
   const fuso = conta.fuso

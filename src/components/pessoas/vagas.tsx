@@ -21,6 +21,8 @@ type Props = {
   series: Array<{ id: string; rotulo: string; detalhe?: string; grupo?: string }>
   rotuloVaga: string
   rotuloSerie: string
+  /** quem dá aula consulta os horários da pessoa, mas não cria nem encerra */
+  podeEditar?: boolean
 }
 
 /*
@@ -58,7 +60,9 @@ export function BotaoAgendar({ children }: { children: ReactNode }) {
   )
 }
 
-export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Props) {
+export function Vagas({
+  pessoaId, vagas, series, rotuloVaga, rotuloSerie, podeEditar = true,
+}: Props) {
   const [pendente, iniciar] = useTransition()
   const [criando, setCriando] = useState(false)
   const [encerrando, setEncerrando] =
@@ -124,6 +128,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
                 </span>
               </span>
 
+              {podeEditar ? (
               <button
                 type="button"
                 disabled={pendente}
@@ -133,6 +138,7 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
               >
                 Encerrar
               </button>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -151,6 +157,8 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
         </details>
       ) : null}
 
+      {podeEditar ? (
+      <>
       <button
         type="button"
         onClick={() => setCriando(true)}
@@ -161,6 +169,8 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
       <p className="text-[13px] text-tinta-fraca">
         Ocupa esse horário toda semana, por tempo indeterminado.
       </p>
+      </>
+      ) : null}
 
       {criando ? (
         <ModalFormulario
