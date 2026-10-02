@@ -215,7 +215,7 @@ export function SecaoFuncionamento({
               const r = await salvarDataFechada(e)
               avisar({
                 texto: r.sessoesCanceladas > 0
-                  ? `Data marcada, ${r.sessoesCanceladas} cancelada(s) e com reposição liberada`
+                  ? `Data marcada, ${r.sessoesCanceladas} ${r.sessoesCanceladas === 1 ? 'cancelada' : 'canceladas'} e com reposição liberada`
                   : 'Data marcada',
               })
             },

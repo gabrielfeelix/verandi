@@ -24,7 +24,7 @@ const MOTIVOS = [
 function idade(dias: number | null) {
   if (dias === null) return null
   if (dias === 0) return { texto: 'hoje', tinta: 'neutro' as const }
-  if (dias < 7) return { texto: `há ${dias} dia(s)`, tinta: 'neutro' as const }
+  if (dias < 7) return { texto: `há ${dias} ${dias === 1 ? 'dia' : 'dias'}`, tinta: 'neutro' as const }
   if (dias < 30) return { texto: `há ${dias} dias`, tinta: 'atencao' as const }
   return { texto: `há ${dias} dias`, tinta: 'alerta' as const }
 }

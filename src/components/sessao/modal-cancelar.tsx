@@ -46,7 +46,7 @@ export function ModalCancelar({
     >
       <p className="text-[14px] leading-[1.55] text-tinta-media">
         <strong className="font-medium text-tinta">
-          {quantasPessoas} pessoa(s) serão avisadas.
+          {quantasPessoas === 1 ? '1 pessoa será avisada.' : `${quantasPessoas} pessoas serão avisadas.`}
         </strong>{' '}
         O horário continua na agenda, riscado e com o motivo escrito, quem tem
         vaga fixa neste horário ganha crédito de reposição.

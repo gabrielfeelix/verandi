@@ -262,14 +262,15 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
                       <li key={s.id}>
                         <Link
                           href={`/sessao/${s.id}#encaixar`}
-                          className={`grid grid-cols-[74px_30px_minmax(0,1fr)_auto_auto] items-center gap-3.5 border-b border-linha-fina px-[18px] py-3 last:border-b-0 transition-colors duration-150 ${
+                          className={`grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3 sm:grid-cols-[74px_30px_minmax(0,1fr)_auto_auto] sm:gap-3.5 border-b border-linha-fina px-[18px] py-3 last:border-b-0 transition-colors duration-150 ${
                             s.lotada
                               ? 'bg-alerta-superficie hover:bg-alerta-fundo'
                               : 'hover:bg-superficie-tenue'
                           }`}
                         >
                           <span className="font-mono text-[16px]">{s.hora}</span>
-                          <span>
+                          {/* no celular a foto sai: o nome da aula precisa da largura */}
+                          <span className="hidden sm:block">
                             {s.profissional ? (
                               <AvatarProf
                                 nome={s.profissional}
@@ -285,9 +286,14 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
                             <span className="truncate text-[13px] text-tinta-fraca">
                               {[s.profissional, s.local].filter(Boolean).join(' · ')}
                             </span>
+                            <span className={`text-[13px] font-medium sm:hidden ${s.lotada ? 'text-alerta' : 'text-positivo'}`}>
+                              {s.lotada
+                                ? `${s.ocupacao.ocupadas}/${s.ocupacao.capacidade} lotada`
+                                : `${s.ocupacao.livres} ${s.ocupacao.livres === 1 ? 'vaga' : 'vagas'}`}
+                            </span>
                           </span>
                           <span
-                            className={`rounded-peca px-2.5 py-1 font-mono text-[13px] ${
+                            className={`hidden rounded-peca px-2.5 py-1 font-mono text-[13px] sm:inline ${
                               s.lotada
                                 ? 'bg-alerta-fundo text-alerta'
                                 : 'bg-positivo-fundo text-positivo'
@@ -295,7 +301,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
                           >
                             {s.lotada
                               ? `${s.ocupacao.ocupadas}/${s.ocupacao.capacidade} lotada`
-                              : `${s.ocupacao.livres} vaga(s)`}
+                              : `${s.ocupacao.livres} ${s.ocupacao.livres === 1 ? 'vaga' : 'vagas'}`}
                           </span>
                           <span
                             className={`rounded-peca px-3.5 py-2 text-[13.5px] font-medium whitespace-nowrap ${
@@ -316,8 +322,8 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
           )}
 
           <p className="text-[13px] text-tinta-fraca">
-            Livre e lotado são respostas diferentes, e as duas resolvem: sem
-            vaga, a recepção quer ver o quase-cheio.
+            Para ver também os horários lotados, ligue Incluir lotados: eles
+            aparecem na mesma lista, com a opção de encaixe.
           </p>
         </div>
       </div>
