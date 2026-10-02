@@ -43,7 +43,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 - [x] 16. "Marcar todos presentes" aparece em aula de daqui a 71h: liberar só do início.
 - [x] 17. Aviso "Murilo Bastos atualizado." não diz o quê (`chamada.tsx:92`).
 - [x] 18. "aula começa em 71h21": acima de 24h, dia e hora (`proxima-turma.tsx:25`).
-19. Hoje diz "1 chamada pendente", Pendências diz 58: mesma regra.
+- [x] 19. Hoje diz "1 chamada pendente", Pendências diz 58: mesma regra.
 20. Dono abre em "Minha agenda" vendo os horários de todos (`hoje/page.tsx:607`).
 21. "Bom dia, dono": nome vem do e-mail; pedir o nome no convite.
 22. Ficha sem contrato: "Plano sem data de término" e "Registrar renovação".

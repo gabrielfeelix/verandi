@@ -107,6 +107,14 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
   const pendentes = sessoes.filter(
     (s) => passou(s) && s.chamada === 'pendente' && s.status !== 'cancelada',
   ).length
+  /*
+   * O cartão conta o mesmo que a tela de Pendências: os últimos 30 dias, não
+   * só hoje. Antes Hoje dizia 1 e Pendências dizia 58, e as duas pareciam
+   * erradas. Quem não vê Pendências (profissional) segue com o número do dia.
+   */
+  const chamadasEmAberto = podeVerTodos
+    ? grupos.find((g) => g.tipo === 'chamada_nao_feita')?.itens.length ?? 0
+    : pendentes
   const presencas = sessoes.reduce(
     (n, s) => n + s.pessoas.filter((p) => p.status === 'presente').length,
     0,
@@ -213,10 +221,14 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         />
         <CartaoNumero
           rotulo="Chamadas pendentes"
-          valor={pendentes}
-          sub="De turmas passadas"
+          valor={chamadasEmAberto}
+          sub={!podeVerTodos || (pendentes > 0 && chamadasEmAberto <= pendentes)
+            ? 'De turmas que já passaram hoje'
+            : pendentes > 0
+              ? `${pendentes} de hoje, ${chamadasEmAberto - pendentes} de dias anteriores`
+              : 'Nos últimos 30 dias'}
           glifo="!"
-          tom={pendentes > 0 ? 'alerta' : 'atencao'}
+          tom={chamadasEmAberto > 0 ? 'alerta' : 'atencao'}
         />
         <CartaoNumero
           rotulo="Presenças"
@@ -324,7 +336,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           <span className="text-[13px] text-tinta-media">
             {periodoFiltro || profFiltro
               ? `${daAgenda.length} de ${sessoes.length} ${rotulos.sessao.plural.toLowerCase()}`
-              : `${vivas.length} ${rotulos.sessao.plural.toLowerCase()} · ${pendentes} chamada(s) pendente(s)`}
+              : `${vivas.length} ${rotulos.sessao.plural.toLowerCase()} · ${pendentes} ${pendentes === 1 ? 'chamada pendente' : 'chamadas pendentes'}`}
           </span>
         </div>
 
