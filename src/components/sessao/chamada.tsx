@@ -59,7 +59,7 @@ const O_QUE_FICOU: Partial<Record<StatusParticipacao, string>> = {
   falta: 'faltou',
   falta_avisada: 'avisou que não vem',
   licenca: 'em licença',
-  esperada: 'registro desfeito',
+  esperada: 'marcação removida',
   confirmada: 'confirmada',
 }
 
@@ -118,7 +118,15 @@ export function ProvedorChamada({
     podeRegistrar,
     comecou,
     ocupado: pendente,
-    registrar: (p, status) => iniciar(async () => {
+    /*
+     * Tocar de novo no estado que já está marcado desmarca.
+     *
+     * Antes o segundo toque gravava o mesmo estado outra vez, e o "Desfazer"
+     * desse aviso devolvia ao que já estava: quem testou marcou "Avisou",
+     * tocou de novo para tirar, desfez, e nada mudava na tela.
+     */
+    registrar: (p, pedido) => iniciar(async () => {
+      const status: StatusParticipacao = p.status === pedido ? 'esperada' : pedido
       aplicar({ id: p.id, status })
       await mudarStatus(p.id, status)
       // desfazer, não confirmar: o registro acontece e volta atrás num toque

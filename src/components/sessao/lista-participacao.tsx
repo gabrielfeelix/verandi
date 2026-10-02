@@ -130,7 +130,7 @@ export function ListaParticipacao({
                     <button
                       key={s.valor}
                       type="button"
-                      title={s.titulo}
+                      title={p.status === s.valor ? 'Tocar de novo desmarca' : s.titulo}
                       // o nome curto é o nome acessível e o texto à vista; o
                       // longo fica no `title`. Pôr o nome da pessoa aqui faria
                       // cada busca por nome casar com meia dúzia de botões, e o
