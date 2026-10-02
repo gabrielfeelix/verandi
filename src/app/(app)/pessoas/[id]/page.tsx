@@ -38,13 +38,13 @@ import {
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 
 const ROTULO_STATUS: Record<string, string> = {
-  esperada: 'esperada',
-  confirmada: 'confirmou',
+  esperada: 'Sem registro',
+  confirmada: 'Confirmou',
   presente: 'Presente',
   falta: 'Falta',
   falta_avisada: 'Falta avisada',
-  licenca: 'licença',
-  cancelada: 'cancelada',
+  licenca: 'Licença',
+  cancelada: 'Cancelada',
 }
 
 /** o ponto da linha do tempo: a mesma tinta, chapada */
@@ -107,13 +107,16 @@ function semanasDe(historico: Ficha['historico'], hoje: string) {
     const veio = naSemana.some((x) => x.status === 'presente')
     const faltou = naSemana.some((x) => x.status === 'falta')
     const avisou = naSemana.some((x) => x.status === 'falta_avisada')
+    const licenca = naSemana.some((x) => x.status === 'licenca')
 
     // a semana ganha a cor do pior que aconteceu nela: uma falta no meio de
     // três presenças é exatamente o que se quer enxergar
-    const cor = faltou ? '#FBE4D9' : avisou ? '#F6E7C9' : veio ? '#0E7C6B' : '#EFF3F1'
+    // semana só de licença tem cor própria: cinza dizia "nada marcado"
+    const cor = faltou ? '#FBE4D9' : avisou ? '#F6E7C9' : veio ? '#0E7C6B'
+      : licenca ? '#E9E6F3' : '#EFF3F1'
     const dica = naSemana.length === 0
       ? 'nada marcado'
-      : `${naSemana.length} ${naSemana.length === 1 ? 'aula' : 'aulas'}`
+      : `${naSemana.length} ${naSemana.length === 1 ? 'registro' : 'registros'}`
     return { cor, dica }
   })
 }
@@ -524,8 +527,8 @@ export default async function Pessoa({
                     />
                   ))}
                 </div>
-                <div className="flex gap-3.5 pt-0.5">
-                  {[['#0E7C6B', 'Presente'], ['#F6E7C9', 'Falta avisada'], ['#FBE4D9', 'Falta']].map(
+                <div className="flex flex-wrap gap-x-3.5 gap-y-1 pt-0.5">
+                  {[['#0E7C6B', 'Presente'], ['#F6E7C9', 'Falta avisada'], ['#FBE4D9', 'Falta'], ['#E9E6F3', 'Licença']].map(
                     ([cor, rotulo]) => (
                       <span key={rotulo} className="inline-flex items-center gap-1.5 text-[12px] text-tinta-fraca">
                         <span aria-hidden className="size-2 rounded-[3px]" style={{ background: cor }} />
