@@ -12,7 +12,7 @@ import type { Rotulos } from '@/core/vocabulario/padrao'
  *
  * `arquivo` aponta hoje para as artes das telas de acesso, **de propósito e em
  * caráter provisório**: dá para ver a sequência montada e no lugar. Quando as
- * ilustrações próprias existirem, é só trocar o caminho aqui — nenhuma tela
+ * ilustrações próprias existirem, é só trocar o caminho aqui, nenhuma tela
  * lê nome de arquivo, todas leem esta tabela. As novas entram em
  * `public/onboarding/`, em webp, passando por `scripts/otimiza-arte.mjs`, e a
  * `descricao` muda junto: ela é o que o leitor de tela ouve.

@@ -24,8 +24,8 @@ type Aberto = null | 'menu' | 'observacao' | 'reposicao' | 'origem'
 /**
  * O menu por pessoa da tela de Sessão.
  *
- * As quatro ações que ele abre — observação, apontar reposição, trocar origem e
- * remover — o modelo já aguentava desde a primeira migration; o que faltava era
+ * As quatro ações que ele abre, observação, apontar reposição, trocar origem e
+ * remover, o modelo já aguentava desde a primeira migration; o que faltava era
  * a tela expor. Apontar reposição é o `REP 05/6` da planilha virando dado.
  */
 export function MenuPessoa({

@@ -9,7 +9,7 @@ import { cartao } from '@/components/ui/pecas'
  * A primeira tela do dia de quem opera: o que precisa de alguém hoje.
  *
  * Cada grupo é uma coisa que a planilha perde. Reposição em aberto hoje vive na
- * memória de quem escreveu "REP 05/6" numa célula — e some quando essa pessoa
+ * memória de quem escreveu "REP 05/6" numa célula, e some quando essa pessoa
  * entra de férias.
  */
 export default async function Pendencias() {

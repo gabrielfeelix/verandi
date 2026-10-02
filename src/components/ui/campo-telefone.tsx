@@ -7,7 +7,7 @@ import { erroDoTelefone, mascararTelefone } from '@/core/telefone'
  * Telefone com o DDD cobrado na hora, não no dia de avisar alguém.
  *
  * A máscara escreve os parênteses e o traço sozinha, e o aviso só aparece
- * quando o campo perde o foco — cobrar o DDD na segunda tecla digitada é
+ * quando o campo perde o foco, cobrar o DDD na segunda tecla digitada é
  * discutir com quem ainda está escrevendo.
  */
 export function CampoTelefone({

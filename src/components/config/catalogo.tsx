@@ -257,7 +257,7 @@ export function SecaoLocais({
       {/*
         * Local é chip, e não linha de lista.
         *
-        * São três ou quatro nomes curtos — "Sala 1", "Domicílio". Uma linha
+        * São três ou quatro nomes curtos, "Sala 1", "Domicílio". Uma linha
         * inteira para cada um faz a seção parecer tão pesada quanto Serviços,
         * que tem duração, capacidade e estado por item. Aqui o que existe é
         * nome e quantas séries usam. É a fileira de chips do protótipo.

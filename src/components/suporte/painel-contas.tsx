@@ -18,7 +18,7 @@ import { erroLegivel } from '@/core/erro-legivel'
 /**
  * A tela da 4YU.
  *
- * Os sinais de vida respondem "o cliente está usando?" antes de ele reclamar —
+ * Os sinais de vida respondem "o cliente está usando?" antes de ele reclamar,
  * chamada que parou de ser feita é o primeiro sintoma de abandono. Por isso a
  * lista é tabela e não cartão: as três colunas de número existem para serem
  * comparadas de cima a baixo, e cartão empilhado não deixa comparar nada.

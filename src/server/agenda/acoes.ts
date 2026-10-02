@@ -111,7 +111,7 @@ export async function encaixar(entrada: PedidoDeEncaixe): Promise<ResultadoEncai
 /**
  * A única forma de abrir vaga em sessão lotada.
  *
- * Muda a capacidade **daquele dia**, não da série — é o que mantém o número
+ * Muda a capacidade **daquele dia**, não da série, é o que mantém o número
  * verdadeiro para a tela, a busca e o bot ao mesmo tempo.
  */
 export async function ajustarCapacidade(sessaoId: string, capacidade: number): Promise<void> {
@@ -218,7 +218,7 @@ export async function salvarObservacao(
  * Aponta de qual falta esta participação é a reposição.
  *
  * É o `REP 05/6` da planilha virando chave estrangeira. Sem ele, o controle de
- * quem tem crédito mora na memória de quem escreveu — e some quando essa pessoa
+ * quem tem crédito mora na memória de quem escreveu, e some quando essa pessoa
  * entra de férias.
  *
  * Passar `null` desfaz o apontamento. Trocar a origem para `reposicao` junto é
@@ -250,7 +250,7 @@ export async function apontarReposicao(
  * Corrige de onde a pessoa veio: fixo, avulso, reposição, encaixe, reserva.
  *
  * Existe porque quem encaixa às pressas escolhe errado, e origem errada
- * distorce a leitura da turma — a planilha resolvia isso por posição na folha,
+ * distorce a leitura da turma, a planilha resolvia isso por posição na folha,
  * e a tela precisa de um jeito de consertar.
  */
 export async function trocarOrigem(

@@ -2,11 +2,11 @@
  * Telefone sem DDD é telefone que não disca.
  *
  * A planilha de onde vem quase todo cadastro escreve o número do jeito que se
- * fala na recepção — "9.8109-1840" —, porque quem anota e quem liga moram na
+ * fala na recepção, "9.8109-1840", porque quem anota e quem liga moram na
  * mesma cidade. No sistema isso não se sustenta: o aviso de cancelamento sai
  * por WhatsApp, e o WhatsApp precisa do país e do DDD. Guardar nove dígitos é
  * guardar um número que ninguém consegue usar depois, e não há como adivinhar
- * o DDD — 44, 41, 55 e 11 são todos plausíveis para o mesmo cadastro.
+ * o DDD, 44, 41, 55 e 11 são todos plausíveis para o mesmo cadastro.
  *
  * Por isso o DDD é obrigatório na hora de salvar, e o campo o cobra na cara,
  * em vez de aceitar e falhar meses depois na hora de avisar alguém.
@@ -39,7 +39,7 @@ const DDI_BRASIL = '55'
  *
  * O corte só vale para 12 ou 13 dígitos: `5511987654321` sem DDI seria
  * `11987654321`, mas `5598765432` é um fixo do Maranhão (DDD 55 é do RS,
- * aliás) — cortar por prefixo sem conferir o tamanho mutila número legítimo.
+ * aliás), cortar por prefixo sem conferir o tamanho mutila número legítimo.
  */
 export function semDdi(bruto: string | null | undefined): string {
   const n = soDigitos(bruto ?? '')
@@ -66,7 +66,7 @@ export function mascararTelefone(bruto: string): string {
  */
 export function erroDoTelefone(bruto: string | null | undefined): string | null {
   // Sem o país: quem chega pela API do bot manda `5544998887766`, e recusar
-  // isso é recusar todo cadastro vindo do WhatsApp — que é a origem de quem
+  // isso é recusar todo cadastro vindo do WhatsApp, que é a origem de quem
   // nunca passou pela recepção.
   const n = semDdi(bruto)
   if (!n) return null
@@ -95,8 +95,8 @@ export const telefoneValido = (bruto: string | null | undefined): boolean =>
 /**
  * O que vai para o banco: só dígitos e **sem o país**, ou `null` sem telefone.
  *
- * Guardar o DDI faria a ficha do bot divergir da ficha da recepção — mesma
- * pessoa, duas grafias — e `chavesDeBusca` não acharia a segunda.
+ * Guardar o DDI faria a ficha do bot divergir da ficha da recepção, mesma
+ * pessoa, duas grafias, e `chavesDeBusca` não acharia a segunda.
  */
 export function normalizarTelefone(bruto: string | null | undefined): string | null {
   return semDdi(bruto) || null
@@ -130,7 +130,7 @@ export function exibirTelefone(bruto: string | null | undefined): string {
  * As formas em que este número pode estar gravado, para procurar o cadastro.
  *
  * **É o que permite o bot reconhecer quem já é aluno.** A automação chega com o
- * identificador do WhatsApp — `5544998887766`, com país e sem máscara — e o
+ * identificador do WhatsApp, `5544998887766`, com país e sem máscara, e o
  * cadastro guarda `44998887766`, sem país, porque é o que a recepção digita.
  * Comparar literalmente diz que são duas pessoas.
  *
@@ -144,7 +144,7 @@ export function exibirTelefone(bruto: string | null | undefined): string {
  * Lista vazia quer dizer **não dá para procurar com segurança**, e é o caso do
  * número sem DDD: `98765-4321` pode ser de onze estados, e chutar o DDD da conta
  * casaria a conversa de uma pessoa com a ficha de outra. Não reconhecer é um
- * caminho normal — reconhecer errado não tem conserto.
+ * caminho normal, reconhecer errado não tem conserto.
  */
 export function chavesDeBusca(bruto: string): string[] {
   const nacional = semDdi(bruto)
@@ -162,7 +162,7 @@ export function chavesDeBusca(bruto: string): string[] {
     chaves.add(`${ddd}${numero.slice(1)}`)
   } else if (numero.length === 8 && /^[6-9]/.test(numero)) {
     // Sem o nono, e o primeiro dígito diz que é celular. Fixo começa com 2 a 5
-    // e nunca ganhou nono dígito — inventar um criaria uma chave que não existe
+    // e nunca ganhou nono dígito, inventar um criaria uma chave que não existe
     // em cadastro nenhum.
     chaves.add(`${ddd}9${numero}`)
   }

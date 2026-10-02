@@ -88,8 +88,8 @@ export function NovaPessoa({
           </div>
 
           <Nota>
-            Sem telefone não dá para avisar cancelamento nem cobrar reposição —
-            é o campo que mais falta e mais custa. Dá para preencher depois, na
+            Sem telefone não dá para avisar cancelamento nem cobrar reposição.
+            É o campo que mais falta e mais custa. Dá para preencher depois, na
             ficha.
           </Nota>
 

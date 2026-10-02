@@ -641,15 +641,15 @@ export default async function Pessoa({
                 itens={[
                   {
                     rotulo: 'Já pagou',
-                    valor: dinheiro.pagoCent > 0 ? emReais(dinheiro.pagoCent) : '—',
-                    tom: 'positivo',
+                    valor: emReais(dinheiro.pagoCent),
+                    tom: dinheiro.pagoCent > 0 ? 'positivo' : 'neutro',
                     nota: dinheiro.primeiroPagamento
                       ? `desde ${mesAno(dinheiro.primeiroPagamento)}`
                       : 'nenhum pagamento ainda',
                   },
                   {
                     rotulo: 'Em atraso',
-                    valor: dinheiro.atrasadoCent > 0 ? emReais(dinheiro.atrasadoCent) : '—',
+                    valor: emReais(dinheiro.atrasadoCent),
                     tom: dinheiro.atrasadoCent > 0 ? 'alerta' : 'neutro',
                     nota: dinheiro.quantidadeAtrasada > 0
                       ? `${dinheiro.quantidadeAtrasada} ${dinheiro.quantidadeAtrasada === 1 ? 'cobrança vencida' : 'cobranças vencidas'}`
@@ -657,13 +657,13 @@ export default async function Pessoa({
                   },
                   {
                     rotulo: 'Em aberto',
-                    valor: dinheiro.abertoCent > 0 ? emReais(dinheiro.abertoCent) : '—',
+                    valor: emReais(dinheiro.abertoCent),
                     nota: 'vencido e a vencer, somados',
                   },
                   {
                     rotulo: 'Último pagamento',
                     valor: dinheiro.ultimoPagamento
-                      ? curta(dinheiro.ultimoPagamento) : '—',
+                      ? curta(dinheiro.ultimoPagamento) : 'Nenhum',
                     nota: dinheiro.formaMaisUsada
                       ? `costuma pagar em ${ROTULO_FORMA[dinheiro.formaMaisUsada as Forma] ?? dinheiro.formaMaisUsada}`
                       : 'sem histórico',

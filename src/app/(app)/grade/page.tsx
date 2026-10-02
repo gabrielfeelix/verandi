@@ -9,7 +9,7 @@ import { cartao, Vazio } from '@/components/ui/pecas'
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
 /**
- * A grade fixa: a estrutura que se repete. É configuração — usada muito no
+ * A grade fixa: a estrutura que se repete. É configuração, usada muito no
  * começo e pouco depois.
  *
  * `profissional` não alcança esta tela: ele opera a agenda, não a monta.

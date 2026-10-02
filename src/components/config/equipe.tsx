@@ -22,7 +22,7 @@ type ServicoOpcao = { id: string; nome: string }
  * A equipe.
  *
  * Profissional **existe sem usuário**: um nome na grade não precisa de acesso
- * ao sistema. Dar login é outro ato, e ele mora no convite — por isso aqui só
+ * ao sistema. Dar login é outro ato, e ele mora no convite, por isso aqui só
  * se mostra quem já tem.
  */
 export function SecaoEquipe({
@@ -62,7 +62,7 @@ export function SecaoEquipe({
   /**
    * Desativar manda o cadastro inteiro de volta, com `ativo` de fora.
    *
-   * Mandar só o `id` apagaria e-mail, cor e os serviços que a pessoa atende —
+   * Mandar só o `id` apagaria e-mail, cor e os serviços que a pessoa atende,
    * `salvarProfissional` reescreve a linha com o que chega, e o que não chega
    * some.
    */
@@ -145,7 +145,7 @@ export function SecaoEquipe({
                 {p.ativo ? (
                   /* com a palavra: um × sozinho pode ser desativar, apagar ou
                      fechar, e quem descobre parando o mouse em cima descobre
-                     tarde — no celular, nunca */
+                     tarde, no celular, nunca */
                   <BotaoLinha
                     tom="perigo"
                     aria-label={`Desativar ${p.nome}`}

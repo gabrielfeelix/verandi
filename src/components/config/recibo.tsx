@@ -107,7 +107,7 @@ export function SecaoRecibo({
         <div className="grid gap-3 sm:grid-cols-2">
           {/*
             Sem placeholder, e isto é o conserto de um defeito de verdade.
-            Aqui estava o nome da conta — "MGM Pilates" —, e um campo vazio
+            Aqui estava o nome da conta, "MGM Pilates", e um campo vazio
             mostrando exatamente o texto que a pessoa ia digitar **é um campo
             que parece preenchido**. Quem abriu esta tela digitou o CNPJ e o
             telefone, salvou, e saiu certo de que tinha terminado; a razão

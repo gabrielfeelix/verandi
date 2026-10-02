@@ -17,7 +17,7 @@ import type { Database } from './banco.types'
  * **Um por pedido, e é daí que vem a velocidade.** O `cache` do React não
  * guarda nada entre pedidos: ele só faz a segunda chamada dentro do mesmo
  * render devolver o mesmo cliente. Sem isso, cada tela criava quatro ou cinco
- * clientes — o proxy, o layout, `contaAtiva`, `contasDoUsuario`, a página — e o
+ * clientes, o proxy, o layout, `contaAtiva`, `contasDoUsuario`, a página, e o
  * **primeiro `getUser` de cada cliente novo é uma ida ao servidor de
  * autenticação**, medida em 90 ms com o banco na própria máquina. As chamadas
  * seguintes do mesmo cliente custam 1 ms, porque o supabase-js já guardou a
@@ -58,7 +58,7 @@ export type ContaAtiva =
  *
  * Quem pertence a uma só nunca escolhe; quem pertence a várias escolhe em
  * `/contas`, e a escolha fica num cookie. Operar na conta errada é o erro mais
- * caro que este sistema permite, e ele é silencioso — por isso a conta ativa
+ * caro que este sistema permite, e ele é silencioso, por isso a conta ativa
  * precisa aparecer em toda tela.
  *
  * `cache` pelo mesmo motivo do cliente: o layout pergunta, a página pergunta de

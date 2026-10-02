@@ -37,7 +37,7 @@ type Ocupante = { pessoaId: string; nome: string; desde: string }
  * sobrava, e com trinta horários na tela ninguém achava de volta a linha que
  * tinha aberto. Agora as quatro ações abrem modal, como o resto do sistema, e
  * a linha vira cartão: hora em destaque à esquerda, quem atende e onde como
- * etiquetas, e a ocupação com barra — que é o que se procura varrendo a grade.
+ * etiquetas, e a ocupação com barra, que é o que se procura varrendo a grade.
  */
 export function LinhaDaGrade({
   serie, catalogo, rotulos, podeEscrever,
@@ -395,7 +395,7 @@ export function LinhaDaGrade({
             <Nota tom="atencao">
               Esse horário já tem coisa marcada:{' '}
               {colisoes.map((c) => `${DIAS[c.diaSemana]} às ${c.horaInicio}, ${c.ocupadoPor}`).join('; ')}.
-              Dois na mesma sala pode ser real — quem opera é que sabe.
+              Dois horários na mesma sala podem ser intencionais: confira antes de salvar.
             </Nota>
           ) : null}
 
@@ -450,7 +450,7 @@ export function LinhaDaGrade({
  * Ação com ícone **e** palavra.
  *
  * Só o glifo é adivinhação: um X pode ser desativar, apagar ou fechar, e quem
- * descobre parando o mouse em cima descobre tarde — no celular, nunca. Em tela
+ * descobre parando o mouse em cima descobre tarde, no celular, nunca. Em tela
  * estreita a palavra some e sobra o alvo de 44px, com o nome no `aria-label`.
  */
 function BotaoAcao({
