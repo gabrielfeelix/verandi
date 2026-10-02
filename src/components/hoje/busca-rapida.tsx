@@ -12,7 +12,7 @@ type Achado = { id: string; nome: string; detalhe: string }
  *
  * Este lugar já existia na tela, e era um `<span>`: parecia um campo de busca,
  * tinha o `/` do atalho desenhado ao lado, e não aceitava foco nem digitação. O
- * design system é explícito — "tudo que parece clicável tem destino" —, e uma
+ * design system é explícito ("tudo que parece clicável tem destino"), e uma
  * caixa de busca falsa é a pior versão disso, porque a recepção tenta usar
  * justamente quando está com alguém na frente esperando.
  *

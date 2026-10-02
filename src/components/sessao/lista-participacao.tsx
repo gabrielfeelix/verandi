@@ -13,7 +13,7 @@ import { useChamada } from './chamada'
  * Os quatro estados, como botões de 44px.
  *
  * O protótipo desenha 34px de altura. Esta tela é usada em pé, numa sala, com a
- * mão ocupada — 44px é o mínimo do alvo de toque, e aqui isso ganha do desenho.
+ * mão ocupada: 44px é o mínimo do alvo de toque, e aqui isso ganha do desenho.
  */
 const STATUS: Array<{
   valor: StatusParticipacao; curto: string; titulo: string; glifo: string
@@ -73,7 +73,9 @@ export function ListaParticipacao({
           return (
             <li
               key={p.id}
-              className={`grid grid-cols-[auto_1fr_auto] items-center gap-3.5 rounded-grande border p-3 ${
+              // no celular os botões descem para uma linha própria: os quatro
+              // ao lado do nome passavam por cima dele em 390
+              className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-3 rounded-grande border p-3 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto] ${
                 decidido
                   ? 'border-linha-suave bg-superficie-tenue'
                   : 'border-linha-fina bg-superficie'
@@ -115,43 +117,45 @@ export function ListaParticipacao({
                   ) : null}
                 </span>
 
-                {/* por que esta pessoa está aqui — a linha que separa quatro
+                {/* por que esta pessoa está aqui, a linha que separa quatro
                     nomes iguais em quatro situações diferentes */}
                 {p.detalhe ? (
                   <span className="truncate text-[13px] text-tinta-media">{p.detalhe}</span>
                 ) : null}
               </span>
 
-              <span className="flex items-center gap-2">
-                {podeRegistrar ? (
-                  <span className="flex gap-1.5">
-                    {STATUS.map((s) => (
-                      <button
-                        key={s.valor}
-                        type="button"
-                        title={s.titulo}
-                        // o nome curto é o nome acessível; o longo fica no
-                        // `title`. Pôr o nome da pessoa aqui faria cada busca
-                        // por nome casar com meia dúzia de botões — o contexto
-                        // já vem do item da lista
-                        aria-label={s.curto}
-                        disabled={ocupado}
-                        aria-pressed={p.status === s.valor}
-                        onClick={() => registrar(p, s.valor)}
-                        className={`flex h-11 w-11 items-center justify-center rounded-padrao border text-[16px] ${
-                          p.status === s.valor
-                            ? TINTA_BOTAO[s.valor]
-                            : 'border-linha bg-superficie text-tinta-media hover:border-[#B7C4BF]'
-                        }`}
-                      >
-                        <span aria-hidden>{s.glifo}</span>
-                      </button>
-                    ))}
-                  </span>
-                ) : (
-                  <span className="text-[13.5px] text-tinta-media">{p.status}</span>
-                )}
+              {podeRegistrar ? (
+                <span className="col-span-full row-start-2 grid grid-cols-4 gap-1.5 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:flex">
+                  {STATUS.map((s) => (
+                    <button
+                      key={s.valor}
+                      type="button"
+                      title={s.titulo}
+                      // o nome curto é o nome acessível e o texto à vista; o
+                      // longo fica no `title`. Pôr o nome da pessoa aqui faria
+                      // cada busca por nome casar com meia dúzia de botões, e o
+                      // contexto já vem do item da lista
+                      disabled={ocupado}
+                      aria-pressed={p.status === s.valor}
+                      onClick={() => registrar(p, s.valor)}
+                      className={`flex h-11 min-w-0 items-center justify-center gap-1 rounded-padrao border px-1 text-[13.5px] sm:gap-1.5 sm:px-2.5 sm:text-[14px] font-medium ${
+                        p.status === s.valor
+                          ? TINTA_BOTAO[s.valor]
+                          : 'border-linha bg-superficie text-tinta-media hover:border-[#B7C4BF]'
+                      }`}
+                    >
+                      <span aria-hidden className="text-[15px]">{s.glifo}</span>
+                      {s.curto}
+                    </button>
+                  ))}
+                </span>
+              ) : (
+                <span className="col-span-full row-start-2 text-[13.5px] text-tinta-media lg:col-span-1 lg:col-start-3 lg:row-start-1">
+                  {STATUS.find((s) => s.valor === p.status)?.curto ?? 'Sem registro'}
+                </span>
+              )}
 
+              <span className="col-start-3 row-start-1 lg:col-start-4">
                 <MenuPessoa
                   participacao={p}
                   faltas={faltasPorPessoa[p.pessoaId] ?? []}

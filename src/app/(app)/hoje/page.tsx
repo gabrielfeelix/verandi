@@ -588,7 +588,9 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          {/* quebra no celular: sino, dia, abas e arrumar somam 482px numa
+              linha só, e a tela de 390 rolava de lado */}
+          <div className="flex flex-wrap items-center gap-2.5">
             <BuscaRapida rotuloPessoa={rotulos.pessoa.singular} />
 
             {/* o sino fica ao lado da busca, e só para quem responde pelo

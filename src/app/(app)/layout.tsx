@@ -151,10 +151,9 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
       : []),
   ]
 
-  // em celular são quatro, não nove: quem está em pé na sala precisa do que usa
-  const tabs = itens.filter((i) =>
-    ['/hoje', '/semana', '/pessoas', '/pendencias'].includes(i.href),
-  )
+  // em celular são quatro à vista: quem está em pé na sala precisa do que usa,
+  // e o resto fica no "Mais"
+  const principais = ['/hoje', '/semana', '/pessoas', '/pendencias']
 
   return (
     <div className="min-h-dvh">
@@ -216,7 +215,13 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
       </div>
 
       <div data-imprimir="fora" className="contents">
-        <BarraInferior itens={tabs} />
+        <BarraInferior
+          itens={itens}
+          principais={principais}
+          pessoa={eu?.nome ?? user?.email ?? 'Você'}
+          papel={PAPEL[conta.papel] ?? conta.papel}
+          podeTrocar={contas.length > 1}
+        />
       </div>
 
       {mostrarBoasVindas ? (

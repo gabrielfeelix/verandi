@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { sair } from '@/app/contas/acoes'
 import { Icone, type NomeIcone } from './icones'
+import { travarPagina, destravarPagina } from './modal'
 
 export type ItemRail = {
   href: string
@@ -211,42 +213,158 @@ export function Rail({
   )
 }
 
+const ABA = 'relative flex min-h-13 flex-1 flex-col items-center justify-center gap-1 rounded-media'
+
 /**
  * A barra de baixo, que é o rail em tela estreita.
  *
- * Quatro destinos, não nove: em celular quem usa é o profissional em pé na sala,
- * e o resto se alcança pelas telas.
+ * Quatro destinos à vista e um "Mais" com o resto. Antes eram só os quatro, e o
+ * celular não chegava ao Financeiro, aos Recibos, à Configuração, nem ao Sair:
+ * "o resto se alcança pelas telas" não era verdade para nenhum deles.
  */
-export function BarraInferior({ itens }: { itens: ItemRail[] }) {
+export function BarraInferior({
+  itens, principais, pessoa, papel, podeTrocar,
+}: {
+  itens: ItemRail[]
+  /** os `href` que ficam à vista; o resto vai para o "Mais" */
+  principais: string[]
+  pessoa: string
+  papel: string
+  podeTrocar: boolean
+}) {
   const pathname = usePathname()
+  const [aberto, setAberto] = useState(false)
+  const folha = useRef<HTMLDialogElement>(null)
+
+  const abas = itens.filter((i) => principais.includes(i.href))
+  const resto = itens.filter((i) => !principais.includes(i.href))
+  // o "Mais" acende quando a tela aberta mora nele, e herda o aviso de quem
+  // está lá dentro: atraso no Financeiro não pode sumir só porque saiu da vista
+  const maisAtivo = resto.some((i) => ativoEm(pathname, i.href))
+  const maisAvisa = resto.some((i) => i.badge)
+
+  useEffect(() => {
+    const d = folha.current
+    if (!d) return
+    if (aberto && !d.open) d.showModal()
+    if (!aberto && d.open) d.close()
+    if (!aberto) return
+    travarPagina()
+    return destravarPagina
+  }, [aberto])
 
   return (
-    <nav
-      aria-label="Navegação principal"
-      className="fixed inset-x-0 bottom-0 z-40 flex border-t border-linha bg-superficie px-2 pt-2 pb-2.5 md:hidden"
-    >
-      {itens.map((i) => {
-        const ativo = ativoEm(pathname, i.href)
-        return (
-          <Link
-            key={i.href}
-            href={i.href}
-            aria-current={ativo ? 'page' : undefined}
-            className={`relative flex min-h-13 flex-1 flex-col items-center justify-center gap-1 rounded-media ${
-              ativo ? 'bg-positivo-superficie text-marca' : 'text-tinta-media'
-            }`}
-          >
-            <Icone nome={i.icone} />
-            <span className="text-[11.5px] font-medium">{i.curto}</span>
-            {i.badge ? (
-              <span className="absolute top-1 right-3 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destaque px-1 text-[11px] font-semibold text-white">
-                {i.badge}
+    <>
+      <nav
+        aria-label="Navegação principal"
+        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-linha bg-superficie px-2 pt-2 pb-2.5 md:hidden"
+      >
+        {abas.map((i) => {
+          const ativo = ativoEm(pathname, i.href)
+          return (
+            <Link
+              key={i.href}
+              href={i.href}
+              aria-current={ativo ? 'page' : undefined}
+              className={`${ABA} ${ativo ? 'bg-positivo-superficie text-marca' : 'text-tinta-media'}`}
+            >
+              <Icone nome={i.icone} />
+              <span className="text-[11.5px] font-medium">{i.curto}</span>
+              {i.badge ? (
+                <span className="absolute top-1 right-3 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destaque px-1 text-[11px] font-semibold text-white">
+                  {i.badge}
+                </span>
+              ) : null}
+            </Link>
+          )
+        })}
+
+        <button
+          type="button"
+          onClick={() => setAberto(true)}
+          aria-haspopup="dialog"
+          aria-expanded={aberto}
+          className={`${ABA} ${maisAtivo ? 'bg-positivo-superficie text-marca' : 'text-tinta-media'}`}
+        >
+          <Icone nome="kebab" />
+          <span className="text-[11.5px] font-medium">Mais</span>
+          {maisAvisa ? (
+            <span className="absolute top-1.5 right-[calc(50%-18px)] size-2.5 rounded-full bg-destaque">
+              <span className="sr-only">há aviso dentro</span>
+            </span>
+          ) : null}
+        </button>
+      </nav>
+
+      <dialog
+        ref={folha}
+        aria-label="Mais telas"
+        onClose={() => setAberto(false)}
+        onClick={(e) => { if (e.target === folha.current) setAberto(false) }}
+        className="mx-0 mt-auto mb-0 w-full max-w-none rounded-t-modal bg-superficie p-0 shadow-modal backdrop:bg-escuro/42 backdrop:backdrop-blur-[3px] md:hidden"
+        style={{ animation: aberto ? 'vd-pop .26s var(--ease-pop) backwards' : undefined }}
+      >
+        <div className="flex max-h-[80dvh] flex-col gap-1 overflow-y-auto px-3 pt-3 pb-5">
+          <span aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-linha" />
+
+          {resto.map((i) => {
+            const ativo = ativoEm(pathname, i.href)
+            return (
+              <Link
+                key={i.href}
+                href={i.href}
+                onClick={() => setAberto(false)}
+                aria-current={ativo ? 'page' : undefined}
+                className={`flex min-h-12 items-center gap-3 rounded-media px-3 text-[15px] ${
+                  ativo ? 'bg-positivo-superficie text-marca' : 'text-tinta'
+                }`}
+              >
+                <Icone nome={i.icone} />
+                <span className="min-w-0 flex-1 truncate">{i.rotulo}</span>
+                {i.badge ? (
+                  <span className="flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-destaque px-1.5 text-[11.5px] font-semibold text-white">
+                    {i.badge}
+                    <span className="sr-only"> {i.badgeRotulo ?? 'aguardando decisão'}</span>
+                  </span>
+                ) : null}
+              </Link>
+            )
+          })}
+
+          <div className={`flex items-center gap-3 px-3 pt-3 ${resto.length ? 'mt-2 border-t border-linha-fina' : ''}`}>
+            <span
+              aria-hidden
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-positivo-superficie text-[12.5px] font-semibold text-marca"
+            >
+              {iniciais(pessoa)}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col leading-tight">
+              <span className="truncate text-[14.5px]">{pessoa}</span>
+              <span className="text-[12.5px] text-tinta-media">
+                {papel}
+                {podeTrocar ? (
+                  <>
+                    {' · '}
+                    <Link href="/contas" onClick={() => setAberto(false)} className="text-marca underline">
+                      trocar
+                    </Link>
+                  </>
+                ) : null}
               </span>
-            ) : null}
-          </Link>
-        )
-      })}
-    </nav>
+            </span>
+            <form action={sair}>
+              <button
+                type="submit"
+                className="flex min-h-11 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14px] text-tinta-media"
+              >
+                <Icone nome="sair" tamanho={16} />
+                Sair
+              </button>
+            </form>
+          </div>
+        </div>
+      </dialog>
+    </>
   )
 }
 

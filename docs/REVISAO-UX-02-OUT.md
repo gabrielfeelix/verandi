@@ -21,14 +21,14 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
       `src/components/sessao/chamada.tsx`.
 - [x] 5. Ficha mostrava "reposicao"/"recorrente" crus. `ROTULO_ORIGEM` em
       `src/app/(app)/pessoas/[id]/page.tsx`.
-- [ ] 6. `/hoje` em 390 rola de lado (482px): linha de busca, sino, dia e filtro
+- [x] 6. `/hoje` em 390 rola de lado (482px): linha de busca, sino, dia e filtro
       sem quebra. `src/app/(app)/hoje/page.tsx:591`.
-- [ ] 7. `/hoje` agenda do dia em 390: grade espreme a linha, fotos por cima,
+- [x] 7. `/hoje` agenda do dia em 390: grade espreme a linha, fotos por cima,
       professor some. `src/components/hoje/pecas.tsx:227`.
-- [ ] 8. Barra de baixo no celular só tem Hoje, Agenda, Pend., Alunos: não chega a
+- [x] 8. Barra de baixo no celular só tem Hoje, Agenda, Pend., Alunos: não chega a
       Financeiro, Recibos, Vaga, Grade, Config, nem Sair. `src/app/(app)/layout.tsx:155`,
       `src/components/ui/rail.tsx:220`. Quinta aba "Mais".
-- [ ] 9. Chamada em 390: os 4 botões cobrem o nome. `src/components/sessao/lista-participacao.tsx:76`.
+- [x] 9. Chamada em 390: os 4 botões cobrem o nome. `src/components/sessao/lista-participacao.tsx:76`.
 - [x] 10. "**imagem**" com asteriscos na config do recibo; nota reescrita.
 - [x] 11. Input de arquivo em inglês ("Choose File"). Rótulo próprio.
 - [x] 12. Contrato dizia "a cobrança entra quando o financeiro estiver no ar".
@@ -39,7 +39,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
     encaixe com origem Reposição.
 14. Encaixe grava como Avulso no toque do nome, antes de escolher a origem
     (`src/components/sessao/modal-encaixe.tsx`).
-15. Chamada só com símbolos ✓ × ! ~ : texto visível (Veio, Faltou, Avisou, Licença).
+- [x] 15. Chamada só com símbolos: agora com texto (Veio, Faltou, Avisou, Licença).
 16. "Marcar todos presentes" aparece em aula de daqui a 71h: liberar só do início.
 17. Aviso "Murilo Bastos atualizado." não diz o quê (`chamada.tsx:92`).
 18. "aula começa em 71h21": acima de 24h, dia e hora (`proxima-turma.tsx:25`).

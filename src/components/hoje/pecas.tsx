@@ -7,7 +7,7 @@ import { cartao } from '@/components/ui/pecas'
 /**
  * As peças da tela Hoje, com as medidas literais do protótipo.
  *
- * Elas moram aqui e não em `ui/` porque decidem coisa de layout desta tela — o
+ * Elas moram aqui e não em `ui/` porque decidem coisa de layout desta tela: o
  * que é primitivo (avatar, etiqueta, botão) continua vindo de `ui/`.
  */
 
@@ -53,7 +53,7 @@ export function CartaoNumero({
   /*
    * O glifo tem cor de significado, sempre.
    *
-   * Cinza dentro de uma moldura arredondada lê como botão desabilitado — e
+   * Cinza dentro de uma moldura arredondada lê como botão desabilitado: e
    * alguém tenta clicar. Com a cor do assunto (azul para o que só informa,
    * amarelo para o que espera ação, verde para o que já foi feito, vermelho
    * para o que está atrasado) ele volta a ser o que é: um ícone.
@@ -224,7 +224,10 @@ export function LinhaAgenda({
   return (
     <Link
       href={`/sessao/${sessao.id}`}
-      className={`grid grid-cols-[66px_30px_1fr_auto_auto] items-center gap-3.5 rounded-media p-3 transition-[background-color,transform] duration-200 hover:translate-x-0.5 hover:bg-superficie-mais-suave ${
+      // no celular as cinco colunas não cabem: o avatar sai (o nome do
+      // professor já está na nota), e rostos e ocupação descem para baixo do
+      // nome, em vez de espremê-lo até o professor sumir
+      className={`grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 sm:grid-cols-[66px_30px_minmax(0,1fr)_auto_auto] sm:gap-3.5 rounded-media p-3 transition-[background-color,transform] duration-200 hover:translate-x-0.5 hover:bg-superficie-mais-suave ${
         agora ? 'bg-[#F3F8F6]' : ''
       }`}
     >
@@ -238,7 +241,7 @@ export function LinhaAgenda({
       </span>
 
       <span
-        className="flex items-center justify-center self-stretch"
+        className="hidden items-center justify-center self-stretch sm:flex"
         style={{ opacity: passou ? 0.6 : 1 }}
       >
         {sessao.profissional ? (
@@ -248,7 +251,7 @@ export function LinhaAgenda({
 
       <span className="flex min-w-0 flex-col gap-1">
         <span
-          className={`text-[16px] font-medium ${cancelada ? 'text-tinta-fraca line-through' : ''}`}
+          className={`truncate text-[16px] font-medium ${cancelada ? 'text-tinta-fraca line-through' : ''}`}
         >
           {sessao.servico}
         </span>
@@ -257,14 +260,14 @@ export function LinhaAgenda({
         </span>
       </span>
 
-      <span className="flex items-center">
+      <span className="col-start-2 row-start-2 flex items-center sm:col-start-auto sm:row-start-auto">
         <PilhaPessoas pessoas={sessao.pessoas} apagado={passou} />
         <span className="w-[18px]" />
         <span
           className={`rounded-peca px-2 py-[3px] font-mono text-[13px] ${
             // laranja só acima da capacidade, como no protótipo: turma cheia é
             // estado normal do dia, e pintar toda turma de alerta apagaria o
-            // único caso que pede olho — o 5/4
+            // único caso que pede olho: o 5/4
             sessao.ocupacao.excedida
               ? 'bg-alerta-fundo text-alerta'
               : 'bg-superficie-mais-suave text-tinta-media'
