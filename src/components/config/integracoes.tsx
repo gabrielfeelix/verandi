@@ -314,7 +314,7 @@ export function SecaoIntegracoes({
           >
             <input
               id="wh-url" name="url" required autoFocus type="url"
-              placeholder="https://seusistema.com.br/avisos-da-verandi"
+              placeholder="Exemplo: https://seusistema.com.br/avisos-da-verandi"
               defaultValue={aviso?.url ?? ''}
               className={entrada}
             />

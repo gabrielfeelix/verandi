@@ -273,11 +273,11 @@ function Formulario({
       <div className="grid gap-3 sm:grid-cols-2">
         <Campo rotulo="Nome" htmlFor="pf-nome" dica="Como aparece na grade" obrigatorio>
           <input id="pf-nome" name="nome" required className={entrada}
-            placeholder="Ex.: Carol" defaultValue={profissional?.nome} />
+            placeholder="Exemplo: Carol" defaultValue={profissional?.nome} />
         </Campo>
         <Campo rotulo="E-mail" htmlFor="pf-email" dica="Opcional">
           <input id="pf-email" name="email" type="email" className={entrada}
-            placeholder="carol@estudio.com.br"
+            placeholder="Exemplo: carol@estudio.com.br"
             defaultValue={profissional?.email ?? ''} />
         </Campo>
         <Campo rotulo="Telefone" htmlFor="pf-tel" dica="Opcional">

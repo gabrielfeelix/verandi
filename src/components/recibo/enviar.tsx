@@ -144,7 +144,7 @@ export function EnviarRecibo({
                 id="rc-pagador" type="email" className={entrada}
                 value={doPagador}
                 onChange={(e) => setDoPagador(e.target.value)}
-                placeholder="nome@email.com"
+                placeholder="Exemplo: nome@email.com"
               />
               <span className="pt-1 text-[12.5px] text-tinta-media">
                 A ficha está sem e-mail. Este endereço fica salvo nela, e os
@@ -190,7 +190,7 @@ export function EnviarRecibo({
                   if (e.key === 'Enter') { e.preventDefault(); acrescentar() }
                 }}
                 aria-label="E-mail para receber cópia"
-                placeholder="marido@email.com"
+                placeholder="Exemplo: familia@email.com"
                 className={`${entrada} min-w-[200px] flex-1`}
               />
               <button

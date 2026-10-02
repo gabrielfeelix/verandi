@@ -62,7 +62,7 @@ export function ModalCancelar({
           required
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
-          placeholder="Ex.: professora doente, sala interditada"
+          placeholder="Exemplo: profissional doente, sala interditada"
           className={entrada}
         />
       </div>

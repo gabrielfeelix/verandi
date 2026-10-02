@@ -33,7 +33,7 @@ export function CampoTelefone({
         onBlur={() => setTocado(true)}
         type="tel"
         inputMode="tel"
-        placeholder="(44) 99999-9999"
+        placeholder="Exemplo: (11) 99999-9999"
         aria-invalid={erro ? true : undefined}
         aria-describedby={erro ? `${id ?? nome}-erro` : undefined}
         className={`campo w-full ${erro ? 'border-alerta-linha-forte bg-alerta-superficie' : ''}`}

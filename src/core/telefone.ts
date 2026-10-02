@@ -47,7 +47,7 @@ export function semDdi(bruto: string | null | undefined): string {
 }
 
 /**
- * `(44) 99999-9999` enquanto se digita, sem exigir que a pessoa digite os
+ * `(11) 99999-9999` enquanto se digita, sem exigir que a pessoa digite os
  * parênteses. Aceita o número incompleto: a máscara acompanha, não trava.
  */
 export function mascararTelefone(bruto: string): string {
@@ -74,7 +74,7 @@ export function erroDoTelefone(bruto: string | null | undefined): string | null 
   if (n.length === 8 || n.length === 9) {
     // com nove dígitos não dá para saber se falta o DDD ou um dígito do
     // número; a mensagem diz as duas coisas em vez de chutar uma
-    return 'Faltou o DDD. Com ele são 10 dígitos no fixo e 11 no celular: (44) 99999-9999.'
+    return 'Faltou o DDD. Com ele são 10 dígitos no fixo e 11 no celular: (11) 99999-9999.'
   }
   if (n.length !== 10 && n.length !== 11) {
     return 'Número incompleto. Com DDD são 10 dígitos no fixo e 11 no celular.'

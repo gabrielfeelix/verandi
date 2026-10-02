@@ -346,7 +346,7 @@ function ModalDataFechada({
         </Campo>
         <Campo rotulo="Nome" htmlFor="dt-desc" dica="Aparece na agenda do dia">
           <input id="dt-desc" name="descricao" className={entrada}
-            placeholder="Natal" />
+            placeholder="Exemplo: Natal" />
         </Campo>
         <Campo rotulo="Tipo" htmlFor="dt-tipo">
           <select id="dt-tipo" name="tipo" className={entrada}>

@@ -223,7 +223,7 @@ export function SecaoRecibo({
                 id="em-assina-cargo" className={entrada} maxLength={80}
                 value={v.assinaturaCargo}
                 onChange={(e) => setV({ ...v, assinaturaCargo: e.target.value })}
-                placeholder="Ex.: responsável técnica"
+                placeholder="Exemplo: Direção"
               />
             </Campo>
           </div>

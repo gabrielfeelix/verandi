@@ -495,7 +495,7 @@ export function ContratosDaFicha({
               <Campo rotulo="Motivo" htmlFor="ct-motivo" dica="opcional, e ajuda a lembrar depois">
                 <input
                   id="ct-motivo" name="motivo" maxLength={120}
-                  placeholder="Ex.: viagem de três meses" className={entrada}
+                  placeholder="Exemplo: viagem de três meses" className={entrada}
                 />
               </Campo>
               <Nota tom="neutro">

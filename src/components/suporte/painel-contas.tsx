@@ -133,7 +133,7 @@ export function PainelContas({
               </Campo>
               <Campo rotulo="Identificador" htmlFor="nc-slug" dica="Minúsculas, números e hífen">
                 <input id="nc-slug" name="slug" required className={entrada}
-                  placeholder="studio-aurora" />
+                  placeholder="Exemplo: studio-aurora" />
               </Campo>
               <Campo rotulo="Fuso" htmlFor="nc-fuso">
                 <input id="nc-fuso" name="fuso" className={entrada}

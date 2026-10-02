@@ -94,7 +94,7 @@ export function NovaAvaliacao({
             id="observacao-avaliacao"
             name="observacao"
             rows={2}
-            placeholder="Ex.: primeira avaliação depois da alta da fisioterapia"
+            placeholder="Exemplo: primeira avaliação depois da alta da fisioterapia"
             className={`${entrada} resize-y py-3`}
           />
         </Campo>
@@ -115,7 +115,7 @@ export function NovaAvaliacao({
                 />
                 <input
                   name={`observacao-${p.id}`}
-                  placeholder="Ex.: ombro direito 2 cm acima"
+                  placeholder="Exemplo: ombro direito 2 cm acima"
                   className={`${entrada} min-h-11 text-[14px]`}
                 />
               </div>
@@ -132,7 +132,7 @@ export function NovaAvaliacao({
                 id="nova-posicao"
                 value={novaPosicao}
                 onChange={(e) => setNovaPosicao(e.target.value)}
-                placeholder="Ex.: Perfil direito"
+                placeholder="Exemplo: Perfil direito"
                 className={`${entrada} min-h-11`}
               />
             </Campo>

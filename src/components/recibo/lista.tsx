@@ -208,7 +208,7 @@ export function ListaDeRecibos({
           <Campo rotulo="Motivo" htmlFor="rc-motivo" obrigatorio>
             <input
               id="rc-motivo" name="motivo" maxLength={120} className={entrada}
-              placeholder="Ex.: valor errado, emitido para a pessoa errada"
+              placeholder="Exemplo: valor errado, emitido para a pessoa errada"
             />
           </Campo>
           <Nota tom="atencao">
@@ -259,7 +259,7 @@ export function ListaDeRecibos({
           <Campo rotulo="O que estava errado" htmlFor="rr-motivo" obrigatorio>
             <input
               id="rr-motivo" name="motivo" maxLength={120} className={entrada}
-              placeholder="Ex.: nome incompleto"
+              placeholder="Exemplo: nome incompleto"
             />
           </Campo>
           <Nota tom="neutro">

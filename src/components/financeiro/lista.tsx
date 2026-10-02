@@ -386,7 +386,7 @@ export function ListaDeCobrancas({
           <Campo rotulo="Motivo" htmlFor="cb-motivo" obrigatorio>
             <input
               id="cb-motivo" name="motivo" maxLength={120} className={entrada}
-              placeholder="Ex.: cortesia combinada com a dona"
+              placeholder="Exemplo: cortesia combinada com a direção"
             />
           </Campo>
           <Nota tom="atencao">
@@ -425,7 +425,7 @@ export function ListaDeCobrancas({
             <Campo rotulo="Motivo" htmlFor="cr-motivo" obrigatorio>
               <input
                 id="cr-motivo" name="motivo" maxLength={120} className={entrada}
-                placeholder="Ex.: desconto de férias"
+                placeholder="Exemplo: desconto de férias"
               />
             </Campo>
           </div>

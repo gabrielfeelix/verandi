@@ -165,7 +165,7 @@ export function SecaoServicos({
         >
           <Campo rotulo="Nome" htmlFor="srv-nome" obrigatorio>
             <input id="srv-nome" name="nome" required autoFocus
-              placeholder={`Ex.: ${rotulo.singular === 'Serviço' ? 'Pilates aparelho' : rotulo.singular}`}
+              placeholder={`Exemplo: ${rotulo.singular === 'Serviço' ? 'Pilates aparelho' : rotulo.singular}`}
               defaultValue={emEdicao?.nome} className={entrada} />
           </Campo>
           <Campo rotulo="Duração" htmlFor="srv-dur">
@@ -179,7 +179,7 @@ export function SecaoServicos({
             dica="junta modalidades parecidas na tabela de preços; deixe em branco se não precisar"
           >
             <input id="srv-cat" name="categoria" maxLength={60}
-              placeholder="Ex.: Terapias manuais"
+              placeholder="Exemplo: Terapias manuais"
               defaultValue={emEdicao?.categoria ?? ''} className={entrada} />
           </Campo>
           <Campo
@@ -409,7 +409,7 @@ export function SecaoLocais({
           )}
         >
           <Campo rotulo="Nome" htmlFor="loc-nome" obrigatorio>
-            <input id="loc-nome" name="nome" required autoFocus placeholder="Ex.: Sala 1"
+            <input id="loc-nome" name="nome" required autoFocus placeholder="Exemplo: Sala 1"
               defaultValue={emEdicao?.nome} className={entrada} />
           </Campo>
           <Campo rotulo="Capacidade" htmlFor="loc-cap"

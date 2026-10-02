@@ -288,7 +288,7 @@ function FormularioDePlano({
         <Campo rotulo="Nome do plano" htmlFor="pl-nome" obrigatorio>
           <input
             id="pl-nome" name="nome" required maxLength={120} autoFocus
-            defaultValue={plano?.nome} placeholder="Ex.: Mensal, 2x por semana"
+            defaultValue={plano?.nome} placeholder="Exemplo: Mensal, 2x por semana"
             className={entrada}
           />
         </Campo>
@@ -369,7 +369,7 @@ function FormularioDePlano({
           <input
             id="pl-pv" name="precoVinculado" required inputMode="decimal"
             defaultValue={plano ? emReais(plano.precoVinculadoCent) : ''}
-            placeholder="195,00" className={`${entrada} font-mono`}
+            placeholder="Exemplo: 195,00" className={`${entrada} font-mono`}
           />
         </Campo>
         <Campo
@@ -379,7 +379,7 @@ function FormularioDePlano({
           <input
             id="pl-pa" name="precoAvulso" required inputMode="decimal"
             defaultValue={plano ? emReais(plano.precoAvulsoCent) : ''}
-            placeholder="230,00" className={`${entrada} font-mono`}
+            placeholder="Exemplo: 230,00" className={`${entrada} font-mono`}
           />
         </Campo>
       </div>
