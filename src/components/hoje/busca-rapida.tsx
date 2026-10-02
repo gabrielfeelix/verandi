@@ -112,7 +112,7 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
         >
           {lista.length === 0 ? (
             <li className="px-3 py-2.5 text-[13.5px] text-tinta-media">
-              Ninguém com esse nome, telefone ou identificador.
+              Ninguém com esse nome, telefone ou nº da ficha.
             </li>
           ) : (
             lista.map((a, i) => (

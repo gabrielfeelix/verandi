@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   })
 
   const cabecalho = [
-    'Nome', 'Telefone', 'Identificador', rotulos.serie.singular,
+    'Nome', 'Telefone', 'Nº da ficha', rotulos.serie.singular,
     'Última presença', 'Situação', 'Faltas em 30 dias', 'Reposições em aberto',
   ]
 

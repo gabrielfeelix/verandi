@@ -1,16 +1,18 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { Campo, ListaImpacto, entrada } from '@/components/ui/pecas'
 import { anonimizarPessoa, editarPessoa } from '@/server/pessoas/acoes'
 import { CampoData } from '@/components/ui/campo-data'
+import { useAviso } from '@/components/ui/desfazer'
 
 /**
- * Marcar inativa: some do padrão das listas e **continua no histórico**.
+ * Inativar: some do padrão das listas e **continua no histórico**.
  *
- * Pede confirmação porque é a ação que mais parece "apagar" sem ser — e a
+ * Pede confirmação porque é a ação que mais parece "apagar" sem ser, e a
  * confirmação existe justamente para dizer que não é.
  */
 export function MarcarInativa({
@@ -23,32 +25,35 @@ export function MarcarInativa({
 }) {
   const [aberto, setAberto] = useState(false)
   const [pendente, iniciar] = useTransition()
+  const avisar = useAviso()
 
   return (
     <>
       <Botao tom="secundario" className="w-full" onClick={() => setAberto(true)}>
-        {ativo ? 'Marcar inativa' : 'Reativar'}
+        {ativo ? 'Inativar' : 'Reativar'}
       </Botao>
 
       <Modal
         aberto={aberto}
         perigo={ativo}
         largura="confirmacao"
-        titulo={ativo ? `Marcar ${nome} como inativa?` : `Reativar ${nome}?`}
-        primario={ativo ? 'Marcar inativa' : 'Reativar'}
+        titulo={ativo ? `Inativar o cadastro de ${nome}?` : `Reativar o cadastro de ${nome}?`}
+        primario={ativo ? 'Inativar' : 'Reativar'}
         secundario="Voltar"
         pendente={pendente}
         aoFechar={() => setAberto(false)}
         aoConfirmar={() => {
           setAberto(false)
-          iniciar(() => editarPessoa(pessoaId, { ativo: !ativo }))
+          iniciar(async () => {
+            await editarPessoa(pessoaId, { ativo: !ativo })
+            avisar({ texto: ativo ? 'Cadastro inativado' : 'Cadastro reativado' })
+          })
         }}
       >
         <p className="text-[14px] leading-[1.55] text-tinta-media">
           {ativo
             ? `Sai da lista padrão de ${rotuloPessoa.toLowerCase()} e das escolhas de horário novo. ` +
-              'Nada é apagado: as presenças, as faltas e as reposições continuam ' +
-              'no histórico, e o março dela continua sendo março.'
+              'Nada é apagado: presenças, faltas e reposições continuam no histórico.'
             : 'Volta para a lista padrão e para as escolhas de horário novo. O histórico já estava lá o tempo todo.'}
         </p>
       </Modal>
@@ -57,9 +62,28 @@ export function MarcarInativa({
 }
 
 /**
+ * O aviso de "cadastrado" mora na ficha, não no formulário: cadastrar navega
+ * para a pessoa nova, e o aviso disparado antes da troca de tela sumia com ela.
+ * O `?novo=1` sai da URL para que recarregar não repita o aviso.
+ */
+export function AvisoDeCadastro() {
+  const avisar = useAviso()
+  const router = useRouter()
+  const caminho = usePathname()
+  const feito = useRef(false)
+  useEffect(() => {
+    if (feito.current) return
+    feito.current = true
+    avisar({ texto: 'Cadastro criado' })
+    router.replace(caminho, { scroll: false })
+  }, [avisar, router, caminho])
+  return null
+}
+
+/**
  * Atender ao pedido de exclusão do titular do dado.
  *
- * Mora junto de "Editar" e "Marcar inativa", no topo da ficha, desde
+ * Mora junto de "Editar" e "Inativar", no topo da ficha, desde
  * 01/out/2026: no pé da coluna lateral ninguém achava. A proteção contra o
  * clique distraído não é a distância, é o modal, que pede o nome digitado.
  *
@@ -187,7 +211,7 @@ export function CopiarTelefone({ telefone }: { telefone: string }) {
  * Registrar renovação: mexe numa data só, e é a única coisa de plano que a
  * agenda sabe.
  *
- * Valor, forma de pagamento e recibo não moram aqui — isso é financeiro, e
+ * Valor, forma de pagamento e recibo não moram aqui: isso é financeiro, e
  * misturar os dois é como um sistema de agenda vira um ERP ruim.
  */
 export function RegistrarRenovacao({
@@ -199,18 +223,21 @@ export function RegistrarRenovacao({
   const [aberto, setAberto] = useState(false)
   const [data, setData] = useState(vencimento ?? '')
   const [pendente, iniciar] = useTransition()
+  // sem data ainda não há o que renovar: "Registrar renovação" de um plano que
+  // nunca teve vencimento fazia a recepção procurar a renovação anterior
+  const rotulo = vencimento ? 'Registrar renovação' : 'Definir vencimento'
 
   return (
     <>
       <Botao tom="secundario" className="w-full" onClick={() => setAberto(true)}>
-        Registrar renovação
+        {rotulo}
       </Botao>
 
       <Modal
         aberto={aberto}
         glifo="↺"
         largura="confirmacao"
-        titulo="Registrar renovação"
+        titulo={rotulo}
         sub="A agenda guarda só até quando o plano vale."
         primario="Salvar"
         pendente={pendente}

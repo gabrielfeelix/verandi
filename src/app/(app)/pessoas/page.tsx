@@ -22,7 +22,7 @@ const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   // dois tempos: quem renova esta semana, e quem já deixou passar.
   { valor: 'plano_vencido',    rotulo: 'Plano vencido' },
   { valor: 'faltou_duas',      rotulo: 'Duas faltas seguidas' },
-  { valor: 'inativa',          rotulo: 'Inativa' },
+  { valor: 'inativa',          rotulo: 'Cadastro inativo' },
 ]
 
 /*
@@ -116,7 +116,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
             valorInicial={q ?? ''}
             filtros={filtros}
             tag={tag}
-            placeholder="Nome, telefone ou identificador"
+            placeholder="Nome, telefone ou nº da ficha"
           />
 
           <a
@@ -216,8 +216,8 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         </span>
                         <span className="truncate text-[12.5px] text-tinta-media">
                           {p.identificadorExterno
-                            ? `id ${p.identificadorExterno}`
-                            : 'Sem identificador'}
+                            ? `Ficha nº ${p.identificadorExterno}`
+                            : ''}
                         </span>
                       </span>
                     </span>

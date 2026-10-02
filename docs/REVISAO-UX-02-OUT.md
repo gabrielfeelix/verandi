@@ -8,7 +8,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 
 ## Para quem continua (02/out, depois de `17fe970`)
 
-Feitos e no ar: 1 a 21, mais 55 e 56. Próximo: **22**. Um commit por item ou
+Feitos e no ar: 1 a 27, mais 55 e 56. Próximo: **28**. Um commit por item ou
 por tela, push na hora (push na `main` publica na Vercel).
 
 - **Validar:** `npx tsc --noEmit -p .`, e só o spec e2e da tela mexida. Nunca a
@@ -73,12 +73,12 @@ por tela, push na hora (push na `main` publica na Vercel).
 - [x] 19. Hoje diz "1 chamada pendente", Pendências diz 58: mesma regra.
 - [x] 20. Dono abre em "Minha agenda" vendo os horários de todos (`hoje/page.tsx:607`).
 - [x] 21. "Bom dia, dono": nome vem do e-mail; pedir o nome no convite.
-22. Ficha sem contrato: "Plano sem data de término" e "Registrar renovação".
-23. "assim que a semana for materializada" (`pessoas/[id]/page.tsx:455`).
-24. "Criar matrícula" abre "Novo agendamento" com botão "Agendar": um nome só.
-25. "Identificador", "id 112", "Sem identificador" em vermelho: "Nº da ficha".
-26. "Marcar inativa"/"Inativa" no feminino; "o março dela continua sendo março".
-27. Sem aviso de sucesso em Cadastrar, Criar contrato, Inativar, Reativar.
+- [x] 22. Ficha sem contrato: "Plano sem data de término" e "Registrar renovação".
+- [x] 23. "assim que a semana for materializada" (`pessoas/[id]/page.tsx:455`).
+- [x] 24. "Criar matrícula" abre "Novo agendamento" com botão "Agendar": um nome só.
+- [x] 25. "Identificador", "id 112", "Sem identificador" em vermelho: "Nº da ficha".
+- [x] 26. "Marcar inativa"/"Inativa" no feminino; "o março dela continua sendo março".
+- [x] 27. Sem aviso de sucesso em Cadastrar, Criar contrato, Inativar, Reativar.
 28. Emitir recibo gasta o número sem confirmação.
 29. Estornar não avisa que o recibo será cancelado.
 30. Recibo cancelado mantém "Enviar por e-mail".

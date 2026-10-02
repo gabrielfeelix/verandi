@@ -6,7 +6,7 @@ import { fichaDaPessoa, type Ficha } from '@/server/pessoas/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { EditarPessoa } from '@/components/pessoas/editar-pessoa'
 import {
-  AtenderPedidoDeExclusao, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
+  AtenderPedidoDeExclusao, AvisoDeCadastro, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
 } from '@/components/pessoas/acoes-da-ficha'
 import { BotaoAgendar, ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
 import { ReposicoesAbertas } from '@/components/pessoas/reposicoes'
@@ -122,10 +122,10 @@ export default async function Pessoa({
   params, searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ aba?: string }>
+  searchParams: Promise<{ aba?: string; novo?: string }>
 }) {
   const { id } = await params
-  const { aba: abaBruta } = await searchParams
+  const { aba: abaBruta, novo } = await searchParams
   const conta = await exigirConta()
   const db = await clienteServidor()
 
@@ -165,6 +165,7 @@ export default async function Pessoa({
    * sobe para a faixa que todo papel lê, ao lado do identificador.
    */
   const modalidades = await modalidadesDaPessoa(db, conta.contaId, id)
+  const temContrato = operacional ? contratosEmVigor > 0 : modalidades.length > 0
 
   /*
    * O retrato financeiro da pessoa.
@@ -255,7 +256,8 @@ export default async function Pessoa({
     // recepção conferir se são dois números diferentes
     ['Telefone', p.telefone ? exibirTelefone(p.telefone) : 'Sem telefone', !p.telefone],
     ['E-mail', p.email ?? 'Sem e-mail'],
-    ['Identificador', p.identificadorExterno ?? 'Sem identificador', !p.identificadorExterno],
+    // sem número não é defeito: quem chegou depois da ficha de papel não tem
+    ['Nº da ficha', p.identificadorExterno ?? 'Sem número'],
     /*
      * Ao lado do identificador, que foi onde pediram: *"modalidade tem q ser
      * ali do lado do ID, na ficha mesmo"*. Sem contrato ativo não é falta a
@@ -272,6 +274,7 @@ export default async function Pessoa({
   return (
     <ProvedorDeAviso>
     <ProvedorDeMatricula>
+    {novo ? <AvisoDeCadastro /> : null}
     <div className="flex flex-col gap-4">
       <nav className="flex items-center gap-2.5 text-[13.5px] text-tinta-apagada">
         {/* voltar de verdade, e não só a trilha: quem chegou aqui pela agenda,
@@ -326,7 +329,7 @@ export default async function Pessoa({
                 </span>
               ))}
               {!p.ativo ? (
-                <Etiqueta tinta="neutro">Inativa, continua no histórico</Etiqueta>
+                <Etiqueta tinta="neutro">Cadastro inativo, continua no histórico</Etiqueta>
               ) : null}
             </div>
 
@@ -347,7 +350,7 @@ export default async function Pessoa({
 
         <div className="flex min-w-[200px] flex-[1_1_200px] flex-col gap-2.5">
           {/*
-            "Agendar" abre o mesmo modal do "Criar matrícula" que fica na aba
+            O botão abre o mesmo modal do "Criar matrícula" que fica na aba
             Agenda. Eram uma âncora e um formulário embutido: o botão de cima
             não abria nada, e quando a aba aberta era outra ele não levava a
             lugar nenhum.
@@ -359,7 +362,7 @@ export default async function Pessoa({
             se faz todo dia.
           */}
           <div className="grid grid-cols-2 gap-2">
-            <BotaoAgendar>Agendar</BotaoAgendar>
+            <BotaoAgendar>Criar {rotulos.vaga.singular.toLowerCase()}</BotaoAgendar>
             <EditarPessoa
               className="w-full"
               pessoa={{
@@ -462,7 +465,7 @@ export default async function Pessoa({
                   <Vazio
                     icone="hoje"
                     titulo="Nada marcado à frente"
-                    texto={`Quem tem ${rotulos.vaga.singular.toLowerCase()} volta a aparecer aqui assim que a semana for materializada.`}
+                    texto={`As próximas ${rotulos.sessao.plural.toLowerCase()} aparecem aqui assim que houver agendamento.`}
                   />
                 ) : (
                   <ul className="flex flex-col gap-[7px]">
@@ -860,15 +863,33 @@ export default async function Pessoa({
               * coisa que a ficha sabe sobre plano, e por isso aponta para onde
               * a resposta inteira está.
               */}
+            {/*
+              * Sem contrato e sem data, "Plano sem data de término" com um
+              * botão "Registrar renovação" embaixo lia como plano vitalício
+              * que se renova. Não há plano: o cartão diz isso e leva para onde
+              * ele nasce. Quem atende não carrega os contratos, e lê a
+              * modalidade, que só existe com contrato ativo.
+              */}
             <p className="pb-3 text-[14px] leading-[1.5] text-tinta-media">
               {p.vencimentoPlano
                 // com o ano: "até 03/02" de um plano que vence em 2028 se lia
                 // como fevereiro que vem, e o cliente achava que estava errado
-                ? `O plano vale até ${p.vencimentoPlano.split('-').reverse().join('/')}.`
-                : 'Plano sem data de término.'}
-              {contratosEmVigor > 0 ? (
+                ? `O plano vale até ${p.vencimentoPlano.split('-').reverse().join('/')}. `
+                : ''}
+              {!temContrato ? (
                 <>
-                  {' '}
+                  Sem contrato em vigor.
+                  {operacional ? (
+                    <>
+                      {' '}
+                      <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
+                        Criar contrato
+                      </Link>
+                    </>
+                  ) : null}
+                </>
+              ) : operacional ? (
+                <>
                   <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
                     {contratosEmVigor === 1
                       ? 'O contrato em vigor'
@@ -879,15 +900,12 @@ export default async function Pessoa({
                     : ' têm o valor e as parcelas.'}
                 </>
               ) : (
-                <>
-                  {' '}Preço e cobrança vêm do contrato, na aba{' '}
-                  <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
-                    Contratos
-                  </Link>.
-                </>
+                'Com contrato em vigor.'
               )}
             </p>
-            <RegistrarRenovacao pessoaId={p.id} vencimento={p.vencimentoPlano} />
+            {p.vencimentoPlano || temContrato ? (
+              <RegistrarRenovacao pessoaId={p.id} vencimento={p.vencimentoPlano} />
+            ) : null}
           </section>
 
           <section className={`${cartao} px-4 py-4`}>

@@ -64,7 +64,7 @@ export function NovaPessoa({
               })
               fechar()
               if (aoCriar) aoCriar(id)
-              else router.push(`/pessoas/${id}`)
+              else router.push(`/pessoas/${id}?novo=1`)
             } catch (e) {
               setErro(erroLegivel(e))
             }
@@ -78,10 +78,10 @@ export function NovaPessoa({
             <Campo rotulo="Telefone" dica="Opcional" htmlFor="np-fone">
               <CampoTelefone id="np-fone" />
             </Campo>
-            <Campo rotulo="Identificador" dica="Opcional" htmlFor="np-id">
+            <Campo rotulo="Nº da ficha" dica="Opcional" htmlFor="np-id">
               <input
                 id="np-id" name="identificador"
-                placeholder="Número da ficha antiga"
+                placeholder="Exemplo: 112"
                 className={`${entrada} w-full`}
               />
             </Campo>

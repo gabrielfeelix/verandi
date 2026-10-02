@@ -25,7 +25,7 @@ type Props = {
 
 /*
  * "Agendar", no alto da ficha, e "Adicionar", dentro do cartão de matrículas,
- * são a mesma ação em dois lugares — e o lugar de baixo pode estar numa aba
+ * são a mesma ação em dois lugares, e o lugar de baixo pode estar numa aba
  * fechada. Antes o botão de cima era uma âncora `#nova-matricula`: clicar não
  * abria nada, e em aba errada não rolava para lugar nenhum. Este contexto deixa
  * os dois abrirem o mesmo modal sem que a ficha (que é servidor) precise virar
@@ -167,9 +167,9 @@ export function Vagas({ pessoaId, vagas, series, rotuloVaga, rotuloSerie }: Prop
           aberto
           glifo="+"
           largura="lista"
-          titulo="Novo agendamento"
+          titulo={`Criar ${rotuloVaga.toLowerCase()}`}
           sub={`${rotuloVaga} ocupa o mesmo horário toda semana, a partir da data escolhida.`}
-          primario="Agendar"
+          primario="Criar"
           pendente={pendente}
           aoFechar={fechar}
           aoEnviar={(f) => {

@@ -82,7 +82,7 @@ const CAMPOS = [
   ['nome', 'Nome', 'text', true],
   ['telefone', 'Telefone', 'tel', false],
   ['email', 'E-mail', 'email', false],
-  ['identificador', 'Identificador', 'text', false],
+  ['identificador', 'Nº da ficha', 'text', false],
   ['nascimento', 'Nascimento', 'data', false],
   ['vencimento', 'Vencimento do plano', 'data', true],
 ] as const
@@ -91,7 +91,7 @@ const CAMPOS = [
 const EXEMPLO: Record<string, string> = {
   nome: 'Nome completo',
   email: 'nome@email.com',
-  identificador: 'Número da ficha antiga',
+  identificador: 'Exemplo: 112',
   cpf: '000.000.000-00',
   cep: '00000-000',
   uf: 'PR',
@@ -103,7 +103,7 @@ const EXEMPLO: Record<string, string> = {
  *
  * Embutido, o formulário nascia dentro do cabeçalho da ficha e empurrava tudo:
  * o cartão esticava para uns novecentos pixels, o lado esquerdo virava um vazio
- * branco do tamanho da tela e o botão "Marcar inativa" ficava órfão numa
+ * branco do tamanho da tela e o botão "Inativar" ficava órfão numa
  * coluna sozinha. O modal resolve porque o formulário não precisa caber no
  * lugar de onde nasceu — e a ficha continua inteira atrás, que é o contexto de
  * quem está conferindo o que digitar.

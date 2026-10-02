@@ -73,10 +73,10 @@ test('agendar, no alto da ficha, abre o mesmo modal de matrícula', async ({ pag
   await entrar(page, email)
 
   await page.goto(`/pessoas/${c.pessoaId}`)
-  await page.getByRole('button', { name: 'Agendar' }).click()
+  await page.getByRole('button', { name: /^Criar (vaga|matrícula)$/i }).first().click()
 
   const modal = page.locator('dialog[open]')
-  await expect(modal.getByRole('heading')).toContainText('Novo agendamento')
+  await expect(modal.getByRole('heading')).toContainText(/^Criar (vaga|matrícula)$/i)
 
   // o horário da grade tem que estar oferecido: modal que abre vazio é o mesmo
   // beco da âncora que não levava a lugar nenhum
@@ -169,7 +169,7 @@ test('Esc fecha só o painel aberto, não o modal inteiro', async ({ page }) => 
   await entrar(page, email)
 
   await page.goto(`/pessoas/${c.pessoaId}`)
-  await page.getByRole('button', { name: 'Agendar' }).click()
+  await page.getByRole('button', { name: /^Criar (vaga|matrícula)$/i }).first().click()
 
   // o `<dialog>` fecha no Esc por conta própria: sem interceptar, desistir da
   // lista de horários levava junto o formulário inteiro
