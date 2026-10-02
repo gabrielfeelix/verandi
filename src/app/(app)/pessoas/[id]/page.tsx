@@ -68,6 +68,15 @@ const PAR: Record<Tinta, string> = {
 type Aba = 'agenda' | 'historico' | 'reposicoes' | 'contratos' | 'avaliacao' | 'perfil'
 const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'contratos', 'avaliacao', 'perfil']
 
+/** a origem como o banco grava, e como a recepção fala */
+const ROTULO_ORIGEM: Record<string, string> = {
+  recorrente: 'Turma fixa',
+  avulso: 'Avulso',
+  reposicao: 'Reposição',
+  encaixe: 'Encaixe',
+  reserva: 'Reserva',
+}
+
 function curta(data: string) {
   return `${data.slice(8)}/${data.slice(5, 7)}`
 }
@@ -469,7 +478,7 @@ export default async function Pessoa({
                           <span className="min-w-0 flex-1 truncate text-[15px] font-medium">
                             {x.servico}
                           </span>
-                          <span className="text-[13px] text-tinta-fraca">{x.origem}</span>
+                          <span className="text-[13px] text-tinta-fraca">{ROTULO_ORIGEM[x.origem] ?? x.origem}</span>
                         </Link>
                       </li>
                     ))}
@@ -551,7 +560,7 @@ export default async function Pessoa({
                               PAR[TINTA_ORIGEM[x.origem as keyof typeof TINTA_ORIGEM] ?? 'neutro']
                             }`}
                           >
-                            {x.origem}
+                            {ROTULO_ORIGEM[x.origem] ?? x.origem}
                           </span>
                         ) : null}
                         <span

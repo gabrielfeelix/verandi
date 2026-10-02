@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { inserirPessoa } from './registro'
+import { incluirVagasNasSessoes } from '../agenda/materializar'
 import type { Atualizacao } from '../banco'
 import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
 import { cpfValido, soDigitosCpf } from '@/core/pessoas/documento'
@@ -345,6 +346,9 @@ export async function criarVaga(
     conta_id: conta.contaId, serie_id: serieId, pessoa_id: pessoaId, inicio,
   })
   if (error) throw error
+  await incluirVagasNasSessoes(db, conta.contaId, conta.fuso, [
+    { serie_id: serieId, pessoa_id: pessoaId, inicio },
+  ])
 
   revalidatePath(`/pessoas/${pessoaId}`)
   revalidatePath('/semana')

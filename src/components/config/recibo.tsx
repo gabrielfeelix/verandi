@@ -28,6 +28,7 @@ export function SecaoRecibo({
   /** a imagem já configurada, numa URL assinada e curta */
   assinatura: string | null
 }) {
+  const [arquivo, setArquivo] = useState('')
   const [v, setV] = useState({
     razaoSocial: emitente.razaoSocial ?? '',
     documento: emitente.documento ?? '',
@@ -242,12 +243,21 @@ export function SecaoRecibo({
             }}
             className="flex flex-wrap items-center gap-2"
           >
-            <input
-              type="file" name="assinatura" required
-              accept="image/png,image/jpeg,image/webp"
-              aria-label="Arquivo da assinatura"
-              className="max-w-full text-[13.5px] text-tinta-media file:mr-3 file:cursor-pointer file:rounded-peca file:border file:border-linha-suave file:bg-superficie file:px-3 file:py-2 file:text-[13.5px]"
-            />
+            {/* o input nativo escreve "Choose File" na língua do navegador; o
+                rótulo é nosso e o input fica escondido dentro dele */}
+            <label className="inline-flex min-h-9 cursor-pointer items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta hover:bg-superficie-mais-suave">
+              Escolher imagem
+              <input
+                type="file" name="assinatura" required
+                accept="image/png,image/jpeg,image/webp"
+                aria-label="Arquivo da assinatura"
+                className="sr-only"
+                onChange={(e) => setArquivo(e.target.files?.[0]?.name ?? '')}
+              />
+            </label>
+            <span className="max-w-[220px] truncate text-[13px] text-tinta-media">
+              {arquivo || 'Nenhuma imagem escolhida'}
+            </span>
             <Botao tom="secundario" type="submit">
               {assinatura ? 'Trocar imagem' : 'Enviar imagem'}
             </Botao>
@@ -258,15 +268,10 @@ export function SecaoRecibo({
         </div>
 
         <Nota tom="neutro">
-          Estes dados são copiados para dentro de cada recibo no ato da emissão,
-          e não consultados depois. Mudar a razão social amanhã não reescreve o
-          que já foi impresso, que é o que faz a segunda via de um recibo antigo
-          sair igual ao papel que está na pasta.
-          {' '}A série muda a numeração daqui para a frente, e a sequência
-          antiga continua onde está.
-          {' '}A **imagem** da assinatura é a exceção: ela vem da conta na hora
-          de mostrar, como um carimbo, e por isso a segunda via sai com o
-          carimbo de hoje. O nome de quem assinou fica congelado com o resto.
+          Os dados acima entram em cada recibo no momento em que ele é emitido.
+          Alterar depois não muda os recibos já emitidos. A imagem da
+          assinatura é a exceção: a segunda via sai sempre com a assinatura
+          atual.
         </Nota>
 
         {erro ? <Nota tom="alerta">{erro}</Nota> : null}

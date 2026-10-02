@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  createContext, useContext, useOptimistic, useState, useTransition,
+  createContext, useContext, useEffect, useOptimistic, useState, useTransition,
   type ReactNode,
 } from 'react'
 import type { ParticipacaoDetalhe } from '@/server/agenda/consultas'
@@ -64,6 +64,11 @@ export function ProvedorChamada({
   const [pendente, iniciar] = useTransition()
   const avisar = useAviso()
   const [encaixeAberto, setEncaixe] = useState(false)
+  // "Marcar" da busca de vaga chega com #encaixar: o modal abre sozinho, em
+  // vez de a pessoa ter que achar e clicar o botão de novo
+  useEffect(() => {
+    if (window.location.hash === '#encaixar') setEncaixe(true)
+  }, [])
   const [cancelarAberto, setCancelar] = useState(false)
 
   const [lista, aplicar] = useOptimistic(
@@ -99,7 +104,7 @@ export function ProvedorChamada({
     marcarTodos: () => iniciar(async () => {
       aplicar({ todos: true })
       const { marcadas } = await marcarTodosPresentes(sessaoId)
-      avisar({ texto: `${marcadas} marcada(s) como presente` })
+      avisar({ texto: marcadas === 1 ? '1 presença registrada' : `${marcadas} presenças registradas` })
     }),
     agir: (fn, texto) => iniciar(async () => {
       await fn()

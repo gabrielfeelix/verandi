@@ -192,3 +192,34 @@ export async function materializarJanela(
 
   return { criadas, participacoesCriadas }
 }
+
+/**
+ * A vaga nova entra nas aulas que já estavam na agenda.
+ *
+ * `materializarJanela` só põe gente na sessão que ele mesmo acabou de criar: a
+ * semana que já existia não volta a ser gerada. Sem isto, matricular alguém na
+ * segunda das 8h deixava a aula desta segunda sem o aluno, e a ficha dizia
+ * "nada marcado à frente" logo depois de agendar.
+ */
+export async function incluirVagasNasSessoes(
+  db: Db, contaId: string, fuso: string,
+  vagas: Array<{ serie_id: string; pessoa_id: string; inicio: string }>,
+): Promise<void> {
+  for (const v of vagas) {
+    const { data: sessoes, error } = await db.from('sessao')
+      .select('id').eq('conta_id', contaId).eq('serie_id', v.serie_id)
+      .eq('status', 'prevista')
+      .gte('inicio', instante(v.inicio, '00:00', fuso))
+    if (error) throw error
+    if (!sessoes?.length) continue
+    const { error: erroP } = await db.from('participacao').upsert(
+      sessoes.map((s) => ({
+        conta_id: contaId, sessao_id: s.id, pessoa_id: v.pessoa_id,
+        origem: 'recorrente' as const, status: 'esperada' as const,
+        registrado_por_origem: 'sistema' as const,
+      })),
+      { onConflict: 'sessao_id,pessoa_id', ignoreDuplicates: true },
+    )
+    if (erroP) throw erroP
+  }
+}

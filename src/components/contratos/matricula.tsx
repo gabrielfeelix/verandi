@@ -235,7 +235,6 @@ export function NovaMatricula({
                   {plano.precoVinculadoCent === plano.precoAvulsoCent
                     ? `Este plano tem preço único: ${emReais(plano.precoAvulsoCent)}.`
                     : `Se esta pessoa já tiver plano em vigor de outra modalidade, o sistema aplica ${emReais(plano.precoVinculadoCent)}; se não, ${emReais(plano.precoAvulsoCent)}. A ficha mostra qual foi.`}
-                  {' '}A cobrança em si entra quando o financeiro estiver no ar.
                 </Nota>
               ) : null}
             </>

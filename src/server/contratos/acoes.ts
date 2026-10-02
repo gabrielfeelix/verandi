@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { hojeEm } from '../agenda/fuso'
+import { incluirVagasNasSessoes } from '../agenda/materializar'
 import { temVinculo } from './consultas'
 import { precoAplicado, type Recorrencia } from '@/core/planos/plano'
 import { fimDoContrato, fimProrrogado } from '@/core/contratos/contrato'
@@ -121,6 +122,9 @@ export async function criarContrato(
         await db.from('contrato').delete().eq('id', contrato.id)
         throw erroVaga
       }
+      await incluirVagasNasSessoes(db, conta.contaId, conta.fuso, pedidas.map((serieId) => ({
+        serie_id: serieId, pessoa_id: novo.pessoaId, inicio: novo.inicio,
+      })))
     }
 
     await escreverVencimentoNaFicha(db, conta.contaId, novo.pessoaId)
@@ -314,6 +318,9 @@ export async function retomarContrato(
         inicio: volta, contrato_id: contratoId,
       })))
       if (error) throw error
+      await incluirVagasNasSessoes(db, conta.contaId, conta.fuso, series.map((serieId) => ({
+        serie_id: serieId, pessoa_id: c.pessoa_id, inicio: volta,
+      })))
     }
 
     await db.from('contrato').update({ status: 'ativo' }).eq('id', contratoId)

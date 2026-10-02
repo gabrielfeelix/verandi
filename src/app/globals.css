@@ -457,6 +457,12 @@ select:focus-visible {
     display: none !important;
   }
 
+  /* o respiro do <main> é da tela; no papel ele somava 48px à folha de 273mm
+     do recibo e jogava a segunda via para a página 2 */
+  main[data-guia='tela'] {
+    padding: 0 !important;
+  }
+
   /* a grade rola na tela e não pode rolar no papel: o corte esconderia
      justamente os horários da noite */
   [data-imprimir='inteiro'] {
