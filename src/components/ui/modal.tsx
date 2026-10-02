@@ -243,14 +243,18 @@ export function Modal({
  */
 export function ModalFormulario({
   aberto, glifo, icone, tom, titulo, sub,
-  primario, aoEnviar, secundario = 'Cancelar', aoFechar,
-  perigo = false, pendente = false, largura = 'formulario', children,
+  primario, aoEnviar, secundario = 'Cancelar', aoSecundario, aoFechar,
+  perigo = false, pendente = false, largura = 'formulario', topo, children,
 }: Cabecalho & {
   aberto: boolean
   primario: string
   /** recebe o `FormData` do formulário, como qualquer `action` do React */
   aoEnviar: (dados: FormData) => void
   secundario?: string
+  /** quando o secundário não fecha: o `Voltar` de um modal em etapas */
+  aoSecundario?: () => void
+  /** o que fica parado entre o título e o corpo que rola, como as etapas */
+  topo?: ReactNode
   aoFechar: () => void
   pendente?: boolean
   largura?: LarguraModal
@@ -261,10 +265,11 @@ export function ModalFormulario({
       <Titulo glifo={glifo} icone={icone} tom={tom} titulo={titulo} sub={sub} perigo={perigo} />
       {/* o `form` começa depois do título e envolve corpo e rodapé, para o
           primário ser o `submit` sem deixar o cabeçalho rolar junto */}
+      {topo}
       <form action={aoEnviar} className="flex min-h-0 flex-1 flex-col">
         <Corpo>{children}</Corpo>
         <Rodape>
-          <Botao type="button" tom="secundario" onClick={aoFechar} className="sm:min-w-[120px]">
+          <Botao type="button" tom="secundario" onClick={aoSecundario ?? aoFechar} className="sm:min-w-[120px]">
             {secundario}
           </Botao>
           <Botao type="submit" tom={perigo ? 'perigo' : 'primario'} disabled={pendente}>

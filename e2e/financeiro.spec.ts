@@ -85,6 +85,7 @@ test('matricular faz a primeira cobrança nascer sozinha', async ({ page }) => {
   await page.getByRole('button', { name: 'Novo contrato' }).click()
   await page.getByRole('button', { name: /Mensal, 2x por semana/ }).click()
   await page.getByRole('button', { name: /Segunda 07:00/ }).click()
+  await page.getByRole('button', { name: 'Continuar' }).click()
   await page.getByRole('button', { name: 'Criar contrato' }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 

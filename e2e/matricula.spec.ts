@@ -53,12 +53,14 @@ test('contratar ocupa os horários escolhidos, e o contrato aparece na ficha', a
   await page.getByRole('button', { name: /Mensal, 2x por semana/ }).click()
 
   // a tela conta quantos o plano pede, para não descobrir no envio
-  await expect(page.getByText('o plano pede 2, e 0 foram escolhidos')).toBeVisible()
+  await expect(page.getByText('0 de 2 escolhidos')).toBeVisible()
 
   await page.getByRole('button', { name: /Segunda 07:00/ }).click()
+  await page.getByRole('tab', { name: 'Quarta' }).click()
   await page.getByRole('button', { name: /Quarta 09:00/ }).click()
-  await expect(page.getByText('o plano pede 2, e 2 foram escolhidos')).toBeVisible()
+  await expect(page.getByText('2 de 2 escolhidos')).toBeVisible()
 
+  await page.getByRole('button', { name: 'Continuar' }).click()
   await page.getByRole('button', { name: 'Criar contrato' }).click()
 
   // o modal fecha primeiro: enquanto ele está aberto, o preço aparece duas
@@ -98,7 +100,9 @@ test('horário cheio é recusado, e nada é gravado pela metade', async ({ page 
   await page.getByRole('button', { name: 'Novo contrato' }).click()
   await page.getByRole('button', { name: /Mensal, 2x por semana/ }).click()
   await page.getByRole('button', { name: /Segunda 07:00/ }).click()
+  await page.getByRole('tab', { name: 'Quarta' }).click()
   await page.getByRole('button', { name: /Quarta 09:00/ }).click()
+  await page.getByRole('button', { name: 'Continuar' }).click()
   await page.getByRole('button', { name: 'Criar contrato' }).click()
 
   await expect(page.getByText(/O horário de Quarta às 09:00 está cheio/)).toBeVisible()
@@ -152,7 +156,9 @@ test('trancar devolve o lugar para o horário, e retomar traz de volta', async (
   await page.getByRole('button', { name: 'Novo contrato' }).click()
   await page.getByRole('button', { name: /Mensal, 2x por semana/ }).click()
   await page.getByRole('button', { name: /Segunda 07:00/ }).click()
+  await page.getByRole('tab', { name: 'Quarta' }).click()
   await page.getByRole('button', { name: /Quarta 09:00/ }).click()
+  await page.getByRole('button', { name: 'Continuar' }).click()
   await page.getByRole('button', { name: 'Criar contrato' }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
   await expect(page.getByText('Em vigor', { exact: true })).toBeVisible()
@@ -195,7 +201,9 @@ test('quem já está no horário sem contrato é adotado, sem entrar duas vezes'
   await page.getByRole('button', { name: /Mensal, 2x por semana/ }).click()
   // o horário dela já vem marcado: clicar de novo o desmarcaria
   await expect(page.getByRole('button', { name: /Segunda 07:00/ })).toContainText('já está aqui')
+  await page.getByRole('tab', { name: 'Quarta' }).click()
   await page.getByRole('button', { name: /Quarta 09:00/ }).click()
+  await page.getByRole('button', { name: 'Continuar' }).click()
   await page.getByRole('button', { name: 'Criar contrato' }).click()
 
   await expect(page.getByText('Em vigor', { exact: true })).toBeVisible()

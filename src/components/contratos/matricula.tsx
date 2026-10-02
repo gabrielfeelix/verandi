@@ -4,7 +4,8 @@ import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
-import { Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
+import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { Icone } from '@/components/ui/icones'
 import { CampoData } from '@/components/ui/campo-data'
 import { CampoNumero } from '@/components/ui/campo-numero'
 import { Escolha } from '@/components/ui/escolha'
@@ -22,10 +23,14 @@ import { erroLegivel } from '@/core/erro-legivel'
 /**
  * O contrato, e o que se faz com ele depois.
  *
- * O caminho principal é um envio só: escolher o plano, escolher os horários que
- * ele pede, dizer quando começa e pronto. Quem matricula está com a pessoa na
- * frente, e um fluxo de três telas garante contrato pela metade toda vez que
- * alguém for chamado no meio.
+ * Criar é em três etapas, uma decisão por vez: o plano, os horários que ele
+ * pede e, por último, quando começa e como paga. A primeira versão era tudo
+ * numa tela só, e com a grade de um estúdio de verdade (setenta horários) o
+ * plano escolhido sumia lá em cima e a data de início ficava depois de uma
+ * rolagem que ninguém sabia que existia.
+ *
+ * Nada é gravado antes do último passo: fechar no meio não deixa contrato pela
+ * metade.
  *
  * O preço não é digitado: ele vem do plano, e a tela diz **qual** foi aplicado
  * e por quê. Digitar preço no contrato é como a tabela de preços do cliente
@@ -50,6 +55,9 @@ export type HorarioEscolhivel = {
 const DIAS = [
   'Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado',
 ]
+const DIAS_CURTOS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+// a semana de quem trabalha começa na segunda
+const ORDEM_DOS_DIAS = [1, 2, 3, 4, 5, 6, 0]
 
 const PAGAMENTOS = [
   { valor: '', rotulo: 'Não informado' },
@@ -61,6 +69,16 @@ const PAGAMENTOS = [
   { valor: 'boleto', rotulo: 'Boleto' },
 ]
 
+type Etapa = 'plano' | 'horarios' | 'pagamento'
+
+const NOME_DA_ETAPA: Record<Etapa, string> = {
+  plano: 'Plano',
+  horarios: 'Horários',
+  pagamento: 'Início e pagamento',
+}
+
+const rotuloDeSecao = 'text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase'
+
 export function NovaMatricula({
   pessoaId, pessoaNome, planos, horarios,
 }: {
@@ -70,8 +88,13 @@ export function NovaMatricula({
   horarios: HorarioEscolhivel[]
 }) {
   const [aberto, setAberto] = useState(false)
+  const [etapa, setEtapa] = useState<Etapa>('plano')
   const [planoId, setPlanoId] = useState<string | null>(null)
   const [escolhidas, setEscolhidas] = useState<string[]>([])
+  const [dia, setDia] = useState<number | null>(null)
+  // o que já foi escrito no último passo, para sobreviver a um "Voltar": o
+  // formulário se limpa a cada envio, e cada "Continuar" é um envio
+  const [rascunho, setRascunho] = useState({ inicio: '', vencimento: '5', pagamento: '' })
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, comecar] = useTransition()
   const router = useRouter()
@@ -81,31 +104,107 @@ export function NovaMatricula({
   const ativos = useMemo(() => planos.filter((p) => p.ativo), [planos])
   const plano = ativos.find((p) => p.id === planoId) ?? null
 
+  // o catálogo de um estúdio passa de vinte planos: separados por modalidade,
+  // na ordem em que aparecem, para "Pilates" não se misturar com "Fisioterapia"
+  const porModalidade = useMemo(() => {
+    const grupos = new Map<string, PlanoLinha[]>()
+    for (const p of ativos) {
+      const g = grupos.get(p.servicoNome) ?? []
+      g.push(p)
+      grupos.set(p.servicoNome, g)
+    }
+    return [...grupos.entries()]
+  }, [ativos])
+
   // os horários da modalidade do plano: oferecer os outros é oferecer o que
   // o contrato não pode ocupar
   const doPlano = useMemo(
-    () => plano ? horarios.filter((t) => t.servicoId === plano.servicoId) : [],
+    () => plano
+      ? horarios
+        .filter((t) => t.servicoId === plano.servicoId)
+        .sort((a, b) => a.horaInicio.localeCompare(b.horaInicio)
+          || (a.codigo ?? '').localeCompare(b.codigo ?? ''))
+      : [],
     [plano, horarios])
 
+  const diasComHorario = ORDEM_DOS_DIAS.filter((d) => doPlano.some((t) => t.diaSemana === d))
+  const diaAberto = dia !== null && diasComHorario.includes(dia) ? dia : diasComHorario[0] ?? null
+  const doDia = doPlano.filter((t) => t.diaSemana === diaAberto)
+
   const pede = plano?.frequenciaSemanal ?? 0
+  const etapas: Etapa[] = pede > 0 ? ['plano', 'horarios', 'pagamento'] : ['plano', 'pagamento']
+  const indice = etapas.indexOf(etapa)
   // os horários em que ela já está, sem contrato, na modalidade do plano
   const minhas = doPlano.filter((t) => t.jaOcupa)
+  const lotou = escolhidas.length >= pede
+  const escolhidosEmOrdem = doPlano
+    .filter((t) => escolhidas.includes(t.id))
+    .sort((a, b) => ORDEM_DOS_DIAS.indexOf(a.diaSemana) - ORDEM_DOS_DIAS.indexOf(b.diaSemana)
+      || a.horaInicio.localeCompare(b.horaInicio))
 
   function escolherPlano(id: string) {
-    setPlanoId(id)
     const p = ativos.find((x) => x.id === id)
-    // quem já frequenta não precisa ser procurado na grade: os horários dela
-    // vêm marcados, até o que o plano pede
-    const dela = horarios.filter((t) => t.jaOcupa && t.servicoId === p?.servicoId)
-    setEscolhidas(dela.slice(0, p?.frequenciaSemanal ?? 0).map((t) => t.id))
+    if (id !== planoId) {
+      // quem já frequenta não precisa ser procurado na grade: os horários dela
+      // vêm marcados, até o que o plano pede
+      const dela = horarios.filter((t) => t.jaOcupa && t.servicoId === p?.servicoId)
+      const marcadas = dela.slice(0, p?.frequenciaSemanal ?? 0)
+      setEscolhidas(marcadas.map((t) => t.id))
+      setDia(marcadas[0]?.diaSemana ?? null)
+    }
+    setPlanoId(id)
+    setErro(null)
+    // escolher o plano já é andar: o próximo passo é o que ele pede
+    setEtapa((p?.frequenciaSemanal ?? 0) > 0 ? 'horarios' : 'pagamento')
+  }
+
+  function alternar(t: HorarioEscolhivel) {
+    setEscolhidas((atual) => {
+      if (atual.includes(t.id)) return atual.filter((x) => x !== t.id)
+      // plano de uma vez por semana se comporta como escolha única: tocar em
+      // outro troca, sem obrigar a desmarcar antes
+      if (pede === 1) return [t.id]
+      if (atual.length >= pede) return atual
+      return [...atual, t.id]
+    })
   }
 
   function fechar() {
     setAberto(false)
+    setEtapa('plano')
     setPlanoId(null)
     setEscolhidas([])
+    setDia(null)
+    setRascunho({ inicio: '', vencimento: '5', pagamento: '' })
     setErro(null)
   }
+
+  function sairPara(destino: Etapa) {
+    if (etapa === 'pagamento') {
+      const form = document.getElementById('mt-inicio')?.closest('form')
+      if (form) {
+        const f = new FormData(form)
+        setRascunho({
+          inicio: String(f.get('inicio') ?? ''),
+          vencimento: String(f.get('diaVencimento') ?? ''),
+          pagamento: String(f.get('formaPagamento') ?? ''),
+        })
+      }
+    }
+    setErro(null)
+    setEtapa(destino)
+  }
+
+  function voltar() {
+    sairPara(etapas[Math.max(0, indice - 1)])
+  }
+
+  const primario = etapa === 'pagamento' ? 'Criar contrato' : 'Continuar'
+  const bloqueado = etapa === 'plano'
+    ? !planoId
+    : etapa === 'horarios'
+      ? escolhidas.length !== pede
+      : pendente
 
   return (
     <>
@@ -118,18 +217,31 @@ export function NovaMatricula({
           tom="positivo"
           titulo="Novo contrato"
           sub={pessoaNome}
-          primario="Criar contrato"
+          primario={primario}
+          secundario={indice > 0 ? 'Voltar' : 'Cancelar'}
+          aoSecundario={indice > 0 ? voltar : undefined}
           largura="lista"
-          pendente={pendente || !planoId}
+          pendente={bloqueado}
           aoFechar={fechar}
+          topo={ativos.length > 0 ? (
+            <Etapas
+              etapas={etapas}
+              atual={indice}
+              irPara={(i) => sairPara(etapas[i])}
+            />
+          ) : null}
           aoEnviar={(f) => {
             if (!planoId) return
+            if (etapa !== 'pagamento') {
+              setEtapa(etapas[indice + 1])
+              return
+            }
             setErro(null)
             comecar(async () => {
               const r = await criarContrato({
                 pessoaId,
                 planoId,
-                serieIds: escolhidas,
+                serieIds: pede > 0 ? escolhidas : [],
                 inicio: String(f.get('inicio') ?? hoje),
                 diaVencimento: Number(f.get('diaVencimento') ?? 0) || null,
                 formaPagamento: String(f.get('formaPagamento') ?? '') || null,
@@ -146,19 +258,19 @@ export function NovaMatricula({
               Nenhum plano em vigor no catálogo. Cadastre em Configuração,
               Planos e valores, e volte aqui.
             </Nota>
-          ) : (
-            <>
-              <fieldset className="flex flex-col gap-2">
-                <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
-                  Qual plano
-                </legend>
-                <div className="flex flex-col gap-2">
-                  {ativos.map((p) => (
+          ) : null}
+
+          {etapa === 'plano' && ativos.length > 0 ? (
+            <div className="flex flex-col gap-5">
+              {porModalidade.map(([modalidade, lista]) => (
+                <fieldset key={modalidade} className="flex flex-col gap-2">
+                  <legend className={`pb-1.5 ${rotuloDeSecao}`}>{modalidade}</legend>
+                  {lista.map((p) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => escolherPlano(p.id)}
-                      className={`flex flex-wrap items-center justify-between gap-2 rounded-media border px-3.5 py-2.5 text-left transition-colors duration-150 ${
+                      className={`flex items-center justify-between gap-3 rounded-media border px-3.5 py-2.5 text-left transition-colors duration-150 ${
                         planoId === p.id
                           ? 'border-marca bg-positivo-superficie'
                           : 'border-linha-suave bg-superficie hover:bg-superficie-mais-suave'
@@ -166,109 +278,282 @@ export function NovaMatricula({
                     >
                       <span className="flex min-w-0 flex-col">
                         <span className="text-[14.5px] font-medium">{p.nome}</span>
-                        <span className="text-[13px] text-tinta-media">
-                          {p.servicoNome} · {comoCobra(p)}
-                        </span>
+                        <span className="text-[13px] text-tinta-media">{comoCobra(p)}</span>
                       </span>
-                      <span className="font-mono text-[14px]">
-                        {emReais(p.precoVinculadoCent === p.precoAvulsoCent
-                          ? p.precoAvulsoCent
-                          : p.precoAvulsoCent)}
+                      <span className="shrink-0 font-mono text-[14px]">
+                        {emReais(p.precoAvulsoCent)}
                       </span>
                     </button>
                   ))}
-                </div>
-              </fieldset>
-
-              {plano && pede > 0 ? (
-                <fieldset className="flex flex-col gap-2">
-                  <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
-                    Quais horários
-                  </legend>
-                  <p className="pb-1 text-[13.5px] text-tinta-media">
-                    {`o plano pede ${pede}, e ${escolhidas.length} ${escolhidas.length === 1 ? 'foi escolhido' : 'foram escolhidos'}`}
-                  </p>
-                  {minhas.length > pede ? (
-                    <Nota tom="atencao">
-                      {`${pessoaNome} já está em ${minhas.length} horários de ${plano.servicoNome}, e o plano é de ${pede} por semana. Os que ficarem sem marcar continuam como estão, sem contrato.`}
-                    </Nota>
-                  ) : minhas.length > 0 ? (
-                    <Nota tom="neutro">
-                      {minhas.length === 1
-                        ? 'O horário em que a pessoa já está veio marcado e passa a fazer parte do contrato.'
-                        : 'Os horários em que a pessoa já está vieram marcados e passam a fazer parte do contrato.'}
-                    </Nota>
-                  ) : null}
-                  {doPlano.length === 0 ? (
-                    <Nota tom="atencao">
-                      A grade não tem horário fixo de {plano.servicoNome}. Monte
-                      a grade antes de matricular.
-                    </Nota>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {doPlano.map((t) => {
-                        // o lugar dela já conta na ocupação: cheio, para ela, não está
-                        const cheia = !t.jaOcupa && t.ocupadas >= t.capacidade
-                        const marcada = escolhidas.includes(t.id)
-                        return (
-                          <Chip
-                            key={t.id}
-                            ativo={marcada}
-                            onClick={() => setEscolhidas((atual) =>
-                              atual.includes(t.id)
-                                ? atual.filter((x) => x !== t.id)
-                                : [...atual, t.id])}
-                          >
-                            <span className="flex flex-col items-start">
-                              <span>
-                                {t.codigo ? `${t.codigo} · ` : ''}
-                                {DIAS[t.diaSemana]} {t.horaInicio}
-                              </span>
-                              {/* a ocupação decide a escolha, e decidir sem ela
-                                  é descobrir que a horário estava cheia no envio */}
-                              <span className="text-[12px] opacity-70">
-                                {t.ocupadas}/{t.capacidade}
-                                {t.jaOcupa ? ' · já está aqui' : cheia ? ' · cheia' : ''}
-                                {t.profissional ? ` · ${t.profissional}` : ''}
-                              </span>
-                            </span>
-                          </Chip>
-                        )
-                      })}
-                    </div>
-                  )}
                 </fieldset>
+              ))}
+            </div>
+          ) : null}
+
+          {etapa === 'horarios' && plano ? (
+            <>
+              <PlanoEscolhido plano={plano} trocar={() => setEtapa('plano')} />
+
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <p className="text-[14.5px] font-medium">
+                  {pede === 1
+                    ? 'Escolha o horário da semana'
+                    : `Escolha ${pede} horários da semana`}
+                </p>
+                <p
+                  className={`text-[13.5px] ${lotou ? 'font-medium text-positivo' : 'text-tinta-media'}`}
+                  aria-live="polite"
+                >
+                  {`${escolhidas.length} de ${pede} escolhido${pede === 1 ? '' : 's'}`}
+                </p>
+              </div>
+
+              {minhas.length > pede ? (
+                <Nota tom="atencao">
+                  {`${pessoaNome} já está em ${minhas.length} horários de ${plano.servicoNome}, e o plano é de ${pede} por semana. Os que ficarem sem marcar continuam como estão, sem contrato.`}
+                </Nota>
+              ) : minhas.length > 0 ? (
+                <Nota tom="neutro">
+                  {minhas.length === 1
+                    ? 'O horário em que a pessoa já está veio marcado e passa a fazer parte do contrato.'
+                    : 'Os horários em que a pessoa já está vieram marcados e passam a fazer parte do contrato.'}
+                </Nota>
+              ) : null}
+
+              {doPlano.length === 0 ? (
+                <Nota tom="atencao">
+                  A grade não tem horário fixo de {plano.servicoNome}. Monte
+                  a grade antes de matricular.
+                </Nota>
+              ) : (
+                <>
+                  {/* um dia por vez: setenta horários numa parede só é como
+                      a primeira versão desta tela ficou ilegível */}
+                  <div role="tablist" aria-label="Dia da semana" className="flex gap-1.5 overflow-x-auto pb-0.5">
+                    {diasComHorario.map((d) => {
+                      const nele = escolhidas.filter((id) =>
+                        doPlano.find((t) => t.id === id)?.diaSemana === d).length
+                      const ativo = d === diaAberto
+                      return (
+                        <button
+                          key={d}
+                          type="button"
+                          role="tab"
+                          aria-selected={ativo}
+                          aria-label={DIAS[d]}
+                          onClick={() => setDia(d)}
+                          className={`relative flex min-h-10 min-w-[54px] shrink-0 cursor-pointer items-center justify-center rounded-padrao border px-3 text-[14px] transition-colors duration-150 ${
+                            ativo
+                              ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+                              : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
+                          }`}
+                        >
+                          {DIAS_CURTOS[d]}
+                          {nele > 0 ? (
+                            <span
+                              aria-hidden
+                              className={`absolute -top-1.5 -right-1.5 flex size-[18px] items-center justify-center rounded-full text-[11px] font-semibold ${
+                                ativo ? 'bg-marca text-white ring-2 ring-superficie' : 'bg-marca text-white'
+                              }`}
+                            >
+                              {nele}
+                            </span>
+                          ) : null}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <div role="tabpanel" aria-label={diaAberto !== null ? DIAS[diaAberto] : undefined} className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {doDia.map((t) => {
+                      // o lugar dela já conta na ocupação: cheio, para ela, não está
+                      const cheia = !t.jaOcupa && t.ocupadas >= t.capacidade
+                      const marcada = escolhidas.includes(t.id)
+                      const travada = !marcada && (cheia || (lotou && pede > 1))
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          aria-pressed={marcada}
+                          aria-label={`${DIAS[t.diaSemana]} ${t.horaInicio}${t.codigo ? `, horário ${t.codigo}` : ''}${cheia ? ', cheia' : ''}`}
+                          disabled={travada}
+                          onClick={() => alternar(t)}
+                          className={`relative flex flex-col items-start gap-0.5 rounded-media border px-3 py-2.5 text-left transition-colors duration-150 ${
+                            marcada
+                              ? 'border-marca bg-positivo-superficie'
+                              : travada
+                                ? 'cursor-not-allowed border-linha-fina bg-superficie-suave text-tinta-fraca'
+                                : 'cursor-pointer border-linha-suave bg-superficie hover:bg-superficie-mais-suave'
+                          }`}
+                        >
+                          <span className="flex w-full items-center justify-between gap-2">
+                            <span className="font-mono text-[16px] font-medium">{t.horaInicio}</span>
+                            {marcada ? (
+                              <span className="flex size-5 items-center justify-center rounded-full bg-marca text-white">
+                                <Icone nome="check" tamanho={12} />
+                              </span>
+                            ) : t.codigo ? (
+                              <span className="font-mono text-[11.5px] text-tinta-fraca">{t.codigo}</span>
+                            ) : null}
+                          </span>
+                          {t.profissional ? (
+                            <span className="w-full truncate text-[12.5px] text-tinta-media">
+                              {primeiroNome(t.profissional)}
+                            </span>
+                          ) : null}
+                          {/* a ocupação decide a escolha, e decidir sem ela
+                              é descobrir que o horário estava cheio no envio */}
+                          <span className={`text-[12px] ${cheia ? 'text-alerta' : 'text-tinta-fraca'}`}>
+                            {t.jaOcupa ? 'já está aqui' : cheia ? 'cheia' : `${t.capacidade - t.ocupadas} de ${t.capacidade} livres`}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {lotou && pede > 1 ? (
+                    <p className="text-[13px] text-tinta-media">
+                      Para trocar um horário, desmarque um dos escolhidos.
+                    </p>
+                  ) : null}
+                </>
+              )}
+            </>
+          ) : null}
+
+          {etapa === 'pagamento' && plano ? (
+            <>
+              <PlanoEscolhido plano={plano} trocar={() => sairPara('plano')} />
+
+              {pede > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <p className={rotuloDeSecao}>Horários</p>
+                  <div className="flex flex-wrap gap-2">
+                    {escolhidosEmOrdem.map((t) => (
+                      <span
+                        key={t.id}
+                        className="inline-flex min-h-8 items-center rounded-full border border-linha bg-superficie-suave px-3 text-[13.5px]"
+                      >
+                        {DIAS[t.diaSemana]} {t.horaInicio}
+                        {t.profissional ? (
+                          <span className="pl-1.5 text-tinta-media">· {primeiroNome(t.profissional)}</span>
+                        ) : null}
+                      </span>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => sairPara('horarios')}
+                      className="min-h-8 cursor-pointer rounded-full px-2 text-[13.5px] font-medium text-marca hover:underline"
+                    >
+                      Trocar
+                    </button>
+                  </div>
+                </div>
               ) : null}
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <Campo rotulo="Começa em" htmlFor="mt-inicio" obrigatorio>
-                  <CampoData id="mt-inicio" nome="inicio" valorInicial={hoje} limpavel={false} />
+                  <CampoData id="mt-inicio" nome="inicio" valorInicial={rascunho.inicio || hoje} limpavel={false} />
                 </Campo>
                 <Campo rotulo="Vence todo dia" htmlFor="mt-venc" dica="deixe vazio se não cobra por mês">
-                  <CampoNumero id="mt-venc" nome="diaVencimento" min={1} max={31} valorInicial={5} />
+                  <CampoNumero id="mt-venc" nome="diaVencimento" min={1} max={31} valorInicial={rascunho.vencimento ? Number(rascunho.vencimento) : undefined} />
                 </Campo>
                 <Campo rotulo="Forma de pagamento" htmlFor="mt-pag">
                   <Escolha
-                    id="mt-pag" nome="formaPagamento" valorInicial=""
+                    id="mt-pag" nome="formaPagamento" valorInicial={rascunho.pagamento}
                     opcoes={PAGAMENTOS}
                   />
                 </Campo>
               </div>
 
-              {plano ? (
-                <Nota tom="neutro">
-                  {plano.precoVinculadoCent === plano.precoAvulsoCent
-                    ? `Este plano tem preço único: ${emReais(plano.precoAvulsoCent)}.`
-                    : `Se esta pessoa já tiver plano em vigor de outra modalidade, o sistema aplica ${emReais(plano.precoVinculadoCent)}; se não, ${emReais(plano.precoAvulsoCent)}. A ficha mostra qual foi.`}
-                </Nota>
-              ) : null}
+              <Nota tom="neutro">
+                {plano.precoVinculadoCent === plano.precoAvulsoCent
+                  ? `Este plano tem preço único: ${emReais(plano.precoAvulsoCent)}.`
+                  : `Se esta pessoa já tiver plano em vigor de outra modalidade, o sistema aplica ${emReais(plano.precoVinculadoCent)}; se não, ${emReais(plano.precoAvulsoCent)}. A ficha mostra qual foi.`}
+              </Nota>
             </>
-          )}
+          ) : null}
 
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}
         </ModalFormulario>
       ) : null}
     </>
+  )
+}
+
+function primeiroNome(nome: string) {
+  return nome.trim().split(/\s+/)[0]
+}
+
+/**
+ * Onde a pessoa está, e o caminho de volta: uma etapa já feita se toca para
+ * reabrir; a que ainda não chegou não se toca, porque depende da anterior.
+ */
+function Etapas({
+  etapas, atual, irPara,
+}: {
+  etapas: Etapa[]
+  atual: number
+  irPara: (i: number) => void
+}) {
+  return (
+    <ol className="flex shrink-0 items-center gap-2 px-6 pb-4" aria-label="Etapas">
+      {etapas.map((e, i) => {
+        const feita = i < atual
+        const agora = i === atual
+        return (
+          <li key={e} className={`flex min-w-0 items-center gap-2 ${i < etapas.length - 1 ? 'flex-1' : ''}`}>
+            <button
+              type="button"
+              disabled={!feita}
+              onClick={() => irPara(i)}
+              aria-current={agora ? 'step' : undefined}
+              className={`flex min-w-0 items-center gap-2 rounded-peca py-1 text-[13.5px] ${
+                feita ? 'cursor-pointer hover:text-tinta' : 'cursor-default'
+              } ${agora ? 'font-medium text-tinta' : 'text-tinta-media'}`}
+            >
+              <span
+                aria-hidden
+                className={`flex size-6 shrink-0 items-center justify-center rounded-full text-[12px] font-semibold ${
+                  agora
+                    ? 'bg-escuro text-tinta-clara'
+                    : feita
+                      ? 'bg-marca text-white'
+                      : 'border border-linha text-tinta-fraca'
+                }`}
+              >
+                {feita ? <Icone nome="check" tamanho={12} /> : i + 1}
+              </span>
+              <span className={`truncate ${agora ? '' : 'max-sm:hidden'}`}>{NOME_DA_ETAPA[e]}</span>
+            </button>
+            {i < etapas.length - 1 ? (
+              <span aria-hidden className={`h-px min-w-3 flex-1 ${feita ? 'bg-marca' : 'bg-linha'}`} />
+            ) : null}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+/** O plano no alto das etapas seguintes, para ninguém esquecer o que escolheu. */
+function PlanoEscolhido({ plano, trocar }: { plano: PlanoLinha; trocar: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-2.5">
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-[14.5px] font-medium">{plano.nome}</span>
+        <span className="truncate text-[13px] text-tinta-media">
+          {plano.servicoNome} · {emReais(plano.precoAvulsoCent)}
+        </span>
+      </span>
+      <button
+        type="button"
+        onClick={trocar}
+        className="min-h-8 shrink-0 cursor-pointer rounded-peca px-2 text-[13.5px] font-medium text-marca hover:underline"
+      >
+        Trocar plano
+      </button>
+    </div>
   )
 }
 

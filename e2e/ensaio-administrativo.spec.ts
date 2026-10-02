@@ -335,8 +335,10 @@ test.describe.serial('o ciclo administrativo, de ponta a ponta', () => {
       await page.getByRole('button', { name: 'Novo contrato' }).click()
       await page.getByRole('button', { name: new RegExp(plano.nome) }).click()
       for (const [dia, hora] of turmas) {
+        await page.getByRole('tab', { name: ['', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'][dia] }).click()
         await page.getByRole('button', { name: horario(dia, hora) }).click()
       }
+      if (turmas.length) await page.getByRole('button', { name: 'Continuar' }).click()
       await page.getByRole('button', { name: 'Criar contrato' }).click()
       await expect(page.locator('dialog[open]')).toHaveCount(0)
       await expect(page.getByText('Em vigor', { exact: true }).first()).toBeVisible()
