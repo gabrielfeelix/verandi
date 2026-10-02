@@ -72,7 +72,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
   const dataCurta = `${dia.getUTCDate()} ${MESES_CURTOS[dia.getUTCMonth()]}`
 
   // a contagem do cabeçalho: quem chega antes da turma quer saber quanto falta
-  const falta = quantoFalta(sessao.inicio, agoraMs())
+  const falta = quantoFalta(sessao.inicio, agoraMs(), conta.fuso)
   const comecaEm = cancelada || falta === 'já começou'
     ? null
     : `${rotulos.sessao.singular.toLowerCase()} ${falta}`
@@ -83,6 +83,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
         participacoes={sessao.participacoes}
         sessaoId={sessao.id}
         podeRegistrar={podeRegistrar}
+        inicio={sessao.inicio}
       >
         <div className="flex flex-col gap-4">
           <nav className="flex items-center gap-2.5 text-[13.5px] text-tinta-media">

@@ -234,3 +234,17 @@ test('observação para todos chega à recepção', async ({ page, browser }) =>
   await expect(pagRec.getByText('chegou 10 min atrasada, avisou antes')).toBeVisible()
   await outra.close()
 })
+
+test('aula que ainda não começou não oferece marcar todos presentes', async ({ page }) => {
+  const c = await cenario()
+  const daquiATresDias = new Date(Date.now() + 3 * 864e5).toISOString()
+  await admin.from('sessao').update({ inicio: daquiATresDias }).eq('id', c.sessaoId)
+
+  await entrar(page, c.email)
+  await page.goto(`/sessao/${c.sessaoId}`)
+
+  await expect(page.getByRole('button', { name: 'Veio' }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
+  // a mais de um dia, o dia e a hora, e não "em 71h21"
+  await expect(page.getByText(/começa \S+, \d\d\/\d\d, às \d\d:\d\d/)).toBeVisible()
+})

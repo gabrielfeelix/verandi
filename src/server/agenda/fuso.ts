@@ -7,7 +7,7 @@
  * `2026-08-03` + `07:00` + `America/Sao_Paulo` → instante absoluto.
  *
  * Descobre o deslocamento do fuso naquela data formatando um palpite em UTC e
- * medindo a diferença. Funciona com horário de verão e sem ele — o Brasil não
+ * medindo a diferença. Funciona com horário de verão e sem ele: o Brasil não
  * tem desde 2019, mas o produto não é só do Brasil e a conta escolhe o fuso.
  */
 export function instante(data: string, hora: string, fuso: string): string {
@@ -56,7 +56,7 @@ export function hojeEm(fuso: string): string {
  * O relógio, lido de um lugar só.
  *
  * Existe como função nomeada porque `Date.now()` escrito dentro de um componente
- * é impuro no meio do render — o lint do React reclama com razão. A tela pede a
+ * é impuro no meio do render: o lint do React reclama com razão. A tela pede a
  * hora aqui, uma vez, e passa o número adiante.
  */
 export function agoraMs(): number {
@@ -64,14 +64,21 @@ export function agoraMs(): number {
 }
 
 /** "começa em 21 min" / "começa em 2h10". Zero ou negativo já começou. */
-export function quantoFalta(inicio: string, agora: number): string {
+export function quantoFalta(inicio: string, agora: number, fuso: string): string {
   const min = Math.round((new Date(inicio).getTime() - agora) / 60000)
   if (min <= 0) return 'já começou'
   if (min < 60) return `começa em ${min} min`
-  return `começa em ${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}`
+  if (min < 24 * 60) return `começa em ${Math.floor(min / 60)}h${String(min % 60).padStart(2, '0')}`
+  // "em 71h21" obriga a fazer conta: a partir de um dia, o dia e a hora
+  const quando = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: fuso, weekday: 'long', day: '2-digit', month: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(inicio))
+  const parte = (t: string) => quando.find((x) => x.type === t)?.value ?? ''
+  return `começa ${parte('weekday')}, ${parte('day')}/${parte('month')}, às ${parte('hour')}:${parte('minute')}`
 }
 
-/** A hora local da conta agora, em número — para escolher a saudação. */
+/** A hora local da conta agora, em número: para escolher a saudação. */
 export function horaEm(fuso: string, agora: number): number {
   return Number(
     new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', hour12: false, timeZone: fuso })

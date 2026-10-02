@@ -14,7 +14,7 @@ import { Icone } from '@/components/ui/icones'
 /**
  * O estado vivo da chamada, num lugar só.
  *
- * A tela mostra o mesmo número em quatro cantos — a etiqueta do cabeçalho, a
+ * A tela mostra o mesmo número em quatro cantos: a etiqueta do cabeçalho, a
  * nota embaixo do título, o "Resumo da chamada" e a barra que fica colada no
  * rodapé. Se cada um deles lesse do servidor, marcar uma presença atualizaria um
  * e deixaria os outros três mentindo até o próximo carregamento.
@@ -30,6 +30,8 @@ type Chamada = {
   registrados: number
   total: number
   podeRegistrar: boolean
+  /** a aula já começou: antes disso não há o que marcar em bloco */
+  comecou: boolean
   ocupado: boolean
   registrar: (p: ParticipacaoDetalhe, status: StatusParticipacao) => void
   marcarTodos: () => void
@@ -51,16 +53,42 @@ export function useChamada(): Chamada {
   return c
 }
 
+/** o que o aviso diz depois do nome: "Murilo Bastos: faltou." */
+const O_QUE_FICOU: Partial<Record<StatusParticipacao, string>> = {
+  presente: 'veio',
+  falta: 'faltou',
+  falta_avisada: 'avisou que não vem',
+  licenca: 'em licença',
+  esperada: 'registro desfeito',
+  confirmada: 'confirmada',
+}
+
 const ABERTOS: ReadonlySet<StatusParticipacao> = new Set(['esperada', 'confirmada'])
 
 export function ProvedorChamada({
-  participacoes, sessaoId, podeRegistrar, children,
+  participacoes, sessaoId, podeRegistrar, inicio, children,
 }: {
   participacoes: ParticipacaoDetalhe[]
   sessaoId: string
   podeRegistrar: boolean
+  /** ISO do começo da aula */
+  inicio: string
   children: ReactNode
 }) {
+  /*
+   * "Marcar todos presentes" só a partir do começo. Antes aparecia em aula de
+   * daqui a três dias, e um toque distraído dava presença a quem nem chegou.
+   * O relógio vira sozinho na hora, sem recarregar: quem abriu a chamada cinco
+   * minutos antes vê o botão aparecer quando a aula começa.
+   */
+  const [comecou, setComecou] = useState(() => Date.parse(inicio) <= Date.now())
+  useEffect(() => {
+    const falta = Date.parse(inicio) - Date.now()
+    // setTimeout não aceita mais que ~24 dias; além disso, a tela recarrega antes
+    if (falta <= 0 || falta > 2 ** 31 - 1) return
+    const t = setTimeout(() => setComecou(true), falta)
+    return () => clearTimeout(t)
+  }, [inicio])
   const [pendente, iniciar] = useTransition()
   const avisar = useAviso()
   const [encaixeAberto, setEncaixe] = useState(false)
@@ -88,13 +116,14 @@ export function ProvedorChamada({
     registrados: lista.length - pendentes,
     total: lista.length,
     podeRegistrar,
+    comecou,
     ocupado: pendente,
     registrar: (p, status) => iniciar(async () => {
       aplicar({ id: p.id, status })
       await mudarStatus(p.id, status)
       // desfazer, não confirmar: o registro acontece e volta atrás num toque
       avisar({
-        texto: `${p.nome} atualizado.`,
+        texto: `${p.nome}: ${O_QUE_FICOU[status] ?? 'registro alterado'}.`,
         desfazer: () => iniciar(async () => {
           aplicar({ id: p.id, status: p.status })
           await mudarStatus(p.id, p.status)
@@ -121,7 +150,7 @@ export function ProvedorChamada({
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
 }
 
-/** O rótulo do estado, derivado da lista viva — nunca de coluna no banco. */
+/** O rótulo do estado, derivado da lista viva: nunca de coluna no banco. */
 function estadoDe(registrados: number, total: number) {
   if (total === 0) return { rotulo: 'Sem ninguém', cor: 'bg-neutro-fundo text-tinta-media' }
   if (registrados === total) {
@@ -163,8 +192,8 @@ export function NotaDeRegistro({ comecaEm }: { comecaEm: string | null }) {
 }
 
 export function BotaoMarcarTodos({ miudo = false }: { miudo?: boolean }) {
-  const { podeRegistrar, pendentes, ocupado, marcarTodos } = useChamada()
-  if (!podeRegistrar || pendentes === 0) return null
+  const { podeRegistrar, comecou, pendentes, ocupado, marcarTodos } = useChamada()
+  if (!podeRegistrar || !comecou || pendentes === 0) return null
   return (
     <button
       type="button"
@@ -202,7 +231,7 @@ export function BotaoEncaixar({
  * Cancelar a turma inteira: só o glifo, com nome acessível.
  *
  * Fica ao lado de "encaixar" e não dentro de um menu porque é a segunda coisa
- * mais feita nesta tela quando o dia dá errado — professora doente, sala
+ * mais feita nesta tela quando o dia dá errado: professora doente, sala
  * interditada. Escondê-la num menu faria ligar para a recepção.
  */
 export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
@@ -214,7 +243,7 @@ export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
      *
      * Era um quadrado de 44px com o sinal de proibido dentro, e ninguém
      * descobre pelo desenho se aquilo cancela a aula, bloqueia o aluno ou
-     * suspende a conta — o `title` só aparece parando o mouse em cima, e no
+     * suspende a conta: o `title` só aparece parando o mouse em cima, e no
      * celular não aparece nunca. Botão que destrói tem que dizer o que
      * destrói antes de ser clicado.
      */

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 import { marcarTodosPresentes } from '@/server/agenda/acoes'
 import { useAviso } from '@/components/ui/desfazer'
@@ -12,8 +12,8 @@ import { paresDe, primeiroNome, iniciaisDe } from './pecas'
  * A próxima turma, em destaque.
  *
  * Registrar a chamada de uma turma de quatro tem que caber em um toque mais as
- * exceções — por isso "Marcar todos presentes" é o botão maior da tela, e não
- * um item de menu dentro da sessão.
+ * exceções (por isso "Marcar todos presentes" é o botão maior da tela, e não
+ * um item de menu dentro da sessão).
  */
 export function ProximaTurma({
   sessao, faltam, podeRegistrar, rotulo, rotuloPessoa,
@@ -29,6 +29,16 @@ export function ProximaTurma({
   const [pendente, iniciar] = useTransition()
   const avisar = useAviso()
   const router = useRouter()
+
+  // marcar em bloco só depois do começo, como na tela da chamada; o botão
+  // libera sozinho na hora, sem recarregar
+  const [comecou, setComecou] = useState(() => Date.parse(sessao.inicio) <= Date.now())
+  useEffect(() => {
+    const falta = Date.parse(sessao.inicio) - Date.now()
+    if (falta <= 0 || falta > 2 ** 31 - 1) return
+    const t = setTimeout(() => setComecou(true), falta)
+    return () => clearTimeout(t)
+  }, [sessao.inicio])
 
   const aMarcar = sessao.pessoas.filter(
     (p) => p.status === 'esperada' || p.status === 'confirmada',
@@ -128,17 +138,21 @@ export function ProximaTurma({
           {podeRegistrar ? (
             <button
               type="button"
-              disabled={pendente || aMarcar === 0}
+              disabled={pendente || aMarcar === 0 || !comecou}
               onClick={() =>
                 iniciar(async () => {
                   const { marcadas } = await marcarTodosPresentes(sessao.id)
-                  avisar({ texto: `${marcadas} marcada(s) como presente.` })
+                  avisar({
+                    texto: `${marcadas} ${marcadas === 1 ? 'presença registrada' : 'presenças registradas'}.`,
+                  })
                   router.refresh()
                 })
               }
               className="min-h-11 rounded-padrao bg-menta px-4 text-[15px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px disabled:opacity-60"
             >
-              {aMarcar === 0 ? 'Chamada feita' : 'Marcar todos presentes'}
+              {aMarcar === 0
+                ? 'Chamada feita'
+                : comecou ? 'Marcar todos presentes' : `Chamada abre às ${sessao.hora}`}
             </button>
           ) : null}
 
