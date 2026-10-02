@@ -6,7 +6,7 @@ HTTP >= 400 em rota nenhuma. O que segue é o que um usuário esbarra.
 
 Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na ordem.
 
-## Para quem continua (02/out, depois de `17fe970`)
+## Para quem continua (02/out, depois de `0c14cad`)
 
 Feitos e no ar: 1 a 46, mais 55, 56 e 60. Próximo: **47**. Um commit por item ou
 por tela, push na hora (push na `main` publica na Vercel).
@@ -32,6 +32,24 @@ por tela, push na hora (push na `main` publica na Vercel).
   `#encaixar`). Não é regressão.
 - **Texto:** sem travessão; placeholder começa com "Exemplo:"; UI sem gênero
   presumido ("Adicionar seu nome", não "Como quer ser chamado?").
+- **Falta:** 47 a 54 e 57 a 59, nessa ordem. 48 e 49 mexem em permissão de
+  rota (`src/proxy.ts` e o `exigirConta` de cada página), o resto é texto e
+  visual. No 53, `emReaisOuTraco` já saiu do Financeiro (`e1306e0`); falta
+  varrer `grep -rn "'—'" src`.
+- **Achados desta rodada:** ainda há "Não é falha de carregamento" em
+  `pessoas/[id]/page.tsx:534` e `hoje/page.tsx:316` (mesma família do 41).
+  Recepção e profissional não leem `usuario_conta` de outros (RLS da `0031`),
+  por isso o histórico da sessão diz "pela equipe" e não o nome; dar o nome
+  exige migration.
+- **Fonte de título:** o Q tem uma cauda longa que lê como sublinhado (era o
+  60). Título que começa com Q, troque a frase.
+- **Rascunho de print:** `.rascunho/` (no `.git/info/exclude`) tem o config
+  `pw.config.ts` e specs de print (`ficha`, `recibo`, `fin`, `telas`). Spec de
+  rascunho fora do repo não resolve `@playwright/test`. `fullPage` em 390
+  desenha a barra de baixo no meio da página: é a captura, não a tela.
+- **Seletores:** vocabulário padrão é "Vaga" ("Criar vaga"); a MGM usa
+  "Matrícula". Com modal aberto, botão de mesmo nome existe na página e no
+  `dialog[open]`; escopo no dialog.
 
 ## Quebrado
 
