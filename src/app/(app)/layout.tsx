@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { exigirConta, clienteServidor, contasDoUsuario } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { estadoDoOnboarding, encerrado, contaVazia } from '@/server/onboarding/consultas'
@@ -24,6 +25,14 @@ const PAPEL: Record<string, string> = {
 
 export default async function LayoutApp({ children }: { children: React.ReactNode }) {
   const conta = await exigirConta()
+
+  /*
+   * A conta interna não é estúdio: é onde mora o vínculo que faz alguém ser
+   * admin. Abrir Agenda ou Financeiro nela mostrava um estúdio vazio que não é
+   * de ninguém, então quem cai nela vai para a administração. Dentro de conta
+   * de cliente o suporte fica, com a faixa, e volta pelo "Sair do suporte".
+   */
+  if (conta.papel === 'suporte' && conta.interna) redirect('/admin')
   const db = await clienteServidor()
 
   /*
@@ -145,9 +154,6 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           },
           { href: '/config', rotulo: 'Configuração', curto: 'Config', icone: 'config', guia: 'rail-config' },
         ] satisfies ItemRail[])
-      : []),
-    ...(conta.papel === 'suporte'
-      ? ([{ href: '/contas-4yu', rotulo: 'Contas (4YU)', curto: '4YU', icone: 'conta' }] satisfies ItemRail[])
       : []),
   ]
 

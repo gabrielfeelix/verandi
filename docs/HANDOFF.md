@@ -19,6 +19,11 @@ O ciclo fechou. O que apareceu foi um recibo que faltava metade do que um recibo
 tem, o trilho do sistema imprimindo por baixo dele, e o e-mail de quem emite indo
 impresso na via do aluno.
 
+> **02/out/2026: área de administração.** O admin (vínculo `suporte` na conta
+> interna) ganhou `/admin`, com menu próprio: visão geral, contas, usuários e
+> log. Conta suspensa passou a bloquear a equipe de verdade (`/suspensa`). Tudo
+> em [ADMIN.md](ADMIN.md), inclusive o que ficou de fora (2FA é o próximo).
+
 ---
 
 ## Onde o produto está, em números conferidos em produção
@@ -119,7 +124,7 @@ a cada push na `main`.
 | `/recibos` e `/recibos/[id]` | dono, recepção | o arquivo de recibos e a folha em duas vias |
 | `/aulas` | dono | quantas aulas cada profissional aplicou |
 | `/config` | dono | serviços, planos, recibo, equipe, locais, padrões, vocabulário, funcionamento, usuários, integrações |
-| `/contas-4yu` | suporte | as contas de cliente, do lado da 4YU |
+| `/admin/...` | suporte (admin) | a administração da 4YU: visão geral, contas, usuários, log. Ver [ADMIN.md](ADMIN.md) |
 | `/api-docs`, `/termos`, `/privacidade` | público | |
 
 **Quem atende vê o dia dele, a chamada e a avaliação. Não vê dinheiro.** A
@@ -151,7 +156,7 @@ separação mora em `src/server`, e não no banco: RLS isola conta, não papel.
 
 **O texto virou Inter.** Subir a escala resolveu metade: DM Sans é geométrica e
 bonita em título, e no corpo de 12 a 14px ela afina, com altura-de-x baixa que
-deixa as minúsculas pequenas dentro da linha. Inter foi desenhada para tela —
+deixa as minúsculas pequenas dentro da linha. Inter foi desenhada para tela,
 altura-de-x alta, aberturas largas, espaçamento pensado para o pequeno. O
 título continua Bricolage Grotesque, porque a identidade mora ali e o problema
 nunca foi o título.
@@ -171,7 +176,7 @@ mandar o endereço para alguém.
 
 Ele vale **só para a lista**: a próxima turma e os números do dia continuam
 falando do dia inteiro, porque "quem entra na sala agora" não muda por causa de
-um filtro. Período sem aula aparece desligado em vez de sumir — sumir quer
+um filtro. Período sem aula aparece desligado em vez de sumir, sumir quer
 dizer "não existe", desligado quer dizer "hoje não tem".
 
 **O caixa saiu da coluna larga.** Ele nasceu em cima da agenda e ali disputava a
@@ -180,7 +185,7 @@ de Professores hoje: dinheiro na tela inicial dá o pulso do mês de relance, e 
 detalhe mora no Financeiro.
 
 **A nota de lotação saiu.** Era um parágrafo fixo na coluna estreita, lido uma
-vez e ignorado depois de sempre — o bloco `dica` deixou de existir, e o arranjo
+vez e ignorado depois de sempre, o bloco `dica` deixou de existir, e o arranjo
 salvo de quem o tinha some sozinho, porque `arranjoEfetivo` derruba `id` que
 nenhuma tela desenha.
 
@@ -190,7 +195,7 @@ nenhuma tela desenha.
 vazio perguntando "para onde?", e o recibo é de quem pagou: o e-mail está na
 ficha, e pedir que a recepção digite de novo, toda vez, um dado que o sistema
 já tem é pedir que ela digite errado uma hora. Agora o destino aparece como
-fato, e o que se acrescenta são **cópias** — o marido que cuida das contas, a
+fato, e o que se acrescenta são **cópias**, o marido que cuida das contas, a
 empresa que reembolsa, a contadora. Até cinco, em `cc` e não em `bcc`: quem
 paga tem o direito de saber para quem mais o comprovante dele foi.
 
@@ -355,7 +360,7 @@ e a tela de Recibos continuou dizendo que está vazio". A tela estava certa:
 
 **A lentidão foi medida, não adivinhada.** Cada `clienteServidor()` criava um
 cliente Supabase novo, e o **primeiro `getUser()` de cada cliente é uma ida ao
-servidor de autenticação** — 90 ms com o banco na própria máquina, mais em
+servidor de autenticação**, 90 ms com o banco na própria máquina, mais em
 produção. Eram quatro ou cinco por navegação: o proxy, o layout, `contaAtiva`,
 `contasDoUsuario` e a página. Com `cache()` do React virou uma, e as quatro
 consultas do trilho passaram a ir juntas em vez de em fila.

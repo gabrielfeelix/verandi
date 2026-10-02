@@ -18,7 +18,7 @@ não como palavra fixa no layout, inclusive no plural e no cabeçalho de coluna.
 
 **A porta de entrada depende do papel.** `profissional` cai em **Hoje**;
 `dono` e `recepcao` caem em **Agenda**; `suporte` cai em **Contas
-(4YU)**, a lista dos clientes — não em `/contas`, que é a troca de conta.
+(4YU)**, a lista dos clientes, não em `/contas`, que é a troca de conta.
 Ninguém escolhe onde começar, o sistema já sabe.
 
 **Celular é o caso real, não o caso reduzido.** A tela de sessão é usada em pé,
@@ -518,6 +518,9 @@ a boa, e sem desfazer o cliente fica com uma base suja e medo de tentar de novo.
 
 ## 15. Contas (4YU)
 
+> Desde 02/out/2026 esta tela mora em `/admin/contas`, dentro da área de
+> administração, com menu próprio. Ver [ADMIN.md](ADMIN.md).
+
 **Serve para** a 4YU criar, configurar e diagnosticar as contas dos clientes.
 
 **Quem usa:** `suporte`.
@@ -547,7 +550,7 @@ reclamar, chamada que parou de ser feita é o primeiro sintoma de abandono.
 /entrar                        1
 /convite/[token]               2
 /contas                        3   (trocar de conta)
-/contas-4yu                   15   (a lista de clientes, só para suporte)
+/admin/...                    15   (administração da 4YU, só para admin; ADMIN.md)
 /                              4  (profissional) · 6 (dono, recepção)
 /hoje                          4
 /semana                        6

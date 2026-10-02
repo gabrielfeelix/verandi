@@ -12,7 +12,7 @@ import { ehSuporte } from './consultas'
  *
  * São as únicas que atravessam o isolamento entre clientes, e por isso são as
  * únicas que usam a chave de serviço fora da materialização. Toda uma delas
- * começa conferindo o papel — a RLS não tem como autorizar quem cria a própria
+ * começa conferindo o papel, a RLS não tem como autorizar quem cria a própria
  * linha em `conta`, então a checagem é código, e precisa ser explícita.
  */
 async function exigirSuporte() {
@@ -26,7 +26,7 @@ async function exigirSuporte() {
  * Cria a conta de um cliente e devolve o convite do dono.
  *
  * A conta nasce **vazia**: sem série, sem pessoa, sem sessão. E nasce com o
- * vocabulário padrão sem precisar de linha nenhuma em `vocabulario` — o padrão
+ * vocabulário padrão sem precisar de linha nenhuma em `vocabulario`, o padrão
  * é o que o `core/` responde quando a conta não configurou nada, e semear
  * cópias dele seria criar sete linhas que só existem para repetir o default.
  */
@@ -75,7 +75,7 @@ export async function criarConta(entrada: {
     por_usuario_id: usuarioId,
   })
 
-  revalidatePath('/contas-4yu')
+  revalidatePath('/admin', 'layout')
   return { contaId: conta.id, token }
 }
 
@@ -136,7 +136,7 @@ export async function sairDoSuporte(): Promise<void> {
   }
 
   // o vínculo era temporário: sai junto, para a conta não continuar na lista.
-  // Nunca na conta interna — lá o vínculo é o que faz o usuário ser da 4YU, e
+  // Nunca na conta interna, lá o vínculo é o que faz o usuário ser da 4YU, e
   // apagá-lo tirava o acesso a tudo.
   const { data: onde } = await admin.from('conta')
     .select('interna').eq('id', contaId).single()
@@ -152,7 +152,7 @@ export async function sairDoSuporte(): Promise<void> {
 /**
  * Suspender tira o acesso sem apagar dado.
  *
- * Cliente que sai leva a agenda dele junto no dia em que voltar — apagar seria
+ * Cliente que sai leva a agenda dele junto no dia em que voltar, apagar seria
  * economizar linha e perder história.
  */
 export async function suspenderConta(contaId: string, ativa: boolean): Promise<void> {
@@ -168,5 +168,5 @@ export async function suspenderConta(contaId: string, ativa: boolean): Promise<v
     por_usuario_id: usuarioId,
   })
 
-  revalidatePath('/contas-4yu')
+  revalidatePath('/admin', 'layout')
 }

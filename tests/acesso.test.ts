@@ -24,7 +24,7 @@ describe('acesso e destino por papel', () => {
     ['profissional', '/hoje'],
     ['dono', '/semana'],
     ['recepcao', '/semana'],
-    ['suporte', '/contas-4yu'],
+    ['suporte', '/admin'],
   ]
 
   for (const [papel, destino] of casos) {
@@ -70,7 +70,7 @@ describe('acesso e destino por papel', () => {
     })
 
     // a linha existe e ele consegue vê-la (é dele), mas o filtro de `ativo`
-    // que a aplicação usa a descarta — e `contas_do_usuario()` também
+    // que a aplicação usa a descarta, e `contas_do_usuario()` também
     const { data } = await cliente.from('usuario_conta')
       .select('papel').eq('ativo', true)
     expect(data).toEqual([])

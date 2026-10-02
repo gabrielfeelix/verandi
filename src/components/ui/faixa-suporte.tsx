@@ -31,7 +31,7 @@ export function FaixaSuporte({ conta }: { conta: string }) {
         disabled={pendente}
         onClick={() => iniciar(async () => {
           await sairDoSuporte()
-          router.push('/contas-4yu')
+          router.push('/admin/contas')
         })}
         className="min-h-9 rounded-peca bg-white/15 px-3 text-[13.5px] font-medium"
       >

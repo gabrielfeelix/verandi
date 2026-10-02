@@ -14,7 +14,7 @@ test('a 4YU cria conta e recebe o convite do dono', async ({ page }) => {
   const slug = `aurora-${Date.now()}`
 
   await entrar(page, s.email)
-  await page.goto('/contas-4yu')
+  await page.goto('/admin/contas')
 
   await page.getByRole('button', { name: 'Nova conta' }).click()
   await page.getByLabel('Nome do negócio').fill('Studio Aurora')
@@ -35,6 +35,7 @@ test('a 4YU cria conta e recebe o convite do dono', async ({ page }) => {
   // e o dono entra por esse link
   await page.context().clearCookies()
   await page.goto(link)
+  await page.getByLabel('Seu nome').fill('Dono do Aurora')
   await page.getByLabel('Senha', { exact: true }).fill('senha-do-dono-1')
   await page.getByLabel('Repita a senha').fill('senha-do-dono-1')
   await page.getByRole('button', { name: 'Entrar na conta' }).click()
@@ -53,9 +54,9 @@ test('entrar como suporte mostra a faixa que não some, e registra', async ({ pa
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  // pela busca, e não pela lista inteira: `/contas-4yu` pagina de vinte em
+  // pela busca, e não pela lista inteira: `/admin/contas` pagina de vinte em
   // vinte, e o banco de teste guarda mil contas de execuções anteriores
-  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
 
   await page.getByRole('listitem')
     .filter({ hasText: nome })
@@ -81,7 +82,7 @@ test('sair do suporte encerra o registro e devolve a conta', async ({ page }) =>
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
@@ -109,7 +110,7 @@ test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
   await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
@@ -120,8 +121,8 @@ test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
   await expect(page.getByText(/como suporte da 4YU/)).toBeHidden()
 
   // o vínculo da conta interna é o que faz ser da 4YU: continua de pé
-  await page.goto('/contas-4yu')
-  await expect(page).toHaveURL(/\/contas-4yu/)
+  await page.goto('/admin/contas')
+  await expect(page).toHaveURL(/\/admin\/contas/)
   const { count } = await admin.from('usuario_conta')
     .select('*', { count: 'exact', head: true })
     .eq('usuario_id', s.usuarioId).eq('conta_id', s.contaId)
@@ -132,7 +133,7 @@ test('a conta da própria 4YU não aparece como cliente', async ({ page }) => {
   const s = await comoSuporte()
 
   await entrar(page, s.email)
-  await page.goto('/contas-4yu')
+  await page.goto('/admin/contas')
   await expect(page.getByRole('listitem').filter({ hasText: '4yu' })).toHaveCount(0)
 })
 
@@ -141,7 +142,7 @@ test('quem não é da 4YU não alcança a tela de contas', async ({ page }) => {
   const { email } = await usuarioDe(base.contaId, 'dono', base.marca)
 
   await entrar(page, email)
-  await page.goto('/contas-4yu')
+  await page.goto('/admin/contas')
   await expect(page).toHaveURL(/\/hoje/)
 })
 
@@ -152,7 +153,7 @@ test('suspender tira o acesso sem apagar dado', async ({ page }) => {
   await admin.from('pessoa').insert({ conta_id: cliente.contaId, nome: 'Cliente Antigo' })
 
   await entrar(page, s.email)
-  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
   // suspender é ação de menu: não se suspende conta de cliente sem procurar
   await page.getByRole('listitem')
     .filter({ hasText: nome })
@@ -176,20 +177,17 @@ test('o log de acesso da 4YU mostra o que ficou em aberto', async ({ page }) => 
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto(`/contas-4yu?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
     .click()
   await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
 
-  await page.goto('/contas-4yu')
-
-  // o log é modal: ele conta o que a 4YU fez, e não é o que se lê todo dia
-  await page.getByRole('button', { name: 'Log de suporte' }).click()
-  const log = page.getByRole('dialog')
+  // o log tem página própria na administração, com o e-mail de quem entrou
+  await page.goto('/admin/log')
   await expect(
-    log.getByRole('listitem').filter({ hasText: nome })
+    page.getByRole('listitem').filter({ hasText: nome })
       .filter({ hasText: 'em aberto' }).first(),
   ).toBeVisible()
 })

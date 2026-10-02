@@ -33,8 +33,8 @@ async function criarUsuario(papel: string) {
     email, password: SENHA, email_confirm: true,
   })
   // o suporte da 4YU mora na conta interna, e é de lá que vem o acesso a
-  // `/contas-4yu`. Criá-lo numa conta de cliente, como os outros papéis,
-  // fabricava um suporte que não existe em produção — e foi o que deixou
+  // `/admin`. Criá-lo numa conta de cliente, como os outros papéis,
+  // fabricava um suporte que não existe em produção, e foi o que deixou
   // passar o laço de redirecionamento que apagava a tela de quem entrava.
   const conta = papel === 'suporte' ? await contaInterna() : contaId
   await admin.from('usuario_conta')
@@ -76,7 +76,7 @@ for (const [papel, destino] of [
   ['profissional', '/hoje'],
   ['dono', '/semana'],
   ['recepcao', '/semana'],
-  ['suporte', '/contas-4yu'],
+  ['suporte', '/admin/visao-geral'],
 ] as const) {
   test(`${papel} entra e cai em ${destino}`, async ({ page }) => {
     const email = await criarUsuario(papel)

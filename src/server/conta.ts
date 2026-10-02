@@ -49,6 +49,8 @@ export const clienteServidor = cache(async function clienteServidor() {
 export type ContaAtiva =
   {
     contaId: string; papel: Papel; nome: string; fuso: string; interna: boolean
+    /** suspensa pela 4YU: quem é da conta para em `/suspensa`, o suporte não */
+    suspensa: boolean
     /** como a pessoa logada se chama nesta conta; `null` até alguém dizer */
     meuNome: string | null
   }
@@ -73,7 +75,7 @@ export const contaAtiva = cache(async function contaAtiva(): Promise<ContaAtiva 
 
   const { data } = await db
     .from('usuario_conta')
-    .select('conta_id, papel, nome, conta:conta_id(nome, fuso, interna)')
+    .select('conta_id, papel, nome, conta:conta_id(nome, fuso, interna, ativo)')
     .eq('usuario_id', user.id)
     .eq('ativo', true)
 
@@ -94,6 +96,7 @@ export const contaAtiva = cache(async function contaAtiva(): Promise<ContaAtiva 
     fuso: conta.fuso,
     // a conta da própria 4YU não recebe a faixa de suporte
     interna: conta.interna,
+    suspensa: !conta.ativo,
     meuNome: linha.nome,
   }
 })
@@ -121,10 +124,19 @@ export async function papelAoEntrar(
   return data?.[0]?.papel ?? null
 }
 
-/** Como `contaAtiva`, mas para telas que não fazem sentido sem conta. */
+/**
+ * Como `contaAtiva`, mas para telas que não fazem sentido sem conta.
+ *
+ * É também onde a suspensão vale. Até 02/out/2026 suspender só mudava
+ * `conta.ativo`, e a única coisa que olhava para ele era a chave da API: a
+ * equipe da conta suspensa continuava entrando e operando como se nada fosse.
+ * Toda tela e quase toda ação passam por aqui, então a barreira mora aqui. O
+ * suporte passa, porque reativar e diagnosticar exigem entrar.
+ */
 export async function exigirConta(): Promise<ContaAtiva> {
   const conta = await contaAtiva()
   if (!conta) redirect('/entrar')
+  if (conta.suspensa && conta.papel !== 'suporte') redirect('/suspensa')
   return conta
 }
 

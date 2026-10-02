@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Menu } from '@/components/ui/menu'
-import { Modal } from '@/components/ui/modal'
 import {
   cartao, Campo, Etiqueta, Nota, Paginacao, entrada,
 } from '@/components/ui/pecas'
@@ -12,7 +12,7 @@ import { paresDe } from '@/components/hoje/pecas'
 import { mesCurto } from '@/core/agenda/mes-curto'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarConta, entrarComoSuporte, suspenderConta } from '@/server/suporte/acoes'
-import type { AcessoSuporte, ContaSinais } from '@/server/suporte/consultas'
+import type { ContaSinais } from '@/server/suporte/consultas'
 import { erroLegivel } from '@/core/erro-legivel'
 
 /**
@@ -24,11 +24,10 @@ import { erroLegivel } from '@/core/erro-legivel'
  * comparadas de cima a baixo, e cartão empilhado não deixa comparar nada.
  */
 export function PainelContas({
-  contas, acessos, busca, pagina, total, porPagina,
+  contas, busca, pagina, total, porPagina,
 }: {
   /** só a página atual: a lista inteira não cabe mais na tela nem na memória */
   contas: ContaSinais[]
-  acessos: AcessoSuporte[]
   busca: string
   pagina: number
   /** quantas contas a busca encontrou ao todo, não quantas vieram */
@@ -42,11 +41,10 @@ export function PainelContas({
     if (busca) b.set('q', busca)
     if (n > 1) b.set('p', String(n))
     const s = b.toString()
-    return s ? `/contas-4yu?${s}` : '/contas-4yu'
+    return s ? `/admin/contas?${s}` : '/admin/contas'
   }
 
   const [criando, setCriando] = useState(false)
-  const [vendoLog, setVendoLog] = useState(false)
   const [convite, setConvite] = useState<{ url: string; para: string } | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
@@ -78,7 +76,7 @@ export function PainelContas({
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {/* o número é o da busca inteira, não o da página: "20 contas"
                 a cada página seria um número errado que ninguém desconfiaria */}
-            Painel da 4YU · {total} {total === 1 ? 'conta' : 'contas'}
+            {total} {total === 1 ? 'conta' : 'contas'}
             {busca ? ' encontradas' : ''} · sinais de vida antes da reclamação
           </p>
         </div>
@@ -86,7 +84,7 @@ export function PainelContas({
         <div className="flex flex-wrap items-center gap-2.5">
           {/* busca por GET, como em /pessoas: o endereço vira o link que se
               manda no chat, e o voltar desfaz a busca */}
-          <form className="relative flex items-center" action="/contas-4yu">
+          <form className="relative flex items-center" action="/admin/contas">
             <span
               aria-hidden
               className="pointer-events-none absolute left-3.5 font-mono text-[14px] text-tinta-fraca"
@@ -102,9 +100,12 @@ export function PainelContas({
               Buscar
             </button>
           </form>
-          <Botao tom="secundario" onClick={() => setVendoLog(true)}>
+          <Link
+            href="/admin/log"
+            className="inline-flex min-h-11 items-center rounded-media border border-linha bg-superficie px-4 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
+          >
             Log de suporte
-          </Botao>
+          </Link>
           <Botao onClick={() => setCriando(true)}>Nova conta</Botao>
         </div>
       </header>
@@ -218,7 +219,12 @@ export function PainelContas({
                   </span>
                   <span className="flex min-w-0 flex-col leading-[1.35]">
                     <span className="flex items-center gap-2 truncate text-[15px] font-medium">
-                      {c.nome}
+                      <Link
+                        href={`/admin/contas/${c.id}`}
+                        className="truncate underline decoration-transparent underline-offset-2 hover:decoration-tinta"
+                      >
+                        {c.nome}
+                      </Link>
                       {!c.ativa ? <Etiqueta tinta="alerta">Suspensa</Etiqueta> : null}
                     </span>
                     <span className="truncate text-[12.5px] text-tinta-media">
@@ -266,6 +272,9 @@ export function PainelContas({
                   <Menu
                     titulo={`Ações de ${c.nome}`}
                     itens={[{
+                      rotulo: 'Ver detalhes',
+                      aoEscolher: () => router.push(`/admin/contas/${c.id}`),
+                    }, {
                       rotulo: c.ativa ? 'Suspender conta' : 'Reativar conta',
                       perigo: c.ativa,
                       aoEscolher: () => comErro(
@@ -306,37 +315,6 @@ export function PainelContas({
         </span>
       </p>
 
-      <Modal
-        aberto={vendoLog}
-        glifo="≡"
-        tom="neutro"
-        largura="lista"
-        titulo="Log de acesso da 4YU"
-        sub="Toda entrada em conta de cliente fica registrada, com início e fim."
-        secundario="Fechar"
-        aoFechar={() => setVendoLog(false)}
-      >
-        {acessos.length === 0 ? (
-          <Nota tom="neutro">Ninguém entrou em conta de cliente ainda.</Nota>
-        ) : (
-          <ul className="flex flex-col gap-2 pb-1">
-            {acessos.map((a) => (
-              <li
-                key={a.id}
-                className="flex flex-wrap items-center gap-3 rounded-media border border-linha-fina px-3 py-2.5 text-[13.5px]"
-              >
-                <span className="flex-1 font-medium">{a.contaNome}</span>
-                <span className="font-mono text-[12.5px] text-tinta-media">
-                  {new Date(a.iniciadoEm).toLocaleString('pt-BR')}
-                </span>
-                <Etiqueta tinta={a.encerradoEm ? 'neutro' : 'atencao'}>
-                  {a.encerradoEm ? 'encerrado' : 'em aberto'}
-                </Etiqueta>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Modal>
     </div>
   )
 }

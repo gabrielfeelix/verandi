@@ -20,12 +20,12 @@ por foto e o catálogo do cliente digitado.**
 
 > **O administrativo deixou de ser teoria.** As 43 linhas da tabela de preços do
 > MGM viraram 29 planos em 11 serviços, em produção, porque "aluno" e "não
-> aluno" são os dois preços da mesma linha. O ciclo inteiro — catálogo pela
-> tela, matrícula, cobrança, recebimento, recibo, fechamento — passa em ensaio
+> aluno" são os dois preços da mesma linha. O ciclo inteiro, catálogo pela
+> tela, matrícula, cobrança, recebimento, recibo, fechamento, passa em ensaio
 > com esse tamanho, em `e2e/ensaio-administrativo.spec.ts`. O que ainda não
 > existe em produção é matrícula de verdade: as 18 que estão lá, com as 46
 > cobranças e os 40 recibos, são **ensaio**, e saem com um comando antes da
-> primeira venda — recibo gasta número, e número gasto não volta. Falta saber
+> primeira venda, recibo gasta número, e número gasto não volta. Falta saber
 > quem está em qual plano e a razão social do cartão de CNPJ, e as duas
 > respostas são do cliente. As cinco anomalias
 > encontradas na tabela dele estão listadas no [`HANDOFF.md`](HANDOFF.md).
@@ -415,7 +415,7 @@ linhas de R$ 90 e dez linhas de R$ 700 pedem manhãs diferentes.
 A agenda do dia ganhou recorte por período e por profissional. Quinze aulas
 cabem na tela e ninguém as lê inteiras: quem abre às oito quer a manhã, e quem
 cobre a colega quer só as aulas dela. O recorte mora na URL, sobrevive ao
-recarregar e ao voltar, e vale **só para a lista** — a próxima turma e os
+recarregar e ao voltar, e vale **só para a lista**, a próxima turma e os
 números do dia continuam falando do dia inteiro.
 
 O caixa saiu da coluna larga e virou cartão estreito embaixo da equipe. Em cima
@@ -780,7 +780,7 @@ em 1440 as duas caem na mesma dobra e viram dois "Marcar todos presentes".
 | `/grade` | criar, editar, duplicar e encerrar horário fixo | sim |
 | `/config` | serviços, equipe, locais, padrões, vocabulário, funcionamento, usuários | sim |
 | `/pendencias` | o inbox de quem opera | sim |
-| `/contas-4yu` | contas dos clientes, com sinais de vida | sim |
+| `/admin/...` | administração da 4YU: contas, usuários, log ([ADMIN.md](ADMIN.md)) | sim |
 | `/convite/[token]` | aceitar convite e definir senha | sim |
 | `/amostra` | os primitivos do design system | não se aplica |
 | `/termos` · `/privacidade` | documentos, públicos de propósito | sim |
@@ -795,7 +795,7 @@ Escreve: `POST /pessoas`, `POST /participacoes`, `DELETE /participacoes/:id`,
 Quatro eventos saem de volta por webhook: `participacao.criada`,
 `participacao.cancelada`, `sessao.cancelada` e `vaga.aberta`. Sem sessão não
 há RLS para proteger, então **quem isola conta de conta é o `conta_id` na
-consulta da rota** — e é por isso que as rotas chamam as funções de `server/`
+consulta da rota**, e é por isso que as rotas chamam as funções de `server/`
 em vez de montarem consulta própria.
 
 ---
@@ -991,7 +991,7 @@ na hora:
   Os três `as unknown as` sumiram: `rpc()` passou a vir tipado pelo arquivo
   gerado. E um achado do caminho: **`select` montado com `+` não funciona.** O
   supabase-js lê a lista de colunas como tipo literal, e concatenação vira
-  `string`, que devolve `GenericStringError` — o erro que fala de tudo menos do
+  `string`, que devolve `GenericStringError`, o erro que fala de tudo menos do
   problema. Quebre a linha dentro das aspas.
 
 ### As sete resolvidas em 14/08, de tarde
@@ -1199,7 +1199,7 @@ duas vezes:
 - **`listUsers()` do Supabase devolve só os 50 primeiros.** O banco de
   desenvolvimento não é limpo entre execuções, então `dono@dev.local` saiu da
   primeira página e o semeador passou a morrer com `Cannot read properties of
-  null` — que era o `createUser` devolvendo `user: null` porque o e-mail já
+  null`, que era o `createUser` devolvendo `user: null` porque o e-mail já
   existia. Quem procura usuário por e-mail precisa virar as páginas.
 - **O papel `suporte` mora na conta interna, nunca na de cliente.** O vínculo em
   conta de cliente é temporário e é apagado ao sair; se ele também respondesse
