@@ -330,7 +330,7 @@ export function NovaMatricula({
                 <>
                   {/* um dia por vez: setenta horários numa parede só é como
                       a primeira versão desta tela ficou ilegível */}
-                  <div role="tablist" aria-label="Dia da semana" className="flex gap-1.5 overflow-x-auto pb-0.5">
+                  <div role="tablist" aria-label="Dia da semana" className="-mx-2 flex gap-1.5 overflow-x-auto px-2 pt-2 pb-0.5">
                     {diasComHorario.map((d) => {
                       const nele = escolhidas.filter((id) =>
                         doPlano.find((t) => t.id === id)?.diaSemana === d).length

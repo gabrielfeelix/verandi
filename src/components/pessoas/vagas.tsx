@@ -298,7 +298,7 @@ function EscolhaDeHorario({
         </p>
       </div>
 
-      <div role="tablist" aria-label="Dia da semana" className="flex gap-1.5 overflow-x-auto pb-0.5">
+      <div role="tablist" aria-label="Dia da semana" className="-mx-2 flex gap-1.5 overflow-x-auto px-2 pt-2 pb-0.5">
         {dias.map((d) => {
           const ativo = d === dia
           const nele = marcadas.filter((m) => m.dia === d).length

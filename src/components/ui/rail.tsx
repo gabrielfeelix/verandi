@@ -88,15 +88,17 @@ export function Rail({
   const aberto = useSyncExternalStore(assinarRail, lerRail, () => true)
 
   return (
-    // o `aside` acompanha a altura da página para o escuro não terminar no meio
-    // do rolar; o conteúdo dele é que fica preso no topo
+    // o `aside` inteiro fica preso no topo com a altura da tela: rola a página,
+    // e o trilho não se mexe. Antes ele acompanhava a altura da página com o
+    // miolo `sticky`, mas o `relative` do miolo ganhava do `sticky`, e o menu
+    // subia junto com o conteúdo
     // a largura muda sem transição de propósito: animar `width` de um container
     // que re-renderiza a cada navegação trava a animação no meio do caminho
     <aside
       style={{ width: aberto ? 212 : 74 }}
-      className="ruido-escuro hidden shrink-0 self-stretch bg-escuro md:block"
+      className="ruido-escuro sticky top-0 hidden h-dvh shrink-0 self-start overflow-hidden bg-escuro md:block"
     >
-      <div className="relative z-[1] sticky top-0 flex h-dvh flex-col gap-5 px-3 py-4">
+      <div className="relative z-[1] flex h-full flex-col gap-5 px-3 py-4">
       <div className="flex items-center gap-3 pl-1">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[19px] font-bold text-escuro">
           V
