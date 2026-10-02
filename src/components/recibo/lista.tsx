@@ -10,7 +10,7 @@ import { Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import { cancelarRecibo, corrigirRecibo } from '@/server/recibo/acoes'
 import type { ReciboLinha } from '@/server/recibo/consultas'
-import { descricaoDoRecibo } from '@/core/recibo/recibo'
+import { descricaoDoRecibo, motivoDoRecibo } from '@/core/recibo/recibo'
 import { emReais } from '@/core/planos/plano'
 import { dataCurta } from '@/core/agenda/datas'
 import { erroLegivel } from '@/core/erro-legivel'
@@ -159,14 +159,18 @@ export function ListaDeRecibos({
           {/* enviar fica na linha, e não no menu: mandar o comprovante é o que
               se faz com um recibo tanto quanto imprimi-lo */}
           <span className="flex w-full flex-wrap items-center gap-x-3 gap-y-1">
-            <EnviarRecibo
-              reciboId={r.id}
-              numero={descricaoDoRecibo(r)}
-              pagadorNome={r.pessoaNome}
-              emailDaFicha={r.pessoaId ? emails[r.pessoaId] ?? null : null}
-              botao="linha"
-              jaEnviado={envios[r.id] ?? null}
-            />
+            {/* recibo cancelado ou substituído não vale como comprovante:
+                mandar por e-mail seria mandar um papel que diz "CANCELADO" */}
+            {r.status === 'valido' ? (
+              <EnviarRecibo
+                reciboId={r.id}
+                numero={descricaoDoRecibo(r)}
+                pagadorNome={r.pessoaNome}
+                emailDaFicha={r.pessoaId ? emails[r.pessoaId] ?? null : null}
+                botao="linha"
+                jaEnviado={envios[r.id] ?? null}
+              />
+            ) : null}
             {envios[r.id] ? (
               <span className="text-[12.5px] text-tinta-media">
                 enviado para {envios[r.id].para} em {envios[r.id].em}
@@ -176,7 +180,7 @@ export function ListaDeRecibos({
 
           {r.motivo ? (
             <p className="w-full text-[12.5px] text-tinta-media">
-              {r.status === 'cancelado' ? 'Cancelado: ' : 'Correção: '}{r.motivo}
+              {motivoDoRecibo(r.status, r.motivo)}
             </p>
           ) : null}
         </div>

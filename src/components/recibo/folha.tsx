@@ -1,6 +1,6 @@
 import { emReais } from '@/core/planos/plano'
 import {
-  dataPorExtenso, documentoFormatado, localDeEmissao, numeroFormatado,
+  dataPorExtenso, documentoComRotulo, documentoFormatado, localDeEmissao, motivoDoRecibo, numeroFormatado,
   quemAssina, quemEmitiu, type CorpoDoRecibo,
 } from '@/core/recibo/recibo'
 import { exibirTelefone } from '@/core/telefone'
@@ -73,7 +73,7 @@ function Via({
 }) {
   const local = localDeEmissao(corpo.emitenteEndereco)
   const emitiu = quemEmitiu(corpo.emitidoPor)
-  const documentoEmitente = documentoFormatado(corpo.emitenteDocumento)
+  const documentoEmitente = documentoComRotulo(corpo.emitenteDocumento)
   const assina = quemAssina(corpo)
 
   return (
@@ -114,7 +114,7 @@ function Via({
             {corpo.emitenteNome}
           </h2>
           <p className="pt-[3px] text-[12.5px] leading-[1.6] text-tinta-media">
-            {documentoEmitente ? <>CNPJ/CPF {documentoEmitente}<br /></> : null}
+            {documentoEmitente ? <>{documentoEmitente}<br /></> : null}
             {corpo.emitenteEndereco}
             {corpo.emitenteEndereco && corpo.emitenteTelefone ? <br /> : null}
             {corpo.emitenteTelefone ? exibirTelefone(corpo.emitenteTelefone) : null}
@@ -208,7 +208,7 @@ function Via({
         <p className="max-w-[440px] text-[12px] leading-[1.6] text-tinta-media">
           {emitiu ? <>Emitido por {emitiu}. </> : null}
           Este documento é um recibo, e não uma nota fiscal.
-          {motivo ? <> Observação: {motivo}.</> : null}
+          {motivo ? <> {motivoDoRecibo(status, motivo)}.</> : null}
         </p>
         {status !== 'valido' ? (
           <p className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12px] font-medium text-alerta">

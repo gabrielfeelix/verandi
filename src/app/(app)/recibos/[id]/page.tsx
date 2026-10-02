@@ -64,15 +64,17 @@ export default async function Recibo({
           */}
         <div className="flex flex-col items-end gap-1.5">
           <div className="flex flex-wrap gap-2">
-            <EnviarRecibo
-              reciboId={recibo.id}
-              numero={descricaoDoRecibo(recibo)}
-              pagadorNome={recibo.corpo.pagadorNome}
-              emailDaFicha={email}
-              jaEnviado={enviado
-                ? { para: enviado.para, em: dataCurta(enviado.em.slice(0, 10)) }
-                : null}
-            />
+            {recibo.status === 'valido' ? (
+              <EnviarRecibo
+                reciboId={recibo.id}
+                numero={descricaoDoRecibo(recibo)}
+                pagadorNome={recibo.corpo.pagadorNome}
+                emailDaFicha={email}
+                jaEnviado={enviado
+                  ? { para: enviado.para, em: dataCurta(enviado.em.slice(0, 10)) }
+                  : null}
+              />
+            ) : null}
             <BotaoImprimir rotulo="Imprimir" />
           </div>
           <p className="text-[12.5px] text-tinta-fraca">

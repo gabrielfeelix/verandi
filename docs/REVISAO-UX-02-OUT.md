@@ -8,7 +8,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 
 ## Para quem continua (02/out, depois de `17fe970`)
 
-Feitos e no ar: 1 a 27, mais 55 e 56. Próximo: **28**. Um commit por item ou
+Feitos e no ar: 1 a 31, mais 45, 46, 55 e 56. Próximo: **32**. Um commit por item ou
 por tela, push na hora (push na `main` publica na Vercel).
 
 - **Validar:** `npx tsc --noEmit -p .`, e só o spec e2e da tela mexida. Nunca a
@@ -79,10 +79,10 @@ por tela, push na hora (push na `main` publica na Vercel).
 - [x] 25. "Identificador", "id 112", "Sem identificador" em vermelho: "Nº da ficha".
 - [x] 26. "Marcar inativa"/"Inativa" no feminino; "o março dela continua sendo março".
 - [x] 27. Sem aviso de sucesso em Cadastrar, Criar contrato, Inativar, Reativar.
-28. Emitir recibo gasta o número sem confirmação.
-29. Estornar não avisa que o recibo será cancelado.
-30. Recibo cancelado mantém "Enviar por e-mail".
-31. "Cancelado: pagamento estornado: Teste" com dois-pontos duplicado.
+- [x] 28. Emitir recibo gasta o número sem confirmação.
+- [x] 29. Estornar não avisa que o recibo será cancelado.
+- [x] 30. Recibo cancelado mantém "Enviar por e-mail".
+- [x] 31. "Cancelado: pagamento estornado: Teste" com dois-pontos duplicado.
 32. Pendências: "exigem ação humana", "o objetivo é zerar", "esvaziado hoje".
 33. Financeiro: "o objetivo é zerar", "Ticket médio", "sem recorte de data".
 34. Financeiro Todas abre pelas futuras (nov); atrasadas enterradas.
@@ -96,8 +96,8 @@ por tela, push na hora (push na `main` publica na Vercel).
 42. Config Padrões fala de "API" e "5/4 é sempre alguém decidindo".
 43. Config Recibo: "oponível a alguém".
 44. Config Planos: coluna "mesma" sem cabeçalho, códigos 001/002 sem sentido.
-45. Folha do recibo: "CNPJ/CPF" mostra os dois rótulos.
-46. Recibos: "na série A", "versões substituídas por outra".
+- [x] 45. Folha do recibo: "CNPJ/CPF" mostra os dois rótulos.
+- [x] 46. Recibos: "na série A", "versões substituídas por outra".
 47. Buscar vaga: "Faixa de dias" mistura período e turno; falta "Tarde".
 48. Profissional abre /semana e a ficha completa pela URL; tour fala da grade.
 49. Recepção em /aulas e /config volta para /hoje sem mensagem.

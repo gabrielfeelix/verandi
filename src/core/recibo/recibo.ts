@@ -25,6 +25,34 @@ export function documentoFormatado(bruto: string | null): string | null {
   return bruto
 }
 
+/**
+ * O documento com o rótulo dele: "CNPJ/CPF" escrito na frente de um número que
+ * só pode ser um dos dois parecia formulário em branco. O tamanho decide; o que
+ * não fecha em 11 nem 14 dígitos sai como foi digitado, sob "Documento".
+ */
+export function documentoComRotulo(bruto: string | null): string | null {
+  if (!bruto) return null
+  const n = bruto.replace(/\D/g, '')
+  const rotulo = n.length === 14 ? 'CNPJ' : n.length === 11 ? 'CPF' : 'Documento'
+  return `${rotulo} ${documentoFormatado(bruto)}`
+}
+
+/**
+ * O porquê de um recibo fora do ar, em uma frase. O estorno grava o motivo como
+ * "pagamento estornado: <motivo>", e somar isso a "Cancelado: " dava dois
+ * dois-pontos seguidos. Lê também o que já está gravado assim.
+ */
+export function motivoDoRecibo(
+  status: StatusRecibo, motivo: string | null,
+): string | null {
+  if (!motivo) return null
+  const estorno = /^pagamento estornado:\s*/i
+  if (status === 'cancelado' && estorno.test(motivo)) {
+    return `Cancelado por estorno: ${motivo.replace(estorno, '')}`
+  }
+  return `${status === 'cancelado' ? 'Cancelado' : 'Correção'}: ${motivo}`
+}
+
 /** `A-000123`: a série na frente, e zeros à esquerda para a lista alinhar. */
 export function numeroFormatado(serie: string, numero: number): string {
   return `${serie}-${String(numero).padStart(6, '0')}`

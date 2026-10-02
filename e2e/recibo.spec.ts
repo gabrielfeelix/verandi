@@ -65,6 +65,8 @@ test('emitir nasce da linha do pagamento, e a folha sai com o valor por extenso'
   await page.goto('/financeiro?aba=pagas')
 
   await page.getByRole('button', { name: 'emitir recibo' }).click()
+
+  await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   // o número aparece na própria linha, e vira link para a folha
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
@@ -86,6 +88,8 @@ test('sem os dados de quem emite, a emissão para antes de gastar número', asyn
   await page.goto('/financeiro?aba=pagas')
 
   await page.getByRole('button', { name: 'emitir recibo' }).click()
+
+  await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByText(/Preencha quem emite o recibo em Configuração/))
     .toBeVisible()
 
@@ -101,11 +105,13 @@ test('o mesmo pagamento não vira dois recibos', async ({ page }) => {
   await page.goto('/financeiro?aba=pagas')
 
   await page.getByRole('button', { name: 'emitir recibo' }).click()
+
+  await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   // a segunda tentativa vira segunda via, e não número novo
   await page.goto('/recibos')
-  await expect(page.getByText('1 recibo emitido, na série A')).toBeVisible()
+  await expect(page.getByText('1 recibo emitido.')).toBeVisible()
 })
 
 test('corrigir mantém o número e guarda a versão anterior', async ({ page }) => {
@@ -113,6 +119,7 @@ test('corrigir mantém o número e guarda a versão anterior', async ({ page }) 
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
   await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   await page.goto('/recibos')
@@ -136,6 +143,7 @@ test('cancelar pede motivo, e o número continua ocupado', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
   await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   await page.goto('/recibos')
@@ -160,15 +168,17 @@ test('estornar o pagamento cancela o recibo dele junto', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
   await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   await page.getByRole('button', { name: 'estornar' }).click()
   await page.getByLabel('Motivo').fill('cheque devolvido')
-  await page.getByRole('button', { name: 'Estornar', exact: true }).click()
+  await expect(page.getByText('O recibo A-000001 será cancelado')).toBeVisible()
+  await page.locator('dialog[open]').getByRole('button', { name: 'Estornar', exact: true }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await page.goto('/recibos?aba=cancelados')
-  await expect(page.getByText('Cancelado: pagamento estornado: cheque devolvido'))
+  await expect(page.getByText('Cancelado por estorno: cheque devolvido'))
     .toBeVisible()
 })
 
@@ -177,6 +187,7 @@ test('o fechamento conta os recibos do período', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
   await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   await page.goto('/financeiro?aba=fechamento')

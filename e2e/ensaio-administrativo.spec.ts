@@ -402,8 +402,10 @@ test.describe.serial('o ciclo administrativo, de ponta a ponta', () => {
 
     await page.goto('/financeiro?aba=pagas')
     await page.getByRole('button', { name: 'emitir recibo' }).first().click()
+    await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
     await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
     await page.getByRole('button', { name: 'emitir recibo' }).first().click()
+    await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
     await expect(page.getByRole('link', { name: /A-000002/ })).toBeVisible()
 
     const { data: pagos } = await admin.from('pagamento')

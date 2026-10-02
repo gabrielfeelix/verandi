@@ -99,8 +99,8 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
                 ? `Nenhum recibo ${recorte}.`
                 : 'Nenhum recibo emitido ainda.'
               : recorte
-                ? `${total} ${total === 1 ? 'recibo' : 'recibos'} ${recorte}, na série ${emitente.serieRecibo}`
-                : `${total} ${total === 1 ? 'recibo emitido' : 'recibos emitidos'}, na série ${emitente.serieRecibo}`}
+                ? `${total} ${total === 1 ? 'recibo' : 'recibos'} ${recorte}.`
+                : `${total} ${total === 1 ? 'recibo emitido' : 'recibos emitidos'}.`}
           </p>
         </header>
 
@@ -147,14 +147,14 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
           itens={[
             {
               rotulo: 'Comprovado',
-              valor: resumo.validoCent > 0 ? emReais(resumo.validoCent) : '—',
+              valor: emReais(resumo.validoCent),
               tom: 'positivo',
               nota: `${resumo.validos} ${resumo.validos === 1 ? 'recibo válido' : 'recibos válidos'}`,
             },
             {
               rotulo: 'Emitidos',
               valor: String(resumo.quantidade),
-              nota: recorte ?? 'em toda a série',
+              nota: recorte ?? 'desde o primeiro',
             },
             {
               rotulo: 'Cancelados',
@@ -165,7 +165,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
             {
               rotulo: 'Corrigidos',
               valor: String(resumo.substituidos),
-              nota: 'versões substituídas por outra',
+              nota: 'trocados por uma versão nova',
             },
           ]}
           aviso={completo ? null

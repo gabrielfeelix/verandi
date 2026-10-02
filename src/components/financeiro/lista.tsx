@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Menu } from '@/components/ui/menu'
-import { ModalFormulario } from '@/components/ui/modal'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Avatar, Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
 import { Icone, type NomeIcone } from '@/components/ui/icones'
 import { CampoData } from '@/components/ui/campo-data'
@@ -72,7 +72,8 @@ type Modo =
   | { tipo: 'receber'; c: CobrancaLinha }
   | { tipo: 'cancelar'; c: CobrancaLinha }
   | { tipo: 'corrigir'; c: CobrancaLinha }
-  | { tipo: 'estornar'; c: CobrancaLinha; pagamentoId: string }
+  | { tipo: 'estornar'; c: CobrancaLinha; pagamentoId: string; recibo: string | null }
+  | { tipo: 'emitir'; c: CobrancaLinha; pagamentoId: string; valorCent: number }
 
 export function ListaDeCobrancas({
   linhas, vazio,
@@ -279,8 +280,9 @@ export function ListaDeCobrancas({
                         ) : (
                           <button
                             type="button"
-                            onClick={() => agir(
-                              () => emitirRecibo(p.id), 'Recibo emitido')}
+                            onClick={() => setModo({
+                              tipo: 'emitir', c, pagamentoId: p.id, valorCent: p.valorCent,
+                            })}
                             disabled={pendente}
                             className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-peca border border-positivo-linha bg-superficie px-2.5 text-[12.5px] font-medium text-marca hover:border-marca disabled:opacity-50"
                           >
@@ -290,7 +292,10 @@ export function ListaDeCobrancas({
                         )}
                         <button
                           type="button"
-                          onClick={() => setModo({ tipo: 'estornar', c, pagamentoId: p.id })}
+                          onClick={() => setModo({
+                            tipo: 'estornar', c, pagamentoId: p.id,
+                            recibo: p.recibo && !p.recibo.cancelado ? p.recibo.descricao : null,
+                          })}
                           className="inline-flex min-h-8 cursor-pointer items-center rounded-peca px-2 text-[12.5px] text-tinta-media hover:bg-superficie hover:text-alerta"
                         >
                           Estornar
@@ -450,15 +455,49 @@ export function ListaDeCobrancas({
           <Campo rotulo="Motivo" htmlFor="es-motivo" obrigatorio>
             <input
               id="es-motivo" name="motivo" maxLength={120} className={entrada}
-              placeholder="Ex.: digitado em dobro"
+              placeholder="Exemplo: digitado em dobro"
             />
           </Campo>
           <Nota tom="atencao">
             A linha continua no histórico, riscada, e sai das somas. Apagar
             faria o fechamento de ontem mudar de valor sozinho.
           </Nota>
+          {/* o recibo cai junto com o pagamento, e descobrir isso depois, na
+              lista de recibos, parecia um recibo cancelado por engano */}
+          {modo.recibo ? (
+            <Nota tom="alerta">
+              O recibo {modo.recibo} será cancelado, com este motivo.
+            </Nota>
+          ) : null}
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}
         </ModalFormulario>
+      ) : null}
+
+      {/*
+        * Emitir gasta um número da série, e número de recibo não volta: o
+        * cancelado fica no buraco da sequência para sempre. Um toque perdido
+        * na linha do pagamento não pode custar isso sem perguntar.
+        */}
+      {modo?.tipo === 'emitir' ? (
+        <Modal
+          aberto
+          icone="recibo"
+          largura="confirmacao"
+          titulo="Emitir recibo?"
+          sub={`${modo.c.pessoaNome}, ${emReais(modo.valorCent)}`}
+          primario="Emitir"
+          secundario="Voltar"
+          pendente={pendente}
+          aoFechar={() => { setModo(null); setErro(null) }}
+          aoConfirmar={() => agir(
+            () => emitirRecibo(modo.pagamentoId), 'Recibo emitido')}
+        >
+          <p className="text-[14px] leading-[1.55] text-tinta-media">
+            O recibo recebe o próximo número da série. Se sair errado, dá para
+            corrigir ou cancelar, mas o número fica usado.
+          </p>
+          {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+        </Modal>
       ) : null}
 
       {erro && !modo ? <Nota tom="alerta">{erro}</Nota> : null}

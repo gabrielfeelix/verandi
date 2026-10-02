@@ -1,6 +1,6 @@
 import { emReais } from '../planos/plano'
 import {
-  dataPorExtenso, documentoFormatado, localDeEmissao, numeroFormatado,
+  dataPorExtenso, documentoComRotulo, documentoFormatado, localDeEmissao, numeroFormatado,
   quemAssina, type CorpoDoRecibo,
 } from './recibo'
 
@@ -39,7 +39,7 @@ export function textoDoRecibo(
   return [
     `RECIBO Nº ${numeroFormatado(serie, numero)}`,
     '',
-    `${corpo.emitenteNome}${corpo.emitenteDocumento ? ` · CNPJ/CPF ${documentoFormatado(corpo.emitenteDocumento)}` : ''}`,
+    `${corpo.emitenteNome}${corpo.emitenteDocumento ? ` · ${documentoComRotulo(corpo.emitenteDocumento)}` : ''}`,
     '',
     `Recebemos de ${corpo.pagadorNome}`
       + `${corpo.pagadorDocumento ? `, CPF ${documentoFormatado(corpo.pagadorDocumento)}` : ''}`
@@ -60,7 +60,7 @@ export function htmlDoRecibo(
 ): string {
   const assina = quemAssina(corpo)
   const local = localDeEmissao(corpo.emitenteEndereco)
-  const doc = documentoFormatado(corpo.emitenteDocumento)
+  const doc = documentoComRotulo(corpo.emitenteDocumento)
 
   /*
    * O cancelado também é enviável, e vai marcado.
@@ -81,7 +81,7 @@ export function htmlDoRecibo(
     <tr>
       <td style="vertical-align:top">
         <div style="font:600 16px/1.25 system-ui,sans-serif">${escapar(corpo.emitenteNome)}</div>
-        ${doc ? `<div style="color:${FRACA};font-size:12px">CNPJ/CPF ${doc}</div>` : ''}
+        ${doc ? `<div style="color:${FRACA};font-size:12px">${doc}</div>` : ''}
         ${corpo.emitenteEndereco ? `<div style="color:${FRACA};font-size:12px">${escapar(corpo.emitenteEndereco)}</div>` : ''}
       </td>
       <td style="vertical-align:top;text-align:right;white-space:nowrap">
