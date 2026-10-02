@@ -2236,6 +2236,13 @@ export type Database = {
         Args: { p_conta: string; p_nome: string }
         Returns: undefined
       }
+      nomes_da_equipe: {
+        Args: { p_conta: string }
+        Returns: {
+          nome: string
+          usuario_id: string
+        }[]
+      }
       proximo_numero_recibo: {
         Args: { p_conta: string; p_serie: string }
         Returns: number

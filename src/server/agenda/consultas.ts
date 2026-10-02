@@ -200,6 +200,7 @@ type LinhaDetalhe = Omit<LinhaResumo, 'participacao'> & {
     observacao_visivel: 'profissionais' | 'todos'
     registrado_em: string
     registrado_por_origem: OrigemRegistro
+    registrado_por_usuario_id: string | null
     pessoa: { id: string; nome: string; telefone: string | null } | null
   }>
 }
@@ -271,7 +272,7 @@ export async function sessaoDetalhe(
       serie:serie_id(dia_semana, hora_inicio),
       participacao(
         id, status, origem, reposicao_de_id, observacao, observacao_visivel,
-        registrado_em, registrado_por_origem,
+        registrado_em, registrado_por_origem, registrado_por_usuario_id,
         pessoa:pessoa_id(id, nome, telefone)
       )
     `)
@@ -291,6 +292,19 @@ export async function sessaoDetalhe(
   if (!data) return null
 
   const fuso = await fusoDa(db, data.conta_id)
+
+  /*
+   * Quem marcou, pelo nome. A RLS não deixa recepção nem profissional ler a
+   * linha dos colegas em `usuario_conta`; `nomes_da_equipe` (0067) devolve só o
+   * nome, e só a quem é da conta. Falhar aqui não derruba a sessão: o
+   * histórico volta a dizer "pela equipe".
+   */
+  const { data: equipe } = await db.rpc('nomes_da_equipe', { p_conta: data.conta_id })
+  const nomeDe = new Map((equipe ?? []).map((u) => [u.usuario_id, u.nome]))
+  const quemRegistrou = (p: { registrado_por_origem: OrigemRegistro; registrado_por_usuario_id: string | null }) => {
+    const nome = p.registrado_por_usuario_id ? nomeDe.get(p.registrado_por_usuario_id) : undefined
+    return nome ? `por ${nome}` : QUEM_REGISTROU[p.registrado_por_origem]
+  }
 
   const { data: tags } = await db
     .from('pessoa_tag')
@@ -363,7 +377,7 @@ export async function sessaoDetalhe(
 
   function detalheDe(p: LinhaDetalhe['participacao'][number]): string | null {
     const quando = quandoRelativo(p.registrado_em, fuso, hoje)
-    const quem = QUEM_REGISTROU[p.registrado_por_origem]
+    const quem = quemRegistrou(p)
 
     if (p.origem === 'recorrente') {
       const desde = desdeQuando.get(p.pessoa!.id)
@@ -443,7 +457,7 @@ export async function sessaoDetalhe(
     .sort((a, b) => (a.registrado_em < b.registrado_em ? 1 : -1))
     .map((p) => {
       const falta = p.reposicao_de_id ? reposicaoDe.get(p.reposicao_de_id) : undefined
-      const quem = QUEM_REGISTROU[p.registrado_por_origem]
+      const quem = quemRegistrou(p)
       const como = p.origem === 'reposicao'
         ? `entrou como reposição${falta ? ` de ${diaEMes(falta.data)}` : ''}`
         : p.origem === 'encaixe'
