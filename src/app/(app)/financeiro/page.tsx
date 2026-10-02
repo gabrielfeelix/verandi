@@ -260,7 +260,9 @@ function Trilha({
   return (
     <nav
       aria-label="O que mostrar"
-      className="inline-flex max-w-full gap-[3px] overflow-x-auto rounded-media border border-linha bg-superficie p-1"
+      // no celular as seis abas viram duas linhas de três: rolando de lado,
+      // nada dizia que Canceladas e Fechamento existiam
+      className="grid grid-cols-3 gap-[3px] rounded-media border border-linha bg-superficie p-1 sm:inline-flex sm:max-w-full sm:overflow-x-auto"
     >
       {ABAS.map((a) => {
         const ligado = a.id === aba
@@ -274,7 +276,7 @@ function Trilha({
             key={a.id}
             href={`/financeiro?${busca}`}
             aria-current={ligado ? 'page' : undefined}
-            className={`inline-flex min-h-10 items-center gap-2 rounded-padrao px-3.5 text-[14px] whitespace-nowrap ${
+            className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-padrao px-2 text-[14px] whitespace-nowrap sm:px-3.5 ${
               ligado
                 ? 'bg-escuro text-tinta-clara'
                 : 'text-tinta-media hover:bg-superficie-mais-suave'

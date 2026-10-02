@@ -201,8 +201,10 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         {iniciaisDe(p.nome)}
                       </span>
                       <span className="flex min-w-0 flex-col leading-[1.35]">
-                        <span className="flex min-w-0 items-center gap-2">
-                          <span className="truncate text-[15px] font-medium">{p.nome}</span>
+                        {/* quebra em vez de espremer: no celular o selo descia
+                            por cima do nome e cortava ele em "Helena Mo..." */}
+                        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="max-w-full truncate text-[15px] font-medium">{p.nome}</span>
                           {p.tags.map((x) => (
                             <span
                               key={x}
