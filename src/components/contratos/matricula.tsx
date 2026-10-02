@@ -131,7 +131,8 @@ export function NovaMatricula({
   const diaAberto = dia !== null && diasComHorario.includes(dia) ? dia : diasComHorario[0] ?? null
   const doDia = doPlano.filter((t) => t.diaSemana === diaAberto)
 
-  const pede = plano?.frequenciaSemanal ?? 0
+  // horário livre não escolhe lugar na grade: o limite vale na hora de marcar
+  const pede = plano?.horarioLivre ? 0 : plano?.frequenciaSemanal ?? 0
   const etapas: Etapa[] = pede > 0 ? ['plano', 'horarios', 'pagamento'] : ['plano', 'pagamento']
   const indice = etapas.indexOf(etapa)
   // os horários em que ela já está, sem contrato, na modalidade do plano
@@ -148,14 +149,14 @@ export function NovaMatricula({
       // quem já frequenta não precisa ser procurado na grade: os horários dela
       // vêm marcados, até o que o plano pede
       const dela = horarios.filter((t) => t.jaOcupa && t.servicoId === p?.servicoId)
-      const marcadas = dela.slice(0, p?.frequenciaSemanal ?? 0)
+      const marcadas = p?.horarioLivre ? [] : dela.slice(0, p?.frequenciaSemanal ?? 0)
       setEscolhidas(marcadas.map((t) => t.id))
       setDia(marcadas[0]?.diaSemana ?? null)
     }
     setPlanoId(id)
     setErro(null)
     // escolher o plano já é andar: o próximo passo é o que ele pede
-    setEtapa((p?.frequenciaSemanal ?? 0) > 0 ? 'horarios' : 'pagamento')
+    setEtapa(!p?.horarioLivre && (p?.frequenciaSemanal ?? 0) > 0 ? 'horarios' : 'pagamento')
   }
 
   function alternar(t: HorarioEscolhivel) {
@@ -449,6 +450,12 @@ export function NovaMatricula({
                     </button>
                   </div>
                 </div>
+              ) : null}
+
+              {plano.horarioLivre && plano.frequenciaSemanal ? (
+                <Nota tom="neutro">
+                  {`Horário livre: ${pessoaNome.split(' ')[0]} marca até ${plano.frequenciaSemanal} ${plano.frequenciaSemanal === 1 ? 'aula' : 'aulas'} por semana, em qualquer horário de ${plano.servicoNome} que tenha lugar. Cada aula se marca na sessão, pelo Encaixe, ou pelo atendimento automático.`}
+                </Nota>
               ) : null}
 
               <div className="grid gap-3 sm:grid-cols-3">

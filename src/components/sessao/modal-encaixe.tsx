@@ -42,6 +42,8 @@ export function ModalEncaixe({
   const [escolhido, setEscolhido] = useState<Candidato | null>(null)
   /** quem está esperando a confirmação de passar da capacidade */
   const [excedente, setExcedente] = useState<string | null>(null)
+  // plano de horário livre que já usou a semana: a recepção decide se abre exceção
+  const [noLimite, setNoLimite] = useState<{ pessoaId: string; texto: string } | null>(null)
 
   const [achados, setAchados] = useState<Candidato[]>([])
   /** a conta inteira, baixada uma vez ao abrir; `null` enquanto não chegou ou
@@ -102,10 +104,11 @@ export function ModalEncaixe({
    * A tela mostra 4/4; sem o segundo passo, o excedente viraria acidente de
    * clique em vez de decisão de quem está no balcão.
    */
-  function adicionar(pessoaId: string, confirmarAcima = false) {
+  function adicionar(pessoaId: string, confirmarAcima = false, passarDoLimite = false) {
     setAviso(null)
+    setNoLimite(null)
     iniciar(async () => {
-      const r = await encaixar({ sessaoId, pessoaId, origem, confirmarAcima })
+      const r = await encaixar({ sessaoId, pessoaId, origem, confirmarAcima, passarDoLimite })
       if (r.ok) {
         setBusca('')
         setExcedente(null)
@@ -115,6 +118,13 @@ export function ModalEncaixe({
       }
       if (r.motivo === 'acima_da_capacidade') {
         setExcedente(pessoaId)
+        return
+      }
+      if (r.motivo === 'limite_da_semana') {
+        setNoLimite({
+          pessoaId,
+          texto: `O plano ${r.plano} dá direito a ${r.limite} ${r.limite === 1 ? 'aula' : 'aulas'} por semana, e esta semana já ${r.limite === 1 ? 'foi usada' : 'foram usadas'}.`,
+        })
         return
       }
       setExcedente(null)
@@ -237,6 +247,22 @@ export function ModalEncaixe({
             </Botao>
             <Botao tom="fantasma" miudo onClick={() => setExcedente(null)}>
               Não encaixar
+            </Botao>
+          </div>
+        </div>
+      ) : null}
+
+      {noLimite ? (
+        <div className="flex flex-col gap-2 rounded-media border border-atencao-linha bg-atencao-superficie p-3">
+          <p className="text-[13.5px] leading-relaxed text-atencao">
+            {noLimite.texto} Marcar mesmo assim fica registrado como decisão sua.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Botao miudo disabled={pendente} onClick={() => adicionar(noLimite.pessoaId, false, true)}>
+              Marcar mesmo assim
+            </Botao>
+            <Botao tom="fantasma" miudo onClick={() => setNoLimite(null)}>
+              Não marcar
             </Botao>
           </div>
         </div>

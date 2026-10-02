@@ -238,6 +238,7 @@ function FormularioDePlano({
 }) {
   const [recorrencia, setRecorrencia] = useState<Recorrencia>(
     plano?.recorrencia ?? 'mensal')
+  const [livre, setLivre] = useState(plano?.horarioLivre ?? false)
   const [precoRuim, setPrecoRuim] = useState<string | null>(null)
 
   return (
@@ -266,6 +267,7 @@ function FormularioDePlano({
           frequenciaSemanal: seRepete(recorrencia)
             ? Number(f.get('frequenciaSemanal') ?? 0) || null
             : null,
+          horarioLivre: seRepete(recorrencia) && livre,
           sessoesNoPacote: recorrencia === 'pacote'
             ? Number(f.get('sessoesNoPacote') ?? 0) || null
             : null,
@@ -311,12 +313,51 @@ function FormularioDePlano({
         />
       </Campo>
 
+      {seRepete(recorrencia) ? (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+            Como a pessoa escolhe o horário
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {([
+              [false, 'Horário fixo', 'Os mesmos dias e horas toda semana. A matrícula ocupa o lugar na grade.'],
+              [true, 'Horário livre', 'Marca quando vem, em qualquer horário com lugar, até o limite da semana.'],
+            ] as const).map(([valor, titulo, texto]) => (
+              <button
+                key={titulo}
+                type="button"
+                aria-pressed={livre === valor}
+                onClick={() => setLivre(valor)}
+                className={`flex flex-col gap-1 rounded-media border px-3.5 py-3 text-left transition-colors duration-150 ${
+                  livre === valor
+                    ? 'border-marca bg-positivo-superficie'
+                    : 'cursor-pointer border-linha-suave bg-superficie hover:bg-superficie-mais-suave'
+                }`}
+              >
+                <span className="flex items-center gap-2 text-[14.5px] font-medium">
+                  <span
+                    aria-hidden
+                    className={`flex size-4 items-center justify-center rounded-full border ${
+                      livre === valor ? 'border-marca' : 'border-linha'
+                    }`}
+                  >
+                    {livre === valor ? <span className="size-2 rounded-full bg-marca" /> : null}
+                  </span>
+                  {titulo}
+                </span>
+                <span className="text-[13px] leading-snug text-tinta-media">{texto}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+
       <div className="flex flex-wrap items-start gap-3">
         {seRepete(recorrencia) ? (
           <>
             <Campo
-              rotulo="Horários por semana" htmlFor="pl-freq"
-              dica="quantos lugares fixos a matrícula vai ocupar"
+              rotulo={livre ? 'Aulas por semana' : 'Horários por semana'} htmlFor="pl-freq"
+              dica={livre ? 'o máximo que pode marcar em cada semana' : 'quantos lugares fixos a matrícula vai ocupar'}
             >
               <span className="block w-32">
                 <CampoNumero

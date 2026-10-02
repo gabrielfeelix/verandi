@@ -59,7 +59,7 @@ export async function criarContrato(
     const hoje = hojeEm(conta.fuso)
 
     const { data: plano } = await db.from('plano')
-      .select('id, nome, servico_id, recorrencia, frequencia_semanal, sessoes_no_pacote, validade_meses, preco_vinculado_cent, preco_avulso_cent, ativo')
+      .select('id, nome, servico_id, recorrencia, frequencia_semanal, horario_livre, sessoes_no_pacote, validade_meses, preco_vinculado_cent, preco_avulso_cent, ativo')
       .eq('id', novo.planoId).eq('conta_id', conta.contaId)
       .maybeSingle()
     if (!plano) return { ok: false, erro: 'Esse plano não existe mais nesta conta.' }
@@ -67,8 +67,9 @@ export async function criarContrato(
       return { ok: false, erro: `O plano ${plano.nome} saiu de uso. Escolha outro, ou volte a usá-lo em Configuração.` }
     }
 
-    const pedidas = [...new Set(novo.serieIds)].filter(Boolean)
-    const exigidas = plano.frequencia_semanal ?? 0
+    // horário livre não ocupa a grade: cada aula é marcada quando a pessoa vem
+    const pedidas = plano.horario_livre ? [] : [...new Set(novo.serieIds)].filter(Boolean)
+    const exigidas = plano.horario_livre ? 0 : plano.frequencia_semanal ?? 0
     if (exigidas && pedidas.length !== exigidas) {
       return {
         ok: false,

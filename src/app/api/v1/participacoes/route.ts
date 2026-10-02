@@ -99,6 +99,7 @@ export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
         acima_da_capacidade: 'este horário está cheio',
         ja_participa: 'esta pessoa já está marcada neste horário',
         sessao_inexistente: 'este horário não existe nesta conta',
+        limite_da_semana: 'esta pessoa já usou as aulas da semana que o plano dá direito',
       }
       return {
         status: r.motivo === 'sessao_inexistente' ? 404 : 409,

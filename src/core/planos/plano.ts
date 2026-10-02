@@ -13,6 +13,8 @@ export type PlanoBase = {
   recorrencia: Recorrencia
   parcelas: number
   frequenciaSemanal: number | null
+  /** a frequência é um limite por semana, e não lugares fixos na grade */
+  horarioLivre?: boolean
   sessoesNoPacote: number | null
   validadeMeses: number | null
   precoVinculadoCent: number
@@ -97,9 +99,11 @@ export function comoCobra(plano: PlanoBase): string {
   if (plano.recorrencia === 'avulsa') return 'Uma vez'
 
   const quando = plano.parcelas > 1 ? `${plano.parcelas} parcelas` : 'Todo mês'
-  const horarios = plano.frequenciaSemanal
-    ? `${plano.frequenciaSemanal} ${plano.frequenciaSemanal === 1 ? 'horário' : 'horários'}`
-    : null
+  const horarios = !plano.frequenciaSemanal
+    ? null
+    : plano.horarioLivre
+      ? `até ${plano.frequenciaSemanal} por semana, horário livre`
+      : `${plano.frequenciaSemanal} ${plano.frequenciaSemanal === 1 ? 'horário fixo' : 'horários fixos'}`
 
   return [quando, horarios].filter(Boolean).join(' · ')
 }

@@ -1393,6 +1393,7 @@ export type Database = {
           conta_id: string
           criado_em: string
           frequencia_semanal: number | null
+          horario_livre: boolean
           id: string
           nome: string
           parcelas: number
@@ -1409,6 +1410,7 @@ export type Database = {
           conta_id: string
           criado_em?: string
           frequencia_semanal?: number | null
+          horario_livre?: boolean
           id?: string
           nome: string
           parcelas?: number
@@ -1425,6 +1427,7 @@ export type Database = {
           conta_id?: string
           criado_em?: string
           frequencia_semanal?: number | null
+          horario_livre?: boolean
           id?: string
           nome?: string
           parcelas?: number

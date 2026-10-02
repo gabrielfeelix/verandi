@@ -36,6 +36,7 @@ export type EntradaDePlano = {
   recorrencia: Recorrencia
   parcelas: number
   frequenciaSemanal: number | null
+  horarioLivre: boolean
   sessoesNoPacote: number | null
   validadeMeses: number | null
   precoVinculadoCent: number
@@ -65,6 +66,7 @@ function paraLinha(e: EntradaDePlano) {
     recorrencia: e.recorrencia,
     parcelas: e.parcelas,
     frequencia_semanal: e.frequenciaSemanal,
+    horario_livre: e.frequenciaSemanal ? e.horarioLivre : false,
     sessoes_no_pacote: e.sessoesNoPacote,
     validade_meses: e.validadeMeses,
     preco_vinculado_cent: e.precoVinculadoCent,

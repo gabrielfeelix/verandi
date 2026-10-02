@@ -3,6 +3,7 @@ import { calcularOcupacao } from '@/core/agenda/ocupacao'
 import { avaliarEncaixe } from '@/core/agenda/encaixe'
 import type { OrigemParticipacao } from './consultas'
 import { avisar } from '../webhook/eventos'
+import { aulasNaSemana, dataLocal } from '@/core/contratos/horario-livre'
 
 /**
  * "Cabe ou não cabe", escrito uma vez só.
@@ -35,11 +36,14 @@ export type PedidoDeEncaixe = {
   reposicaoDeId?: string
   /** quem está no balcão viu que passa da capacidade e assumiu. O bot nunca */
   confirmarAcima?: boolean
+  /** quem está no balcão marca além do limite semanal do plano livre. O bot nunca */
+  passarDoLimite?: boolean
 }
 
 export type ResultadoEncaixe =
   | { ok: true; participacaoId: string }
   | { ok: false; motivo: 'lotada' | 'ja_participa' | 'acima_da_capacidade' | 'sessao_inexistente' }
+  | { ok: false; motivo: 'limite_da_semana'; limite: number; plano: string }
 
 /**
  * Confere a vaga **na hora de gravar**, relendo a ocupação, e não confia no que
@@ -57,7 +61,7 @@ export async function encaixarNaSessao(
 ): Promise<ResultadoEncaixe> {
   const { data: sessao, error } = await db
     .from('sessao')
-    .select('capacidade, participacao(pessoa_id, status)')
+    .select('capacidade, inicio, servico_id, participacao(pessoa_id, status)')
     .eq('id', entrada.sessaoId)
     .eq('conta_id', contaId)
     .maybeSingle()
@@ -67,7 +71,7 @@ export async function encaixarNaSessao(
   // a conta decide se a recepção pode abrir exceção; a leitura é aqui e não na
   // tela porque entre mostrar e clicar alguém pode ter mudado a configuração
   const { data: padrao } = await db.from('conta')
-    .select('encaixe_acima').eq('id', contaId).single()
+    .select('encaixe_acima, fuso').eq('id', contaId).single()
 
   const jaParticipa = sessao.participacao.some((p) => p.pessoa_id === entrada.pessoaId)
   const ocupacao = calcularOcupacao(
@@ -89,6 +93,34 @@ export async function encaixarNaSessao(
     return { ok: false, motivo: 'acima_da_capacidade' }
   }
 
+  /*
+   * Plano de horário livre: a aula é do contrato, e o contrato tem limite por
+   * semana. Reposição fica fora, porque devolve uma aula que já era dela.
+   */
+  const fuso = padrao?.fuso ?? 'America/Sao_Paulo'
+  let contratoId: string | null = null
+  if (entrada.origem !== 'reposicao') {
+    const livre = await contratoLivre(db, contaId, entrada.pessoaId, sessao.servico_id,
+      dataLocal(sessao.inicio, fuso))
+    if (livre) {
+      contratoId = livre.id
+      if (!entrada.passarDoLimite) {
+        const { data: dele } = await db.from('participacao')
+          .select('status, sessao!inner(inicio, status)')
+          .eq('conta_id', contaId).eq('contrato_id', livre.id)
+        const usadas = aulasNaSemana(
+          (dele ?? []).map((p) => ({
+            inicio: p.sessao.inicio, status: p.status,
+            sessaoCancelada: p.sessao.status === 'cancelada',
+          })),
+          sessao.inicio, fuso)
+        if (usadas >= livre.limite) {
+          return { ok: false, motivo: 'limite_da_semana', limite: livre.limite, plano: livre.plano }
+        }
+      }
+    }
+  }
+
   const { data: criada, error: erroInsert } = await db.from('participacao').insert({
     conta_id: contaId,
     sessao_id: entrada.sessaoId,
@@ -96,6 +128,7 @@ export async function encaixarNaSessao(
     origem: entrada.origem,
     status: 'esperada',
     reposicao_de_id: entrada.reposicaoDeId ?? null,
+    contrato_id: contratoId,
     ...carimbo,
   }).select('id').single()
   if (erroInsert) throw erroInsert
@@ -110,4 +143,22 @@ export async function encaixarNaSessao(
   })
 
   return { ok: true, participacaoId: criada.id }
+}
+
+/**
+ * O contrato de horário livre em vigor desta pessoa, nesta modalidade, no dia
+ * da aula. Contrato trancado não marca aula: está parado de propósito.
+ */
+async function contratoLivre(
+  db: Db, contaId: string, pessoaId: string, servicoId: string, dia: string,
+): Promise<{ id: string; limite: number; plano: string } | null> {
+  const { data, error } = await db.from('contrato')
+    .select('id, inicio, fim, plano!inner(nome, servico_id, horario_livre, frequencia_semanal)')
+    .eq('conta_id', contaId).eq('pessoa_id', pessoaId).eq('status', 'ativo')
+    .eq('plano.horario_livre', true).eq('plano.servico_id', servicoId)
+    .lte('inicio', dia)
+  if (error) throw error
+  const valendo = (data ?? []).find((c) => c.fim === null || c.fim >= dia)
+  if (!valendo || !valendo.plano.frequencia_semanal) return null
+  return { id: valendo.id, limite: valendo.plano.frequencia_semanal, plano: valendo.plano.nome }
 }
