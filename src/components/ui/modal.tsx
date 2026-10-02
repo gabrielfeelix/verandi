@@ -214,7 +214,7 @@ export function Modal({
       <Titulo glifo={glifo} icone={icone} tom={tom} titulo={titulo} sub={sub} perigo={perigo} />
       {children ? <Corpo>{children}</Corpo> : null}
       <Rodape>
-        <Botao tom="secundario" onClick={aoFechar} className="min-w-[120px]">
+        <Botao tom="secundario" onClick={aoFechar} className="sm:min-w-[120px]">
           {secundario}
         </Botao>
         {primario && aoConfirmar ? (
@@ -264,7 +264,7 @@ export function ModalFormulario({
       <form action={aoEnviar} className="flex min-h-0 flex-1 flex-col">
         <Corpo>{children}</Corpo>
         <Rodape>
-          <Botao type="button" tom="secundario" onClick={aoFechar} className="min-w-[120px]">
+          <Botao type="button" tom="secundario" onClick={aoFechar} className="sm:min-w-[120px]">
             {secundario}
           </Botao>
           <Botao type="submit" tom={perigo ? 'perigo' : 'primario'} disabled={pendente}>

@@ -49,6 +49,7 @@ test('horário cheio recusa o encaixe e aponta a saída', async ({ page }) => {
 
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
 
   await expect(modal.getByText('Para caber mais um, aumente a capacidade')).toBeVisible()
 
@@ -75,10 +76,11 @@ test('aumentar a capacidade do dia abre a vaga, e a série não muda', async ({ 
   // o botão solto virou "Aplicar" dentro da caixa da capacidade: solto, ele
   // parecia o que salva o modal inteiro (ver `modal-encaixe.tsx`)
   await modal.getByRole('button', { name: 'Aplicar' }).click()
-  await expect(modal.getByText('2/3, 1 livre(s)')).toBeVisible()
+  await expect(modal.getByText('2/3, 1 vaga livre')).toBeVisible()
 
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
 
   await expect.poll(async () => {
     const { count } = await admin.from('participacao')
@@ -101,11 +103,12 @@ test('quem avisou que não vem devolve a vaga', async ({ page }) => {
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const modal = await abrirEncaixe(page)
-  await expect(modal.getByText('1/2, 1 livre(s)')).toBeVisible()
+  await expect(modal.getByText('1/2, 1 vaga livre')).toBeVisible()
 
   await modal.getByRole('button', { name: 'Reposição', exact: true }).click()
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('participacao')
@@ -125,6 +128,7 @@ test('a mesma pessoa duas vezes é recusada', async ({ page }) => {
   const modal = await abrirEncaixe(page)
   await modal.getByPlaceholder('Buscar por nome').fill('Helena')
   await modal.getByRole('button', { name: /Helena Moraes/ }).click()
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
 
   await expect(modal.getByText('já está neste horário')).toBeVisible()
 })
@@ -159,6 +163,7 @@ test('com encaixe acima permitido, a tela pede confirmação e registra a exceç
 
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
 
   // não grava no primeiro toque: passa da capacidade e a tela conta isso
   await expect(modal.getByText(/Encaixar deixa 3\/2/)).toBeVisible()
@@ -185,6 +190,7 @@ test('desistir da confirmação não grava nada', async ({ page }) => {
   const modal = await abrirEncaixe(page)
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
   await modal.getByRole('button', { name: 'Não encaixar' }).click()
 
   const { count } = await admin.from('participacao')

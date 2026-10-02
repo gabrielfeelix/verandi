@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/modal'
 import { Avatar, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
 import { useChamada } from './chamada'
 import { CampoNumero } from '@/components/ui/campo-numero'
+import { Icone } from '@/components/ui/icones'
 
 type Candidato = { id: string; nome: string; detalhe: string }
 
@@ -26,7 +27,7 @@ type Props = {
  * Encaixar alguém neste horário.
  *
  * É modal, e não painel fixo na lateral, porque a tela de chamada tem uma
- * pergunta só — "quem veio?" — e um formulário de busca parado ao lado dela
+ * pergunta só ("quem veio?"), e um formulário de busca parado ao lado dela
  * disputa a atenção com a única coisa que importa enquanto a turma entra.
  */
 export function ModalEncaixe({
@@ -37,6 +38,8 @@ export function ModalEncaixe({
   const [busca, setBusca] = useState('')
   const [origem, setOrigem] = useState<'avulso' | 'reposicao' | 'encaixe' | 'reserva'>('avulso')
   const [aviso, setAviso] = useState<string | null>(null)
+  /** quem foi tocado na lista: o toque escolhe, o botão do rodapé grava */
+  const [escolhido, setEscolhido] = useState<Candidato | null>(null)
   /** quem está esperando a confirmação de passar da capacidade */
   const [excedente, setExcedente] = useState<string | null>(null)
 
@@ -48,8 +51,8 @@ export function ModalEncaixe({
   /*
    * A lista desce uma vez, quando o modal abre, e a busca acontece aqui.
    *
-   * Buscar no servidor a cada tecla custava três idas em série — validar a
-   * sessão, descobrir a conta, e só então procurar —, e quem está no balcão com
+   * Buscar no servidor a cada tecla custava três idas em série (validar a
+   * sessão, descobrir a conta, e só então procurar), e quem está no balcão com
    * a turma entrando sente isso como um campo que não responde.
    *
    * Isto não é o que havia no começo, que era descer a conta inteira no HTML de
@@ -106,6 +109,7 @@ export function ModalEncaixe({
       if (r.ok) {
         setBusca('')
         setExcedente(null)
+        setEscolhido(null)
         fecharEncaixe()
         return
       }
@@ -122,6 +126,19 @@ export function ModalEncaixe({
     })
   }
 
+  const ORIGENS = [
+    ['avulso', 'Avulso'],
+    ['reposicao', 'Reposição'],
+    ['encaixe', 'Encaixe'],
+    ['reserva', 'Reserva'],
+  ] as const
+  const nomeDaOrigem = ORIGENS.find(([v]) => v === origem)?.[1] ?? 'Avulso'
+
+  function fechar() {
+    setAviso(null); setExcedente(null); setEscolhido(null); setBusca('')
+    fecharEncaixe()
+  }
+
   return (
     <Modal
       aberto={encaixeAberto}
@@ -129,10 +146,32 @@ export function ModalEncaixe({
       largura="lista"
       titulo={`Encaixar ${rotuloPessoa.toLowerCase()}`}
       sub={`${ondeQuando} · ${ocupacao.ocupadas}/${ocupacao.capacidade}${
-        ocupacao.lotada ? ', cheio' : `, ${ocupacao.livres} livre(s)`}`}
+        ocupacao.lotada
+          ? ', cheio'
+          : `, ${ocupacao.livres} ${ocupacao.livres === 1 ? 'vaga livre' : 'vagas livres'}`}`}
       secundario="Fechar"
-      aoFechar={() => { setAviso(null); setExcedente(null); fecharEncaixe() }}
+      /*
+       * Gravar é o botão, não o toque no nome. Antes o toque já encaixava, e a
+       * origem escolhida depois não valia: tudo entrava como Avulso. O botão
+       * diz a origem com que vai gravar, então ninguém grava sem ver.
+       */
+      primario={escolhido && !excedente ? `Encaixar como ${nomeDaOrigem}` : undefined}
+      aoConfirmar={escolhido && !excedente ? () => adicionar(escolhido.id) : undefined}
+      pendente={pendente}
+      aoFechar={fechar}
     >
+      {/* a origem vem primeiro: é a pergunta que muda o que fica registrado */}
+      <div className="flex flex-col gap-2">
+        <Rotulo>Origem</Rotulo>
+        <div role="group" aria-label="Origem" className="flex flex-wrap gap-1.5">
+          {ORIGENS.map(([valor, rotulo]) => (
+            <Chip key={valor} ativo={origem === valor} onClick={() => setOrigem(valor)}>
+              {rotulo}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
       <div className="flex flex-col gap-2">
         <label htmlFor="busca-pessoa">
           <Rotulo>Quem</Rotulo>
@@ -140,7 +179,7 @@ export function ModalEncaixe({
         <input
           id="busca-pessoa"
           value={busca}
-          onChange={(e) => setBusca(e.target.value)}
+          onChange={(e) => { setBusca(e.target.value); setEscolhido(null); setExcedente(null) }}
           placeholder="Buscar por nome"
           className={entrada}
         />
@@ -159,38 +198,27 @@ export function ModalEncaixe({
                 <button
                   type="button"
                   disabled={pendente}
-                  onClick={() => adicionar(c.id)}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-media border border-linha-suave px-3 py-2.5 text-left transition-colors duration-150 hover:border-marca hover:bg-superficie-tenue"
+                  aria-pressed={escolhido?.id === c.id}
+                  onClick={() => { setEscolhido(c); setExcedente(null); setAviso(null) }}
+                  className={`flex w-full cursor-pointer items-center gap-3 rounded-media border px-3 py-2.5 text-left transition-colors duration-150 ${
+                    escolhido?.id === c.id
+                      ? 'border-marca bg-positivo-superficie'
+                      : 'border-linha-suave hover:border-marca hover:bg-superficie-tenue'
+                  }`}
                 >
                   <Avatar nome={c.nome} tamanho={32} decorativo />
                   <span className="flex min-w-0 flex-col">
                     <span className="text-[15px] font-medium">{c.nome}</span>
                     <span className="text-[12.5px] text-tinta-media">{c.detalhe}</span>
                   </span>
+                  {escolhido?.id === c.id ? (
+                    <span className="ml-auto text-marca"><Icone nome="check" tamanho={18} /></span>
+                  ) : null}
                 </button>
               </li>
             ))}
           </ul>
         ) : null}
-      </div>
-
-      {/* quatro opções curtas: chips, não `<select>`. O menu esconde as
-          alternativas atrás de um clique e, no toque, cobre meia tela com uma
-          lista do sistema */}
-      <div className="flex flex-col gap-2">
-        <Rotulo>Origem</Rotulo>
-        <div aria-label="Tipo" className="flex flex-wrap gap-1.5">
-          {([
-            ['avulso', 'Avulso'],
-            ['reposicao', 'Reposição'],
-            ['encaixe', 'Encaixe'],
-            ['reserva', 'Reserva'],
-          ] as const).map(([valor, rotulo]) => (
-            <Chip key={valor} ativo={origem === valor} onClick={() => setOrigem(valor)}>
-              {rotulo}
-            </Chip>
-          ))}
-        </div>
       </div>
 
       {/* Passa da capacidade: a tela conta o que vai acontecer e pede o segundo
@@ -223,7 +251,7 @@ export function ModalEncaixe({
       {/*
         * A capacidade do dia mora aqui, e não numa seção própria da tela.
         *
-        * Ela só é procurada quando falta vaga — e é exatamente esse o momento em
+        * Ela só é procurada quando falta vaga: e é exatamente esse o momento em
         * que este modal está aberto. Fora dele, é um campo numérico pedindo para
         * ser mexido sem motivo.
         */}
@@ -231,8 +259,8 @@ export function ModalEncaixe({
         * "Aplicar", e não "Salvar", e dentro de uma caixa com nome.
         *
         * Solto ao lado do campo, encostado no rodapé, ele parecia o botão que
-        * salva o modal inteiro — e o "Fechar" logo abaixo virava o par dele.
-        * São coisas diferentes: encaixar já acontece no toque do nome; isto
+        * salva o modal inteiro: e o "Fechar" logo abaixo virava o par dele.
+        * São coisas diferentes: encaixar é o botão do rodapé; isto
         * aqui só muda o número de vagas deste dia.
         */}
       <form
