@@ -22,26 +22,26 @@ export default async function VisaoGeral() {
       <CabecalhoAdmin titulo="Visão geral" sub="A plataforma inteira, do jeito que está agora" />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Numero rotulo="Contas ativas" valor={r.contasAtivas} href="/admin/contas"
+        <Numero rotulo="Empresas ativas" valor={r.contasAtivas} href="/admin/empresas"
           nota={r.contasSuspensas ? `${r.contasSuspensas} suspensa${r.contasSuspensas > 1 ? 's' : ''}` : 'nenhuma suspensa'} />
-        <Numero rotulo="Usuários" valor={r.usuarios} href="/admin/usuarios" nota="com acesso a alguma conta" />
+        <Numero rotulo="Usuários" valor={r.usuarios} href="/admin/usuarios" nota="com acesso a alguma empresa" />
         <Numero rotulo="Admins" valor={r.admins} href="/admin/usuarios?f=admin" nota="equipe da 4YU" />
         <Numero rotulo="Suporte em aberto" valor={r.acessosEmAberto} href="/admin/log" alerta
-          nota={r.acessosEmAberto ? 'alguém não saiu do suporte' : 'ninguém dentro de conta'} />
+          nota={r.acessosEmAberto ? 'alguém não saiu do suporte' : 'ninguém dentro de empresa'} />
       </div>
 
       <section className="flex flex-col gap-2.5">
-        <h2 className="font-titulo text-[18px] font-semibold">Contas paradas</h2>
+        <h2 className="font-titulo text-[18px] font-semibold">Empresas paradas</h2>
         {r.contasParadas.length === 0 ? (
           <p className={`px-4.5 py-4 text-[14px] text-tinta-media ${cartao}`}>
-            Toda conta ativa teve alguém entrando nos últimos sete dias.
+            Toda empresa ativa teve alguém entrando nos últimos sete dias.
           </p>
         ) : (
           <ul className={`overflow-hidden ${cartao}`}>
             {r.contasParadas.slice(0, PARADAS_A_VISTA).map((c) => (
               <li key={c.id} className="border-b border-linha-fina last:border-b-0">
                 <Link
-                  href={`/admin/contas/${c.id}`}
+                  href={`/admin/empresas/${c.id}`}
                   className="flex items-center justify-between gap-3 px-4.5 py-3 hover:bg-superficie-tenue"
                 >
                   <span className="text-[15px] font-medium">{c.nome}</span>
@@ -56,7 +56,7 @@ export default async function VisaoGeral() {
             {r.contasParadas.length > PARADAS_A_VISTA ? (
               <li className="px-4.5 py-3 text-[13.5px] text-tinta-media">
                 e mais {r.contasParadas.length - PARADAS_A_VISTA} na lista de{' '}
-                <Link href="/admin/contas" className="text-marca underline">contas</Link>
+                <Link href="/admin/empresas" className="text-marca underline">empresas</Link>
               </li>
             ) : null}
           </ul>

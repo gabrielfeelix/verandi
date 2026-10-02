@@ -22,7 +22,7 @@ import { ProvedorDeAviso } from '@/components/ui/desfazer'
  */
 const ITENS_DO_ADMIN: ItemRail[] = [
   { href: '/admin/visao-geral', rotulo: 'Visão geral', curto: 'Geral', icone: 'hoje' },
-  { href: '/admin/contas', rotulo: 'Contas', curto: 'Contas', icone: 'conta' },
+  { href: '/admin/empresas', rotulo: 'Empresas', curto: 'Empresas', icone: 'conta' },
   { href: '/admin/usuarios', rotulo: 'Usuários', curto: 'Usuários', icone: 'pessoas' },
   { href: '/admin/log', rotulo: 'Log', curto: 'Log', icone: 'lista' },
 ]

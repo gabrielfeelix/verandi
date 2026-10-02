@@ -20,7 +20,7 @@ tem, o trilho do sistema imprimindo por baixo dele, e o e-mail de quem emite ind
 impresso na via do aluno.
 
 > **02/out/2026: área de administração.** O admin (vínculo `suporte` na conta
-> interna) ganhou `/admin`, com menu próprio: visão geral, contas, usuários e
+> interna) ganhou `/admin`, com menu próprio: visão geral, empresas, usuários e
 > log. Conta suspensa passou a bloquear a equipe de verdade (`/suspensa`). Tudo
 > em [ADMIN.md](ADMIN.md), inclusive o que ficou de fora (2FA é o próximo).
 
@@ -124,7 +124,7 @@ a cada push na `main`.
 | `/recibos` e `/recibos/[id]` | dono, recepção | o arquivo de recibos e a folha em duas vias |
 | `/aulas` | dono | quantas aulas cada profissional aplicou |
 | `/config` | dono | serviços, planos, recibo, equipe, locais, padrões, vocabulário, funcionamento, usuários, integrações |
-| `/admin/...` | suporte (admin) | a administração da 4YU: visão geral, contas, usuários, log. Ver [ADMIN.md](ADMIN.md) |
+| `/admin/...` | suporte (admin) | a administração da 4YU: visão geral, empresas, usuários, log. Ver [ADMIN.md](ADMIN.md) |
 | `/api-docs`, `/termos`, `/privacidade` | público | |
 
 **Quem atende vê o dia dele, a chamada e a avaliação. Não vê dinheiro.** A

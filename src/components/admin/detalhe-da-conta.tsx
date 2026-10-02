@@ -54,13 +54,13 @@ export function DetalheDaConta({
     })
   }
 
-  const base = `/admin/contas/${conta.id}`
+  const base = `/admin/empresas/${conta.id}`
   const ativos = conta.pessoas.filter((p) => p.ativo)
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/admin/contas" className="self-start text-[13.5px] text-tinta-media hover:text-tinta">
-        ‹ Contas
+      <Link href="/admin/empresas" className="self-start text-[13.5px] text-tinta-media hover:text-tinta">
+        ‹ Empresas
       </Link>
 
       <CabecalhoAdmin
@@ -86,7 +86,7 @@ export function DetalheDaConta({
       </CabecalhoAdmin>
 
       <Abas
-        rotuloDoGrupo="Seções da conta"
+        rotuloDoGrupo="Seções da empresa"
         ativo={aba}
         className="self-start"
         itens={[
@@ -130,22 +130,22 @@ export function DetalheDaConta({
           <section className="flex flex-wrap items-center justify-between gap-3 rounded-cartao border border-alerta/30 bg-superficie p-4.5">
             <span className="flex max-w-[60ch] flex-col gap-1">
               <span className="text-[15px] font-medium">
-                {conta.ativa ? 'Suspender conta' : 'Reativar conta'}
+                {conta.ativa ? 'Suspender empresa' : 'Reativar empresa'}
               </span>
               <span className="text-[13.5px] leading-[1.5] text-tinta-media">
                 {conta.ativa
-                  ? 'A equipe da conta para de entrar e a API para de responder. Nada é apagado: reativar devolve tudo como estava.'
+                  ? 'A equipe da empresa para de entrar e a API para de responder. Nada é apagado: reativar devolve tudo como estava.'
                   : 'A equipe volta a entrar e a API volta a responder, com tudo como estava.'}
               </span>
             </span>
             {conta.ativa ? (
               <Botao tom="perigo-leve" disabled={pendente} onClick={() => setSuspendendo(true)}>
-                Suspender conta
+                Suspender empresa
               </Botao>
             ) : (
               <Botao tom="secundario" disabled={pendente}
-                onClick={() => rodar(() => suspenderConta(conta.id, true), 'Conta reativada')}>
-                Reativar conta
+                onClick={() => rodar(() => suspenderConta(conta.id, true), 'Empresa reativada')}>
+                Reativar empresa
               </Botao>
             )}
           </section>
@@ -209,7 +209,7 @@ export function DetalheDaConta({
           ) : null}
 
           <Nota tom="neutro">
-            Convidar, trocar papel e remover alguém é feito dentro da conta, em
+            Convidar, trocar papel e remover alguém é feito dentro da empresa, em
             Configuração. Use &quot;Entrar como suporte&quot; para chegar lá.
           </Nota>
         </>
@@ -224,13 +224,13 @@ export function DetalheDaConta({
         perigo
         largura="confirmacao"
         titulo={`Suspender ${conta.nome}?`}
-        sub="A equipe da conta para de entrar e a API para de responder ao bot. Nada é apagado, e reativar devolve tudo como estava."
-        primario="Suspender conta"
+        sub="A equipe da empresa para de entrar e a API para de responder ao bot. Nada é apagado, e reativar devolve tudo como estava."
+        primario="Suspender empresa"
         pendente={pendente}
         aoFechar={() => setSuspendendo(false)}
         aoConfirmar={() => {
           setSuspendendo(false)
-          rodar(() => suspenderConta(conta.id, false), 'Conta suspensa')
+          rodar(() => suspenderConta(conta.id, false), 'Empresa suspensa')
         }}
       />
 

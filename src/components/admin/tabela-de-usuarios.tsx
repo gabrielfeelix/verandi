@@ -98,7 +98,7 @@ export function TabelaDeUsuarios({
       icone: 'cadeado',
       aoEscolher: () => setConfirmar({
         titulo: `Tirar o acesso de admin de ${u.email}?`,
-        sub: 'A pessoa deixa de ver a administração. As contas em que ela trabalha continuam como estão.',
+        sub: 'A pessoa deixa de ver a administração. As empresas em que ela trabalha continuam como estão.',
         primario: 'Tirar acesso de admin',
         perigo: true,
         fazer: () => definirAdmin(u.id, false),
@@ -109,7 +109,7 @@ export function TabelaDeUsuarios({
       icone: 'cadeado',
       aoEscolher: () => setConfirmar({
         titulo: `Dar acesso de admin a ${u.email}?`,
-        sub: 'Admin vê todas as contas, entra em qualquer uma como suporte e muda o acesso de qualquer pessoa. É acesso da equipe da 4YU.',
+        sub: 'Admin vê todas as empresas, entra em qualquer uma como suporte e muda o acesso de qualquer pessoa. É acesso da equipe da 4YU.',
         primario: 'Dar acesso de admin',
         perigo: false,
         fazer: () => definirAdmin(u.id, true),
@@ -125,7 +125,7 @@ export function TabelaDeUsuarios({
       perigo: true,
       aoEscolher: () => setConfirmar({
         titulo: `Suspender ${u.email}?`,
-        sub: 'A pessoa não entra mais em nenhuma conta. Quem estiver com a Verandi aberta sai em até uma hora. Os vínculos ficam guardados, e devolver o acesso devolve tudo.',
+        sub: 'A pessoa não entra mais em nenhuma empresa. Quem estiver com a Verandi aberta sai em até uma hora. Os vínculos ficam guardados, e devolver o acesso devolve tudo.',
         primario: 'Suspender acesso',
         perigo: true,
         fazer: () => suspenderUsuario(u.id, true),
@@ -148,7 +148,7 @@ export function TabelaDeUsuarios({
           {filtro !== 'todos' ? <input type="hidden" name="f" value={filtro} /> : null}
           <input
             name="q" defaultValue={busca} aria-label="Buscar usuário"
-            placeholder="E-mail, nome ou conta"
+            placeholder="E-mail, nome ou empresa"
             className="min-h-11 min-w-[228px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[14px] placeholder:text-tinta-fraca"
           />
           <button type="submit" className="sr-only focus:not-sr-only focus:ml-2">Buscar</button>
@@ -171,7 +171,7 @@ export function TabelaDeUsuarios({
 
       <section className={`overflow-hidden ${cartao}`}>
         <div className={`hidden gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid ${COLUNAS}`}>
-          {['Pessoa', 'Contas', 'Último acesso', ''].map((c, i) => (
+          {['Pessoa', 'Empresas', 'Último acesso', ''].map((c, i) => (
             <span key={c || i} className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
               {c}
             </span>
@@ -209,7 +209,7 @@ export function TabelaDeUsuarios({
                 ) : u.contas.map((c) => (
                   <Link
                     key={c.contaId}
-                    href={`/admin/contas/${c.contaId}`}
+                    href={`/admin/empresas/${c.contaId}`}
                     className={`inline-flex items-center gap-1 rounded-peca border border-linha-fina px-2 py-[3px] text-[12.5px] hover:border-tinta-fraca ${c.ativo ? '' : 'text-tinta-fraca line-through'}`}
                     title={c.ativo ? undefined : 'vínculo desligado'}
                   >

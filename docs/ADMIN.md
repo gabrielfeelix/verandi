@@ -17,16 +17,21 @@ Em 02/out/2026 os admins de produção são `gab.feelix@gmail.com`,
 
 ## Telas
 
+**Na administração o cliente se chama "empresa", não "conta".** "Conta" é
+ambíguo ao lado de usuário (conta de login), e quem lê a tela é a equipe da 4YU
+pensando nos clientes. No código e no banco continua `conta`; no estúdio também,
+porque lá "conta" é a do próprio estúdio.
+
 | Rota | O que responde |
 |---|---|
 | `/admin` | porta; redireciona para a visão geral. É o destino do papel `suporte` (`destinoDoPapel`) |
-| `/admin/visao-geral` | contas ativas e suspensas, usuários, admins, suporte em aberto, contas paradas há 7 dias, últimas ações |
-| `/admin/contas` | a lista que era `/contas-4yu`: criar conta, entrar, suspender. O nome abre o detalhe |
-| `/admin/contas/[id]` | abas Dados (nome e fuso editáveis), Pessoas (quem tem acesso, convites pendentes, link de senha) e Log; zona de perigo com suspender |
-| `/admin/usuarios` | todo usuário da Verandi: contas e papel de cada um, último acesso. Ações: link de senha, dar e tirar admin, suspender e devolver acesso, novo admin |
+| `/admin/visao-geral` | empresas ativas e suspensas, usuários, admins, suporte em aberto, empresas paradas há 7 dias, últimas ações |
+| `/admin/empresas` | a lista que era `/contas-4yu`: criar empresa, entrar, suspender. O nome abre o detalhe |
+| `/admin/empresas/[id]` | abas Dados (nome e fuso editáveis), Pessoas (quem tem acesso, convites pendentes, link de senha) e Log; zona de perigo com suspender |
+| `/admin/usuarios` | todo usuário da Verandi: empresas e papel de cada um, último acesso. Ações: link de senha, dar e tirar admin, suspender e devolver acesso, novo admin |
 | `/admin/log` | entradas em conta de cliente (início e fim) e cada ação da administração, com o e-mail de quem fez |
 | `/suspensa` | onde para a equipe de uma conta suspensa |
-| `/contas-4yu` | endereço antigo; redireciona para `/admin/contas` mantendo a busca |
+| `/contas-4yu` | endereço antigo; redireciona para `/admin/empresas` mantendo a busca |
 
 O layout de `/admin` (`src/app/admin/layout.tsx`) tem menu próprio e barra a
 entrada de quem não é admin, mandando para `/hoje?restrita=Administração`. **Ele
@@ -35,7 +40,7 @@ protege só as telas.** Cada ação em `src/server/admin/acoes.ts` confere
 
 No estúdio, o item "Contas (4YU)" saiu do menu. O admin que cai na conta interna
 pelo `(app)` vai direto para `/admin`. Dentro de conta de cliente a faixa âmbar
-continua, e "Sair do suporte" volta para `/admin/contas`.
+continua, e "Sair do suporte" volta para `/admin/empresas`.
 
 ## Decisões, e por quê
 

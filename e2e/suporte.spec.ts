@@ -14,13 +14,13 @@ test('a 4YU cria conta e recebe o convite do dono', async ({ page }) => {
   const slug = `aurora-${Date.now()}`
 
   await entrar(page, s.email)
-  await page.goto('/admin/contas')
+  await page.goto('/admin/empresas')
 
-  await page.getByRole('button', { name: 'Nova conta' }).click()
+  await page.getByRole('button', { name: 'Nova empresa' }).click()
   await page.getByLabel('Nome do negócio').fill('Studio Aurora')
   await page.getByLabel('Identificador').fill(slug)
   await page.getByLabel('E-mail do dono').fill(`dono-${slug}@teste.local`)
-  await page.getByRole('button', { name: 'Criar conta' }).click()
+  await page.getByRole('button', { name: 'Criar empresa' }).click()
 
   const link = await page.getByLabel('Link do convite').inputValue()
   expect(link).toContain('/convite/')
@@ -54,9 +54,9 @@ test('entrar como suporte mostra a faixa que não some, e registra', async ({ pa
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  // pela busca, e não pela lista inteira: `/admin/contas` pagina de vinte em
+  // pela busca, e não pela lista inteira: `/admin/empresas` pagina de vinte em
   // vinte, e o banco de teste guarda mil contas de execuções anteriores
-  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/empresas?q=${encodeURIComponent(nome)}`)
 
   await page.getByRole('listitem')
     .filter({ hasText: nome })
@@ -82,7 +82,7 @@ test('sair do suporte encerra o registro e devolve a conta', async ({ page }) =>
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/empresas?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
@@ -110,7 +110,7 @@ test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
   await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/empresas?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
@@ -121,8 +121,8 @@ test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
   await expect(page.getByText(/como suporte da 4YU/)).toBeHidden()
 
   // o vínculo da conta interna é o que faz ser da 4YU: continua de pé
-  await page.goto('/admin/contas')
-  await expect(page).toHaveURL(/\/admin\/contas/)
+  await page.goto('/admin/empresas')
+  await expect(page).toHaveURL(/\/admin\/empresas/)
   const { count } = await admin.from('usuario_conta')
     .select('*', { count: 'exact', head: true })
     .eq('usuario_id', s.usuarioId).eq('conta_id', s.contaId)
@@ -133,7 +133,7 @@ test('a conta da própria 4YU não aparece como cliente', async ({ page }) => {
   const s = await comoSuporte()
 
   await entrar(page, s.email)
-  await page.goto('/admin/contas')
+  await page.goto('/admin/empresas')
   await expect(page.getByRole('listitem').filter({ hasText: '4yu' })).toHaveCount(0)
 })
 
@@ -142,7 +142,7 @@ test('quem não é da 4YU não alcança a tela de contas', async ({ page }) => {
   const { email } = await usuarioDe(base.contaId, 'dono', base.marca)
 
   await entrar(page, email)
-  await page.goto('/admin/contas')
+  await page.goto('/admin/empresas')
   await expect(page).toHaveURL(/\/hoje/)
 })
 
@@ -153,13 +153,13 @@ test('suspender tira o acesso sem apagar dado', async ({ page }) => {
   await admin.from('pessoa').insert({ conta_id: cliente.contaId, nome: 'Cliente Antigo' })
 
   await entrar(page, s.email)
-  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/empresas?q=${encodeURIComponent(nome)}`)
   // suspender é ação de menu: não se suspende conta de cliente sem procurar
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: `Ações de ${nome}` })
     .click()
-  await page.getByRole('menuitem', { name: 'Suspender conta' }).click()
+  await page.getByRole('menuitem', { name: 'Suspender empresa' }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('conta').select('ativo').eq('id', cliente.contaId).single()
@@ -177,7 +177,7 @@ test('o log de acesso da 4YU mostra o que ficou em aberto', async ({ page }) => 
   const cliente = await contaDeTeste(nome)
 
   await entrar(page, s.email)
-  await page.goto(`/admin/contas?q=${encodeURIComponent(nome)}`)
+  await page.goto(`/admin/empresas?q=${encodeURIComponent(nome)}`)
   await page.getByRole('listitem')
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })

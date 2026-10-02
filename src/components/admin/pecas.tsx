@@ -46,7 +46,7 @@ export function ListaDoLog({
     return (
       <section className={cartao}>
         <Vazio icone="lista" titulo="Nada registrado ainda"
-          texto="Entradas em conta de cliente e ações da administração aparecem aqui." />
+          texto="Entradas em empresa cliente e ações da administração aparecem aqui." />
       </section>
     )
   }
@@ -70,7 +70,7 @@ export function ListaDoLog({
                 e-mail de quem fez e as duas coisas viravam um bloco só */}
             {!semConta && e.conta ? (
               e.contaId ? (
-                <Link href={`/admin/contas/${e.contaId}`}
+                <Link href={`/admin/empresas/${e.contaId}`}
                   className="max-w-[260px] truncate text-[13.5px] font-medium underline decoration-linha underline-offset-2 hover:decoration-tinta">
                   {e.conta}
                 </Link>

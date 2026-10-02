@@ -41,7 +41,7 @@ export function PainelContas({
     if (busca) b.set('q', busca)
     if (n > 1) b.set('p', String(n))
     const s = b.toString()
-    return s ? `/admin/contas?${s}` : '/admin/contas'
+    return s ? `/admin/empresas?${s}` : '/admin/empresas'
   }
 
   const [criando, setCriando] = useState(false)
@@ -71,12 +71,12 @@ export function PainelContas({
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
-            Contas
+            Empresas
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {/* o número é o da busca inteira, não o da página: "20 contas"
                 a cada página seria um número errado que ninguém desconfiaria */}
-            {total} {total === 1 ? 'conta' : 'contas'}
+            {total} {total === 1 ? 'empresa' : 'empresas'}
             {busca ? ' encontradas' : ''} · sinais de vida antes da reclamação
           </p>
         </div>
@@ -84,7 +84,7 @@ export function PainelContas({
         <div className="flex flex-wrap items-center gap-2.5">
           {/* busca por GET, como em /pessoas: o endereço vira o link que se
               manda no chat, e o voltar desfaz a busca */}
-          <form className="relative flex items-center" action="/admin/contas">
+          <form className="relative flex items-center" action="/admin/empresas">
             <span
               aria-hidden
               className="pointer-events-none absolute left-3.5 font-mono text-[14px] text-tinta-fraca"
@@ -92,7 +92,7 @@ export function PainelContas({
               ⌕
             </span>
             <input
-              id="q" name="q" defaultValue={busca} aria-label="Buscar conta"
+              id="q" name="q" defaultValue={busca} aria-label="Buscar empresa"
               placeholder="Nome ou identificador"
               className="min-h-11 min-w-[228px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[14px] placeholder:text-tinta-fraca"
             />
@@ -106,7 +106,7 @@ export function PainelContas({
           >
             Log de suporte
           </Link>
-          <Botao onClick={() => setCriando(true)}>Nova conta</Botao>
+          <Botao onClick={() => setCriando(true)}>Nova empresa</Botao>
         </div>
       </header>
 
@@ -145,11 +145,11 @@ export function PainelContas({
               </Campo>
             </div>
             <Nota tom="positivo">
-              A conta nasce vazia: sem horário fixo, sem pessoa, sem sessão. O
+              A empresa nasce vazia: sem horário fixo, sem pessoa, sem sessão. O
               dono recebe um convite e monta a grade dele.
             </Nota>
             <div className="flex gap-2">
-              <Botao type="submit" miudo disabled={pendente}>Criar conta</Botao>
+              <Botao type="submit" miudo disabled={pendente}>Criar empresa</Botao>
               <Botao type="button" tom="fantasma" miudo onClick={() => setCriando(false)}>
                 Cancelar
               </Botao>
@@ -183,7 +183,7 @@ export function PainelContas({
         <div
           className={`hidden gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid ${COLUNAS}`}
         >
-          {['Conta', 'Sessões/sem', 'Chamadas', 'Último acesso', ''].map((c, i) => (
+          {['Empresa', 'Sessões/sem', 'Chamadas', 'Último acesso', ''].map((c, i) => (
             <span
               key={c || i}
               className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase"
@@ -196,8 +196,8 @@ export function PainelContas({
         {contas.length === 0 ? (
           <p className="px-4.5 py-6 text-[14px] text-tinta-media">
             {busca
-              ? `Nenhuma conta com "${busca}".`
-              : 'Nenhuma conta de cliente ainda.'}
+              ? `Nenhuma empresa com "${busca}".`
+              : 'Nenhuma empresa cliente ainda.'}
           </p>
         ) : null}
 
@@ -220,7 +220,7 @@ export function PainelContas({
                   <span className="flex min-w-0 flex-col leading-[1.35]">
                     <span className="flex items-center gap-2 truncate text-[15px] font-medium">
                       <Link
-                        href={`/admin/contas/${c.id}`}
+                        href={`/admin/empresas/${c.id}`}
                         className="truncate underline decoration-transparent underline-offset-2 hover:decoration-tinta"
                       >
                         {c.nome}
@@ -273,13 +273,13 @@ export function PainelContas({
                     titulo={`Ações de ${c.nome}`}
                     itens={[{
                       rotulo: 'Ver detalhes',
-                      aoEscolher: () => router.push(`/admin/contas/${c.id}`),
+                      aoEscolher: () => router.push(`/admin/empresas/${c.id}`),
                     }, {
-                      rotulo: c.ativa ? 'Suspender conta' : 'Reativar conta',
+                      rotulo: c.ativa ? 'Suspender empresa' : 'Reativar empresa',
                       perigo: c.ativa,
                       aoEscolher: () => comErro(
                         () => suspenderConta(c.id, !c.ativa),
-                        c.ativa ? 'Conta suspensa' : 'Conta reativada',
+                        c.ativa ? 'Empresa suspensa' : 'Empresa reativada',
                       ),
                     }]}
                   />
@@ -295,7 +295,7 @@ export function PainelContas({
         total={total}
         porPagina={porPagina}
         hrefDe={hrefDaPagina}
-        nota="conta suspensa continua na lista"
+        nota="empresa suspensa continua na lista"
       />
 
       {/* Entrar na conta de um cliente é o acesso mais forte do sistema, e a
@@ -309,7 +309,7 @@ export function PainelContas({
           !
         </span>
         <span>
-          Entrar como suporte mostra uma faixa dentro da conta enquanto durar, e
+          Entrar como suporte mostra uma faixa dentro da empresa enquanto durar, e
           toda ação fica registrada com quem fez. Ver dado de cliente sem que
           ninguém saiba é constrangedor de propósito.
         </span>

@@ -233,7 +233,7 @@ export async function editarConta(
   const { usuarioId: eu } = await exigirAdmin()
   const nome = entrada.nome.trim()
   const fuso = entrada.fuso.trim()
-  if (!nome) throw new Error('a conta precisa de nome')
+  if (!nome) throw new Error('a empresa precisa de nome')
   try {
     // fuso inválido quebraria toda conta de "hoje" da conta inteira
     new Intl.DateTimeFormat('pt-BR', { timeZone: fuso })
@@ -243,14 +243,14 @@ export async function editarConta(
 
   const db = clienteAdmin()
   const { data: alvo } = await db.from('conta').select('interna').eq('id', contaId).single()
-  if (!alvo || alvo.interna) throw new Error('a conta da 4YU não é conta de cliente')
+  if (!alvo || alvo.interna) throw new Error('a conta da 4YU não é empresa cliente')
 
   const { error } = await db.from('conta').update({ nome, fuso }).eq('id', contaId)
   if (error) throw error
 
   await db.from('log_configuracao').insert({
     conta_id: contaId, entidade: 'conta', entidade_id: contaId, acao: 'editou',
-    detalhe: { porSuporte: true, nome, fuso, oQue: 'editou os dados da conta' },
+    detalhe: { porSuporte: true, nome, fuso, oQue: 'editou os dados da empresa' },
     por_usuario_id: eu,
   })
   revalidatePath('/admin', 'layout')

@@ -17,5 +17,5 @@ export default async function Contas4YU({
   if (q) b.set('q', q)
   if (p) b.set('p', p)
   const s = b.toString()
-  redirect(s ? `/admin/contas?${s}` : '/admin/contas')
+  redirect(s ? `/admin/empresas?${s}` : '/admin/empresas')
 }

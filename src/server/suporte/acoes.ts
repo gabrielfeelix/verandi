@@ -43,7 +43,7 @@ export async function criarConta(entrada: {
   const slug = entrada.slug.trim().toLowerCase()
   const emailDono = entrada.emailDono.trim().toLowerCase()
 
-  if (!nome) throw new Error('a conta precisa de nome')
+  if (!nome) throw new Error('a empresa precisa de nome')
   if (!/^[a-z0-9-]{3,}$/.test(slug)) {
     throw new Error('o identificador aceita letras minúsculas, números e hífen')
   }
@@ -53,7 +53,7 @@ export async function criarConta(entrada: {
     nome, slug, fuso: entrada.fuso || 'America/Sao_Paulo', ativo: true,
   }).select('id').single()
   if (error) {
-    if (error.code === '23505') throw new Error('já existe conta com esse identificador')
+    if (error.code === '23505') throw new Error('já existe empresa com esse identificador')
     throw error
   }
 

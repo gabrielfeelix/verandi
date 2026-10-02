@@ -156,7 +156,7 @@ export type ContaDetalhe = {
   convites: Array<{ id: string; email: string; papel: string; expiraEm: string }>
 }
 
-/** Uma conta de cliente por inteiro, para `/admin/contas/[id]`. */
+/** Uma conta de cliente por inteiro, para `/admin/empresas/[id]`. */
 export async function detalheDaConta(contaId: string): Promise<ContaDetalhe | null> {
   const db = clienteAdmin()
   const { data: c } = await db.from('conta')
@@ -238,7 +238,7 @@ function fraseDoLog(
 ): string {
   if (typeof detalhe.oQue === 'string') return detalhe.oQue
   const verbo = VERBO[acao] ?? acao
-  if (entidade === 'conta') return `${verbo} a conta`
+  if (entidade === 'conta') return `${verbo} a empresa`
   return `${verbo} ${entidade.replace('_', ' ')}`
 }
 

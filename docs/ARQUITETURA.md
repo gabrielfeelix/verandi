@@ -254,7 +254,7 @@ mesma professora atender dois estúdios.
 
 O papel `suporte` mora numa **conta interna**, a conta da própria 4YU
 (`conta.interna`, uma só, criada pela migration `0040`). Ela não aparece em
-`/admin/contas` e ninguém entra nela como suporte. Duas coisas dependem disso: o
+`/admin/empresas` e ninguém entra nela como suporte. Duas coisas dependem disso: o
 primeiro suporte só nasce assim (`usuario_conta.conta_id` é `not null`, e criar
 conta exige já ser suporte, banco novo travava antes do primeiro clique), e
 sair do suporte apaga o vínculo temporário da conta de cliente sem tocar no que

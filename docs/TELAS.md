@@ -518,7 +518,7 @@ a boa, e sem desfazer o cliente fica com uma base suja e medo de tentar de novo.
 
 ## 15. Contas (4YU)
 
-> Desde 02/out/2026 esta tela mora em `/admin/contas`, dentro da área de
+> Desde 02/out/2026 esta tela mora em `/admin/empresas`, dentro da área de
 > administração, com menu próprio. Ver [ADMIN.md](ADMIN.md).
 
 **Serve para** a 4YU criar, configurar e diagnosticar as contas dos clientes.
