@@ -326,20 +326,21 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         </>
       )}
 
-      <div className="flex flex-wrap items-center gap-4 text-[13px] text-tinta-media">
+      {/* a amostra é a célula em miniatura, com a borda reforçada: no tamanho
+          real as cores claras sumiam no fundo, e a legenda não se lia */}
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-tinta-media">
         {[
-          ['bg-superficie border-linha-suave', 'Com vaga'],
-          ['bg-alerta-superficie border-alerta-linha', 'Lotada'],
-          ['bg-superficie-mais-suave border-linha', 'Cancelada'],
-          ['bg-superficie-tenue border-linha-fina', 'Horário vazio'],
-          ['bg-neutro-fundo border-linha', 'Fechado'],
+          ['bg-superficie border-tinta-inativa', 'Com vaga'],
+          ['bg-alerta-fundo border-alerta/60', 'Lotada'],
+          ['bg-superficie-mais-suave border-tinta-inativa border-dashed', 'Cancelada'],
+          ['bg-superficie-tenue border-linha-tracejada', 'Horário vazio'],
+          ['bg-neutro-fundo border-tinta-inativa', 'Fechado'],
         ].map(([cor, rotulo]) => (
           <span key={rotulo} className="inline-flex items-center gap-2">
-            <span aria-hidden className={`size-2.5 rounded-[3px] border ${cor}`} />
+            <span aria-hidden className={`h-3.5 w-5 rounded-[4px] border ${cor}`} />
             {rotulo}
           </span>
         ))}
-        <span className="text-tinta-fraca">No celular, a agenda mostra um dia por vez.</span>
       </div>
     </div>
     </AreaQueTroca>

@@ -185,10 +185,9 @@ export function GradeSemana({
                 return (
                   <div
                     key={d}
-                    className="flex min-h-14 items-center justify-center rounded-padrao border border-linha-fina bg-superficie-tenue font-mono text-[14px] text-linha-tracejada"
-                  >
-                    <span aria-hidden>+</span>
-                  </div>
+                    // sem "+": a célula não cria nada, e o sinal prometia um clique
+                    className="min-h-14 rounded-padrao border border-linha-fina bg-superficie-tenue"
+                  />
                 )
               }
 
