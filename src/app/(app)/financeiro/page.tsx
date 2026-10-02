@@ -16,7 +16,7 @@ import { emReais } from '@/core/planos/plano'
 import { dataCurta, somarDias } from '@/core/agenda/datas'
 import { ListaDeCobrancas } from '@/components/financeiro/lista'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
-import { BuscaDeCobranca } from '@/components/financeiro/busca'
+import { BuscaDeCobranca, ProvedorDeBusca } from '@/components/financeiro/busca'
 import { Paginacao, Vazio, cartao } from '@/components/ui/pecas'
 import { BarraDePeriodo } from '@/components/ui/barra-periodo'
 import { FaixaDeNumeros, type NumeroDaFaixa } from '@/components/ui/faixa-numeros'
@@ -126,12 +126,14 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
             rotulo="Vencimento"
             escondidos={{ aba, q }}
           />
-          <BuscaDeCobranca valorInicial={q ?? ''} aba={aba} />
+          <ProvedorDeBusca servidor={q?.trim() ?? ''}>
+            <BuscaDeCobranca valorInicial={q?.trim() ?? ''} aba={aba} />
 
-          <ListaDeCobrancas
-            linhas={linhas}
-            vazio={VAZIO[aba]}
-          />
+            <ListaDeCobrancas
+              linhas={linhas}
+              vazio={VAZIO[aba]}
+            />
+          </ProvedorDeBusca>
 
           {total > POR_PAGINA ? (
             <Paginacao

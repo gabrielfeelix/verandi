@@ -1,4 +1,5 @@
 import type { Db } from '../supabase'
+import { semAcento } from '@/core/pessoas/busca'
 import type { Recorrencia } from '@/core/planos/plano'
 import { instante } from '../agenda/fuso'
 import { fimProrrogado, type Pausa } from '@/core/contratos/contrato'
@@ -190,9 +191,10 @@ async function idsQueCasam(
 ): Promise<string[] | null> {
   const termo = busca?.trim()
   if (!termo) return null
+  // `nome_busca` sem acento, como a busca de pessoas: "thais" acha "Thaís"
   const { data } = await db.from('pessoa')
     .select('id').eq('conta_id', contaId)
-    .ilike('nome', `%${termo}%`).limit(500)
+    .like('nome_busca', `%${semAcento(termo)}%`).limit(500)
   return (data ?? []).map((p) => p.id)
 }
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useFiltroLocal } from './busca'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -76,11 +77,12 @@ type Modo =
   | { tipo: 'emitir'; c: CobrancaLinha; pagamentoId: string; valorCent: number }
 
 export function ListaDeCobrancas({
-  linhas, vazio,
+  linhas: carregadas, vazio,
 }: {
   linhas: CobrancaLinha[]
   vazio: { titulo: string; texto: string }
 }) {
+  const { linhas, procurando } = useFiltroLocal(carregadas)
   const [modo, setModo] = useState<Modo | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, comecar] = useTransition()
@@ -107,7 +109,9 @@ export function ListaDeCobrancas({
   }
 
   if (linhas.length === 0) {
-    return <Vazio icone="dinheiro" titulo={vazio.titulo} texto={vazio.texto} />
+    return procurando
+      ? <p className="px-1 py-6 text-center text-[14px] text-tinta-media">Procurando nas outras páginas</p>
+      : <Vazio icone="dinheiro" titulo={vazio.titulo} texto={vazio.texto} />
   }
 
   return (
