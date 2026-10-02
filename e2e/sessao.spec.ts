@@ -71,9 +71,9 @@ test('cada linha diz por que a pessoa está ali, e o histórico conta como a tur
     page.getByRole('listitem').filter({ hasText: 'Helena Moraes' }),
   ).toContainText('vaga fixa desde março')
 
-  const historico = page.getByRole('list').filter({ hasText: 'Turma criada' })
-  await expect(historico).toContainText('Beatriz Nogueira entrou de encaixe pela recepção')
-  await expect(historico).toContainText('Turma criada pela série quarta 10:00')
+  const historico = page.getByRole('list').filter({ hasText: 'Criada pela grade fixa' })
+  await expect(historico).toContainText('Beatriz Nogueira entrou de encaixe pela equipe')
+  await expect(historico).toContainText('Criada pela grade fixa, quarta 10:00')
 })
 
 test('um toque marca todo mundo presente e a chamada fecha', async ({ page }) => {

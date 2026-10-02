@@ -110,8 +110,8 @@ export default async function Config({
             Configuração da conta
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
-            É aqui que o sistema deixa de ser genérico e vira o sistema do
-            negócio.
+            Modalidades, equipe, horários, preços e as palavras que aparecem nas
+            telas.
           </p>
         </header>
 

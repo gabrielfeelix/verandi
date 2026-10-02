@@ -208,11 +208,13 @@ type OrigemRegistro = 'profissional' | 'recepcao' | 'bot' | 'sistema' | 'importa
 
 const QUEM_REGISTROU: Record<OrigemRegistro, string | null> = {
   profissional: 'pelo profissional',
-  recepcao: 'pela recepção',
+  // a origem diz o canal, não o cargo: o dono marcando pelo balcão também grava
+  // 'recepcao', e "pela recepção" no encaixe do dono era informação errada
+  recepcao: 'pela equipe',
   bot: 'pelo atendimento automático',
   importacao: 'na importação',
   // o padrão da coluna. "por Sistema" não informa nada e ainda soa como culpa
-  // de ninguém — melhor calar e deixar só a data.
+  // de ninguém, melhor calar e deixar só a data.
   sistema: null,
 }
 
@@ -458,9 +460,9 @@ export async function sessaoDetalhe(
 
   historico.push({
     texto: data.serie
-      ? `Turma criada pela série ${DIAS_CURTOS[data.serie.dia_semana]} ${
+      ? `Criada pela grade fixa, ${DIAS_CURTOS[data.serie.dia_semana]} ${
           data.serie.hora_inicio.slice(0, 5)}`
-      : 'Turma criada avulsa',
+      : 'Criada fora da grade fixa',
     quando: quandoRelativo(data.criado_em, fuso, hoje),
     tom: 'positivo',
   })

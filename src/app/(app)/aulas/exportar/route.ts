@@ -33,8 +33,8 @@ export async function GET(pedido: Request) {
   const linhas: Array<Array<string | number>> = [
     ['Aulas por profissional', `de ${de} a ${ate}`],
     [],
-    ['Profissional', 'Aulas aplicadas', 'Presenças', 'Com gente',
-     'Sem ninguém', 'Sem chamada', 'Canceladas', 'Por dia fechado', 'Ainda por dar'],
+    ['Profissional', 'Aulas dadas', 'Presenças', 'Com presença',
+     'Sem ninguém', 'Sem chamada', 'Canceladas', 'Por dia fechado', 'A acontecer'],
     ...r.linhas.map((l) => [
       l.profissionalNome, l.aplicadas, l.atendimentos, l.comPresenca,
       l.semNinguem, l.semChamada, l.canceladas, l.porFeriado, l.aindaPorDar,
@@ -43,7 +43,7 @@ export async function GET(pedido: Request) {
     ['Total', r.total.aplicadas, r.total.atendimentos, '', '',
      r.total.semChamada, r.total.canceladas, r.total.porFeriado, r.total.aindaPorDar],
     [],
-    ['Aula aplicada é a que já aconteceu e não foi cancelada, mesmo sem ninguém presente.'],
+    ['Aula dada é a que já aconteceu e não foi cancelada, mesmo sem ninguém presente.'],
   ]
 
   // o BOM na frente é o que faz o Excel abrir acentuação sem perguntar nada

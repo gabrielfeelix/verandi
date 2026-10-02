@@ -44,8 +44,8 @@ export default async function Grade() {
             Grade fixa
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
-            {vigentes.length} {rotulos.serie.plural.toLowerCase()} em uso ·
-            configuração, usada muito no começo e pouco depois
+            {vigentes.length} {rotulos.serie.plural.toLowerCase()} em uso, que se
+            repetem toda semana.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export default async function Grade() {
           <Vazio
             icone="grade"
             titulo="A grade está vazia"
-            texto={`Conta nova começa assim. Não é falha de carregamento. Criar ${rotulos.serie.singular.toLowerCase()} é dizer que horários existem, e é o que faz ${rotulos.sessao.plural.toLowerCase()} aparecerem em Hoje e na Semana.`}
+            texto={`Cadastre os horários que se repetem toda semana. Eles geram as ${rotulos.sessao.plural.toLowerCase()} que aparecem em Hoje e na Agenda.`}
           />
         </section>
       ) : (
@@ -143,10 +143,8 @@ export default async function Grade() {
           {/* As duas ações que assustam, explicadas antes de serem clicadas. */}
           <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
             <p className="text-[13.5px] leading-relaxed text-tinta-media">
-              Encerrar {rotulos.serie.singular.toLowerCase()} avisa quantas
-              pessoas ocupam vaga ali antes de confirmar. Duplicar existe porque
-              montar {vigentes.length} {rotulos.serie.plural.toLowerCase()} à mão
-              é o pior momento da implantação.
+              Encerrar mostra antes quantas pessoas ocupam o horário. Duplicar
+              copia um horário para outro dia ou hora, com a mesma configuração.
             </p>
           </section>
         </div>

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { sessaoDetalhe, faltasEmAberto, type FaltaEmAberto } from '@/server/agenda/consultas'
-import { agoraMs, quantoFalta } from '@/server/agenda/fuso'
+import { agoraMs, hojeEm, quantoFalta } from '@/server/agenda/fuso'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { ListaParticipacao } from '@/components/sessao/lista-participacao'
 import { HistoricoDaTurma } from '@/components/sessao/historico-turma'
@@ -71,6 +71,16 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
   const dataLonga = `${DIAS[dia.getUTCDay()]}, ${dia.getUTCDate()} de ${MESES[dia.getUTCMonth()]}`
   const dataCurta = `${dia.getUTCDate()} ${MESES_CURTOS[dia.getUTCMonth()]}`
 
+  /*
+   * "Hoje / Segunda, 28 de setembro" numa aula da semana passada dizia que ela
+   * era de hoje. Fora de hoje, o caminho sobe para a semana dela na Agenda;
+   * quem atende não tem a Agenda, e volta para Hoje.
+   */
+  const ehHoje = sessao.data === hojeEm(conta.fuso)
+  const origem = ehHoje || conta.papel === 'profissional'
+    ? { href: '/hoje', rotulo: 'Hoje' }
+    : { href: `/semana?de=${sessao.data}`, rotulo: 'Agenda' }
+
   // a contagem do cabeçalho: quem chega antes da turma quer saber quanto falta
   const falta = quantoFalta(sessao.inicio, agoraMs(), conta.fuso)
   const comecaEm = cancelada || falta === 'já começou'
@@ -87,7 +97,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
       >
         <div className="flex flex-col gap-4">
           <nav className="flex items-center gap-2.5 text-[13.5px] text-tinta-media">
-            <Link href="/hoje" className="font-medium text-marca">Hoje</Link>
+            <Link href={origem.href} className="font-medium text-marca">{origem.rotulo}</Link>
             <span aria-hidden className="font-mono">/</span>
             <span>{dataLonga}</span>
             <span aria-hidden className="font-mono">/</span>
@@ -204,8 +214,8 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
 
               <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
                 <p className="text-[13.5px] leading-relaxed text-tinta-media">
-                  O registro aplica na hora e sincroniza depois. Sem sinal nada se
-                  perde, o aviso aparece e a chamada continua.
+                  A chamada salva a cada toque. Se a internet cair, nada se perde:
+                  ela continua e é enviada quando a conexão voltar.
                 </p>
               </section>
             </div>

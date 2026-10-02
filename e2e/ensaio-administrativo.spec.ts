@@ -299,7 +299,7 @@ test.describe.serial('o ciclo administrativo, de ponta a ponta', () => {
      * nenhuma asserção de "está visível" perceberia.
      */
     const umPrecoSo = CATALOGO.planos.filter((p) => p.vinc === p.avulso).length
-    await expect(page.getByText('mesma', { exact: true })).toHaveCount(umPrecoSo)
+    await expect(page.getByText('Preço único', { exact: true })).toHaveCount(umPrecoSo)
   })
 
   test('quem emite o recibo entra pela tela, antes de gastar número', async ({ page }) => {

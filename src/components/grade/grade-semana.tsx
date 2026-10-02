@@ -84,8 +84,7 @@ export function GradeSemana({
           Nenhum horário nesta semana
         </span>
         <span className="max-w-[380px] text-[14px] leading-relaxed text-tinta-media">
-          Conta nova começa assim. A grade nasce em Grade fixa, é lá que se diz
-          o que se repete toda semana. Não é falha de carregamento.
+          Os horários aparecem aqui depois de cadastrados em Grade fixa.
         </span>
         <Link
           href="/grade"

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
-import { BotaoLinha, Dado, Estado, LinhaConfig, PainelConfig } from './casca'
+import { BotaoLinha, Estado, LinhaConfig, PainelConfig } from './casca'
 import { Chip } from '@/components/ui/pecas'
 import { Escolha } from '@/components/ui/escolha'
 import { CampoNumero } from '@/components/ui/campo-numero'
@@ -167,20 +167,19 @@ export function SecaoPlanos({
             <LinhaConfig
               key={p.id}
               apagado={!p.ativo}
-              antes={<Dado>{p.codigo}</Dado>}
               nome={p.nome}
-              detalhe={`${p.servicoNome} · ${comoCobra(p)}`}
+              detalhe={`${p.servicoNome} · ${comoCobra(p)} · código ${p.codigo}`}
             >
-              <span className="font-mono text-[13.5px]">
-                {emReais(p.precoVinculadoCent)}
-              </span>
-              <span className="font-mono text-[13.5px] text-tinta-media">
-                {p.precoAvulsoCent === p.precoVinculadoCent
-                  /* repetir o mesmo número duas vezes faz procurar a diferença
-                     que não existe */
-                  ? 'mesma'
-                  : emReais(p.precoAvulsoCent)}
-              </span>
+              {/* dois números soltos, sem cabeçalho, e um "mesma" no lugar do
+                  segundo: cada preço agora diz de quem é */}
+              {p.precoAvulsoCent === p.precoVinculadoCent ? (
+                <Preco rotulo="Preço único" valor={p.precoVinculadoCent} />
+              ) : (
+                <span className="flex gap-4">
+                  <Preco rotulo="Já é cliente" valor={p.precoVinculadoCent} />
+                  <Preco rotulo="Preço cheio" valor={p.precoAvulsoCent} />
+                </span>
+              )}
               <Estado ativo={p.ativo} />
               <BotaoLinha onClick={() => { setErro(null); setEdicao(p) }}>
                 Editar
@@ -282,7 +281,7 @@ function FormularioDePlano({
         <Campo rotulo="Código" htmlFor="pl-cod" obrigatorio>
           <input
             id="pl-cod" name="codigo" required maxLength={12}
-            defaultValue={plano?.codigo} placeholder="001"
+            defaultValue={plano?.codigo} placeholder="Exemplo: 001"
             className={`${entrada} font-mono`}
           />
         </Campo>
@@ -388,5 +387,14 @@ function FormularioDePlano({
       {precoRuim ? <Nota tom="alerta">{precoRuim}</Nota> : null}
       {erro ? <Nota tom="alerta">{erro}</Nota> : null}
     </ModalFormulario>
+  )
+}
+
+function Preco({ rotulo, valor }: { rotulo: string; valor: number }) {
+  return (
+    <span className="flex flex-col items-end leading-[1.3]">
+      <span className="text-[11.5px] text-tinta-fraca">{rotulo}</span>
+      <span className="font-mono text-[13.5px]">{emReais(valor)}</span>
+    </span>
   )
 }

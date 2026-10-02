@@ -156,7 +156,7 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
       href: '/grade',
       alvo: 'rail-config',
       titulo: 'A configuração é o que torna isto seu',
-      texto: `É aqui que o sistema deixa de ser genérico: o que você oferece, quem atende, onde acontece, e as palavras que aparecem nas telas.`,
+      texto: `Aqui ficam o que você oferece, quem atende, onde acontece e as palavras que aparecem nas telas.`,
     },
     {
       href: '/config',

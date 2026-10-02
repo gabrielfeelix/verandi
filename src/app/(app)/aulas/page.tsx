@@ -106,13 +106,13 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
                 <thead>
                   <tr className="border-b border-linha-fina text-left">
                     <Cabeca>{rotulos.profissional.singular}</Cabeca>
-                    <Cabeca numero>Aulas</Cabeca>
+                    <Cabeca numero>Dadas</Cabeca>
                     <Cabeca numero>Presenças</Cabeca>
-                    <Cabeca numero>Com gente</Cabeca>
+                    <Cabeca numero>Com presença</Cabeca>
                     <Cabeca numero>Sem ninguém</Cabeca>
                     <Cabeca numero>Sem chamada</Cabeca>
                     <Cabeca numero>Canceladas</Cabeca>
-                    <Cabeca numero>Por dar</Cabeca>
+                    <Cabeca numero>A acontecer</Cabeca>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,10 +146,9 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
 
             <div className="border-t border-linha-fina bg-superficie-suave px-5 py-4">
               <p className="text-[13.5px] leading-relaxed text-tinta-media">
-                <strong>Aula aplicada</strong> é a que já aconteceu e não foi
-                cancelada, mesmo quando ninguém apareceu: quem atende foi ao
-                estúdio e esperou. As colunas ao lado existem para você conferir
-                esse número, e não para acreditar nele.
+                <strong>Dadas</strong> são as aulas que já aconteceram e não foram
+                canceladas, mesmo quando ninguém apareceu. As outras colunas
+                detalham esse número.
                 {/* as frases concordam no singular: "As 1 canceladas" é o
                     tipo de erro que aparece justamente no mês tranquilo */}
                 {r.total.porFeriado > 0 ? (

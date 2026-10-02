@@ -104,7 +104,7 @@ export function PainelDeAvaliacao({
         <Vazio
           icone="pessoas"
           titulo="Nenhuma avaliação ainda"
-          texto="A comparação aparece a partir da segunda. Não é falha de carregamento: ninguém registrou a primeira."
+          texto="Registre a primeira avaliação. A comparação aparece a partir da segunda."
         />
       ) : (
         <>

@@ -125,7 +125,7 @@ export function SecaoRecibo({
           <Campo
             rotulo="CNPJ ou CPF"
             htmlFor="em-doc"
-            dica="só dígitos; é o que torna o papel oponível a alguém"
+            dica="Só os números. Sai impresso no recibo."
             obrigatorio
           >
             <input

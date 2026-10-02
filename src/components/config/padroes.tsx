@@ -182,7 +182,7 @@ export function SecaoPadroes({
 
         <LinhaPadrao
           rotulo="Encaixe acima da capacidade"
-          detalhe="Vale para quem está na recepção. A busca de vaga e a API continuam sem oferecer horário cheio, 5/4 é sempre alguém decidindo"
+          detalhe="Vale para encaixes feitos pela equipe. A busca de vaga e o agendamento automático nunca oferecem horário cheio."
         >
           <Opcoes
             rotulo="Encaixe acima da capacidade"

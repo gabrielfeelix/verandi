@@ -30,7 +30,7 @@ test('cadastrar plano, e o código repetido dizer de quem é', async ({ page }) 
   await expect(page.getByText('Todo mês · 2 horários')).toBeVisible()
   // preço igual nos dois não se repete: número repetido faz procurar a
   // diferença que não existe
-  await expect(page.getByText('mesma').first()).toBeVisible()
+  await expect(page.getByText('Preço único').first()).toBeVisible()
   // o grupo é a categoria da modalidade, e não o nome dela
   await expect(page.getByText('Pilates · 1')).toBeVisible()
 

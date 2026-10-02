@@ -8,7 +8,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 
 ## Para quem continua (02/out, depois de `17fe970`)
 
-Feitos e no ar: 1 a 35, mais 45, 46, 55, 56 e 60. Próximo: **36**. Um commit por item ou
+Feitos e no ar: 1 a 46, mais 55, 56 e 60. Próximo: **47**. Um commit por item ou
 por tela, push na hora (push na `main` publica na Vercel).
 
 - **Validar:** `npx tsc --noEmit -p .`, e só o spec e2e da tela mexida. Nunca a
@@ -87,15 +87,15 @@ por tela, push na hora (push na `main` publica na Vercel).
 - [x] 33. Financeiro: "o objetivo é zerar", "Ticket médio", "sem recorte de data".
 - [x] 34. Financeiro Todas abre pelas futuras (nov); atrasadas enterradas.
 - [x] 35. Fechamento com texto de engenheiro ("A carteira", "preço de vínculo custa...").
-36. Grade fixa com nota interna no subtítulo (`grade/page.tsx:48,149`).
-37. Aulas: "Aula aplicada", "Com gente", "Por dar" (`aulas/page.tsx:149`).
-38. Sessão: "aplica na hora e sincroniza depois", "Turma criada pela série".
-39. Encaixe do dono aparece como "marcado avulso pela recepção".
-40. Breadcrumb "Hoje / Segunda, 28 de setembro" em aula passada.
-41. Config: "deixa de ser genérico e vira o sistema do negócio".
-42. Config Padrões fala de "API" e "5/4 é sempre alguém decidindo".
-43. Config Recibo: "oponível a alguém".
-44. Config Planos: coluna "mesma" sem cabeçalho, códigos 001/002 sem sentido.
+- [x] 36. Grade fixa com nota interna no subtítulo (`grade/page.tsx:48,149`).
+- [x] 37. Aulas: "Aula aplicada", "Com gente", "Por dar" (`aulas/page.tsx:149`).
+- [x] 38. Sessão: "aplica na hora e sincroniza depois", "Turma criada pela série".
+- [x] 39. Encaixe do dono aparece como "marcado avulso pela recepção".
+- [x] 40. Breadcrumb "Hoje / Segunda, 28 de setembro" em aula passada.
+- [x] 41. Config: "deixa de ser genérico e vira o sistema do negócio".
+- [x] 42. Config Padrões fala de "API" e "5/4 é sempre alguém decidindo".
+- [x] 43. Config Recibo: "oponível a alguém".
+- [x] 44. Config Planos: coluna "mesma" sem cabeçalho, códigos 001/002 sem sentido.
 - [x] 45. Folha do recibo: "CNPJ/CPF" mostra os dois rótulos.
 - [x] 46. Recibos: "na série A", "versões substituídas por outra".
 47. Buscar vaga: "Faixa de dias" mistura período e turno; falta "Tarde".
