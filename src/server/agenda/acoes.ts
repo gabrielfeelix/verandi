@@ -9,6 +9,9 @@ import { avisarQuemEspera } from './espera'
 import type { OrigemParticipacao } from './consultas'
 import { semAcento } from '../pessoas/consultas'
 import { CANDIDATOS_EM_MEMORIA } from '@/core/pessoas/busca'
+import { horariosLivres } from './disponibilidade'
+import { hojeEm } from './fuso'
+import { somarDias } from '@/core/agenda/datas'
 
 /** De qual lado do balcão veio o registro. Serve auditoria, não permissão. */
 async function quemRegistra() {
@@ -380,4 +383,65 @@ export async function buscarCandidatos(
     // algo que desambigua: nomes se repetem e são escritos de formas diferentes
     detalhe: p.telefone ?? p.identificador_externo ?? 'sem telefone',
   }))
+}
+
+export type AulaParaRepor = {
+  sessaoId: string
+  data: string
+  hora: string
+  profissional: string | null
+  local: string | null
+  livres: number
+}
+
+/**
+ * As próximas aulas com lugar, da modalidade da falta, para repor.
+ *
+ * Duas semanas: é o horizonte em que a recepção combina reposição no balcão, e
+ * a lista cabe no modal sem virar a busca de vaga inteira.
+ */
+export async function aulasParaRepor(servicoId: string | null): Promise<AulaParaRepor[]> {
+  const conta = await exigirConta()
+  const db = await clienteServidor()
+  const hoje = hojeEm(conta.fuso)
+  const agora = new Date().toISOString()
+  const { livres } = await horariosLivres(db, conta.contaId, {
+    de: hoje, ate: somarDias(hoje, 13), servicoId: servicoId ?? undefined,
+  })
+  return livres
+    // a aula de hoje que já começou não é lugar para ninguém repor
+    .filter((s) => s.inicio > agora)
+    .sort((a, b) => a.inicio.localeCompare(b.inicio))
+    .map((s) => ({
+      sessaoId: s.id,
+      data: s.data,
+      hora: s.hora,
+      profissional: s.profissional,
+      local: s.local,
+      livres: s.ocupacao.livres,
+    }))
+}
+
+/**
+ * Usar o crédito da falta: encaixa como reposição, já ligada à falta que paga.
+ *
+ * É o caminho que faltava na ficha. Antes o crédito aparecia ali, e para usá-lo
+ * era preciso ir a outra tela, encaixar, e voltar ao menu da pessoa para
+ * apontar a falta: dois passos soltos, e o segundo esquecido deixava crédito
+ * em aberto para sempre.
+ */
+export async function agendarReposicao(
+  faltaId: string, sessaoId: string, pessoaId: string,
+): Promise<ResultadoEncaixe> {
+  const { db, conta, carimbo } = await quemRegistra()
+  // a falta tem de ser desta pessoa, nesta conta: o id vem do navegador
+  const { data: falta } = await db.from('participacao').select('id')
+    .eq('id', faltaId).eq('pessoa_id', pessoaId).eq('conta_id', conta.contaId)
+    .maybeSingle()
+  if (!falta) return { ok: false, motivo: 'sessao_inexistente' }
+  const r = await encaixarNaSessao(db, conta.contaId, carimbo, {
+    sessaoId, pessoaId, origem: 'reposicao', reposicaoDeId: faltaId,
+  })
+  if (r.ok) atualizarTela(sessaoId)
+  return r
 }

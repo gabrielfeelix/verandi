@@ -35,7 +35,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 
 ## Confuso
 
-13. Reposições na ficha sem botão de usar o crédito: "Agendar reposição" abrindo o
+- [x] 13. Reposições na ficha sem botão de usar o crédito: "Agendar reposição" abrindo o
     encaixe com origem Reposição.
 14. Encaixe grava como Avulso no toque do nome, antes de escolher a origem
     (`src/components/sessao/modal-encaixe.tsx`).

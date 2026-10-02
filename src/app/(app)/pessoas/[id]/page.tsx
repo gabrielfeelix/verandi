@@ -9,6 +9,7 @@ import {
   AtenderPedidoDeExclusao, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
 } from '@/components/pessoas/acoes-da-ficha'
 import { BotaoAgendar, ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
+import { ReposicoesAbertas } from '@/components/pessoas/reposicoes'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { AbasDaFicha } from '@/components/pessoas/abas-da-ficha'
 import { Etiqueta, Rotulo, Vazio, cartao } from '@/components/ui/pecas'
@@ -580,51 +581,18 @@ export default async function Pessoa({
 
           reposicoes: (
             <section className="rounded-cartao border border-atencao-linha bg-atencao-superficie p-4">
-              <div className="flex items-center justify-between pb-3">
-                <h2 className="font-titulo text-[18px] font-semibold">
-                  Reposições em aberto
-                </h2>
-                <span className="flex size-6 items-center justify-center rounded-peca bg-atencao-fundo text-[13px] font-semibold text-atencao">
-                  {ficha.reposicoesAbertas.length}
-                </span>
-              </div>
-
-              {ficha.reposicoesAbertas.length === 0 ? (
-                <Vazio
-                  icone="check"
-                  titulo="Nenhuma. Nada a cobrar de volta."
-                  texto="Faltas que geraram crédito e ainda não foram repostas aparecem aqui."
-                />
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {ficha.reposicoesAbertas.map((r) => (
-                    <li
-                      key={r.id}
-                      className="flex items-center gap-2.5 rounded-media border border-atencao-linha bg-superficie px-3 py-[11px]"
-                    >
-                      <span className="flex min-w-0 flex-1 flex-col leading-[1.35]">
-                        <span className="truncate text-[14.5px] font-medium">
-                          {r.servico} · {curta(r.data)} {r.hora}
-                        </span>
-                        <span className="text-[12.5px] text-tinta-fraca">
-                          {ROTULO_STATUS[r.status] ?? r.status}
-                        </span>
-                      </span>
-                      <Link
-                        href={`/sessao/${r.sessaoId}`}
-                        className="shrink-0 rounded-peca bg-atencao px-3 py-2 text-[13.5px] font-medium text-white transition-colors duration-150 hover:bg-[#75591C]"
-                      >
-                        Ver a aula
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <p className="pt-3 text-[12.5px] leading-[1.55] text-tinta-apagada">
-                Para usar um crédito, encaixe a pessoa num horário e aponte a
-                falta pelo menu dela na tela do horário.
-              </p>
+              <ReposicoesAbertas
+                pessoaId={p.id}
+                podeAgendar={operacional}
+                creditos={ficha.reposicoesAbertas.map((r) => ({
+                  id: r.id,
+                  sessaoId: r.sessaoId,
+                  servicoId: r.servicoId,
+                  servico: r.servico,
+                  titulo: `${r.servico} · ${curta(r.data)} ${r.hora}`,
+                  sub: ROTULO_STATUS[r.status] ?? r.status,
+                }))}
+              />
             </section>
           ),
 
