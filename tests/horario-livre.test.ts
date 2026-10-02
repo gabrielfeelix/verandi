@@ -76,6 +76,31 @@ describe('horário livre', () => {
     expect((await marcar('sex', true)).ok).toBe(true)
   })
 
+  it('plano de terça e quinta recusa a sexta, e aceita a quinta', async () => {
+    const { data: s2 } = await db.from('servico')
+      .insert({ conta_id: contaId, nome: 'Funcional' }).select().single()
+    const { data: pl2 } = await db.from('plano').insert({
+      conta_id: contaId, servico_id: s2!.id, codigo: '011',
+      nome: 'Terça e quinta', recorrencia: 'mensal',
+      frequencia_semanal: 2, horario_livre: true, dias_permitidos: [2, 4],
+      preco_vinculado_cent: 15000, preco_avulso_cent: 15000,
+    }).select().single()
+    await db.from('contrato').insert({
+      conta_id: contaId, pessoa_id: pessoaId, plano_id: pl2!.id,
+      inicio: '2026-01-01', preco_aplicado_cent: 15000, vinculo_usado: false,
+    })
+    const nova = async (inicio: string) => (await db.from('sessao').insert({
+      conta_id: contaId, servico_id: s2!.id, inicio, duracao_min: 60, capacidade: 8,
+    }).select('id').single()).data!.id
+    const sexta = await nova('2027-10-08T18:00:00Z')
+    const quinta = await nova('2027-10-07T22:00:00Z')
+    const r = await encaixarNaSessao(db, contaId, carimbo,
+      { sessaoId: sexta, pessoaId, origem: 'avulso' })
+    expect(r).toMatchObject({ ok: false, motivo: 'dia_nao_permitido', dias: [2, 4] })
+    expect((await encaixarNaSessao(db, contaId, carimbo,
+      { sessaoId: quinta, pessoaId, origem: 'avulso' })).ok).toBe(true)
+  })
+
   it('a semana começa na segunda', () => {
     expect(segundaDaSemana('2027-10-10')).toBe('2027-10-04')
     expect(segundaDaSemana('2027-10-11')).toBe('2027-10-11')

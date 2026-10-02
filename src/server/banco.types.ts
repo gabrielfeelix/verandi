@@ -1394,6 +1394,7 @@ export type Database = {
           criado_em: string
           frequencia_semanal: number | null
           horario_livre: boolean
+          dias_permitidos: number[] | null
           id: string
           nome: string
           parcelas: number
@@ -1411,6 +1412,7 @@ export type Database = {
           criado_em?: string
           frequencia_semanal?: number | null
           horario_livre?: boolean
+          dias_permitidos?: number[] | null
           id?: string
           nome: string
           parcelas?: number
@@ -1428,6 +1430,7 @@ export type Database = {
           criado_em?: string
           frequencia_semanal?: number | null
           horario_livre?: boolean
+          dias_permitidos?: number[] | null
           id?: string
           nome?: string
           parcelas?: number

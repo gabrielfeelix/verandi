@@ -17,7 +17,7 @@ import { anteciparCobrancas } from '@/server/financeiro/acoes'
 import { MAXIMO_MESES_ANTECIPADOS } from '@/core/financeiro/cobranca'
 import type { ContratoLinha } from '@/server/contratos/consultas'
 import type { PlanoLinha } from '@/server/planos/consultas'
-import { comoCobra, emReais } from '@/core/planos/plano'
+import { comoCobra, emReais, nomesDosDias } from '@/core/planos/plano'
 import { erroLegivel } from '@/core/erro-legivel'
 
 /**
@@ -454,7 +454,7 @@ export function NovaMatricula({
 
               {plano.horarioLivre && plano.frequenciaSemanal ? (
                 <Nota tom="neutro">
-                  {`Horário livre: ${pessoaNome.split(' ')[0]} marca até ${plano.frequenciaSemanal} ${plano.frequenciaSemanal === 1 ? 'aula' : 'aulas'} por semana, em qualquer horário de ${plano.servicoNome} que tenha lugar. Cada aula se marca na sessão, pelo Encaixe, ou pelo atendimento automático.`}
+                  {`Horário livre: ${pessoaNome.split(' ')[0]} marca até ${plano.frequenciaSemanal} ${plano.frequenciaSemanal === 1 ? 'aula' : 'aulas'} por semana, em qualquer horário de ${plano.servicoNome}${plano.diasPermitidos?.length ? ` (só ${nomesDosDias(plano.diasPermitidos)})` : ''} que tenha lugar. Cada aula se marca na sessão, pelo Encaixe, ou pelo atendimento automático.`}
                 </Nota>
               ) : null}
 

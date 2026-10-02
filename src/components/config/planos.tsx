@@ -16,7 +16,7 @@ import type { PlanoLinha } from '@/server/planos/consultas'
 import type { ServicoLinha } from '@/server/config/consultas'
 import type { Rotulo } from '@/core/vocabulario/padrao'
 import {
-  comoCobra, emCentavos, emReais, seRepete, RECORRENCIAS, type Recorrencia,
+  comoCobra, emCentavos, emReais, nomesDosDias, seRepete, RECORRENCIAS, type Recorrencia,
 } from '@/core/planos/plano'
 import { erroLegivel } from '@/core/erro-legivel'
 
@@ -239,6 +239,7 @@ function FormularioDePlano({
   const [recorrencia, setRecorrencia] = useState<Recorrencia>(
     plano?.recorrencia ?? 'mensal')
   const [livre, setLivre] = useState(plano?.horarioLivre ?? false)
+  const [dias, setDias] = useState<number[]>(plano?.diasPermitidos ?? TODOS_OS_DIAS)
   const [precoRuim, setPrecoRuim] = useState<string | null>(null)
 
   return (
@@ -268,6 +269,7 @@ function FormularioDePlano({
             ? Number(f.get('frequenciaSemanal') ?? 0) || null
             : null,
           horarioLivre: seRepete(recorrencia) && livre,
+          diasPermitidos: seRepete(recorrencia) && livre ? dias : null,
           sessoesNoPacote: recorrencia === 'pacote'
             ? Number(f.get('sessoesNoPacote') ?? 0) || null
             : null,
@@ -349,6 +351,42 @@ function FormularioDePlano({
               </button>
             ))}
           </div>
+        </fieldset>
+      ) : null}
+
+      {seRepete(recorrencia) && livre ? (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+            Em quais dias pode marcar
+          </legend>
+          <div className="flex flex-wrap gap-1.5">
+            {[1, 2, 3, 4, 5, 6, 0].map((d) => {
+              const marcado = dias.includes(d)
+              // o último dia não sai: plano sem dia nenhum não marca aula nunca
+              const unico = marcado && dias.length === 1
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  aria-pressed={marcado}
+                  disabled={unico}
+                  onClick={() => setDias((a) => marcado ? a.filter((x) => x !== d) : [...a, d])}
+                  className={`flex min-h-10 min-w-[54px] items-center justify-center rounded-padrao border px-3 text-[14px] transition-colors duration-150 ${
+                    marcado
+                      ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+                      : 'cursor-pointer border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
+                  } ${unico ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  {DIAS_DO_PLANO[d]}
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-[13px] text-tinta-media">
+            {dias.length === 7
+              ? 'Qualquer dia da semana, em qualquer horário que tenha lugar.'
+              : `Só ${nomesDosDias(dias)}, em qualquer horário desses dias que tenha lugar.`}
+          </p>
         </fieldset>
       ) : null}
 
@@ -439,3 +477,6 @@ function Preco({ rotulo, valor }: { rotulo: string; valor: number }) {
     </span>
   )
 }
+
+const TODOS_OS_DIAS = [0, 1, 2, 3, 4, 5, 6]
+const DIAS_DO_PLANO = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']

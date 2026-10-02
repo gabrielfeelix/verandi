@@ -1,5 +1,6 @@
 'use client'
 
+import { nomesDosDias } from '@/core/planos/plano'
 import { useEffect, useState, useTransition } from 'react'
 import type { Ocupacao } from '@/core/agenda/ocupacao'
 import { filtrarPorNome } from '@/core/pessoas/busca'
@@ -118,6 +119,13 @@ export function ModalEncaixe({
       }
       if (r.motivo === 'acima_da_capacidade') {
         setExcedente(pessoaId)
+        return
+      }
+      if (r.motivo === 'dia_nao_permitido') {
+        setNoLimite({
+          pessoaId,
+          texto: `O plano ${r.plano} vale só ${nomesDosDias(r.dias)}.`,
+        })
         return
       }
       if (r.motivo === 'limite_da_semana') {

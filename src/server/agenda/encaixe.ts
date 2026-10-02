@@ -44,6 +44,7 @@ export type ResultadoEncaixe =
   | { ok: true; participacaoId: string }
   | { ok: false; motivo: 'lotada' | 'ja_participa' | 'acima_da_capacidade' | 'sessao_inexistente' }
   | { ok: false; motivo: 'limite_da_semana'; limite: number; plano: string }
+  | { ok: false; motivo: 'dia_nao_permitido'; dias: number[]; plano: string }
 
 /**
  * Confere a vaga **na hora de gravar**, relendo a ocupação, e não confia no que
@@ -104,6 +105,10 @@ export async function encaixarNaSessao(
       dataLocal(sessao.inicio, fuso))
     if (livre) {
       contratoId = livre.id
+      const dia = new Date(`${dataLocal(sessao.inicio, fuso)}T12:00:00Z`).getUTCDay()
+      if (!entrada.passarDoLimite && livre.dias && !livre.dias.includes(dia)) {
+        return { ok: false, motivo: 'dia_nao_permitido', dias: livre.dias, plano: livre.plano }
+      }
       if (!entrada.passarDoLimite) {
         const { data: dele } = await db.from('participacao')
           .select('status, sessao!inner(inicio, status)')
@@ -151,14 +156,19 @@ export async function encaixarNaSessao(
  */
 async function contratoLivre(
   db: Db, contaId: string, pessoaId: string, servicoId: string, dia: string,
-): Promise<{ id: string; limite: number; plano: string } | null> {
+): Promise<{ id: string; limite: number; plano: string; dias: number[] | null } | null> {
   const { data, error } = await db.from('contrato')
-    .select('id, inicio, fim, plano!inner(nome, servico_id, horario_livre, frequencia_semanal)')
+    .select('id, inicio, fim, plano!inner(nome, servico_id, horario_livre, frequencia_semanal, dias_permitidos)')
     .eq('conta_id', contaId).eq('pessoa_id', pessoaId).eq('status', 'ativo')
     .eq('plano.horario_livre', true).eq('plano.servico_id', servicoId)
     .lte('inicio', dia)
   if (error) throw error
   const valendo = (data ?? []).find((c) => c.fim === null || c.fim >= dia)
   if (!valendo || !valendo.plano.frequencia_semanal) return null
-  return { id: valendo.id, limite: valendo.plano.frequencia_semanal, plano: valendo.plano.nome }
+  return {
+    id: valendo.id,
+    limite: valendo.plano.frequencia_semanal,
+    plano: valendo.plano.nome,
+    dias: valendo.plano.dias_permitidos?.length ? valendo.plano.dias_permitidos : null,
+  }
 }

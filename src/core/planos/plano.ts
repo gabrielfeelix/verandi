@@ -15,6 +15,8 @@ export type PlanoBase = {
   frequenciaSemanal: number | null
   /** a frequência é um limite por semana, e não lugares fixos na grade */
   horarioLivre?: boolean
+  /** no horário livre, os dias da semana em que pode marcar (0 = domingo); nulo é qualquer dia */
+  diasPermitidos?: number[] | null
   sessoesNoPacote: number | null
   validadeMeses: number | null
   precoVinculadoCent: number
@@ -102,8 +104,16 @@ export function comoCobra(plano: PlanoBase): string {
   const horarios = !plano.frequenciaSemanal
     ? null
     : plano.horarioLivre
-      ? `até ${plano.frequenciaSemanal} por semana, horário livre`
+      ? `até ${plano.frequenciaSemanal} por semana, horário livre${plano.diasPermitidos?.length ? `, ${nomesDosDias(plano.diasPermitidos)}` : ''}`
       : `${plano.frequenciaSemanal} ${plano.frequenciaSemanal === 1 ? 'horário fixo' : 'horários fixos'}`
 
   return [quando, horarios].filter(Boolean).join(' · ')
+}
+
+const DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+
+/** [2, 4] vira "ter e qui", na ordem da semana de quem trabalha */
+export function nomesDosDias(dias: number[]): string {
+  const nomes = [1, 2, 3, 4, 5, 6, 0].filter((d) => dias.includes(d)).map((d) => DIAS_CURTOS[d])
+  return nomes.length > 1 ? `${nomes.slice(0, -1).join(', ')} e ${nomes.at(-1)}` : nomes[0] ?? ''
 }

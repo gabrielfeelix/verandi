@@ -37,6 +37,7 @@ export type EntradaDePlano = {
   parcelas: number
   frequenciaSemanal: number | null
   horarioLivre: boolean
+  diasPermitidos: number[] | null
   sessoesNoPacote: number | null
   validadeMeses: number | null
   precoVinculadoCent: number
@@ -67,6 +68,9 @@ function paraLinha(e: EntradaDePlano) {
     parcelas: e.parcelas,
     frequencia_semanal: e.frequenciaSemanal,
     horario_livre: e.frequenciaSemanal ? e.horarioLivre : false,
+    // todos os dias marcados é o mesmo que nenhuma restrição
+    dias_permitidos: e.frequenciaSemanal && e.horarioLivre && e.diasPermitidos?.length
+      && e.diasPermitidos.length < 7 ? [...new Set(e.diasPermitidos)].sort() : null,
     sessoes_no_pacote: e.sessoesNoPacote,
     validade_meses: e.validadeMeses,
     preco_vinculado_cent: e.precoVinculadoCent,
