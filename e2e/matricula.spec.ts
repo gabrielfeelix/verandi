@@ -180,23 +180,34 @@ test('trancar devolve o lugar para o horário, e retomar traz de volta', async (
   }).toBe(2)
 })
 
-test('a mesma pessoa não entra duas vezes no mesmo horário', async ({ page }) => {
+test('quem já está no horário sem contrato é adotado, sem entrar duas vezes', async ({ page }) => {
   const c = await cenario('Estúdio do em dobro')
 
-  await admin.from('vaga').insert({
+  // matriculada antes de existir contrato
+  const { data: antiga } = await admin.from('vaga').insert({
     conta_id: c.contaId, serie_id: c.turmas[0], pessoa_id: c.pessoaId,
     inicio: '2026-01-01',
-  })
+  }).select('id').single()
 
   await entrar(page, c.email)
   await page.goto(`/pessoas/${c.pessoaId}?aba=contratos`)
   await page.getByRole('button', { name: 'Novo contrato' }).click()
   await page.getByRole('button', { name: /Mensal, 2x por semana/ }).click()
-  await page.getByRole('button', { name: /Segunda 07:00/ }).click()
+  // o horário dela já vem marcado: clicar de novo o desmarcaria
+  await expect(page.getByRole('button', { name: /Segunda 07:00/ })).toContainText('já está aqui')
   await page.getByRole('button', { name: /Quarta 09:00/ }).click()
   await page.getByRole('button', { name: 'Criar contrato' }).click()
 
-  await expect(page.getByText(/já ocupa o horário de Segunda às 07:00/)).toBeVisible()
+  await expect(page.getByText('Em vigor', { exact: true })).toBeVisible()
+
+  // a vaga antiga ganhou o contrato, e nenhuma segunda nasceu na segunda-feira
+  const { data } = await admin.from('vaga')
+    .select('id, serie_id, contrato_id').eq('pessoa_id', c.pessoaId)
+  const naSegunda = data!.filter((v) => v.serie_id === c.turmas[0])
+  expect(naSegunda).toHaveLength(1)
+  expect(naSegunda[0].id).toBe(antiga!.id)
+  expect(naSegunda[0].contrato_id).not.toBeNull()
+  expect(data!.filter((v) => v.contrato_id === naSegunda[0].contrato_id)).toHaveLength(2)
 })
 
 test('o CPF errado não entra na ficha, e o certo entra', async ({ page }) => {

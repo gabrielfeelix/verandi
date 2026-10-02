@@ -43,6 +43,8 @@ export type HorarioEscolhivel = {
   local: string | null
   capacidade: number
   ocupadas: number
+  /** a pessoa já está matriculada aqui sem contrato: o contrato novo adota */
+  jaOcupa?: boolean
 }
 
 const DIAS = [
@@ -86,6 +88,17 @@ export function NovaMatricula({
     [plano, horarios])
 
   const pede = plano?.frequenciaSemanal ?? 0
+  // os horários em que ela já está, sem contrato, na modalidade do plano
+  const minhas = doPlano.filter((t) => t.jaOcupa)
+
+  function escolherPlano(id: string) {
+    setPlanoId(id)
+    const p = ativos.find((x) => x.id === id)
+    // quem já frequenta não precisa ser procurado na grade: os horários dela
+    // vêm marcados, até o que o plano pede
+    const dela = horarios.filter((t) => t.jaOcupa && t.servicoId === p?.servicoId)
+    setEscolhidas(dela.slice(0, p?.frequenciaSemanal ?? 0).map((t) => t.id))
+  }
 
   function fechar() {
     setAberto(false)
@@ -144,7 +157,7 @@ export function NovaMatricula({
                     <button
                       key={p.id}
                       type="button"
-                      onClick={() => { setPlanoId(p.id); setEscolhidas([]) }}
+                      onClick={() => escolherPlano(p.id)}
                       className={`flex flex-wrap items-center justify-between gap-2 rounded-media border px-3.5 py-2.5 text-left transition-colors duration-150 ${
                         planoId === p.id
                           ? 'border-marca bg-positivo-superficie'
@@ -175,6 +188,17 @@ export function NovaMatricula({
                   <p className="pb-1 text-[13.5px] text-tinta-media">
                     {`o plano pede ${pede}, e ${escolhidas.length} ${escolhidas.length === 1 ? 'foi escolhido' : 'foram escolhidos'}`}
                   </p>
+                  {minhas.length > pede ? (
+                    <Nota tom="atencao">
+                      {`${pessoaNome} já está em ${minhas.length} horários de ${plano.servicoNome}, e o plano é de ${pede} por semana. Os que ficarem sem marcar continuam como estão, sem contrato.`}
+                    </Nota>
+                  ) : minhas.length > 0 ? (
+                    <Nota tom="neutro">
+                      {minhas.length === 1
+                        ? 'O horário em que a pessoa já está veio marcado e passa a fazer parte do contrato.'
+                        : 'Os horários em que a pessoa já está vieram marcados e passam a fazer parte do contrato.'}
+                    </Nota>
+                  ) : null}
                   {doPlano.length === 0 ? (
                     <Nota tom="atencao">
                       A grade não tem horário fixo de {plano.servicoNome}. Monte
@@ -183,7 +207,8 @@ export function NovaMatricula({
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {doPlano.map((t) => {
-                        const cheia = t.ocupadas >= t.capacidade
+                        // o lugar dela já conta na ocupação: cheio, para ela, não está
+                        const cheia = !t.jaOcupa && t.ocupadas >= t.capacidade
                         const marcada = escolhidas.includes(t.id)
                         return (
                           <Chip
@@ -203,7 +228,7 @@ export function NovaMatricula({
                                   é descobrir que a horário estava cheia no envio */}
                               <span className="text-[12px] opacity-70">
                                 {t.ocupadas}/{t.capacidade}
-                                {cheia ? ' · cheia' : ''}
+                                {t.jaOcupa ? ' · já está aqui' : cheia ? ' · cheia' : ''}
                                 {t.profissional ? ` · ${t.profissional}` : ''}
                               </span>
                             </span>

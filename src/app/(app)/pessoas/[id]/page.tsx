@@ -651,6 +651,8 @@ export default async function Pessoa({
                       local: s.local,
                       capacidade: s.capacidade,
                       ocupadas: s.ocupadas,
+                      jaOcupa: ficha.vagas.some((v) => v.serieId === s.id
+                        && v.contratoId === null && v.fim === null),
                     }))}
                 />
               </div>

@@ -30,7 +30,7 @@ export type PessoaLinha = {
   faltasRecentes: number
   reposicoesAbertas: number
   ultimaPresenca: string | null
-  /** o horário fixo em si — "Qua 09:00" —, não quantos são */
+  /** o horário fixo em si ("Qua 09:00"), não quantos são */
   horarioFixo: { diaSemana: number; hora: string } | null
   tags: string[]
 }
@@ -69,7 +69,7 @@ export const POR_PAGINA = 20
 export type OpcoesLista = {
   busca?: string
   filtros?: FiltroPessoa[]
-  /** só quem tem esta etiqueta — é o chip "Gestante" da tela */
+  /** só quem tem esta etiqueta: é o chip "Gestante" da tela */
   tag?: string
   fuso?: string
   /** 1-indexada; sem ela vem a página 1 */
@@ -82,7 +82,7 @@ export type OpcoesLista = {
  * Os filtros aplicados na consulta, num lugar só.
  *
  * Existe porque a contagem de cada chip roda exatamente a mesma pergunta que a
- * lista — e duas cópias da regra de "plano vencendo" acabariam discordando no
+ * lista: e duas cópias da regra de "plano vencendo" acabariam discordando no
  * dia em que uma das duas mudasse.
  */
 function aplicarFiltros<T extends { eq: unknown }>(
@@ -140,13 +140,13 @@ function aplicarFiltros<T extends { eq: unknown }>(
  *
  * **É o que faz o bot reconhecer quem já é aluno.** A automação chega com o
  * identificador do WhatsApp e, sem esta consulta, começa toda conversa em
- * "qual o seu nome?" — inclusive com quem faz aula aqui há dois anos e acabou
+ * "qual o seu nome?": inclusive com quem faz aula aqui há dois anos e acabou
  * de mandar mensagem para remarcar. A busca por nome não resolve: quem escreve
  * "oi" não disse nome nenhum.
  *
  * Procura por **todas** as formas em que o mesmo aparelho pode estar gravado
  * (ver `chavesDeBusca`): com e sem o nono dígito, com e sem o país. Número sem
- * DDD não gera chave nenhuma e devolve `null` — chutar o DDD casaria a conversa
+ * DDD não gera chave nenhuma e devolve `null`: chutar o DDD casaria a conversa
  * de uma pessoa com a ficha de outra, e isso não tem conserto.
  *
  * Devolve **uma** pessoa, a mais recentemente cadastrada quando há duas com o
@@ -190,7 +190,7 @@ export async function listarPessoas(
   /*
    * `count: 'exact'` porque a paginação precisa dizer "de 94", e não "de muitos".
    * Antes daqui havia um `.limit(300)` mudo: quem passasse de 300 cadastros
-   * simplesmente sumia da tela, sem nada avisando — nem a pessoa, nem o log.
+   * simplesmente sumia da tela, sem nada avisando: nem a pessoa, nem o log.
    */
   let q = aplicarFiltros(
     db.from('pessoa_resumo').select('*', { count: 'exact' }).eq('conta_id', contaId),
@@ -215,7 +215,7 @@ export async function listarPessoas(
    * `.returns<>()` porque a leitura é de **view**, e view não carrega
    * `NOT NULL`: o arquivo gerado descreve `pessoa_resumo` com toda coluna
    * anulável, inclusive `id` e `nome`. É verdade para o Postgres e mentira para
-   * o produto — `pessoa.nome` é `not null` na tabela, e a view só faz um
+   * o produto: `pessoa.nome` é `not null` na tabela, e a view só faz um
    * `select`. O tipo à mão diz o que a tabela garante.
    */
   const { data, error, count } = await q.returns<LinhaResumo[]>()
@@ -265,7 +265,7 @@ async function enriquecer(db: Db, contaId: string, linhas: PessoaLinha[]) {
       diaSemana: v.serie.dia_semana,
       hora: String(v.serie.hora_inicio).slice(0, 5),
     }
-    // com dois horários fixos, mostra o primeiro da semana — o resto vira "+1"
+    // com dois horários fixos, mostra o primeiro da semana: o resto vira "+1"
     const atual = p.horarioFixo
     if (!atual
       || candidato.diaSemana < atual.diaSemana
@@ -356,6 +356,8 @@ export type VagaDaPessoa = {
   profissional: string | null
   inicio: string
   fim: string | null
+  /** `null` é matrícula sem contrato: o contrato novo pode adotá-la */
+  contratoId: string | null
 }
 
 export type ParticipacaoHistorico = {
@@ -512,7 +514,7 @@ export async function fichaDaPessoa(
   const { data: vagas } = await db
     .from('vaga')
     .select(`
-      id, inicio, fim, serie_id,
+      id, inicio, fim, serie_id, contrato_id,
       serie:serie_id(dia_semana, hora_inicio, servico:servico_id(nome),
                      profissional:profissional_id(nome))
     `)
@@ -584,6 +586,7 @@ export async function fichaDaPessoa(
       profissional: v.serie!.profissional?.nome ?? null,
       inicio: v.inicio,
       fim: v.fim,
+      contratoId: v.contrato_id,
     })),
     proximas: futuras.slice().reverse(),
     historico: todas.filter((x) => x.inicio < agora),

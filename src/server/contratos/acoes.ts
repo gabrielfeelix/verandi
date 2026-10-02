@@ -76,8 +76,12 @@ export async function criarContrato(
       }
     }
 
-    const recusa = await conferirVagas(db, conta.contaId, novo.pessoaId, pedidas, hoje)
+    const { recusa, adotar } = await conferirVagas(
+      db, conta.contaId, novo.pessoaId, pedidas, hoje, { adotarSoltas: true })
     if (recusa) return { ok: false, erro: recusa }
+    // quem já tinha o lugar fica com ele: a vaga é a mesma, só ganha contrato
+    const adotadas = new Set(adotar.map((v) => v.serieId))
+    const novas = pedidas.filter((id) => !adotadas.has(id))
 
     const vinculo = await temVinculo(
       db, conta.contaId, novo.pessoaId, plano.servico_id, hoje)
@@ -107,8 +111,8 @@ export async function criarContrato(
     }).select('id').single<{ id: string }>()
     if (error) throw error
 
-    if (pedidas.length) {
-      const { error: erroVaga } = await db.from('vaga').insert(pedidas.map((serieId) => ({
+    if (novas.length) {
+      const { error: erroVaga } = await db.from('vaga').insert(novas.map((serieId) => ({
         conta_id: conta.contaId,
         serie_id: serieId,
         pessoa_id: novo.pessoaId,
@@ -122,9 +126,25 @@ export async function criarContrato(
         await db.from('contrato').delete().eq('id', contrato.id)
         throw erroVaga
       }
-      await incluirVagasNasSessoes(db, conta.contaId, conta.fuso, pedidas.map((serieId) => ({
+      await incluirVagasNasSessoes(db, conta.contaId, conta.fuso, novas.map((serieId) => ({
         serie_id: serieId, pessoa_id: novo.pessoaId, inicio: novo.inicio,
       })))
+    }
+
+    if (adotar.length) {
+      // a vaga adotada já está nas aulas geradas: não há o que incluir, só
+      // dizer de qual contrato ela é. O filtro `contrato_id is null` impede de
+      // roubar a vaga de outro contrato que tenha chegado entre a conferência
+      // e aqui
+      const { error: erroAdocao } = await db.from('vaga')
+        .update({ contrato_id: contrato.id })
+        .in('id', adotar.map((v) => v.id))
+        .is('contrato_id', null)
+      if (erroAdocao) {
+        await db.from('vaga').delete().eq('contrato_id', contrato.id)
+        await db.from('contrato').delete().eq('id', contrato.id)
+        throw erroAdocao
+      }
     }
 
     await escreverVencimentoNaFicha(db, conta.contaId, novo.pessoaId)
@@ -154,29 +174,38 @@ export async function criarContrato(
 }
 
 /**
- * As horários cabem, e a pessoa já não está nelas?
+ * Os horários cabem, e a pessoa já não está neles?
  *
  * Devolve a frase da recusa, ou `null` quando tudo passa. A conferência é de
- * todas antes de gravar qualquer uma.
+ * todos antes de gravar qualquer um.
+ *
+ * Com `adotarSoltas`, a matrícula que a pessoa já tem no horário sem contrato
+ * nenhum deixa de ser recusa e volta em `adotar`: é o caso de quem foi
+ * matriculado antes de existir contrato, e recusar obrigava a encerrar a
+ * matrícula para poder criar o contrato que a descreve.
  */
 async function conferirVagas(
   db: Awaited<ReturnType<typeof clienteServidor>>,
   contaId: string, pessoaId: string, serieIds: string[], hoje: string,
-  /*
-   * Ao retomar uma licença, as vagas do próprio contrato ainda estão lá, com
-   * data de fim: sem ignorá-las, o sistema recusaria devolver o lugar de
-   * alguém dizendo que ela já o ocupa.
-   */
-  ignorarContrato?: string,
-): Promise<string | null> {
-  if (!serieIds.length) return null
+  opcoes: {
+    /*
+     * Ao retomar uma licença, as vagas do próprio contrato ainda estão lá, com
+     * data de fim: sem ignorá-las, o sistema recusaria devolver o lugar de
+     * alguém dizendo que ela já o ocupa.
+     */
+    ignorarContrato?: string
+    adotarSoltas?: boolean
+  } = {},
+): Promise<{ recusa: string | null; adotar: Array<{ id: string; serieId: string }> }> {
+  const adotar: Array<{ id: string; serieId: string }> = []
+  if (!serieIds.length) return { recusa: null, adotar }
 
   const { data: series } = await db.from('serie')
-    .select('id, dia_semana, hora_inicio, capacidade, codigo, vaga(pessoa_id, inicio, fim, contrato_id)')
+    .select('id, dia_semana, hora_inicio, capacidade, codigo, vaga(id, pessoa_id, inicio, fim, contrato_id)')
     .eq('conta_id', contaId).in('id', serieIds)
 
   if (!series || series.length !== serieIds.length) {
-    return 'Um dos horários escolhidos não existe mais.'
+    return { recusa: 'Um dos horários escolhidos não existe mais.', adotar }
   }
 
   for (const s of series) {
@@ -184,17 +213,29 @@ async function conferirVagas(
     // viva é a que ainda não terminou, inclusive a que começa mais para a
     // frente: o lugar de quem entra em setembro já está ocupado hoje
     const vivas = (s.vaga ?? [])
-      .filter((v) => v.contrato_id !== ignorarContrato)
+      .filter((v) => v.contrato_id !== opcoes.ignorarContrato)
       .filter((v) => v.fim === null || v.fim >= hoje)
 
-    if (vivas.some((v) => v.pessoa_id === pessoaId)) {
-      return `Esta pessoa já ocupa o horário de ${nome}.`
+    const dela = vivas.find((v) => v.pessoa_id === pessoaId)
+    if (dela) {
+      if (opcoes.adotarSoltas && dela.contrato_id === null && dela.fim === null) {
+        // ela já conta na ocupação: adotar não tira lugar de ninguém, então a
+        // conferência de lotação não se aplica a este horário
+        adotar.push({ id: dela.id, serieId: s.id })
+        continue
+      }
+      return {
+        recusa: dela.contrato_id
+          ? `Esta pessoa já ocupa o horário de ${nome} por outro contrato.`
+          : `Esta pessoa já ocupa o horário de ${nome}, com saída marcada.`,
+        adotar,
+      }
     }
     if (vivas.length >= s.capacidade) {
-      return `O horário de ${nome} está cheio: ${vivas.length} de ${s.capacidade}.`
+      return { recusa: `O horário de ${nome} está cheio: ${vivas.length} de ${s.capacidade}.`, adotar }
     }
   }
-  return null
+  return { recusa: null, adotar }
 }
 
 /**
@@ -303,8 +344,8 @@ export async function retomarContrato(
     await db.from('pausa').update({ fim: volta }).eq('id', aberta.id)
 
     const series = [...new Set((c.vaga ?? []).map((v) => v.serie_id))]
-    const recusa = await conferirVagas(
-      db, conta.contaId, c.pessoa_id, series, hoje, contratoId)
+    const { recusa } = await conferirVagas(
+      db, conta.contaId, c.pessoa_id, series, hoje, { ignorarContrato: contratoId })
     if (recusa) {
       // desfaz o fechamento da pausa: dizer "voltou" e não devolver o lugar é
       // pior do que dizer que o lugar não existe mais

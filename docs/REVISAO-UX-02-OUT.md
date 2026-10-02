@@ -11,7 +11,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 - [x] 1. Matrícula nova não entrava nas aulas já geradas. `incluirVagasNasSessoes`
       em `src/server/agenda/materializar.ts`, chamada por `criarVaga`, `criarContrato`
       e `retomarContrato`.
-- [ ] 2. Quem já tem matrícula num horário não consegue criar contrato nele ("Esta
+- [x] 2. Quem já tem matrícula num horário não consegue criar contrato nele ("Esta
       pessoa já ocupa o horário..."). `src/server/contratos/acoes.ts:187`,
       `src/components/contratos/matricula.tsx`. Aceitar as vagas que a pessoa já
       tem e ligá-las ao contrato; avisar quando passar da frequência do plano.
@@ -82,8 +82,8 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 
 53. Travessão "—" em texto e como valor vazio nos KPIs (`emReaisOuTraco`).
 54. Plurais com "(s)" (vaga, hoje, proxima-turma).
-55. Alunos em 390: selo GESTANTE corta o nome.
-56. Financeiro em 390: abas rolam de lado sem indicar que há mais.
+- [x] 55. Alunos em 390: selo GESTANTE corta o nome.
+- [x] 56. Financeiro em 390: abas rolam de lado sem indicar que há mais.
 57. Botão "⧉" de copiar telefone vira quadrado vazio no Linux: ícone + "Copiar".
 58. Legenda da agenda da semana quase invisível; "+" de horário vazio claro demais.
 59. Grade fixa: hora em dois andares; "Encerrar" vermelho repetido 74 vezes.
