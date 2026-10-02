@@ -32,7 +32,7 @@ por tela, push na hora (push na `main` publica na Vercel).
   `#encaixar`). Não é regressão.
 - **Texto:** sem travessão; placeholder começa com "Exemplo:"; UI sem gênero
   presumido ("Adicionar seu nome", não "Como quer ser chamado?").
-- **Falta:** 47 a 54 e 57 a 59, nessa ordem. 48 e 49 mexem em permissão de
+- **Falta:** 47 a 54, 57 a 59 e 61, nessa ordem. 48 e 49 mexem em permissão de
   rota (`src/proxy.ts` e o `exigirConta` de cada página), o resto é texto e
   visual. No 53, `emReaisOuTraco` já saiu do Financeiro (`e1306e0`); falta
   varrer `grep -rn "'—'" src`.
@@ -134,6 +134,20 @@ por tela, push na hora (push na `main` publica na Vercel).
 58. Legenda da agenda da semana quase invisível; "+" de horário vazio claro demais.
 59. Grade fixa: hora em dois andares; "Encerrar" vermelho repetido 74 vezes.
 - [x] 60. Fechamento: "Quem está em atraso" com o "Q" sublinhado.
+
+## Lento
+
+61. Busca por nome no Financeiro demora a filtrar (Gabriel, 02/out, MGM com
+    "thais"): deveria filtrar enquanto digita. Hoje cada tecla, com 250 ms de
+    espera (`src/components/financeiro/busca.tsx`), faz `router.replace` e
+    renderiza a página inteira no servidor: `idsQueCasam` (ilike em `pessoa`),
+    a lista, o resumo da faixa e `juntarRecibos`, tudo em
+    `src/server/financeiro/consultas.ts`. A aba Todas ficou com três consultas
+    a mais desde `e1306e0` (contagem dos blocos). Medir antes de mexer
+    (tempo do `GET /financeiro?q=` no log do `next dev`). Caminhos: filtrar no
+    cliente a página já carregada enquanto o servidor responde, buscar só a
+    lista (sem a faixa) por rota própria, ou índice trigram em `pessoa.nome`
+    (migration: avisar antes).
 
 Não testado: Trancar, Receber adiantado, Encerrar turma ou matrícula, convite,
 envio de e-mail, Histórico e Avaliação com dados.
