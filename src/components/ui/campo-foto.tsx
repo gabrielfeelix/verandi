@@ -106,7 +106,10 @@ export function CampoFoto({
   const mostra = previa ?? atual ?? null
 
   return (
-    <div className="flex flex-col gap-2">
+    // `@container`: o lado a lado depende da largura do campo, não da tela. Na
+    // avaliação são quatro fotos em duas colunas, e pela tela o campo achava
+    // que tinha espaço e espremia o texto numa palavra por linha
+    <div className="@container flex flex-col gap-2">
       <input
         ref={campo}
         id={id}
@@ -120,7 +123,7 @@ export function CampoFoto({
       {filmando ? (
         <Camera aoTirar={(foto) => receber(foto)} aoFechar={() => setFilmando(false)} />
       ) : (
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="flex flex-col gap-2 @[440px]:flex-row">
       <label
         htmlFor={id}
         onDragOver={(e) => { e.preventDefault(); setSobre(true) }}
@@ -161,7 +164,7 @@ export function CampoFoto({
         <button
           type="button"
           onClick={() => { setErro(null); setFilmando(true) }}
-          className="flex shrink-0 cursor-pointer items-center justify-center gap-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 text-[14.5px] font-medium transition-colors duration-150 hover:border-marca hover:bg-positivo-superficie sm:flex-col sm:gap-1.5 sm:px-5"
+          className="flex shrink-0 cursor-pointer items-center justify-center gap-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 text-[14.5px] font-medium transition-colors duration-150 hover:border-marca hover:bg-positivo-superficie @[440px]:flex-col @[440px]:gap-1.5 @[440px]:px-5"
         >
           <IconeCamera />
           Tirar foto
