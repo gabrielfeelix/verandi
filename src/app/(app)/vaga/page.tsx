@@ -54,7 +54,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
    * de nove mil pixels em que ninguém rolava até o fim.
    */
   const janela = p.dias === '15' ? 15 : 7
-  const turno = p.turno === 'manha' || p.turno === 'noite' ? p.turno : null
+  const turno = p.turno === 'manha' || p.turno === 'tarde' || p.turno === 'noite' ? p.turno : null
   const comLotados = p.lotados === 'sim'
 
   const hoje = hojeEm(conta.fuso)
@@ -78,6 +78,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
   const cabe = (s: SessaoResumo) => {
     if (p.local && s.localId !== p.local) return false
     if (turno === 'manha' && s.hora >= '12:00') return false
+    if (turno === 'tarde' && (s.hora < '12:00' || s.hora >= '18:00')) return false
     if (turno === 'noite' && s.hora < '18:00') return false
     return true
   }
@@ -173,15 +174,28 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
             </Grupo>
           ) : null}
 
-          <Grupo rotulo="Faixa de dias">
+          <Grupo rotulo="Período">
             <Chip href={q({ dias: undefined })} ativo={janela === 7}>Próximos 7 dias</Chip>
-            <Chip href={q({ dias: '15' })} ativo={janela === 15}>Próximos 15</Chip>
-            <Chip href={q({ turno: turno === 'manha' ? undefined : 'manha' })} ativo={turno === 'manha'}>
-              Manhã
-            </Chip>
-            <Chip href={q({ turno: turno === 'noite' ? undefined : 'noite' })} ativo={turno === 'noite'}>
-              Noite
-            </Chip>
+            <Chip href={q({ dias: '15' })} ativo={janela === 15}>Próximos 15 dias</Chip>
+          </Grupo>
+
+          <Grupo rotulo="Turno">
+            <Chip href={q({ turno: undefined })} ativo={!turno}>Qualquer</Chip>
+            {(
+              [
+                ['manha', 'Manhã'],
+                ['tarde', 'Tarde'],
+                ['noite', 'Noite'],
+              ] as const
+            ).map(([valor, nome]) => (
+              <Chip
+                key={valor}
+                href={q({ turno: turno === valor ? undefined : valor })}
+                ativo={turno === valor}
+              >
+                {nome}
+              </Chip>
+            ))}
           </Grupo>
 
           {/*
@@ -220,8 +234,8 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
                 titulo="Nenhum horário livre neste período"
                 texto={
                   comLotados
-                    ? 'Com esses filtros não sobra nada, nem lotado. Amplie a faixa de dias ou tire um filtro.'
-                    : 'Com esses filtros não sobra vaga. Ligue "incluir lotados" para ver o quase-cheio, amplie a faixa de dias, ou tire um filtro.'
+                    ? 'Com esses filtros não sobra nada, nem lotado. Amplie o período ou tire um filtro.'
+                    : 'Com esses filtros não sobra vaga. Ligue "incluir lotados" para ver o quase-cheio, amplie o período ou tire um filtro.'
                 }
               />
             </section>
