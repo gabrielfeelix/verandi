@@ -1,5 +1,6 @@
 'use server'
 
+import { exibirTelefone } from '@/core/telefone'
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
@@ -352,9 +353,19 @@ export async function listarCandidatos(): Promise<{
     lista: linhas.slice(0, CANDIDATOS_EM_MEMORIA).map((p) => ({
       id: p.id,
       nome: p.nome,
-      detalhe: p.telefone ?? p.identificador_externo ?? 'sem telefone',
+      detalhe: detalheDe(p),
     })),
   }
+}
+
+/**
+ * O que desambigua dois nomes iguais na busca: o telefone como se lê, e não
+ * "1199100685"; sem telefone, o número da ficha.
+ */
+function detalheDe(p: { telefone: string | null; identificador_externo: string | null }) {
+  if (p.telefone) return exibirTelefone(p.telefone)
+  if (p.identificador_externo) return `Nº da ficha ${p.identificador_externo}`
+  return 'Sem telefone'
 }
 
 export async function buscarCandidatos(
@@ -381,7 +392,7 @@ export async function buscarCandidatos(
     id: p.id,
     nome: p.nome,
     // algo que desambigua: nomes se repetem e são escritos de formas diferentes
-    detalhe: p.telefone ?? p.identificador_externo ?? 'sem telefone',
+    detalhe: detalheDe(p),
   }))
 }
 
