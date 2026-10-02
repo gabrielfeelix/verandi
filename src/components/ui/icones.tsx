@@ -98,6 +98,12 @@ const TRACOS = {
       <circle cx="3.9" cy="14.4" r="1" fill="currentColor" stroke="none" />
     </>
   ),
+  copiar: (
+    <>
+      <rect x="7" y="7" width="9.6" height="9.6" rx="2" />
+      <path d="M13 4.6V4.4a1.8 1.8 0 00-1.8-1.8H4.4a1.8 1.8 0 00-1.8 1.8v6.8a1.8 1.8 0 001.8 1.8h.2" />
+    </>
+  ),
   local: (
     <>
       <path d="M10 17.4c0 0 5.4-4.9 5.4-9a5.4 5.4 0 10-10.8 0c0 4.1 5.4 9 5.4 9z" />

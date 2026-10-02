@@ -1,5 +1,6 @@
 'use client'
 
+import { Icone } from '@/components/ui/icones'
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
@@ -197,9 +198,12 @@ export function CopiarTelefone({ telefone }: { telefone: string }) {
         setCopiado(true)
         setTimeout(() => setCopiado(false), 2000)
       }}
-      className="flex w-9 shrink-0 items-center justify-center rounded-padrao border border-linha bg-superficie font-mono text-[13px] text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave"
+      // ícone desenhado e palavra: o "⧉" virava quadrado vazio em quem não
+      // tinha a fonte, e um quadrado sozinho não diz o que faz
+      className="flex shrink-0 items-center justify-center gap-1.5 rounded-padrao border border-linha bg-superficie px-3 text-[13.5px] font-medium text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave"
     >
-      <span aria-hidden>{copiado ? '✓' : '⧉'}</span>
+      <Icone nome={copiado ? 'check' : 'copiar'} tamanho={16} />
+      <span aria-hidden>{copiado ? 'Copiado' : 'Copiar'}</span>
       <span className="sr-only" role="status">
         {copiado ? 'telefone copiado' : ''}
       </span>

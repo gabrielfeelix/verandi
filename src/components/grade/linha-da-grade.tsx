@@ -356,7 +356,7 @@ export function LinhaDaGrade({
       {modo === 'duplicar' ? (
         <Modal
           aberto
-          glifo="⧉"
+          glifo="+"
           titulo={`Duplicar ${rotulos.serie.singular.toLowerCase()}`}
           sub={`${serie.horaInicio} · ${serie.servico} · repete em outros dias`}
           primario={colisoes.length > 0 ? 'Duplicar mesmo assim' : 'Duplicar'}
