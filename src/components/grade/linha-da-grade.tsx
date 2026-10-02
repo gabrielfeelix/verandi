@@ -95,17 +95,17 @@ export function LinhaDaGrade({
         }`}
       >
         <span
-          className={`flex size-14 shrink-0 flex-col items-center justify-center rounded-media font-mono leading-none ${
+          className={`flex h-14 w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-media font-mono leading-none ${
             serie.encerrada
               ? 'bg-superficie-mais-suave text-tinta-inativa'
               : 'bg-escuro text-tinta-clara'
           }`}
         >
-          <span className="text-[16px] font-semibold">{serie.horaInicio.slice(0, 2)}</span>
-          <span className="text-[13px] opacity-70">{serie.horaInicio.slice(3)}</span>
-          {/* conta que não numera horário não pode ganhar uma coluna vazia */}
+          {/* a hora num andar só: "08" em cima de "00" se lia como dois números */}
+          <span className="text-[16px] font-semibold">{serie.horaInicio.slice(0, 5)}</span>
+          {/* conta que não numera horário não pode ganhar uma linha vazia */}
           {serie.codigo ? (
-            <span className="pl-1.5 font-mono text-[12px] opacity-60">
+            <span className="font-mono text-[11.5px] opacity-60">
               {serie.codigo}
             </span>
           ) : null}
@@ -179,7 +179,7 @@ export function LinhaDaGrade({
             {!serie.encerrada ? (
               <BotaoAcao icone="lapis" rotulo="Editar" onClick={() => setModo('editar')} />
             ) : null}
-            <BotaoAcao icone="lista" rotulo="Duplicar" onClick={() => setModo('duplicar')} />
+            <BotaoAcao icone="copiar" rotulo="Duplicar" onClick={() => setModo('duplicar')} />
             {!serie.encerrada ? (
               <BotaoAcao
                 icone="proibido" rotulo="Encerrar" perigo
@@ -456,7 +456,7 @@ export function LinhaDaGrade({
 function BotaoAcao({
   icone, rotulo, onClick, perigo = false, pendente = false,
 }: {
-  icone: 'pessoas' | 'lapis' | 'lista' | 'proibido'
+  icone: 'pessoas' | 'lapis' | 'copiar' | 'proibido'
   rotulo: string
   onClick: () => void
   perigo?: boolean
@@ -470,7 +470,9 @@ function BotaoAcao({
       aria-label={rotulo}
       className={`flex min-h-9 cursor-pointer items-center gap-1.5 rounded-peca border px-2.5 text-[13.5px] transition-colors duration-150 disabled:opacity-60 ${
         perigo
-          ? 'border-alerta-linha-forte bg-alerta-superficie text-alerta hover:bg-alerta-fundo'
+          // vermelho só no gesto: setenta linhas com o mesmo botão vermelho
+          // faziam a grade inteira parecer um alarme
+          ? 'border-linha-suave bg-superficie text-tinta-media hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-suave hover:text-tinta'
       }`}
     >
