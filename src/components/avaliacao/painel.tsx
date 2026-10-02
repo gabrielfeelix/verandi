@@ -63,6 +63,18 @@ export function PainelDeAvaliacao({
     return () => { vivo = false }
   }, [carregar, pessoaId])
 
+  /*
+   * Depois de gravar, os dados vêm de novo. A memória de `jaVeio` existe para a
+   * troca de aba não piscar, mas sem isto ela mostrava a foto de antes: a
+   * posição nova e a avaliação registrada não apareciam, e quem gravou
+   * concluía que não tinha gravado.
+   */
+  async function recarregar() {
+    const d = await carregar(pessoaId)
+    jaVeio.set(pessoaId, d)
+    setDados(d)
+  }
+
   if (erro) {
     return (
       <Vazio
@@ -95,8 +107,8 @@ export function PainelDeAvaliacao({
           pessoaNome={pessoaNome}
           posicoes={dados.posicoes}
           profissionais={dados.profissionais}
-          aoRegistrar={aoRegistrar}
-          aoAdicionarPosicao={aoAdicionarPosicao}
+          aoRegistrar={async (f) => { await aoRegistrar(f); await recarregar() }}
+          aoAdicionarPosicao={async (n) => { await aoAdicionarPosicao(n); await recarregar() }}
         />
       </div>
 
