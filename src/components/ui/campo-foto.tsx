@@ -4,9 +4,10 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Icone } from './icones'
 import { erroDaFoto, LIMITE_FOTO_MB } from '@/core/foto'
 import { comprimirFoto, grandeDemaisParaEnviar } from './comprimir-foto'
+import { Camera, temCamera } from './camera'
 
 /**
- * A área de foto: arrasta, ou clica e escolhe.
+ * A área de foto: arrasta, clica e escolhe, ou tira na hora pela câmera.
  *
  * O `<input type="file">` cru é o único pedaço de tela que o navegador desenha
  * sozinho — "Escolher ficheiro / Nenhum ficheiro selecionado", em português de
@@ -36,6 +37,11 @@ export function CampoFoto({
   const [sobre, setSobre] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
+  const [filmando, setFilmando] = useState(false)
+  // só depois de montar: no servidor não há `navigator`, e decidir lá daria
+  // uma tela diferente da que o navegador desenha
+  const [podeFilmar, setPodeFilmar] = useState(false)
+  useEffect(() => setPodeFilmar(temCamera()), [])
   const campo = useRef<HTMLInputElement>(null)
   const id = useId()
 
@@ -56,6 +62,7 @@ export function CampoFoto({
    */
   async function receber(arquivo: File | undefined) {
     if (!arquivo) return
+    setFilmando(false)
 
     const problema = erroDaFoto(arquivo)
     if (problema) { limpar(); return setErro(problema) }
@@ -111,12 +118,16 @@ export function CampoFoto({
         className="sr-only"
       />
 
+      {filmando ? (
+        <Camera aoTirar={(foto) => receber(foto)} aoFechar={() => setFilmando(false)} />
+      ) : (
+      <div className="flex flex-col gap-2 sm:flex-row">
       <label
         htmlFor={id}
         onDragOver={(e) => { e.preventDefault(); setSobre(true) }}
         onDragLeave={() => setSobre(false)}
         onDrop={soltou}
-        className={`flex cursor-pointer items-center gap-3.5 rounded-grande border border-dashed p-3.5 transition-colors duration-150 ${
+        className={`flex min-w-0 flex-1 cursor-pointer items-center gap-3.5 rounded-grande border border-dashed p-3.5 transition-colors duration-150 ${
           sobre
             ? 'border-marca bg-positivo-superficie'
             : 'border-linha-tracejada bg-superficie-suave hover:border-marca hover:bg-superficie-mais-suave'
@@ -147,6 +158,19 @@ export function CampoFoto({
         </span>
       </label>
 
+      {podeFilmar ? (
+        <button
+          type="button"
+          onClick={() => { setErro(null); setFilmando(true) }}
+          className="flex shrink-0 cursor-pointer items-center justify-center gap-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 text-[14.5px] font-medium transition-colors duration-150 hover:border-marca hover:bg-positivo-superficie sm:flex-col sm:gap-1.5 sm:px-5"
+        >
+          <IconeCamera />
+          Tirar foto
+        </button>
+      ) : null}
+      </div>
+      )}
+
       {erro ? <span className="text-[13px] text-alerta">{erro}</span> : null}
 
       {(previa || atual) ? (
@@ -175,5 +199,15 @@ export function CampoFoto({
         </div>
       ) : null}
     </div>
+  )
+}
+
+/** a câmera não existe no vocabulário de ícones; desenhada no mesmo traço */
+function IconeCamera() {
+  return (
+    <svg aria-hidden width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="text-marca">
+      <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.6l1.4-2h7l1.4 2h1.6A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z" />
+      <circle cx="12" cy="13" r="3.6" />
+    </svg>
   )
 }
