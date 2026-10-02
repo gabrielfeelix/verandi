@@ -138,3 +138,22 @@ test('dia sem horário diz isso com naturalidade', async ({ page }) => {
   await page.goto('/hoje?dia=2026-08-09&todos=1') // domingo
   await expect(page.getByText('Nada marcado neste dia')).toBeVisible()
 })
+
+test('sem nome guardado, a saudação não usa o e-mail e pergunta o nome', async ({ page }) => {
+  const c = await contaDeTeste()
+  const { email } = await usuarioDe(c.contaId, 'dono', c.marca)
+
+  await entrar(page, email)
+  await page.goto('/hoje')
+  const titulo = page.getByRole('heading', { level: 1 })
+  await expect(titulo).not.toContainText('dono-')
+
+  await page.getByRole('button', { name: 'Adicionar seu nome' }).click()
+  await page.getByLabel('Nome').fill('Daniel Souza')
+  await page.getByRole('button', { name: 'Salvar' }).click()
+
+  await expect(titulo).toContainText(', Daniel')
+  const { data } = await admin.from('usuario_conta')
+    .select('nome').eq('conta_id', c.contaId).single()
+  expect(data!.nome).toBe('Daniel Souza')
+})

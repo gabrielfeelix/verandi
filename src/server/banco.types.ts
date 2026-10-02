@@ -560,6 +560,7 @@ export type Database = {
           entrega_em: string | null
           expira_em: string
           id: string
+          nome: string | null
           papel: Database["app_verandi"]["Enums"]["papel"]
           revogado_em: string | null
           tipo: string
@@ -576,6 +577,7 @@ export type Database = {
           entrega_em?: string | null
           expira_em: string
           id?: string
+          nome?: string | null
           papel: Database["app_verandi"]["Enums"]["papel"]
           revogado_em?: string | null
           tipo?: string
@@ -592,6 +594,7 @@ export type Database = {
           entrega_em?: string | null
           expira_em?: string
           id?: string
+          nome?: string | null
           papel?: Database["app_verandi"]["Enums"]["papel"]
           revogado_em?: string | null
           tipo?: string
@@ -1907,6 +1910,7 @@ export type Database = {
           ativo: boolean
           conta_id: string
           criado_em: string
+          nome: string | null
           papel: Database["app_verandi"]["Enums"]["papel"]
           usuario_id: string
         }
@@ -1914,6 +1918,7 @@ export type Database = {
           ativo?: boolean
           conta_id: string
           criado_em?: string
+          nome?: string | null
           papel: Database["app_verandi"]["Enums"]["papel"]
           usuario_id: string
         }
@@ -1921,6 +1926,7 @@ export type Database = {
           ativo?: boolean
           conta_id?: string
           criado_em?: string
+          nome?: string | null
           papel?: Database["app_verandi"]["Enums"]["papel"]
           usuario_id?: string
         }
@@ -2226,6 +2232,10 @@ export type Database = {
     }
     Functions: {
       contas_do_usuario: { Args: never; Returns: string[] }
+      definir_meu_nome: {
+        Args: { p_conta: string; p_nome: string }
+        Returns: undefined
+      }
       proximo_numero_recibo: {
         Args: { p_conta: string; p_serie: string }
         Returns: number

@@ -57,7 +57,7 @@ try {
 }
 
 // banco vazio gera um arquivo curto e válido, que apagaria os tipos sem erro
-if (!saida.includes('app_verandi:') || saida.length < 2000) {
+if (!/"?app_verandi"?:/.test(saida) || saida.length < 2000) {
   console.error('o banco local respondeu sem as tabelas. Rode `npx supabase db reset`.')
   process.exit(1)
 }

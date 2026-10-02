@@ -5,6 +5,8 @@ import type { EstadoDeEntrega } from '@/core/email/entrega'
 export type UsuarioLinha = {
   usuarioId: string
   email: string
+  /** `null` para quem entrou antes de o convite pedir nome */
+  nome: string | null
   papel: Papel
   ativo: boolean
   ultimoAcesso: string | null
@@ -35,9 +37,16 @@ export async function listarUsuarios(db: Db, contaId: string): Promise<UsuarioLi
 
   const linhas = data ?? []
 
+  // o nome mora no vínculo, e a função que lê `auth.users` não o devolve:
+  // mudar o retorno dela pediria derrubá-la, e ela tem quem dependa
+  const { data: nomes } = await db.from('usuario_conta')
+    .select('usuario_id, nome').eq('conta_id', contaId)
+  const nomeDe = new Map((nomes ?? []).map((n) => [n.usuario_id, n.nome]))
+
   return linhas.map((u) => ({
     usuarioId: u.usuario_id,
     email: u.email,
+    nome: nomeDe.get(u.usuario_id) ?? null,
     papel: u.papel,
     ativo: u.ativo,
     ultimoAcesso: u.ultimo_acesso,

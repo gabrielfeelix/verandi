@@ -47,7 +47,11 @@ export const clienteServidor = cache(async function clienteServidor() {
 })
 
 export type ContaAtiva =
-  { contaId: string; papel: Papel; nome: string; fuso: string; interna: boolean }
+  {
+    contaId: string; papel: Papel; nome: string; fuso: string; interna: boolean
+    /** como a pessoa logada se chama nesta conta; `null` até alguém dizer */
+    meuNome: string | null
+  }
 
 /**
  * A conta em que o usuário está trabalhando.
@@ -69,7 +73,7 @@ export const contaAtiva = cache(async function contaAtiva(): Promise<ContaAtiva 
 
   const { data } = await db
     .from('usuario_conta')
-    .select('conta_id, papel, conta:conta_id(nome, fuso, interna)')
+    .select('conta_id, papel, nome, conta:conta_id(nome, fuso, interna)')
     .eq('usuario_id', user.id)
     .eq('ativo', true)
 
@@ -90,6 +94,7 @@ export const contaAtiva = cache(async function contaAtiva(): Promise<ContaAtiva 
     fuso: conta.fuso,
     // a conta da própria 4YU não recebe a faixa de suporte
     interna: conta.interna,
+    meuNome: linha.nome,
   }
 })
 

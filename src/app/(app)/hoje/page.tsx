@@ -18,6 +18,7 @@ import {
 } from '@/components/hoje/pecas'
 import { cartao } from '@/components/ui/pecas'
 import { ArrumarHome } from '@/components/hoje/arrumar'
+import { Saudacao } from '@/components/hoje/saudacao'
 import { arranjoSalvo } from '@/server/home/consultas'
 import { arranjoEfetivo, daFaixa } from '@/core/home/blocos'
 import { caixaDoMes } from '@/server/financeiro/consultas'
@@ -594,7 +595,13 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           <div>
             <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
               {ehHoje
-                ? `${saudacao(horaLocal)}, ${primeiro(eu?.nome ?? user?.email ?? '')}`
+                ? (
+                  <Saudacao
+                    saudacao={saudacao(horaLocal)}
+                    nome={eu?.nome ?? conta.meuNome}
+                    podeNomear={!eu}
+                  />
+                )
                 : dataLonga(dia, fuso)}
             </h1>
             <p className="pt-[3px] text-[14.5px] text-tinta-media">
@@ -660,10 +667,6 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
     </ProvedorDeAviso>
     </AreaQueTroca>
   )
-}
-
-function primeiro(nome: string) {
-  return (nome.split('@')[0] ?? nome).trim().split(/\s+/)[0] ?? nome
 }
 
 /**

@@ -45,7 +45,7 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 - [x] 18. "aula começa em 71h21": acima de 24h, dia e hora (`proxima-turma.tsx:25`).
 - [x] 19. Hoje diz "1 chamada pendente", Pendências diz 58: mesma regra.
 - [x] 20. Dono abre em "Minha agenda" vendo os horários de todos (`hoje/page.tsx:607`).
-21. "Bom dia, dono": nome vem do e-mail; pedir o nome no convite.
+- [x] 21. "Bom dia, dono": nome vem do e-mail; pedir o nome no convite.
 22. Ficha sem contrato: "Plano sem data de término" e "Registrar renovação".
 23. "assim que a semana for materializada" (`pessoas/[id]/page.tsx:455`).
 24. "Criar matrícula" abre "Novo agendamento" com botão "Agendar": um nome só.

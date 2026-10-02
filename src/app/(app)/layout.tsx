@@ -176,7 +176,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         <Rail
           itens={itens}
           conta={conta.nome}
-          pessoa={eu?.nome ?? user?.email ?? 'Você'}
+          pessoa={eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'}
           papel={PAPEL[conta.papel] ?? conta.papel}
           podeTrocar={contas.length > 1}
           sair={<Sair />}
@@ -218,7 +218,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         <BarraInferior
           itens={itens}
           principais={principais}
-          pessoa={eu?.nome ?? user?.email ?? 'Você'}
+          pessoa={eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'}
           papel={PAPEL[conta.papel] ?? conta.papel}
           podeTrocar={contas.length > 1}
         />

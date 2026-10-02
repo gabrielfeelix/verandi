@@ -91,12 +91,15 @@ async function tentaMandarConvite(d: {
 export async function convidar(entrada: {
   email: string
   papel: PapelConvidavel
+  /** como a pessoa vai aparecer; quem aceita confirma ou corrige */
+  nome: string
 }): Promise<{ id: string; token: string; emailEnviado: boolean }> {
   const conta = await exigirDono()
   const db = await clienteServidor()
 
   const email = entrada.email.trim().toLowerCase()
   if (!email.includes('@')) throw new Error('e-mail inválido')
+  const nome = limparNome(entrada.nome)
 
   /*
    * `suporte` é o papel da 4YU: enxerga conta de cliente e entra como suporte.
@@ -114,6 +117,7 @@ export async function convidar(entrada: {
   const { data, error } = await db.from('convite').insert({
     conta_id: conta.contaId,
     email,
+    nome,
     papel: entrada.papel,
     tipo: 'acesso',
     token_hash: hash,
@@ -214,7 +218,11 @@ export async function revogarConvite(id: string): Promise<void> {
 export type ResultadoConvite =
   // o papel viaja junto porque a tela precisa dizer no que a pessoa está
   // entrando antes de ela aceitar: conta e papel, não só "você foi convidada"
-  | { ok: true; contaNome: string; email: string; papel: Papel; tipo: string }
+  | {
+      ok: true; contaNome: string; email: string; papel: Papel; tipo: string
+      /** o nome que quem convidou escreveu, para o aceite vir preenchido */
+      nome: string | null
+    }
   | { ok: false; motivo: EstadoConvite }
 
 type LinhaConvite = {
@@ -226,6 +234,7 @@ type LinhaConvite = {
   expira_em: string
   aceito_em: string | null
   revogado_em: string | null
+  nome: string | null
   conta: { nome: string } | null
 }
 
@@ -240,7 +249,7 @@ export async function lerConvite(token: string): Promise<ResultadoConvite> {
   const db = clienteAdmin()
 
   const { data } = await db.from('convite')
-    .select('id, conta_id, email, papel, tipo, expira_em, aceito_em, revogado_em, conta:conta_id(nome)')
+    .select('id, conta_id, email, papel, tipo, expira_em, aceito_em, revogado_em, nome, conta:conta_id(nome)')
     .eq('token_hash', hashDe(token))
     .maybeSingle()
 
@@ -260,6 +269,7 @@ export async function lerConvite(token: string): Promise<ResultadoConvite> {
     email: data.email,
     papel: data.papel,
     tipo: data.tipo,
+    nome: data.nome,
   }
 }
 
@@ -271,14 +281,14 @@ export async function lerConvite(token: string): Promise<ResultadoConvite> {
  * segundo convite não pode falhar porque o e-mail já existe no Auth.
  */
 export async function aceitarConvite(
-  token: string, senha: string,
+  token: string, senha: string, nomeInformado?: string,
 ): Promise<ResultadoConvite> {
   if (senha.length < 8) throw new Error('a senha precisa de ao menos 8 caracteres')
 
   const db = clienteAdmin()
 
   const { data: convite } = await db.from('convite')
-    .select('id, conta_id, email, papel, tipo, expira_em, aceito_em, revogado_em, conta:conta_id(nome)')
+    .select('id, conta_id, email, papel, tipo, expira_em, aceito_em, revogado_em, nome, conta:conta_id(nome)')
     .eq('token_hash', hashDe(token))
     .maybeSingle()
 
@@ -291,6 +301,11 @@ export async function aceitarConvite(
     new Date(),
   )
   if (estado !== 'valido' || !convite) return { ok: false, motivo: estado }
+
+  // convite de acesso pede o nome; o de senha nova não mexe em nada além dela
+  const nome = convite.tipo === 'acesso'
+    ? limparNome(nomeInformado ?? convite.nome ?? '')
+    : null
 
   const existente = await procurarUsuario(db, convite.email)
 
@@ -314,6 +329,7 @@ export async function aceitarConvite(
       conta_id: convite.conta_id,
       papel: convite.papel,
       ativo: true,
+      nome,
     }, { onConflict: 'usuario_id,conta_id' })
     if (error) throw error
   }
@@ -341,7 +357,32 @@ export async function aceitarConvite(
     email: convite.email,
     papel: convite.papel,
     tipo: convite.tipo,
+    nome,
   }
+}
+
+/** De 1 a 80 letras, sem espaço sobrando: a mesma regra do `check` no banco. */
+function limparNome(bruto: string): string {
+  const nome = bruto.trim().replace(/\s+/g, ' ')
+  if (!nome) throw new Error('escreva o nome')
+  if (nome.length > 80) throw new Error('o nome passa de 80 letras')
+  return nome
+}
+
+/**
+ * Como a pessoa logada quer ser chamada nesta conta.
+ *
+ * Passa por `definir_meu_nome`, que só alcança a coluna `nome` da própria
+ * linha: a escrita direta em `usuario_conta` é do dono, porque é ela que
+ * protege o papel.
+ */
+export async function salvarMeuNome(nome: string): Promise<void> {
+  const conta = await exigirConta()
+  const db = await clienteServidor()
+  const { error } = await db.rpc('definir_meu_nome', {
+    p_conta: conta.contaId, p_nome: limparNome(nome),
+  })
+  if (error) throw error
 }
 
 /** O Auth não tem busca por e-mail; a lista paginada é o caminho que existe. */

@@ -20,7 +20,14 @@ const RECUSA: Record<string, string> = {
  * O e-mail vem do convite e não é editável: quem escolhe para quem o acesso vai
  * é quem convidou, não quem abre o link.
  */
-export function AceitarConvite({ token, email }: { token: string; email: string }) {
+export function AceitarConvite({
+  token, email, nome,
+}: {
+  token: string
+  email: string
+  /** `null` no link de senha nova, que não pergunta nome */
+  nome: string | null
+}) {
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
@@ -37,7 +44,8 @@ export function AceitarConvite({ token, email }: { token: string; email: string 
           return
         }
         try {
-          const r = await aceitarConvite(token, senha)
+          const r = await aceitarConvite(
+            token, senha, nome === null ? undefined : String(f.get('nome') ?? ''))
           if (!r.ok) {
             setErro(RECUSA[r.motivo])
             return
@@ -58,10 +66,23 @@ export function AceitarConvite({ token, email }: { token: string; email: string 
     >
       {/* o e-mail já aparece na frase acima; repeti-lo num campo travado é
           formulário fingindo que dá para editar o que não dá */}
+      {/* quem convidou já escreveu o nome; aqui a pessoa confirma ou corrige,
+          e é ele que a saudação e a lista de usuários vão mostrar */}
+      {nome !== null ? (
+        <Campo rotulo="Seu nome" htmlFor="c-nome" dica="é como você aparece para a equipe">
+          <input
+            id="c-nome" name="nome" required maxLength={80} defaultValue={nome}
+            autoFocus={!nome} autoComplete="name"
+            placeholder="Exemplo: Ana Paula Souza"
+            className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[15px] focus:border-marca focus:bg-superficie"
+          />
+        </Campo>
+      ) : null}
+
       <Campo rotulo="Senha" htmlFor="c-senha" dica="Ao menos 8 caracteres">
         <input
           id="c-senha" name="senha" type="password" required minLength={8}
-          autoFocus autoComplete="new-password"
+          autoFocus={nome === null || !!nome} autoComplete="new-password"
           className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[15px] focus:border-marca focus:bg-superficie"
         />
       </Campo>

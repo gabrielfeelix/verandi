@@ -94,6 +94,7 @@ export function SecaoUsuarios({
               aoEnviar={(f) => comErro(async () => {
                 const r = await convidar({
                   email: String(f.get('email') ?? ''),
+                  nome: String(f.get('nome') ?? ''),
                   papel: String(f.get('papel') ?? 'profissional') as PapelConvidavel,
                 })
                 setLink({
@@ -105,9 +106,14 @@ export function SecaoUsuarios({
                 setConvidando(false)
               })}
             >
+              <Campo rotulo="Nome" htmlFor="cv-nome" dica="é como a pessoa aparece no sistema; ela pode corrigir ao aceitar">
+                <input id="cv-nome" name="nome" required maxLength={80}
+                  placeholder="Exemplo: Ana Paula Souza"
+                  className={entrada} autoFocus />
+              </Campo>
               <Campo rotulo="E-mail" htmlFor="cv-email">
                 <input id="cv-email" name="email" type="email" required
-                  className={entrada} autoFocus />
+                  className={entrada} />
               </Campo>
               <Campo rotulo="Papel" htmlFor="cv-papel">
                 <select id="cv-papel" name="papel" className={entrada}
@@ -169,8 +175,8 @@ export function SecaoUsuarios({
           {usuarios.filter((u) => u.ativo).map((u) => (
             <LinhaConfig
               key={u.usuarioId}
-              antes={<Avatar nome={u.email} tamanho={40} decorativo />}
-              nome={u.email.split('@')[0]}
+              antes={<Avatar nome={u.nome ?? u.email} tamanho={40} decorativo />}
+              nome={u.nome ?? u.email.split('@')[0]}
               detalhe={
                 <span className="flex flex-col">
                   <span>{u.email}</span>

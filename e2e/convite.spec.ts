@@ -11,6 +11,7 @@ async function contaDono() {
 async function convitePelaTela(page: import('@playwright/test').Page, para: string, papel = 'Profissional') {
   await page.goto('/config?s=usuarios')
   await page.getByRole('button', { name: 'Convidar' }).click()
+  await page.getByLabel('Nome').fill('Sofia Andrade')
   await page.getByLabel('E-mail').fill(para)
   await page.getByLabel('Papel').selectOption({ label: papel })
   await page.getByRole('button', { name: 'Enviar convite' }).click()
@@ -49,11 +50,17 @@ test('quem recebe o link define senha e entra na conta com o papel do convite', 
   await page.goto(link)
   await expect(page.getByText('Você foi convidada')).toBeVisible()
 
+  // o nome que o dono escreveu vem preenchido, e quem aceita pode corrigir
+  await expect(page.getByLabel('Seu nome')).toHaveValue('Sofia Andrade')
+  await page.getByLabel('Seu nome').fill('Sofia Andrade Lima')
   await page.getByLabel('Senha', { exact: true }).fill('senha-nova-123')
   await page.getByLabel('Repita a senha').fill('senha-nova-123')
   await page.getByRole('button', { name: 'Entrar na conta' }).click()
 
   await page.waitForURL(/\/entrar/)
+  const { data: vinculo } = await admin.from('usuario_conta')
+    .select('nome').eq('conta_id', c.contaId).eq('papel', 'recepcao').single()
+  expect(vinculo!.nome).toBe('Sofia Andrade Lima')
   // o e-mail chega preenchido: quem acabou de criar a senha não redigita o
   // endereço que a tela do convite acabou de mostrar
   await expect(page.getByLabel('E-mail')).toHaveValue(novo)

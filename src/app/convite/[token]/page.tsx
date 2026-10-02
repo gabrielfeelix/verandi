@@ -58,7 +58,13 @@ export default async function Convite({
               continua o mesmo.
             </p>
           )}
-          <AceitarConvite token={token} email={r.email} />
+          <AceitarConvite
+            token={token}
+            email={r.email}
+            // só o convite de acesso pergunta o nome; o de senha nova não muda
+            // nada além da senha
+            nome={r.tipo === 'acesso' ? (r.nome ?? '') : null}
+          />
 
           {/*
             O aceite aparece onde ele acontece: criar a senha é o primeiro ato
