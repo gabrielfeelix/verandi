@@ -6,6 +6,33 @@ HTTP >= 400 em rota nenhuma. O que segue é o que um usuário esbarra.
 
 Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na ordem.
 
+## Para quem continua (02/out, depois de `17fe970`)
+
+Feitos e no ar: 1 a 21, mais 55 e 56. Próximo: **22**. Um commit por item ou
+por tela, push na hora (push na `main` publica na Vercel).
+
+- **Validar:** `npx tsc --noEmit -p .`, e só o spec e2e da tela mexida. Nunca a
+  suíte inteira, nunca e2e junto com build.
+- **Servidor:** a porta 3000 pode estar com o AutoFluxos. Suba a Verandi com
+  `npx next dev -p 3100` e rode o Playwright com um config de rascunho
+  (`testDir` = `e2e/`, `baseURL` 3100, sem `webServer`): o
+  `playwright.config.ts` do repo faz build + start, pesado demais.
+- **Print antes de entregar:** 1440 e 390, conta de teste criada como nos specs
+  (`contaDeTeste` + `usuarioDe` de `e2e/apoio.ts`) no Supabase local.
+- **Migration:** aplicar local com
+  `docker exec -i supabase_db_verandi psql -v ON_ERROR_STOP=1 -U postgres -d postgres < arquivo.sql`.
+  Produção: carregar `../.secrets/4yu.env` e rodar
+  `node scripts/aplica-em-producao.mjs --dry`, depois sem `--dry`. O modo
+  automático bloqueia a aplicação até o Gabriel autorizar no chat. Código que lê
+  coluna nova só sobe **depois** da migration.
+- **`npm run tipos`:** o CLI novo gera saída sem formatação (chave entre aspas);
+  a checagem do script já aceita, mas regerar reescreve o arquivo inteiro. Na
+  `0066` os tipos foram acrescentados à mão, no formato do arquivo.
+- **Lint:** `chamada.tsx` tem um erro anterior (`setEncaixe` no efeito do
+  `#encaixar`). Não é regressão.
+- **Texto:** sem travessão; placeholder começa com "Exemplo:"; UI sem gênero
+  presumido ("Adicionar seu nome", não "Como quer ser chamado?").
+
 ## Quebrado
 
 - [x] 1. Matrícula nova não entrava nas aulas já geradas. `incluirVagasNasSessoes`
@@ -76,12 +103,13 @@ Marcado `[x]` é o que já foi corrigido e publicado. O resto é a fila, na orde
 49. Recepção em /aulas e /config volta para /hoje sem mensagem.
 50. Placeholder "(44) 99999-9999" sem "Exemplo:" e com o DDD do Gabriel.
 51. Avaliação e config do recibo com "Ex.:" em vez de "Exemplo:".
-52. Encaixe: telefone cru "1199100685"; "2 livre(s)".
+52. Encaixe: telefone cru "1199100685". ("2 livre(s)" já saiu em `2ed32fd`.)
 
 ## Visual
 
 53. Travessão "—" em texto e como valor vazio nos KPIs (`emReaisOuTraco`).
-54. Plurais com "(s)" (vaga, hoje, proxima-turma).
+54. Plurais com "(s)". Hoje, encaixe e próxima turma já saíram (`2ed32fd`,
+    `65dd7fc`, `f6edf03`); falta varrer `/vaga` e o resto com `grep -rn "(s)" src`.
 - [x] 55. Alunos em 390: selo GESTANTE corta o nome.
 - [x] 56. Financeiro em 390: abas rolam de lado sem indicar que há mais.
 57. Botão "⧉" de copiar telefone vira quadrado vazio no Linux: ícone + "Copiar".
