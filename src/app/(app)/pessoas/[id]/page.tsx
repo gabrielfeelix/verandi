@@ -233,6 +233,12 @@ export default async function Pessoa({
         s.local?.nome,
         `${cheias}/${s.capacidade}${cheias >= s.capacidade ? ' · lotada' : ''}`,
       ].filter(Boolean).join(' · '),
+      dia: s.dia_semana as number,
+      hora: String(s.hora_inicio).slice(0, 5),
+      servico: s.servico?.nome ?? null,
+      profissional: s.profissional?.nome ?? null,
+      ocupadas: cheias,
+      capacidade: s.capacidade as number,
     }
   })
 

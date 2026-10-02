@@ -80,9 +80,7 @@ test('agendar, no alto da ficha, abre o mesmo modal de matrícula', async ({ pag
 
   // o horário da grade tem que estar oferecido: modal que abre vazio é o mesmo
   // beco da âncora que não levava a lugar nenhum
-  await modal.locator('#vg-serie').click()
-  await expect(page.getByRole('option')).toHaveCount(1)
-  await expect(page.getByRole('option').first()).toContainText('09:00')
+  await expect(modal.getByRole('button', { name: /09:00/ })).toHaveCount(1)
 })
 
 test('encerrar matrícula pergunta em modal, não no confirm do navegador', async ({ page }) => {
@@ -172,13 +170,7 @@ test('Esc fecha só o painel aberto, não o modal inteiro', async ({ page }) => 
   await page.getByRole('button', { name: /^Criar (vaga|matrícula)$/i }).first().click()
 
   // o `<dialog>` fecha no Esc por conta própria: sem interceptar, desistir da
-  // lista de horários levava junto o formulário inteiro
-  await page.locator('#vg-serie').click()
-  await expect(page.getByRole('listbox')).toBeVisible()
-  await page.keyboard.press('Escape')
-  await expect(page.getByRole('listbox')).toHaveCount(0)
-  await expect(page.locator('dialog[open]')).toHaveCount(1)
-
+  // do calendário levava junto o formulário inteiro
   await page.locator('dialog[open]').getByLabel('Abrir o calendário').click()
   await expect(page.locator('[role=grid]')).toBeVisible()
   await page.keyboard.press('Escape')

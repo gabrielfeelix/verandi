@@ -5,8 +5,8 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
+import { Icone } from '@/components/ui/icones'
 import { Campo, Nota } from '@/components/ui/pecas'
-import { Escolha } from '@/components/ui/escolha'
 import { CampoData } from '@/components/ui/campo-data'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarVaga, encerrarVaga } from '@/server/pessoas/acoes'
@@ -18,7 +18,11 @@ type Props = {
     id: string; rotulo: string; desde: string; ate: string | null
     dia: string; hora: string; servico: string; profissional: string | null
   }>
-  series: Array<{ id: string; rotulo: string; detalhe?: string; grupo?: string }>
+  series: Array<{
+    id: string; rotulo: string; detalhe?: string; grupo?: string
+    dia: number; hora: string; servico: string | null; profissional: string | null
+    ocupadas: number; capacidade: number
+  }>
   rotuloVaga: string
   rotuloSerie: string
   /** quem dá aula consulta os horários da pessoa, mas não cria nem encerra */
@@ -183,15 +187,19 @@ export function Vagas({
           pendente={pendente}
           aoFechar={fechar}
           aoEnviar={(f) => {
-            const serieId = String(f.get('serie') ?? '')
+            const serieIds = f.getAll('serie').map(String).filter(Boolean)
             // sem horário escolhido o formulário parava calado; agora o
             // navegador cobra o campo, e este `if` é só a rede de baixo
-            if (!serieId) return setErro('Escolha o horário.')
+            if (!serieIds.length) return setErro('Escolha pelo menos um horário.')
             iniciar(async () => {
               setErro(null)
               try {
-                await criarVaga(serieId, pessoaId, String(f.get('desde') ?? hoje))
-                avisar({ texto: 'Agendamento feito' })
+                // um por vez: se o segundo estiver cheio, o primeiro já entrou e
+                // o erro diz qual faltou, em vez de desfazer o que deu certo
+                for (const id of serieIds) {
+                  await criarVaga(id, pessoaId, String(f.get('desde') ?? hoje))
+                }
+                avisar({ texto: serieIds.length > 1 ? `${serieIds.length} horários agendados` : 'Agendamento feito' })
                 fechar()
                 router.refresh()
               } catch (e) {
@@ -207,22 +215,10 @@ export function Vagas({
             </Nota>
           ) : (
             <>
-              <Campo
-                rotulo="Qual horário?" htmlFor="vg-serie"
-                dica={`${series.length} na grade. A ocupação de cada um aparece na lista`}
-              >
-                <Escolha
-                  id="vg-serie"
-                  nome="serie"
-                  autoFocus
-                  opcoes={series.map((s) => ({
-                    valor: s.id, rotulo: s.rotulo, detalhe: s.detalhe, grupo: s.grupo,
-                  }))}
-                  placeholder="Escolha o dia e a hora"
-                  aoTrocar={() => setErro(null)}
-                  invalido={erro !== null}
-                />
-              </Campo>
+              <EscolhaDeHorario
+                series={series}
+                aoTrocar={() => setErro(null)}
+              />
               <Campo
                 rotulo="A partir de quando?" htmlFor="vg-desde"
                 dica="Vale desta data em diante. O que já passou não muda"
@@ -262,6 +258,138 @@ export function Vagas({
           </Nota>
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}
         </Modal>
+      ) : null}
+    </div>
+  )
+}
+
+const DIAS_CURTOS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const DIAS_LONGOS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+// a semana de quem trabalha começa na segunda
+const ORDEM_DOS_DIAS = [1, 2, 3, 4, 5, 6, 0]
+
+/**
+ * Primeiro o dia, depois a hora. A lista única com a grade inteira obrigava a
+ * rolar por todos os horários da semana para achar a quinta-feira, e quem
+ * abria parava no primeiro dia que aparecia.
+ */
+function EscolhaDeHorario({
+  series, aoTrocar,
+}: {
+  series: Props['series']
+  aoTrocar: () => void
+}) {
+  const dias = ORDEM_DOS_DIAS.filter((d) => series.some((s) => s.dia === d))
+  const [dia, setDia] = useState(dias[0])
+  const [escolhidas, setEscolhidas] = useState<string[]>([])
+  const doDia = series.filter((s) => s.dia === dia)
+  const variasModalidades = new Set(series.map((s) => s.servico)).size > 1
+  const marcadas = series
+    .filter((s) => escolhidas.includes(s.id))
+    .sort((a, b) => ORDEM_DOS_DIAS.indexOf(a.dia) - ORDEM_DOS_DIAS.indexOf(b.dia) || a.hora.localeCompare(b.hora))
+
+  return (
+    <div className="flex flex-col gap-3">
+      {escolhidas.map((id) => <input key={id} type="hidden" name="serie" value={id} />)}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <p className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">Quais dias e horários?</p>
+        <p className={`text-[13.5px] ${marcadas.length ? 'font-medium text-positivo' : 'text-tinta-media'}`} aria-live="polite">
+          {marcadas.length === 0 ? 'Escolha um ou mais' : marcadas.length === 1 ? '1 escolhido' : `${marcadas.length} escolhidos`}
+        </p>
+      </div>
+
+      <div role="tablist" aria-label="Dia da semana" className="flex gap-1.5 overflow-x-auto pb-0.5">
+        {dias.map((d) => {
+          const ativo = d === dia
+          const nele = marcadas.filter((m) => m.dia === d).length
+          return (
+            <button
+              key={d}
+              type="button"
+              role="tab"
+              aria-selected={ativo}
+              aria-label={DIAS_LONGOS[d]}
+              onClick={() => setDia(d)}
+              className={`relative flex min-h-10 min-w-[54px] shrink-0 cursor-pointer items-center justify-center rounded-padrao border px-3 text-[14px] transition-colors duration-150 ${
+                ativo
+                  ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+                  : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
+              }`}
+            >
+              {DIAS_CURTOS[d]}
+              {nele > 0 ? (
+                <span aria-hidden className="absolute -top-1.5 -right-1.5 flex size-[18px] items-center justify-center rounded-full bg-marca text-[11px] font-semibold text-white ring-2 ring-superficie">
+                  {nele}
+                </span>
+              ) : null}
+            </button>
+          )
+        })}
+      </div>
+
+      <div role="tabpanel" aria-label={DIAS_LONGOS[dia]} className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {doDia.map((s) => {
+          const cheia = s.ocupadas >= s.capacidade
+          const esta = escolhidas.includes(s.id)
+          return (
+            <button
+              key={s.id}
+              type="button"
+              aria-pressed={esta}
+              aria-label={`${DIAS_LONGOS[s.dia]} ${s.hora}${s.servico ? `, ${s.servico}` : ''}${cheia ? ', cheia' : ''}`}
+              disabled={cheia && !esta}
+              onClick={() => {
+                setEscolhidas((a) => esta ? a.filter((x) => x !== s.id) : [...a, s.id])
+                aoTrocar()
+              }}
+              className={`flex flex-col items-start gap-0.5 rounded-media border px-3 py-2.5 text-left transition-colors duration-150 ${
+                esta
+                  ? 'border-marca bg-positivo-superficie'
+                  : cheia
+                    ? 'cursor-not-allowed border-linha-fina bg-superficie-suave text-tinta-fraca'
+                    : 'cursor-pointer border-linha-suave bg-superficie hover:bg-superficie-mais-suave'
+              }`}
+            >
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="font-mono text-[16px] font-medium">{s.hora}</span>
+                {esta ? (
+                  <span className="flex size-5 items-center justify-center rounded-full bg-marca text-white">
+                    <Icone nome="check" tamanho={12} />
+                  </span>
+                ) : null}
+              </span>
+              {variasModalidades && s.servico ? (
+                <span className="w-full truncate text-[12.5px] text-tinta">{s.servico}</span>
+              ) : null}
+              {s.profissional ? (
+                <span className="w-full truncate text-[12.5px] text-tinta-media">
+                  {s.profissional.trim().split(/\s+/)[0]}
+                </span>
+              ) : null}
+              <span className={`text-[12px] ${cheia ? 'text-alerta' : 'text-tinta-fraca'}`}>
+                {cheia ? 'cheia' : `${s.capacidade - s.ocupadas} de ${s.capacidade} livres`}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* o que já foi marcado nos outros dias, sem precisar voltar a cada aba */}
+      {marcadas.length ? (
+        <div className="flex flex-wrap gap-2">
+          {marcadas.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => setEscolhidas((a) => a.filter((x) => x !== m.id))}
+              aria-label={`Tirar ${DIAS_LONGOS[m.dia]} ${m.hora}`}
+              className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border border-marca/40 bg-positivo-superficie px-3 text-[13.5px] hover:border-marca"
+            >
+              {DIAS_LONGOS[m.dia]} {m.hora}
+              <Icone nome="fechar" tamanho={12} />
+            </button>
+          ))}
+        </div>
       ) : null}
     </div>
   )

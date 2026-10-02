@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { Icone } from './icones'
 import { erroDaFoto, LIMITE_FOTO_MB } from '@/core/foto'
 import { comprimirFoto, grandeDemaisParaEnviar } from './comprimir-foto'
@@ -40,8 +40,7 @@ export function CampoFoto({
   const [filmando, setFilmando] = useState(false)
   // só depois de montar: no servidor não há `navigator`, e decidir lá daria
   // uma tela diferente da que o navegador desenha
-  const [podeFilmar, setPodeFilmar] = useState(false)
-  useEffect(() => setPodeFilmar(temCamera()), [])
+  const podeFilmar = useSyncExternalStore(semAssinatura, temCamera, () => false)
   const campo = useRef<HTMLInputElement>(null)
   const id = useId()
 
@@ -210,4 +209,9 @@ function IconeCamera() {
       <circle cx="12" cy="13" r="3.6" />
     </svg>
   )
+}
+
+/** a câmera não aparece nem some com a página aberta: não há o que assinar */
+function semAssinatura() {
+  return () => {}
 }

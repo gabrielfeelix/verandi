@@ -12,6 +12,10 @@ import { Icone } from './icones'
  * congela o quadro, e "Usar esta foto" entrega um arquivo comum para o mesmo
  * caminho de quem escolheu do disco (conferir, encolher, enviar).
  *
+ * Estúdio costuma ter câmera USB ligada no computador além da embutida do
+ * notebook: quando há mais de uma, a escolha é pelo nome, e a última usada
+ * volta escolhida da próxima vez, para ninguém escolher toda avaliação.
+ *
  * A prévia ao vivo da câmera frontal é espelhada, porque é assim que a pessoa
  * espera se ver; a foto tirada **não**, porque numa avaliação de postura o lado
  * esquerdo precisa continuar sendo o esquerdo.
@@ -25,8 +29,9 @@ export function Camera({
   const video = useRef<HTMLVideoElement>(null)
   const fluxo = useRef<MediaStream | null>(null)
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([])
-  const [qual, setQual] = useState<string | null>(null)
+  const [qual, setQual] = useState<string | null>(() => lembrada())
   const [frontal, setFrontal] = useState(true)
+  const [emUso, setEmUso] = useState('')
   const [pronta, setPronta] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [tirada, setTirada] = useState<{ url: string; arquivo: File } | null>(null)
@@ -56,6 +61,7 @@ export function Camera({
         const trilha = s.getVideoTracks()[0]
         const modo = trilha?.getSettings().facingMode
         setFrontal(modo ? modo === 'user' : true)
+        setEmUso(trilha?.getSettings().deviceId ?? '')
         if (video.current) {
           video.current.srcObject = s
           await video.current.play().catch(() => {})
@@ -67,6 +73,12 @@ export function Camera({
       } catch (e) {
         if (!vivo) return
         const nome = (e as DOMException)?.name
+        // a câmera lembrada foi desligada: volta para a padrão em vez de errar
+        if (qual && (nome === 'OverconstrainedError' || nome === 'NotFoundError')) {
+          esquecer()
+          setQual(null)
+          return
+        }
         setErro(
           nome === 'NotAllowedError' || nome === 'SecurityError'
             ? 'O navegador não liberou a câmera. Clique no cadeado ao lado do endereço do site, permita a câmera e tente de novo.'
@@ -116,11 +128,9 @@ export function Camera({
     }, 1000)
   }
 
-  function trocarCamera() {
-    if (cameras.length < 2) return
-    const atual = fluxo.current?.getVideoTracks()[0]?.getSettings().deviceId
-    const i = cameras.findIndex((c) => c.deviceId === atual)
-    setQual(cameras[(i + 1) % cameras.length].deviceId)
+  function escolherCamera(id: string) {
+    lembrar(id)
+    setQual(id)
   }
 
   function usar() {
@@ -196,22 +206,28 @@ export function Camera({
               <span className="size-[50px] rounded-full bg-white transition-transform duration-150 group-hover:scale-95 group-active:scale-90" />
             </button>
 
-            {cameras.length > 1 ? (
-              <button
-                type="button"
-                onClick={trocarCamera}
-                className="flex h-9 min-w-[64px] cursor-pointer items-center justify-center rounded-full bg-white/15 px-3 text-[13px] font-medium text-white backdrop-blur hover:bg-white/25"
-              >
-                Trocar
-              </button>
-            ) : (
-              <span className="min-w-[64px]" aria-hidden />
-            )}
+            <span className="min-w-[64px]" aria-hidden />
           </div>
         ) : null}
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
+        {cameras.length > 1 && !tirada ? (
+          <label className="mr-auto flex min-w-0 items-center gap-2 text-[13.5px] text-tinta-media">
+            <span className="shrink-0">Câmera</span>
+            <select
+              value={emUso}
+              onChange={(e) => escolherCamera(e.target.value)}
+              className="min-h-10 min-w-0 max-w-[260px] cursor-pointer truncate rounded-padrao border border-linha bg-superficie px-3 text-[14px] text-tinta"
+            >
+              {cameras.map((c, i) => (
+                <option key={c.deviceId} value={c.deviceId}>
+                  {nomeDaCamera(c.label) || `Câmera ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         {tirada ? (
           <>
             <button
@@ -247,4 +263,21 @@ export function Camera({
 /** Há câmera para pedir? Sem `mediaDevices` (http, navegador antigo), o botão nem aparece. */
 export function temCamera() {
   return typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
+}
+
+const CHAVE = 'verandi:camera'
+
+function lembrada() {
+  try { return typeof window === 'undefined' ? null : localStorage.getItem(CHAVE) } catch { return null }
+}
+function lembrar(id: string) {
+  try { localStorage.setItem(CHAVE, id) } catch {}
+}
+function esquecer() {
+  try { localStorage.removeItem(CHAVE) } catch {}
+}
+
+/** "HD Pro Webcam C920 (046d:082d)" vira "HD Pro Webcam C920" */
+function nomeDaCamera(rotulo: string) {
+  return rotulo.replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)\s*$/i, '').trim()
 }
