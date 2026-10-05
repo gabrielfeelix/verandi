@@ -35,3 +35,22 @@ export function filtrarPorNome<T extends { nome: string }>(
   if (!alvo) return []
   return todos.filter((c) => semAcento(c.nome).includes(alvo)).slice(0, limite)
 }
+
+/**
+ * Os dígitos a procurar no telefone, quando a busca é um número.
+ *
+ * Procura a sequência **seguida**, em qualquer ponto: em `44998775978`, "759"
+ * acha (está lá, em ordem e junto) e "779" não acha (tem um 5 no meio). Assim
+ * servem os quatro últimos, o começo ou um pedaço do meio, que é como o
+ * estúdio lembra de um número. Pontuação digitada é ignorada, "(44) 9987"
+ * procura "449987", e o 55 do país sai, porque o telefone é gravado sem ele.
+ *
+ * `null` quando há letra no termo (é nome) ou menos de três dígitos: "12"
+ * casaria com quase todo mundo.
+ */
+export function digitosDaBusca(termo: string): string | null {
+  if (/\p{L}/u.test(termo)) return null
+  let digitos = termo.replace(/\D/g, '')
+  if (digitos.startsWith('55') && (digitos.length === 12 || digitos.length === 13)) digitos = digitos.slice(2)
+  return digitos.length >= 3 ? digitos : null
+}

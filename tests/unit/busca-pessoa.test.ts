@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filtrarPorNome, semAcento } from '@/core/pessoas/busca'
+import { digitosDaBusca, filtrarPorNome, semAcento } from '@/core/pessoas/busca'
 
 /**
  * A busca do modal de encaixe filtra no navegador; a da lista de pessoas filtra
@@ -39,5 +39,30 @@ describe('filtrar por nome', () => {
   it('corta em oito, que é o que cabe no modal', () => {
     const muitos = Array.from({ length: 30 }, (_, i) => ({ nome: `Maria ${i}` }))
     expect(filtrarPorNome(muitos, 'maria')).toHaveLength(8)
+  })
+})
+
+describe('digitosDaBusca', () => {
+  const telefone = '44998775978'
+  const acha = (termo: string) => {
+    const d = digitosDaBusca(termo)
+    return d !== null && telefone.includes(d)
+  }
+
+  it('acha a sequência seguida em qualquer ponto do número', () => {
+    expect(acha('759')).toBe(true)
+    expect(acha('5978')).toBe(true)
+    expect(acha('4499')).toBe(true)
+    expect(acha('(44) 9987')).toBe(true)
+    expect(acha('5544998775978')).toBe(true)
+  })
+
+  it('não acha dígitos fora de ordem ou picados', () => {
+    expect(acha('779')).toBe(false)
+  })
+
+  it('texto com letra é busca por nome, e menos de três dígitos não busca', () => {
+    expect(digitosDaBusca('ana 12')).toBeNull()
+    expect(digitosDaBusca('12')).toBeNull()
   })
 })

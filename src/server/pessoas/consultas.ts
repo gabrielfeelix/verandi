@@ -13,7 +13,7 @@ const COM_CREDITO = new Set<string>(statusComCredito(true))
  * cópias divergindo viram um cadastro que o servidor acha e a tela não.
  */
 export { semAcento } from '@/core/pessoas/busca'
-import { semAcento } from '@/core/pessoas/busca'
+import { digitosDaBusca, semAcento } from '@/core/pessoas/busca'
 
 export type FiltroPessoa =
   | 'sem_telefone' | 'sem_horario_fixo' | 'plano_vencendo' | 'plano_vencido'
@@ -97,7 +97,11 @@ function aplicarFiltros<T extends { eq: unknown }>(
   q = filtros.includes('inativa') ? q.eq('ativo', false) : q.eq('ativo', true)
 
   if (opts.busca && opts.busca.trim()) {
-    q = q.like('nome_busca', `%${semAcento(opts.busca.trim())}%`)
+    // Número procura no telefone (dígitos seguidos), texto procura no nome.
+    const digitos = digitosDaBusca(opts.busca)
+    q = digitos
+      ? q.like('telefone', `%${digitos}%`)
+      : q.like('nome_busca', `%${semAcento(opts.busca.trim())}%`)
   }
   /*
    * "Sem telefone" inclui o telefone que não disca.
