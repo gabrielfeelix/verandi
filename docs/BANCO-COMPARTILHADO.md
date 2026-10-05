@@ -1,4 +1,4 @@
-# Banco de produção compartilhado — leitura obrigatória
+# Banco de produção compartilhado: leitura obrigatória
 
 > **Pare antes de mexer no banco.** Desde 14/ago/2026, Verandi e AutoFluxos
 > usam o mesmo projeto Supabase de produção. São produtos diferentes e não
@@ -40,8 +40,8 @@ Verandi. Nenhum substitui o outro.
    CLI para tentar conciliar os dois repositórios.
 6. **O nome da próxima migration vem do diretório.** Hoje a última é `0061`; a
    próxima é `0062`, enquanto nenhuma nova tiver sido criada. Use o formato
-   `NNNN_vr_descricao.sql`. Esta linha já esteve dezenove números atrasada —
-   dizia `0042` quando o disco tinha `0061` —, e é exatamente por isso que a
+   `NNNN_vr_descricao.sql`. Esta linha já esteve dezenove números atrasada (
+   dizia `0042` quando o disco tinha `0061`), e é exatamente por isso que a
    regra é `ls supabase/migrations/ | tail -1`, inclusive quando um documento
    afirma um número.
 7. **RLS e `GRANT` são camadas diferentes.** Toda tabela de domínio nasce com
