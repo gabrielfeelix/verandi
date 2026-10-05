@@ -1,7 +1,7 @@
 import type { Db } from '../supabase'
 import { localDe } from '../agenda/fuso'
 import { statusComCredito } from '@/core/agenda/ocupacao'
-import { chavesDeBusca } from '@/core/telefone'
+import { formasGuardadas } from '@/core/telefone'
 
 /** os status que deixam a pessoa devendo uma reposição, ver `statusComCredito` */
 const COM_CREDITO = new Set<string>(statusComCredito(true))
@@ -160,7 +160,7 @@ export async function acharPorTelefone(
   contaId: string,
   telefone: string,
 ): Promise<PessoaLinha | null> {
-  const chaves = chavesDeBusca(telefone)
+  const chaves = formasGuardadas(telefone)
   if (chaves.length === 0) return null
 
   const { data, error } = await db

@@ -169,3 +169,21 @@ export function chavesDeBusca(bruto: string): string[] {
 
   return [...chaves]
 }
+
+/**
+ * As chaves de busca e também cada uma **com máscara**, `(11) 98753-0684`.
+ *
+ * O cadastro pela tela grava só dígitos, mas a planilha importada da MGM
+ * gravou 79 de 88 telefones mascarados, e a busca compara texto exato: o bot
+ * não reconhecia quase nenhum aluno (out/2026). Procurar pelas duas formas
+ * acha o que já está gravado e o que vier de uma importação futura.
+ */
+export function formasGuardadas(bruto: string): string[] {
+  const chaves = chavesDeBusca(bruto)
+  const mascaradas = chaves.map((chave) => {
+    const ddd = chave.slice(0, 2)
+    const numero = chave.slice(2)
+    return `(${ddd}) ${numero.slice(0, -4)}-${numero.slice(-4)}`
+  })
+  return [...chaves, ...mascaradas]
+}

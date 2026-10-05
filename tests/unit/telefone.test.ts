@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  chavesDeBusca,
+  chavesDeBusca, formasGuardadas,
   erroDoTelefone, exibirTelefone, mascararTelefone, normalizarTelefone,
   telefoneValido,
 } from '@/core/telefone'
@@ -142,5 +142,18 @@ describe('o número que chega do WhatsApp', () => {
   it('continua recusando o que não disca', () => {
     expect(erroDoTelefone('998887766')).toContain('DDD')
     expect(erroDoTelefone('5510998887766')).toContain('DDD')
+  })
+})
+
+describe('formasGuardadas', () => {
+  it('procura também pela forma com máscara que a planilha importada gravou', () => {
+    const formas = formasGuardadas('5511987530684')
+    expect(formas).toContain('11987530684')
+    expect(formas).toContain('(11) 98753-0684')
+    expect(formas).toContain('(11) 8753-0684')
+  })
+
+  it('sem DDD continua sem busca', () => {
+    expect(formasGuardadas('98753-0684')).toEqual([])
   })
 })
