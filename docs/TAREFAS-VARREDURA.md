@@ -47,15 +47,18 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
   ocupa" no menu da linha.
 - [x] **Pendências** (2f289cd): cabeçalho branco com número sólido (tokens
   `solido-atencao`, `solido-neutro`), subtítulos formais, "Sem nº da ficha".
-- [ ] **Alunos, Configuração, Entrar, convite, onboarding**: mesma régua
-  (nomenclatura formal, botão com cara de botão, sem pastel em botão, sem
-  card repetido, sem dica óbvia).
+- [x] **Alunos** (f73d88a, já na `main`): situação formal só na tela (a API
+  do bot continua com o valor antigo), "Horário fixo", "Sem telefone".
+- [x] **Configuração** (50a9343): subtítulos-explicação fora, notas numa
+  frase, "Com acesso / Sem acesso", iniciais sem parêntese.
+- [x] **Entrar, convite, senha, onboarding** (ec105a3): tom formal, sem
+  gênero presumido, roteiro com o vocabulário de registro.
 - [ ] **Aula e Aluno** (as melhores hoje) também sobem de nível.
 
 ## Linguagem visual
 
-- [ ] Paleta: revisar tokens em `src/app/globals.css` para menos terroso,
-  pastel só em etiqueta não clicável.
+- [x] Paleta (cfc2d1e): alerta, atenção, info e licença limpos; avatares
+  sem marrom, oliva e mostarda.
 - [ ] Tabelas e botões no padrão do AutoFluxos.
 - [ ] Ilustração em estados vazios e onboarding.
 - [ ] Motion leve em troca de estado (marcar presença, abrir menu, toast).
