@@ -72,13 +72,13 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
       Os períodos continuam como faixas da lista. A tabela de preferência do
       arranjo (`tests/home.test.ts`) fica no banco sem uso, até uma limpeza.
 - [x] "Equipe hoje" sai; a carga por professor mora em Agenda > Dia por recurso.
-- [ ] Fica: próxima aula, agenda do dia, prévia de Pendências, Caixa do mês.
+- [x] Fica: próxima aula, agenda do dia, prévia de Pendências, Caixa do mês.
 
 ## 5. Pendências
 
 - [x] Sai o card lateral "Resumo": repete a contagem que já está no título de
       cada grupo.
-- [ ] Licenças com 3 ordens em vez de 5: atrasada (data passou ou voltou sem
+- [x] Licenças com 3 ordens em vez de 5: atrasada (data passou ou voltou sem
       reagendar), próximas, sem data.
 
 ## 6. Alunos (lista)
@@ -118,15 +118,17 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 ## 9. Licença (Verandi + bot da MGM)
 
-- [ ] Bot: uma porta só. Sai o item "Voltei de licença" do menu do aluno e os 4
+- [ ] (script pronto, falta publicar) Bot: uma porta só. Sai o item "Voltei de licença" do menu do aluno e os 4
       gatilhos por frase; fica a pergunta automática quando a ficha tem licença.
-- [ ] Bot: "Está voltando?" e "Quer marcar?" viram uma pergunta: "Vi que você
+- [ ] (script pronto, falta publicar) Bot: "Está voltando?" e "Quer marcar?" viram uma pergunta: "Vi que você
       está de licença. Vamos marcar sua volta?" [Marcar] [Outro assunto].
-- [ ] Bot: pula a escolha de modalidade quando a ficha já diz qual é.
-- [ ] Bot: "Agora não" avisa só pelo inbox do AutoFluxos. Sai o
+- [ ] (script pronto, falta publicar; API `modalidadeUnica` no ar em `9de8a55`) Bot: pula a escolha de modalidade quando a ficha já diz qual é.
+- [x] Verandi: `reagendou:false` só mantém a licença aberta (`3a97de7`).
+- [ ] (script pronto, falta publicar) Bot: "Agora não" sai; quem não quer marcar escolhe "Outro assunto".
+      Era: "Agora não" avisa só pelo inbox do AutoFluxos. Sai o
       `voltou_sem_reagendar_em` e o `POST /licencas {reagendou:false}`; a API
       fica só com "encerrar". Coluna fica no banco, sem uso, até uma limpeza.
-- [ ] Verandi: o modal "Quando volta?" deixa de abrir sozinho ao marcar
+- [x] Verandi: o modal "Quando volta?" deixa de abrir sozinho ao marcar
       Licença. A data se define em Pendências ou na ficha.
 - [ ] Republicar Atendimento e Voltei de Licença na MGM (cliente pagante:
       conferir no WhatsApp com número 44 depois).
