@@ -118,19 +118,19 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 ## 9. Licença (Verandi + bot da MGM)
 
-- [ ] (script pronto, falta publicar) Bot: uma porta só. Sai o item "Voltei de licença" do menu do aluno e os 4
+- [x] Bot: uma porta só. Sai o item "Voltei de licença" do menu do aluno e os 4
       gatilhos por frase; fica a pergunta automática quando a ficha tem licença.
-- [ ] (script pronto, falta publicar) Bot: "Está voltando?" e "Quer marcar?" viram uma pergunta: "Vi que você
+- [x] Bot: "Está voltando?" e "Quer marcar?" viram uma pergunta: "Vi que você
       está de licença. Vamos marcar sua volta?" [Marcar] [Outro assunto].
-- [ ] (script pronto, falta publicar; API `modalidadeUnica` no ar em `9de8a55`) Bot: pula a escolha de modalidade quando a ficha já diz qual é.
+- [x] Bot: pula a escolha de modalidade quando a ficha já diz qual é.
 - [x] Verandi: `reagendou:false` só mantém a licença aberta (`3a97de7`).
-- [ ] (script pronto, falta publicar) Bot: "Agora não" sai; quem não quer marcar escolhe "Outro assunto".
+- [x] Bot: "Agora não" sai; quem não quer marcar escolhe "Outro assunto".
       Era: "Agora não" avisa só pelo inbox do AutoFluxos. Sai o
       `voltou_sem_reagendar_em` e o `POST /licencas {reagendou:false}`; a API
       fica só com "encerrar". Coluna fica no banco, sem uso, até uma limpeza.
 - [x] Verandi: o modal "Quando volta?" deixa de abrir sozinho ao marcar
       Licença. A data se define em Pendências ou na ficha.
-- [ ] Republicar Atendimento e Voltei de Licença na MGM (cliente pagante:
+- [x] Republicar Atendimento (v19) e Licença (v2) na MGM; gatilhos apagados. Falta teste no WhatsApp (cliente pagante:
       conferir no WhatsApp com número 44 depois).
 
 ## Ordem de execução

@@ -21,15 +21,12 @@ cada tela, salvo onde diz o contrário.
 | `9de8a55` | API: `GET /pessoas/{id}` devolve `modalidadeUnica`. |
 | AutoFluxos `34ea9976` | `scripts/fluxos/mgm-licenca-simplifica.mts` (ver abaixo). |
 
-## Pendente: publicar o bot da MGM
+## Bot da MGM: publicado
 
-O classificador de segurança bloqueou o `--gravar` (deploy em produção). O
-dry-run passou: licença v1 25 → 23 blocos, atendimento v18 com menu do aluno
-de 4 opções, nenhum bloco inalcançável. Para publicar, no `autofluxos/`:
-
-    npx tsx --conditions=react-server scripts/fluxos/mgm-licenca-simplifica.mts --gravar
-
-Depois, testar no WhatsApp com número 44 de licença aberta.
+Autorizado pelo Gabriel e publicado com `--gravar`: Licença v2 (23 blocos,
+com `tem-modalidade`), Atendimento v19 ("Vamos marcar sua volta?"), 4
+gatilhos por frase apagados. Conferido lendo a versão publicada no banco.
+Falta testar no WhatsApp com número 44 de licença aberta.
 
 ## Decisões tomadas no caminho
 
