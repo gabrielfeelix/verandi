@@ -3,14 +3,19 @@ export type StatusParticipacao =
   | 'falta' | 'falta_avisada' | 'licenca' | 'cancelada'
 
 /**
- * Os dois status que devolvem a vaga para a sessão.
+ * Os status que devolvem o lugar **daquela aula** para a sessão.
  *
  * `falta_avisada` libera de propósito: é o que faz "avisei que não vou" abrir
  * espaço para a reposição de outra pessoa, e é o que dá sentido à confirmação
- * pelo bot. `licenca` NÃO libera — quem está afastado mantém o horário, que é
- * como a operação real trata.
+ * pelo bot.
+ *
+ * `licenca` também libera, desde 06/out/2026, pelo mesmo motivo: a pessoa não
+ * vem, e quatro semanas de licença eram quatro aulas com lugar vazio que
+ * ninguém podia ocupar. O que fica guardado é o **horário fixo** (a `vaga`),
+ * não o lugar de cada aula: ela volta para o mesmo horário, e se a aula
+ * estiver cheia de encaixes quando voltar, entra acima da capacidade.
  */
-const LIBERAM_A_VAGA: ReadonlySet<string> = new Set(['falta_avisada', 'cancelada'])
+const LIBERAM_A_VAGA: ReadonlySet<string> = new Set(['falta_avisada', 'cancelada', 'licenca'])
 
 /**
  * Quem sai de um horário devendo uma reposição.
@@ -22,7 +27,7 @@ const LIBERAM_A_VAGA: ReadonlySet<string> = new Set(['falta_avisada', 'cancelada
  * `falta_avisada` entra **se a conta quiser**: é a pergunta de Padrões, "avisar
  * antes dá direito a repor?". `cancelada` entra sempre e não se pergunta, porque
  * é o negócio que fechou o dia ou tirou a pessoa do horário, e o lugar era dela.
- * `licenca` fica de fora: quem está afastado mantém a vaga, não perdeu nada.
+ * `licenca` fica de fora: quem está afastado mantém o horário fixo, não perdeu nada.
  */
 export function statusComCredito(creditoFaltaAvisada: boolean): StatusParticipacao[] {
   return creditoFaltaAvisada

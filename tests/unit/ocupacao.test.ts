@@ -21,8 +21,8 @@ describe('calcularOcupacao', () => {
     expect(calcularOcupacao(2, ['cancelada', 'presente']).ocupadas).toBe(1)
   })
 
-  it('licença NÃO libera — a pessoa mantém o horário dela', () => {
-    expect(calcularOcupacao(4, ['licenca', 'presente']).ocupadas).toBe(2)
+  it('licença libera o lugar da aula; o horário fixo continua dela', () => {
+    expect(calcularOcupacao(4, ['licenca', 'presente']).ocupadas).toBe(1)
   })
 
   it('falta sem aviso não libera', () => {
