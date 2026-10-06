@@ -11,6 +11,8 @@ import { SeletorDeEtiqueta } from '@/components/pessoas/etiquetas'
 import { BuscaDePessoas } from '@/components/pessoas/busca'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { cartao, Chip, Paginacao, Vazio } from '@/components/ui/pecas'
+import { LinhaQueAbre } from '@/components/ui/linha-que-abre'
+import { CELULA, CELULA_FIXA, Cabecalho, LINHA, Tabela, Th } from '@/components/ui/tabela'
 import { TINTA } from '@/components/ui/tintas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
@@ -196,39 +198,37 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
         </Chip>
       </div>
 
-      <section className={`overflow-hidden ${cartao}`}>
-        <div className="hidden grid-cols-[minmax(0,1fr)_132px_116px_116px_148px] gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid">
-          {['Nome', 'Telefone', 'Horário fixo', 'Última presença', 'Situação']
-            .map((c) => (
-              <span
-                key={c}
-                className="text-[12px] font-semibold text-tinta-media"
-              >
-                {c}
-              </span>
-            ))}
-        </div>
-
-        {pessoas.length === 0 ? (
+      {/* Tabela de verdade, como Cobranças: o cabeçalho de antes era uma
+          grade desenhada por cima de uma lista, e no celular as colunas
+          sumiam. Aqui a tabela rola de lado com o nome preso à esquerda. */}
+      {pessoas.length === 0 ? (
+        <section className={cartao}>
           <Vazio
             icone="pessoas"
             titulo="Nenhum resultado"
             texto="Ajuste os filtros ou cadastre um aluno pelo botão acima."
           />
-        ) : (
-          <ul aria-label={rotulos.pessoa.plural}>
+        </section>
+      ) : (
+        <Tabela largura={820} soNoDesktop rotulo={rotulos.pessoa.plural}>
+          <Cabecalho>
+            <Th fixa>Nome</Th>
+            <Th className="max-md:hidden">Telefone</Th>
+            <Th className="max-md:hidden">Horário fixo</Th>
+            <Th className="max-md:hidden">Última presença</Th>
+            <Th className="max-md:text-right">Situação</Th>
+          </Cabecalho>
+          <tbody>
             {pessoas.map((p) => {
               const [fundo, frente] = paresDe(p.nome)
               const situacao = situacaoDe({ ...p, deLicenca: emLicenca.has(p.id) })
               const fone = telefoneMascarado(p.telefone)
 
               return (
-                <li key={p.id}>
-                  <Link
-                    href={`/pessoas/${p.id}`}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 border-b border-linha-fina px-4.5 py-3.5 hover:bg-superficie-tenue md:grid-cols-[minmax(0,1fr)_132px_116px_116px_148px]"
-                  >
-                    <span className="flex min-w-0 items-center gap-2.5">
+                // a linha inteira abre a ficha; o link continua sendo só o nome
+                <LinhaQueAbre key={p.id} href={`/pessoas/${p.id}`} className={LINHA}>
+                  <td className={`${CELULA_FIXA} max-md:px-3`}>
+                    <span className="flex items-center gap-2.5 md:min-w-[220px]">
                       <span
                         aria-hidden
                         className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[13.5px] leading-none font-semibold tracking-[-.02em]"
@@ -237,10 +237,13 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         {iniciaisDe(p.nome)}
                       </span>
                       <span className="flex min-w-0 flex-col leading-[1.35]">
-                        {/* quebra em vez de espremer: no celular o selo descia
-                            por cima do nome e cortava ele em "Helena Mo..." */}
                         <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="max-w-full truncate text-[14.5px] font-medium">{p.nome}</span>
+                          <Link
+                            href={`/pessoas/${p.id}`}
+                            className="max-w-full text-[14.5px] font-medium hover:text-marca md:truncate"
+                          >
+                            {p.nome}
+                          </Link>
                           {p.tags.map((x) => (
                             <span
                               key={x}
@@ -250,72 +253,72 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                             </span>
                           ))}
                         </span>
-                        <span className="truncate text-[12px] text-tinta-media">
-                          {p.identificadorExterno
-                            ? `Ficha nº ${p.identificadorExterno}`
-                            : ''}
+                        {p.identificadorExterno ? (
+                          <span className="truncate text-[12px] text-tinta-media">
+                            Ficha nº {p.identificadorExterno}
+                          </span>
+                        ) : null}
+                        {/* no celular a coluna Telefone some; o número desce para cá */}
+                        <span className={`truncate text-[12px] md:hidden ${fone ? 'text-tinta-media' : 'text-alerta'}`}>
+                          {fone ?? 'Sem telefone'}
                         </span>
                       </span>
                     </span>
+                  </td>
 
+                  <td className={`${CELULA} whitespace-nowrap max-md:hidden`}>
                     <span
                       title={fone ? undefined : 'Sem telefone cadastrado'}
-                      className={`text-[13.5px] ${
-                        fone ? 'text-tinta-media' : 'text-alerta'
-                      }`}
+                      className={`text-[13.5px] ${fone ? 'text-tinta-media' : 'text-alerta'}`}
                     >
                       {fone ?? 'Sem telefone'}
                     </span>
+                  </td>
 
+                  <td className={`${CELULA} whitespace-nowrap text-[14.5px] max-md:hidden ${p.horarioFixo ? 'text-tinta-media' : 'text-tinta-fraca'}`}>
+                    {p.horarioFixo ? (
+                      <>
+                        {DIAS_CURTOS[p.horarioFixo.diaSemana]} {p.horarioFixo.hora}
+                        {p.vagasAtivas > 1 ? (
+                          <span
+                            className="ml-1.5 rounded-minima bg-superficie-mais-suave px-1.5 py-[2px] text-[12px] text-tinta-media"
+                            title={`Mais ${p.vagasAtivas - 1} ${p.vagasAtivas - 1 === 1 ? 'horário' : 'horários'}`}
+                          >
+                            +{p.vagasAtivas - 1}
+                          </span>
+                        ) : null}
+                      </>
+                    ) : 'Sem horário fixo'}
+                  </td>
+
+                  <td className={`${CELULA} whitespace-nowrap text-[14.5px] text-tinta-media max-md:hidden`}>
+                    {quando(p.ultimaPresenca)}
+                  </td>
+
+                  <td className={`${CELULA} max-md:pl-0 max-md:pr-3 max-md:text-right`}>
                     <span
-                      className={`hidden text-[14.5px] md:block ${
-                        p.horarioFixo ? 'text-tinta-media' : 'text-tinta-fraca'
-                      }`}
-                    >
-                      {p.horarioFixo ? (
-                        <>
-                          {DIAS_CURTOS[p.horarioFixo.diaSemana]} {p.horarioFixo.hora}
-                          {p.vagasAtivas > 1 ? (
-                            <span
-                              className="ml-1.5 rounded-minima bg-superficie-mais-suave px-1.5 py-[2px] text-[12px] text-tinta-media"
-                              title={`Mais ${p.vagasAtivas - 1} ${p.vagasAtivas - 1 === 1 ? 'horário' : 'horários'}`}
-                            >
-                              +{p.vagasAtivas - 1}
-                            </span>
-                          ) : null}
-                        </>
-                      ) : 'Sem horário fixo'}
-                    </span>
-
-                    <span className="hidden text-[14.5px] text-tinta-media md:block">
-                      {quando(p.ultimaPresenca)}
-                    </span>
-
-                    <span
-                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[12px] font-medium whitespace-nowrap ${TINTA[situacao.tinta]}`}
+                      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[12px] font-medium whitespace-nowrap ${TINTA[situacao.tinta]}`}
                     >
                       <span aria-hidden className="size-1.5 rounded-full bg-current" />
                       {SITUACAO_NA_TELA[situacao.rotulo] ?? situacao.rotulo}
                     </span>
-                  </Link>
-                </li>
+                  </td>
+                </LinhaQueAbre>
               )
             })}
-          </ul>
-        )}
+          </tbody>
+        </Tabela>
+      )}
 
-        {total > 0 ? (
-          <div className="border-t border-linha-fina px-4.5 py-3.5">
-            <Paginacao
-              pagina={pagina}
-              total={total}
-              porPagina={POR_PAGINA}
-              hrefDe={daPagina}
-              nota={NOTA_INATIVA}
-            />
-          </div>
-        ) : null}
-      </section>
+      {total > 0 ? (
+        <Paginacao
+          pagina={pagina}
+          total={total}
+          porPagina={POR_PAGINA}
+          hrefDe={daPagina}
+          nota={NOTA_INATIVA}
+        />
+      ) : null}
     </div>
     </AreaQueTroca>
   )
