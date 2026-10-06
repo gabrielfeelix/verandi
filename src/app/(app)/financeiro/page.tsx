@@ -23,6 +23,8 @@ import { FaixaDeNumeros, type NumeroDaFaixa } from '@/components/ui/faixa-numero
 import { periodoDaBusca } from '@/core/financeiro/periodo'
 import type { ResumoDeCobrancas } from '@/core/financeiro/metricas'
 import { AreaQueTroca } from '@/components/ui/troca'
+import { SecoesDoFinanceiro } from '@/components/financeiro/secoes'
+import { Chip } from '@/components/ui/pecas'
 import Carregando from './loading'
 
 /**
@@ -110,6 +112,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <Cabecalho atrasadas={atrasadas} hoje={hoje} />
+        <SecoesDoFinanceiro ativa="cobrancas" />
         <Trilha aba={aba} q={q} periodo={periodo} atrasadas={atrasadas} />
 
         <FaixaDeNumeros
@@ -256,42 +259,29 @@ function Trilha({
   periodo: { de: string; ate: string } | null
   atrasadas: number
 }) {
+  // a situação é filtro dentro de Cobranças, em chips: as seções do
+  // Financeiro já são as abas de cima, e duas fileiras de abas competiam
   return (
-    <nav
-      aria-label="O que mostrar"
-      // no celular as seis abas viram duas linhas de três: rolando de lado,
-      // nada dizia que Canceladas e Fechamento existiam
-      className="grid grid-cols-3 gap-[3px] rounded-media border border-linha bg-superficie p-1 sm:inline-flex sm:max-w-full sm:overflow-x-auto"
-    >
-      {ABAS.map((a) => {
-        const ligado = a.id === aba
+    <nav aria-label="Situação da cobrança" className="flex flex-wrap gap-1.5">
+      {ABAS.filter((a) => a.id !== 'fechamento').map((a) => {
         const busca = new URLSearchParams({ aba: a.id })
         if (q) busca.set('q', q)
-        // o período atravessa a troca de aba: quem filtrou setembro e clicou em
+        // o período atravessa a troca: quem filtrou setembro e clicou em
         // "Recebidas" quer as recebidas de setembro, e não recomeçar
         if (periodo) { busca.set('de', periodo.de); busca.set('ate', periodo.ate) }
         return (
-          <Link
-            key={a.id}
-            href={`/financeiro?${busca}`}
-            aria-current={ligado ? 'page' : undefined}
-            className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-padrao px-2 text-[14px] whitespace-nowrap sm:px-3.5 ${
-              ligado
-                ? 'bg-escuro text-tinta-clara'
-                : 'text-tinta-media hover:bg-superficie-mais-suave'
-            }`}
-          >
+          <Chip key={a.id} ativo={a.id === aba} href={`/financeiro?${busca}`}>
             {a.rotulo}
             {a.id === 'atrasadas' && atrasadas > 0 ? (
               <span
                 className={`rounded-peca px-1.5 text-[12px] ${
-                  ligado ? 'bg-white/15' : 'bg-alerta-fundo text-alerta'
+                  a.id === aba ? 'bg-white/15' : 'bg-alerta-fundo text-alerta'
                 }`}
               >
                 {atrasadas}
               </span>
             ) : null}
-          </Link>
+          </Chip>
         )
       })}
     </nav>
@@ -359,7 +349,7 @@ async function Fechamento({
   return (
     <div className="flex flex-col gap-4">
       <Cabecalho atrasadas={atrasadas} hoje={hoje} />
-      <Trilha aba="fechamento" periodo={null} atrasadas={atrasadas} />
+      <SecoesDoFinanceiro ativa="fechamento" />
 
       <div className="flex flex-wrap items-center gap-2">
         {/* dia, semana, mês e ano são as quatro janelas que o documento pede */}

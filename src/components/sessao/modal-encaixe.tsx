@@ -1,7 +1,7 @@
 'use client'
 
 import { nomesDosDias } from '@/core/planos/plano'
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import type { Ocupacao } from '@/core/agenda/ocupacao'
 import { filtrarPorNome } from '@/core/pessoas/busca'
 import {
@@ -42,6 +42,8 @@ export function ModalEncaixe({
   /** a falta mais antiga ainda sem reposição de quem foi escolhido */
   const [falta, setFalta] = useState<FaltaEmAberto | null>(null)
   const [trocando, setTrocando] = useState(false)
+  // quem trocou a origem à mão manda: a sugestão que chega depois não passa por cima
+  const manual = useRef(false)
   const [aviso, setAviso] = useState<string | null>(null)
   /** quem foi tocado na lista: o toque escolhe, o botão do rodapé grava */
   const [escolhido, setEscolhido] = useState<Candidato | null>(null)
@@ -167,13 +169,14 @@ export function ModalEncaixe({
   function escolher(c: Candidato) {
     setEscolhido(c); setExcedente(null); setAviso(null); setTrocando(false)
     setFalta(null)
+    manual.current = false
     setOrigem('avulso')
     iniciar(async () => {
       const faltas = await faltasParaRepor(c.id)
       // a lista vem da mais nova para a mais antiga; repõe primeiro a que vence antes
       const antiga = faltas.at(-1) ?? null
       setFalta(antiga)
-      if (antiga) setOrigem('reposicao')
+      if (antiga && !manual.current) setOrigem('reposicao')
     })
   }
 
@@ -277,7 +280,11 @@ export function ModalEncaixe({
           {trocando ? (
             <div role="group" aria-label="Origem" className="flex flex-wrap gap-1.5">
               {ORIGENS.map(([valor, rotulo]) => (
-                <Chip key={valor} ativo={origem === valor} onClick={() => setOrigem(valor)}>
+                <Chip
+                  key={valor}
+                  ativo={origem === valor}
+                  onClick={() => { manual.current = true; setOrigem(valor) }}
+                >
                   {rotulo}
                 </Chip>
               ))}

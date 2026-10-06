@@ -32,7 +32,8 @@ async function cenarioCheio() {
  * cabeçalho evita que o teste dependa de qual deles está na tela.
  */
 async function abrirEncaixe(page: Page) {
-  await page.getByRole('button', { name: 'Encaixar pessoa' }).click()
+  // o encaixe mora no rodapé da lista, junto das vagas livres
+  await page.getByRole('button', { name: /encaixar (alguém|assim mesmo)/ }).click()
   return page.getByRole('dialog')
 }
 
@@ -105,10 +106,12 @@ test('quem avisou que não vem devolve a vaga', async ({ page }) => {
   const modal = await abrirEncaixe(page)
   await expect(modal.getByText('1/2, 1 vaga livre')).toBeVisible()
 
-  await modal.getByRole('button', { name: 'Reposição', exact: true }).click()
   await modal.getByPlaceholder('Buscar por nome').fill('Beatriz')
   await modal.getByRole('button', { name: /Beatriz Nogueira/ }).click()
-  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
+  // a origem é deduzida; trocar à mão é a exceção, atrás de "Trocar"
+  await modal.getByRole('button', { name: 'Trocar', exact: true }).click()
+  await modal.getByRole('button', { name: 'Reposição', exact: true }).click()
+  await modal.getByRole('button', { name: /^Encaixar como Reposição/ }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('participacao')

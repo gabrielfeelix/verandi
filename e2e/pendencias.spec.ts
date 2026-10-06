@@ -36,8 +36,7 @@ test('registrar a chamada tira a pendência sem passo extra', async ({ page }) =
   const c = await contaComPendencia()
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
-  // são dois: o do cabeçalho e o da barra colada no rodapé
-  await page.getByRole('button', { name: 'Marcar todos presentes' }).first().click()
+  await page.getByRole('button', { name: /^Concluir chamada/ }).first().click()
 
   // esperar a escrita antes de navegar: a ação roda numa transição, e sair da
   // página no meio dela testa o estado anterior

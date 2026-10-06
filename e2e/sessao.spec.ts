@@ -81,9 +81,9 @@ test('um toque marca todo mundo presente e a chamada fecha', async ({ page }) =>
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  // são dois: o do cabeçalho e o da barra que fica colada no rodapé
-  await page.getByRole('button', { name: 'Marcar todos presentes' }).first().click()
-  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
+  // quem está sem marca conta como presente: concluir é um toque
+  await page.getByRole('button', { name: /^Concluir chamada/ }).first().click()
+  await expect(page.getByRole('button', { name: /^Concluir chamada/ })).toHaveCount(0)
 
   // a UI é otimista: o botão some antes de a escrita chegar ao banco.
   // conferir o banco sem poll testaria a animação, não o registro.
@@ -100,11 +100,12 @@ test('marcar a exceção primeiro e depois "todos vieram" preserva a falta', asy
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const linhaBeatriz = page.getByRole('listitem').filter({ hasText: 'Beatriz Nogueira' })
-  await linhaBeatriz.getByRole('button', { name: 'Faltou' }).click()
+  await linhaBeatriz.getByRole('button', { name: 'Veio', exact: true }).click()
+  await linhaBeatriz.getByRole('menuitemradio', { name: /Faltou sem avisar/ }).click()
   await expect(page.getByRole('status')).toContainText('Beatriz Nogueira')
 
-  await page.getByRole('button', { name: 'Marcar todos presentes' }).first().click()
-  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
+  await page.getByRole('button', { name: /^Concluir chamada · 2 vieram/ }).first().click()
+  await expect(page.getByRole('button', { name: /^Concluir chamada/ })).toHaveCount(0)
 
   await expect.poll(async () => {
     const { data } = await admin.from('participacao')
@@ -124,7 +125,8 @@ test('desfazer devolve o status anterior', async ({ page }) => {
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const linha = page.getByRole('listitem').filter({ hasText: 'Helena Moraes' })
-  await linha.getByRole('button', { name: 'Veio' }).click()
+  await linha.getByRole('button', { name: 'Veio', exact: true }).click()
+  await linha.getByRole('menuitemradio', { name: /Avisou que não vem/ }).click()
   await page.getByRole('button', { name: 'Desfazer' }).click()
 
   await expect.poll(async () => {
@@ -146,7 +148,7 @@ test('sessão cancelada mostra o motivo e não deixa registrar', async ({ page }
   // a frase nomeia a entidade da conta sem concordar com ela: "cancelada"
   // viraria "Atendimento cancelada" para quem chama sessão de atendimento
   await expect(page.getByText(/não vai acontecer: Professora doente/)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Concluir chamada/ })).toHaveCount(0)
 })
 
 test('a tela usa o rótulo da conta, não a palavra do código', async ({ page }) => {
@@ -235,7 +237,7 @@ test('observação para todos chega à recepção', async ({ page, browser }) =>
   await outra.close()
 })
 
-test('aula que ainda não começou não oferece marcar todos presentes', async ({ page }) => {
+test('aula que ainda não começou mostra Agendado e não oferece concluir', async ({ page }) => {
   const c = await cenario()
   const daquiATresDias = new Date(Date.now() + 3 * 864e5).toISOString()
   await admin.from('sessao').update({ inicio: daquiATresDias }).eq('id', c.sessaoId)
@@ -243,8 +245,13 @@ test('aula que ainda não começou não oferece marcar todos presentes', async (
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await expect(page.getByRole('button', { name: 'Veio' }).first()).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Marcar todos presentes' })).toHaveCount(0)
+  // antes da aula ninguém "veio" nem "faltou": só avisou ou entrou de licença
+  const primeiro = page.getByRole('button', { name: 'Agendado', exact: true }).first()
+  await expect(primeiro).toBeVisible()
+  await primeiro.click()
+  await expect(page.getByRole('menuitemradio', { name: /Avisou que não vem/ })).toBeVisible()
+  await expect(page.getByRole('menuitemradio', { name: /Faltou sem avisar/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Concluir chamada/ })).toHaveCount(0)
   // a mais de um dia, o dia e a hora, e não "em 71h21"
   await expect(page.getByText(/começa \S+, \d\d\/\d\d, às \d\d:\d\d/)).toBeVisible()
 })

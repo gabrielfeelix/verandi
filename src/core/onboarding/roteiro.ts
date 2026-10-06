@@ -138,18 +138,13 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     },
   ]
 
+  // a grade fixa é uma aba da Agenda: o passo abre direto nela
   const grade: Passo[] = [
-    {
-      href: '/vaga',
-      alvo: 'rail-grade',
-      titulo: 'A grade fixa é o esqueleto',
-      texto: `Aqui mora o que se repete toda semana, ${series}. Você mexe muito nela no começo e quase nunca depois.`,
-    },
     {
       href: '/grade',
       alvo: 'grade-criar',
-      titulo: 'Monte a semana de uma vez',
-      texto: `Escolha os dias, a hora e quem atende, e ${sessoes} passam a nascer sozinhas. Dá para criar segunda, quarta e sexta numa tacada.`,
+      titulo: 'A grade fixa é o esqueleto',
+      texto: `Na aba Grade fixa da Agenda mora o que se repete toda semana, ${series}. Escolha os dias, a hora e quem atende, e ${sessoes} passam a nascer sozinhas.`,
     },
   ]
 

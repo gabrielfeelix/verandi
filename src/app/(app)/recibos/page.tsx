@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
+import { SecoesDoFinanceiro } from '@/components/financeiro/secoes'
 import { emitenteDaConta } from '@/server/config/consultas'
 import {
   listarRecibos, POR_PAGINA, resumoDosRecibos, TETO_DO_RESUMO_RECIBO,
@@ -87,7 +88,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
       <div className="flex flex-col gap-4">
         <header>
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
-            Recibos
+            Financeiro
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {/* o singular carrega o particípio junto: "1 recibo emitidos" era
@@ -101,6 +102,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
                 : `${total} ${total === 1 ? 'recibo emitido' : 'recibos emitidos'}.`}
           </p>
         </header>
+        <SecoesDoFinanceiro ativa="recibos" />
 
         {!emitenteCompleto(emitente) ? (
           <Nota tom="atencao">

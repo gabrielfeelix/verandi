@@ -9,6 +9,8 @@ import { travarPagina, destravarPagina } from './modal'
 
 export type ItemRail = {
   href: string
+  /** outras rotas que moram dentro deste destino (Recibos dentro do Financeiro) */
+  tambem?: string[]
   /** o nome por extenso: vira `title` e leitura de leitor de tela */
   rotulo: string
   /** o nome curto, que é o que cabe embaixo do glifo quando o rail está fechado */
@@ -60,9 +62,13 @@ function gravarRail(aberto: boolean) {
   ouvintes.forEach((avisar) => avisar())
 }
 
-/** A rota está ativa quando é ela ou uma filha dela (`/pessoas/123`). */
-function ativoEm(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`)
+/**
+ * O destino está ativo quando a rota é ele, uma filha dele (`/pessoas/123`) ou
+ * uma das telas que moram dentro dele (`/recibos` acende o Financeiro).
+ */
+function ativoEm(pathname: string, item: Pick<ItemRail, 'href' | 'tambem'>) {
+  return [item.href, ...(item.tambem ?? [])]
+    .some((h) => pathname === h || pathname.startsWith(`${h}/`))
 }
 
 /**
@@ -117,7 +123,7 @@ export function Rail({
 
       <nav aria-label="Navegação principal" className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
         {itens.map((i) => {
-          const ativo = ativoEm(pathname, i.href)
+          const ativo = ativoEm(pathname, i)
           return (
             <Link
               key={i.href}
@@ -242,7 +248,7 @@ export function BarraInferior({
   const resto = itens.filter((i) => !principais.includes(i.href))
   // o "Mais" acende quando a tela aberta mora nele, e herda o aviso de quem
   // está lá dentro: atraso no Financeiro não pode sumir só porque saiu da vista
-  const maisAtivo = resto.some((i) => ativoEm(pathname, i.href))
+  const maisAtivo = resto.some((i) => ativoEm(pathname, i))
   const maisAvisa = resto.some((i) => i.badge)
 
   useEffect(() => {
@@ -262,7 +268,7 @@ export function BarraInferior({
         className="fixed inset-x-0 bottom-0 z-40 flex border-t border-linha bg-superficie px-2 pt-2 pb-2.5 md:hidden"
       >
         {abas.map((i) => {
-          const ativo = ativoEm(pathname, i.href)
+          const ativo = ativoEm(pathname, i)
           return (
             <Link
               key={i.href}
@@ -310,7 +316,7 @@ export function BarraInferior({
           <span aria-hidden className="mx-auto mb-2 h-1 w-10 rounded-full bg-linha" />
 
           {resto.map((i) => {
-            const ativo = ativoEm(pathname, i.href)
+            const ativo = ativoEm(pathname, i)
             return (
               <Link
                 key={i.href}

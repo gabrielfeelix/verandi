@@ -163,6 +163,8 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             itens={[
               { id: 'semana', rotulo: 'Semana', href: q({ modo: undefined }) },
               { id: 'dia', rotulo: 'Dia por recurso', href: q({ modo: 'dia', dia: diaFoco }) },
+              // a grade fixa é o molde desta agenda: mora aqui, não no menu
+              { id: 'grade', rotulo: 'Grade fixa', href: '/grade' },
             ]}
           />
 

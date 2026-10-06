@@ -21,11 +21,11 @@ Marcar `[x]` com o commit quando entrar.
 Hoje o dono vê: Hoje, Agenda, Pendências, Alunos, Buscar vaga, Grade fixa,
 Financeiro, Recibos, Aulas, Configuração (`src/app/(app)/layout.tsx:113`).
 
-- [ ] Sidebar fica: **Hoje, Agenda, Pendências, Alunos, Financeiro, Configuração**.
-- [ ] **Recibos** vira aba do Financeiro.
-- [ ] **Aulas** (`/aulas`, relatório de aulas dadas por professor, base do
+- [x] Sidebar fica: **Hoje, Agenda, Pendências, Alunos, Financeiro, Configuração**.
+- [x] **Recibos** vira aba do Financeiro.
+- [x] **Aulas** (`/aulas`, relatório de aulas dadas por professor, base do
       pagamento da equipe) vira aba do Financeiro: "Aulas por professor".
-- [ ] **Grade fixa** vira aba da Agenda: "Semana | Dia por recurso | Grade fixa".
+- [x] **Grade fixa** vira aba da Agenda: "Semana | Dia por recurso | Grade fixa".
 - [ ] **Buscar vaga** sai da sidebar (ver 3). Rotas antigas redirecionam para o
       lugar novo, para não quebrar favorito nem link do onboarding
       (`src/core/onboarding/roteiro.ts` aponta `/vaga` e `/grade`).
@@ -105,7 +105,7 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 ## 8. Financeiro
 
-- [ ] Abas: Cobranças (com o filtro de situação dentro), Fechamento, Recibos,
+- [x] Abas: Cobranças (com o filtro de situação dentro), Fechamento, Recibos,
       Aulas por professor.
 - [ ] Período: 4 atalhos (Este mês, Mês passado, Este ano, Escolher datas) em
       vez de 7 mais formulário. Um componente só, usado no Financeiro, Recibos,

@@ -110,11 +110,19 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
     ? await contarAtrasadas(db, conta.contaId, hojeEm(conta.fuso))
     : 0
 
+  /*
+   * Seis destinos, um por pergunta. Recibos e Aulas por professor moram no
+   * Financeiro, Grade fixa mora na Agenda: são telas de consulta ou de montar
+   * uma vez, e dez itens no menu faziam a recepção procurar em vez de usar.
+   */
   const itens: ItemRail[] = [
     { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', icone: 'hoje', guia: 'rail-hoje' },
     ...(operacional
       ? ([
-          { href: '/semana', rotulo: 'Agenda', curto: 'Agenda', icone: 'semana', guia: 'rail-semana' },
+          {
+            href: '/semana', tambem: ['/grade', '/vaga'],
+            rotulo: 'Agenda', curto: 'Agenda', icone: 'semana', guia: 'rail-semana',
+          },
           { href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', icone: 'pendencias', guia: 'rail-pendencias' },
           {
             href: '/pessoas',
@@ -123,10 +131,9 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
             icone: 'pessoas',
             guia: 'rail-pessoas',
           },
-          { href: '/vaga', rotulo: 'Buscar vaga', curto: 'Vaga', icone: 'vaga', guia: 'rail-vaga' },
-          { href: '/grade', rotulo: 'Grade fixa', curto: 'Fixa', icone: 'grade', guia: 'rail-grade' },
           {
             href: '/financeiro',
+            tambem: ['/recibos', '/aulas'],
             rotulo: 'Financeiro',
             curto: 'R$',
             icone: 'dinheiro',
@@ -134,24 +141,10 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
             badgeRotulo: 'em atraso',
             guia: 'rail-financeiro',
           },
-          {
-            href: '/recibos',
-            rotulo: 'Recibos',
-            curto: 'Recibo',
-            icone: 'lista',
-            guia: 'rail-recibos',
-          },
         ] satisfies ItemRail[])
       : []),
     ...(conta.papel === 'dono' || conta.papel === 'suporte'
       ? ([
-          {
-            href: '/aulas',
-            rotulo: 'Aulas',
-            curto: 'Aulas',
-            icone: 'regua',
-            guia: 'rail-aulas',
-          },
           { href: '/config', rotulo: 'Configuração', curto: 'Config', icone: 'config', guia: 'rail-config' },
         ] satisfies ItemRail[])
       : []),

@@ -5,6 +5,7 @@ import { EditorSerie } from '@/components/grade/editor-serie'
 import { LinhaDaGrade } from '@/components/grade/linha-da-grade'
 import { CapacidadeDaSemana } from '@/components/grade/capacidade-semana'
 import { cartao, Vazio } from '@/components/ui/pecas'
+import { Abas } from '@/components/ui/abas'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -47,11 +48,23 @@ export default async function Grade() {
           </p>
         </div>
 
-        {podeEscrever ? (
-          <div data-guia="grade-criar">
-            <EditorSerie catalogo={catalogo} rotulos={rotulos} />
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* a grade é uma aba da Agenda: o caminho de volta fica à vista */}
+          <Abas
+            rotuloDoGrupo="Como ver a agenda"
+            ativo="grade"
+            itens={[
+              { id: 'semana', rotulo: 'Semana', href: '/semana' },
+              { id: 'dia', rotulo: 'Dia por recurso', href: '/semana?modo=dia' },
+              { id: 'grade', rotulo: 'Grade fixa', href: '/grade' },
+            ]}
+          />
+          {podeEscrever ? (
+            <div data-guia="grade-criar">
+              <EditorSerie catalogo={catalogo} rotulos={rotulos} />
+            </div>
+          ) : null}
+        </div>
       </header>
 
       {/* A confusão mais provável do sistema inteiro mora aqui, e por isso ela

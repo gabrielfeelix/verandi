@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ADMINISTRA, clienteServidor, exigirPapel } from '@/server/conta'
+import { SecoesDoFinanceiro } from '@/components/financeiro/secoes'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { hojeEm } from '@/server/agenda/fuso'
 import { aulasDoPeriodo } from '@/server/relatorio/consultas'
@@ -59,7 +60,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
           <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
-            Aulas por {rotulos.profissional.singular.toLowerCase()}
+            Financeiro
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {r.total.aplicadas === 0
@@ -76,6 +77,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
           Planilha
         </a>
       </header>
+      <SecoesDoFinanceiro ativa="aulas" />
 
       <div className="flex flex-wrap items-center gap-2">
         {/* dia, semana e mês são as três janelas que o documento pede */}
