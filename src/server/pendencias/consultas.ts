@@ -308,20 +308,17 @@ export async function esvaziadasHoje(
  * Licença aberta, da mais urgente para a mais tranquila.
  *
  * Não passa pelo "Dispensar": licença não se dispensa, se encerra ("Voltou")
- * ou se prorroga. A ordem é a do telefone: primeiro quem disse que voltou e
- * não reagendou, depois quem já passou da data, quem volta hoje, quem volta
- * nos próximos dias, e por último quem não tem data.
+ * ou se prorroga. Três ordens, a do telefone: quem já devia ter voltado (a
+ * data passou ou é hoje), quem volta nos próximos dias, e quem não tem data.
+ * "Voltou e não reagendou" saiu em 06/out: o bot já passa a conversa para a
+ * equipe no inbox, e avisar nos dois lugares era o mesmo recado duas vezes.
  */
 async function licencasEmAcompanhamento(
   db: Db, contaId: string, hoje: string,
 ): Promise<Pendencia[]> {
   const abertas = await licencasAbertas(db, contaId)
   const peso = (l: (typeof abertas)[number]) =>
-    l.voltouSemReagendarEm ? 0
-      : !l.voltaPrevista ? 4
-      : l.voltaPrevista < hoje ? 1
-      : l.voltaPrevista === hoje ? 2
-      : 3
+    !l.voltaPrevista ? 2 : l.voltaPrevista <= hoje ? 0 : 1
   return abertas
     .sort((a, b) => peso(a) - peso(b)
       || (a.voltaPrevista ?? '9').localeCompare(b.voltaPrevista ?? '9')
@@ -330,10 +327,7 @@ async function licencasEmAcompanhamento(
       const desde = `em licença desde ${diaMes(l.inicio)}`
       let etiqueta: Pendencia['etiqueta']
       let detalhe = desde
-      if (l.voltouSemReagendarEm) {
-        etiqueta = { texto: 'voltou, sem reagendar', tinta: 'alerta' }
-        detalhe = `avisou pelo WhatsApp que voltou e não quis reagendar; ${desde}`
-      } else if (!l.voltaPrevista) {
+      if (!l.voltaPrevista) {
         etiqueta = { texto: 'sem data de volta', tinta: 'neutro' }
       } else if (l.voltaPrevista < hoje) {
         const n = diasEntre(l.voltaPrevista, hoje)

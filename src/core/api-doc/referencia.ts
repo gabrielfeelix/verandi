@@ -321,7 +321,7 @@ export const ROTAS: Rota[] = [
     caminho: '/licencas',
     titulo: 'Avisar que voltou de licença',
     resumo:
-      'A pessoa diz no WhatsApp que voltou. Com reagendou true (ela marcou aula na conversa) a licença fecha. Com reagendou false a licença continua aberta e sobe para o topo de Pendências, para alguém do estúdio ligar.',
+      'A pessoa diz no WhatsApp que voltou. Com reagendou true (ela marcou aula na conversa) a licença fecha. Com reagendou false a licença continua aberta e nada mais muda: quem segue a conversa é a equipe, no atendimento.',
     atencao:
       'Quem não tem licença aberta recebe 200 com tinhaLicenca false, e não erro: a pessoa diz que voltou mesmo quando ninguém registrou a saída. A ficha (GET /pessoas/{pessoaId}) traz licenca com inicio e voltaPrevista, ou null.',
     corpo: [
@@ -332,11 +332,11 @@ export const ROTAS: Rota[] = [
   -H "Authorization: Bearer vr_sua_chave_aqui" \\
   -H "Content-Type: application/json" \\
   -H "Idempotency-Key: conversa-8f21c" \\
-  -d '{ "pessoaId": "77c0...", "reagendou": false }'`,
+  -d '{ "pessoaId": "77c0...", "reagendou": true }'`,
     resposta: `{
   "pessoaId": "77c0...",
   "tinhaLicenca": true,
-  "licencaAberta": true
+  "licencaAberta": false
 }`,
   },
 ]

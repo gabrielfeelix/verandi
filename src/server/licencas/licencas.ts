@@ -87,21 +87,6 @@ export async function prorrogarLicenca(
   if (e) throw e
 }
 
-/**
- * A pessoa disse que voltou e não quer reagendar agora: a licença fica aberta,
- * marcada, e Pendências põe ela no topo para alguém ligar.
- */
-export async function marcarVoltouSemReagendar(
-  db: Db, contaId: string, pessoaId: string,
-): Promise<boolean> {
-  const { data, error } = await db.from('licenca')
-    .update({ voltou_sem_reagendar_em: new Date().toISOString() })
-    .eq('conta_id', contaId).eq('pessoa_id', pessoaId).is('encerrada_em', null)
-    .select('id')
-  if (error) throw error
-  return (data?.length ?? 0) > 0
-}
-
 export async function licencasAbertas(db: Db, contaId: string): Promise<LicencaAberta[]> {
   const { data, error } = await db.from('licenca')
     .select('id, pessoa_id, inicio, volta_prevista, voltou_sem_reagendar_em, pessoa:pessoa_id(nome)')

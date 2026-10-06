@@ -2,9 +2,7 @@ import { type NextRequest } from 'next/server'
 import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
 import { comIdempotencia, lerCorpo } from '@/server/api/idempotencia'
 import { idObrigatorio } from '@/core/api/pedido'
-import {
-  encerrarLicenca, licencaDaPessoa, marcarVoltouSemReagendar,
-} from '@/server/licencas/licencas'
+import { encerrarLicenca, licencaDaPessoa } from '@/server/licencas/licencas'
 
 /**
  * "Voltei de licença", dito pelo WhatsApp.
@@ -14,9 +12,10 @@ import {
  * - `reagendou: true`: ela marcou aula na conversa. A licença fecha, e a volta
  *   fica registrada como feita pelo bot.
  * - `reagendou: false`: voltou e não quis marcar agora. A licença **continua
- *   aberta**, marcada, e sobe para o topo de Pendências para alguém ligar. É o
- *   que o estúdio pediu: o bot não decide a volta sozinho quando a conversa
- *   termina sem aula marcada.
+ *   aberta**, e nada mais muda: o bot passa a conversa para a equipe no inbox,
+ *   que é onde ela está. Até 06/out isto também marcava a licença para subir
+ *   em Pendências; era o mesmo recado em dois lugares. O valor continua aceito
+ *   para o fluxo publicado não quebrar, e o bot novo nem chama com `false`.
  *
  * Pessoa sem licença aberta devolve 200 com `tinhaLicenca: false`: a pessoa diz
  * que voltou mesmo quando ninguém registrou a saída, e isso não é erro do bot.
@@ -51,7 +50,6 @@ export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
       return { status: 200, corpo: { pessoaId, tinhaLicenca: true, licencaAberta: false } }
     }
 
-    await marcarVoltouSemReagendar(ctx.db, ctx.contaId, pessoaId)
     return { status: 200, corpo: { pessoaId, tinhaLicenca: true, licencaAberta: true } }
   })
 })
