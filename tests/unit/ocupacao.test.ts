@@ -53,10 +53,10 @@ describe('avaliarEncaixe', () => {
     expect(avaliarEncaixe(o, false)).toEqual({ cabe: true })
   })
 
-  it('NÃO cabe quando lotada — a saída é aumentar a capacidade', () => {
+  it('NÃO cabe quando lotada: a saída é aumentar a capacidade', () => {
     // 5 vagas com 5 pessoas é indisponível. A sexta pessoa não vê o horário,
     // e o bot não oferece. Quem abre vaga é o profissional, subindo a
-    // capacidade daquele dia — aí a vaga passa a existir de verdade.
+    // capacidade daquele dia: aí a vaga passa a existir de verdade.
     const o = calcularOcupacao(5, ['presente', 'presente', 'presente', 'esperada', 'esperada'])
     expect(avaliarEncaixe(o, false)).toEqual({
       cabe: false, motivo: 'lotada', podeAbrirVaga: true,
@@ -77,7 +77,7 @@ describe('avaliarEncaixe', () => {
 })
 
 describe('temVagaParaOferecer', () => {
-  it('cheio NÃO é resultado de busca — nem na tela, nem para o bot', () => {
+  it('cheio NÃO é resultado de busca: nem na tela, nem para o bot', () => {
     expect(temVagaParaOferecer(calcularOcupacao(2, ['presente', 'presente']))).toBe(false)
     expect(temVagaParaOferecer(calcularOcupacao(2, ['presente']))).toBe(true)
   })
@@ -91,7 +91,7 @@ describe('temVagaParaOferecer', () => {
 describe('encaixe acima da capacidade', () => {
   const cheia = calcularOcupacao(4, ['presente', 'presente', 'presente', 'presente'])
 
-  it('com a conta permitindo, cabe — e vem marcado como excedente', () => {
+  it('com a conta permitindo, cabe: e vem marcado como excedente', () => {
     expect(avaliarEncaixe(cheia, false, true)).toEqual({
       cabe: true, acimaDaCapacidade: true, podeAbrirVaga: true,
     })
@@ -114,7 +114,7 @@ describe('encaixe acima da capacidade', () => {
     })
   })
 
-  it('a busca de vaga NÃO muda com a configuração — cheio nunca é oferecido', () => {
+  it('a busca de vaga NÃO muda com a configuração: cheio nunca é oferecido', () => {
     expect(temVagaParaOferecer(cheia)).toBe(false)
     const comVaga = calcularOcupacao(4, ['presente'])
     expect(temVagaParaOferecer(comVaga)).toBe(true)
