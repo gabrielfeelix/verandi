@@ -53,12 +53,19 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
   frase, "Com acesso / Sem acesso", iniciais sem parêntese.
 - [x] **Entrar, convite, senha, onboarding** (ec105a3): tom formal, sem
   gênero presumido, roteiro com o vocabulário de registro.
-- [ ] **Aula e Aluno** (as melhores hoje) também sobem de nível.
+- [x] **Aula e Aluno** (2c948c7): vagas em frase, faixa de semanas nas cores
+  `reg-*`, "% de presença", data com dia da semana, etiqueta só na exceção.
 
 ## Linguagem visual
 
 - [x] Paleta (cfc2d1e): alerta, atenção, info e licença limpos; avatares
   sem marrom, oliva e mostarda.
-- [ ] Tabelas e botões no padrão do AutoFluxos.
-- [ ] Ilustração em estados vazios e onboarding.
-- [ ] Motion leve em troca de estado (marcar presença, abrir menu, toast).
+- [x] Tabelas (776bb8e): `ui/tabela.tsx`; Alunos e Recibos em tabela real.
+- [x] Ilustração nos estados vazios (8022ea1): `ui/ilustracoes.tsx`, galeria
+  na `/amostra`. Onboarding continua com as artes de `public/acesso/`.
+- [x] Motion leve (014bade): registro da chamada, folha do celular, menus.
+- [x] Menores (d70dea1): Tirar de uso e Desativar no "⋮", eixo do Dia no
+  cabeçalho, "vagas ocupadas" na grade fixa.
+- [ ] Topo de Recibos no celular: quatro cartões e cinco chips antes da
+  tabela. Mesmo remédio da Cobranças (`FaixaDeNumeros compacta`,
+  `BarraDePeriodo menu`).
