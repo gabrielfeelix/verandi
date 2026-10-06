@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
+import { Menu } from '@/components/ui/menu'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import { BotaoLinha, Estado, LinhaConfig, PainelConfig } from './casca'
@@ -183,16 +184,33 @@ export function SecaoPlanos({
               <BotaoLinha onClick={() => { setErro(null); setEdicao(p) }}>
                 Editar
               </BotaoLinha>
-              <BotaoLinha
-                tom={p.ativo ? 'perigo' : 'marca'}
-                disabled={pendente}
-                onClick={() => salvar(
-                  () => alternarPlano(p.id, !p.ativo),
-                  p.ativo ? 'Plano fora de uso' : 'Plano de volta ao catálogo',
-                )}
-              >
-                {p.ativo ? 'Tirar de uso' : 'Voltar ao uso'}
-              </BotaoLinha>
+              {/* tirar de uso é raro e mexe no catálogo: mora no "⋮". Voltar
+                  ao uso é o que se quer de um plano parado, e fica à vista */}
+              {p.ativo ? (
+                <Menu
+                  titulo={`Outras ações do plano ${p.nome}`}
+                  itens={[{
+                    rotulo: 'Tirar de uso',
+                    icone: 'proibido',
+                    perigo: true,
+                    aoEscolher: () => salvar(
+                      () => alternarPlano(p.id, false),
+                      'Plano fora de uso',
+                    ),
+                  }]}
+                />
+              ) : (
+                <BotaoLinha
+                  tom="marca"
+                  disabled={pendente}
+                  onClick={() => salvar(
+                    () => alternarPlano(p.id, true),
+                    'Plano de volta ao catálogo',
+                  )}
+                >
+                  Voltar ao uso
+                </BotaoLinha>
+              )}
             </LinhaConfig>
           ))}
         </div>

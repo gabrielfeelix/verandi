@@ -116,7 +116,8 @@ test('tirar de uso mantém o plano no catálogo, e o filtro o encontra', async (
   await entrar(page, email)
   await page.goto('/config?s=planos')
 
-  await page.getByRole('button', { name: 'Tirar de uso' }).click()
+  await page.getByRole('button', { name: /^Outras ações do plano/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Tirar de uso' }).click()
   await expect(page.getByText('Desativado')).toBeVisible()
 
   await page.getByLabel('Só os que saíram de uso').check()

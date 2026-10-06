@@ -93,8 +93,10 @@ export default async function Grade() {
                   ? rotulos.serie.singular
                   : rotulos.serie.plural).toLowerCase()}
                 {' · '}
-                {g.linhas.reduce((n, s) => n + s.capacidade, 0)}{' '}
-                {rotulos.vaga.plural.toLowerCase()}
+                {/* lugar, não matrícula: somar capacidade e chamar de
+                    "22 matrículas" contava quem ainda nem existe */}
+                {g.linhas.reduce((n, s) => n + s.ocupadas, 0)} de{' '}
+                {g.linhas.reduce((n, s) => n + s.capacidade, 0)} vagas ocupadas
               </span>
             </div>
             <ul aria-label={g.nome} className="flex flex-col gap-2 p-2.5">
