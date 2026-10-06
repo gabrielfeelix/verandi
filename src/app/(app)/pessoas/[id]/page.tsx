@@ -396,7 +396,7 @@ export default async function Pessoa({
               ) : null}
               {/* o cartão da licença fica na coluna lateral; o estado precisa
                   estar junto do nome, que é onde o olho bate primeiro */}
-              {licenca ? <Etiqueta tinta="licenca">De licença</Etiqueta> : null}
+              {licenca ? <Etiqueta tinta="licenca">Em licença</Etiqueta> : null}
             </div>
 
             <div className="flex flex-wrap gap-x-[22px] gap-y-2">

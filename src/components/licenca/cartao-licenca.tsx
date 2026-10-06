@@ -38,7 +38,7 @@ export function CartaoLicenca({
 
   return (
     <section className="rounded-grande border border-licenca-fundo bg-licenca-fundo/40 px-4 py-4">
-      <p className="text-[12px] font-semibold text-licenca">De licença</p>
+      <p className="text-[12px] font-semibold text-licenca">Em licença</p>
       <p className="pt-1.5 text-[14.5px] leading-[1.5]">
         Desde {curta(inicio)}.{' '}
         {voltaPrevista ? `Volta prevista em ${curta(voltaPrevista)}.` : 'Sem data de volta.'}

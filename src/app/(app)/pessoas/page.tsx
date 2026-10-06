@@ -26,7 +26,7 @@ const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   // falta sem aviso nos últimos 30 dias: quem precisa de uma ligação
   { valor: 'faltou_sem_avisar', rotulo: 'Faltas recentes' },
   // licença aberta, a mesma de Pendências
-  { valor: 'de_licenca',        rotulo: 'De licença' },
+  { valor: 'de_licenca',        rotulo: 'Em licença' },
   { valor: 'plano_a_renovar',   rotulo: 'Plano a renovar' },
   { valor: 'sem_telefone',      rotulo: 'Sem telefone' },
 ]
@@ -38,16 +38,33 @@ const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
  * entre as escolhas possíveis: juntar o rótulo com "inativa" produz frases
  * que só aparecem depois de a conta trocar a palavra, muito longe daqui.
  */
-const NOTA_INATIVA = 'quem está inativo não some, fica fora do padrão'
+const NOTA_INATIVA = 'Inativos aparecem no filtro Inativos.'
+
+/*
+ * O rótulo da situação na tela. O valor de `situacaoDe` também sai na API
+ * (`situacao` da ficha) e o bot lê esse texto: a tela traduz, a API não muda.
+ * "faltando" e "ativa" soavam informais e com gênero presumido.
+ */
+const SITUACAO_NA_TELA: Record<string, string> = {
+  inativa: 'Inativo',
+  'de licença': 'Em licença',
+  'plano vencido': 'Plano vencido',
+  'plano vencendo': 'Plano vencendo',
+  faltando: 'Faltas recentes',
+  ativa: 'Em dia',
+}
+
+/** Etiqueta da conta com a primeira letra maiúscula: "lesão" e "Idoso" lado a lado parecia descuido. */
+const capitular = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 
 type Busca = Promise<{ q?: string; f?: string | string[]; t?: string; p?: string }>
 
 function quando(iso: string | null) {
   if (!iso) return 'Sem presença'
   const dias = Math.floor((Date.parse(new Date().toDateString()) - Date.parse(iso)) / 864e5)
-  if (dias <= 0) return 'hoje'
-  if (dias === 1) return 'ontem'
-  if (dias < 30) return `${dias} dias`
+  if (dias <= 0) return 'Hoje'
+  if (dias === 1) return 'Ontem'
+  if (dias < 30) return `Há ${dias} dias`
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
 }
 
@@ -181,7 +198,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
 
       <section className={`overflow-hidden ${cartao}`}>
         <div className="hidden grid-cols-[minmax(0,1fr)_132px_116px_116px_148px] gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid">
-          {['Nome', 'Telefone', rotulos.serie.singular, 'Última presença', 'Situação']
+          {['Nome', 'Telefone', 'Horário fixo', 'Última presença', 'Situação']
             .map((c) => (
               <span
                 key={c}
@@ -195,8 +212,8 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
         {pessoas.length === 0 ? (
           <Vazio
             icone="pessoas"
-            titulo="Ninguém com esses filtros"
-            texto="Conta nova começa assim. O primeiro cadastro entra pelo botão acima, com o nome apenas."
+            titulo="Nenhum resultado"
+            texto="Ajuste os filtros ou cadastre um aluno pelo botão acima."
           />
         ) : (
           <ul aria-label={rotulos.pessoa.plural}>
@@ -229,7 +246,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                               key={x}
                               className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[12px] font-semibold ${TINTA.atencao}`}
                             >
-                              {x}
+                              {capitular(x)}
                             </span>
                           ))}
                         </span>
@@ -247,8 +264,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         fone ? 'text-tinta-media' : 'text-alerta'
                       }`}
                     >
-                      {fone ?? 'Sem registro'}
-                      {fone ? null : <span className="sr-only">Sem telefone</span>}
+                      {fone ?? 'Sem telefone'}
                     </span>
 
                     <span
@@ -260,7 +276,12 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         <>
                           {DIAS_CURTOS[p.horarioFixo.diaSemana]} {p.horarioFixo.hora}
                           {p.vagasAtivas > 1 ? (
-                            <span className="text-tinta-fraca"> +{p.vagasAtivas - 1}</span>
+                            <span
+                              className="ml-1.5 rounded-minima bg-superficie-mais-suave px-1.5 py-[2px] text-[12px] text-tinta-media"
+                              title={`Mais ${p.vagasAtivas - 1} ${p.vagasAtivas - 1 === 1 ? 'horário' : 'horários'}`}
+                            >
+                              +{p.vagasAtivas - 1}
+                            </span>
                           ) : null}
                         </>
                       ) : 'Sem horário fixo'}
@@ -274,7 +295,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                       className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[12px] font-medium whitespace-nowrap ${TINTA[situacao.tinta]}`}
                     >
                       <span aria-hidden className="size-1.5 rounded-full bg-current" />
-                      {situacao.rotulo}
+                      {SITUACAO_NA_TELA[situacao.rotulo] ?? situacao.rotulo}
                     </span>
                   </Link>
                 </li>
