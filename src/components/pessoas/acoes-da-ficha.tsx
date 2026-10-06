@@ -30,9 +30,15 @@ export function MarcarInativa({
 
   return (
     <>
-      <Botao tom="secundario" className="w-full" onClick={() => setAberto(true)}>
+      {/* ação rara, em texto discreto: ao lado de Marcar aula e Editar, com o
+          mesmo peso, ela competia com o que se faz todo dia */}
+      <button
+        type="button"
+        onClick={() => setAberto(true)}
+        className="min-h-9 cursor-pointer px-2 text-[13.5px] text-tinta-media underline-offset-2 hover:text-tinta hover:underline"
+      >
         {ativo ? 'Inativar' : 'Reativar'}
-      </Botao>
+      </button>
 
       <Modal
         aberto={aberto}
@@ -122,7 +128,7 @@ export function AtenderPedidoDeExclusao({
       <button
         type="button"
         onClick={() => setAberto(true)}
-        className="min-h-11 w-full cursor-pointer rounded-media border border-linha bg-superficie px-4 text-[14.5px] text-alerta transition-colors hover:border-alerta-linha hover:bg-alerta-superficie"
+        className="min-h-9 cursor-pointer px-2 text-[13.5px] text-alerta underline-offset-2 hover:underline"
       >
         Excluir dados
       </button>

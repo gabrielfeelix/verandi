@@ -21,6 +21,8 @@ import { PainelDeAvaliacao } from '@/components/avaliacao/painel'
 import { NovaMatricula, ContratosDaFicha } from '@/components/contratos/matricula'
 import { contratosDaPessoa, modalidadesDaPessoa, servicosDaPessoa } from '@/server/contratos/consultas'
 import { MarcarAula } from '@/components/pessoas/marcar-aula'
+import { CartaoLicenca } from '@/components/licenca/cartao-licenca'
+import { licencaDaPessoa } from '@/server/licencas/licencas'
 import { cobrancasDaPessoa } from '@/server/financeiro/consultas'
 import { recibosDaPessoa, ultimosEnvios } from '@/server/recibo/consultas'
 import { ListaDeRecibos } from '@/components/recibo/lista'
@@ -67,8 +69,9 @@ const PAR: Record<Tinta, string> = {
   neutro: 'bg-neutro-fundo text-tinta-media',
 }
 
-type Aba = 'agenda' | 'historico' | 'reposicoes' | 'contratos' | 'avaliacao' | 'perfil'
-const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'contratos', 'avaliacao', 'perfil']
+// "Perfil" saiu em 06/out: repetia os dados do cabeçalho; ?aba=perfil cai na Agenda
+type Aba = 'agenda' | 'historico' | 'reposicoes' | 'contratos' | 'avaliacao'
+const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'contratos', 'avaliacao']
 
 /** a origem como o banco grava, e como a recepção fala */
 const ROTULO_ORIGEM: Record<string, string> = {
@@ -170,6 +173,7 @@ export default async function Pessoa({
    */
   const modalidades = await modalidadesDaPessoa(db, conta.contaId, id)
   const temContrato = operacional ? contratosEmVigor > 0 : modalidades.length > 0
+  const licenca = await licencaDaPessoa(db, conta.contaId, id)
 
   // o "Marcar aula" abre na modalidade dela, e deixa trocar entre as da conta
   const [servicosDela, { data: catalogoServicos }] = operacional
@@ -380,18 +384,11 @@ export default async function Pessoa({
         {operacional ? (
         <div className="flex min-w-[200px] flex-[1_1_200px] flex-col gap-2.5">
           {/*
-            O botão abre o mesmo modal do "Criar matrícula" que fica na aba
-            Agenda. Eram uma âncora e um formulário embutido: o botão de cima
-            não abria nada, e quando a aba aberta era outra ele não levava a
-            lugar nenhum.
+            Uma ação principal e uma secundária, do mesmo tamanho; o raro em
+            texto embaixo. Eram quatro botões iguais em grade, e "Excluir dados"
+            pesava o mesmo que marcar uma aula.
           */}
-          {/*
-            Quatro ações do mesmo tamanho, em duas linhas. Agendar ocupava a
-            largura inteira sozinho e empurrava o excluir para o pé da coluna
-            lateral, onde ninguém achava. Ele continua sendo o escuro: é o que
-            se faz todo dia.
-          */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col gap-2">
             {/* marcar uma aula é o que se faz todo dia no balcão; criar o
                 horário fixo mora na aba Agenda, junto das vagas */}
             <MarcarAula
@@ -423,19 +420,36 @@ export default async function Pessoa({
                 ativo: p.ativo,
               }}
             />
-            <MarcarInativa
-              pessoaId={p.id}
-              nome={p.nome}
-              ativo={p.ativo}
-              rotuloPessoa={rotulos.pessoa.plural}
-            />
-            {!p.anonimizadaEm && (conta.papel === 'dono' || conta.papel === 'suporte') ? (
-              <AtenderPedidoDeExclusao pessoaId={p.id} nome={p.nome} />
-            ) : null}
+            <div className="flex flex-wrap justify-center gap-x-2">
+              <MarcarInativa
+                pessoaId={p.id}
+                nome={p.nome}
+                ativo={p.ativo}
+                rotuloPessoa={rotulos.pessoa.plural}
+              />
+              {!p.anonimizadaEm && (conta.papel === 'dono' || conta.papel === 'suporte') ? (
+                <AtenderPedidoDeExclusao pessoaId={p.id} nome={p.nome} />
+              ) : null}
+            </div>
           </div>
         </div>
         ) : null}
       </article>
+
+      {/* na tela estreita a coluna lateral desce para o pé da página: a licença
+          sobe para antes das abas, que é onde o olho está ao abrir a ficha */}
+      {licenca ? (
+        <div className="xl:hidden">
+          <CartaoLicenca
+            pessoaId={p.id}
+            nome={p.nome}
+            licencaId={licenca.id}
+            inicio={licenca.inicio}
+            voltaPrevista={licenca.voltaPrevista}
+            podeMexer={operacional}
+          />
+        </div>
+      ) : null}
 
       <AbasDaFicha
         inicial={aba}
@@ -466,7 +480,6 @@ export default async function Pessoa({
                 contagem: contratos.filter((c) => c.status !== 'encerrado').length || undefined,
               }]
             : []),
-          { id: 'perfil', rotulo: 'Perfil' },
         ]}
         paineis={{
           agenda: (
@@ -757,39 +770,21 @@ export default async function Pessoa({
             />
           ) : null,
 
-          perfil: (
-            <section className={`${cartao} px-[18px] py-4`}>
-              <h2 className="pb-3.5 font-titulo text-[18px] font-semibold">
-                Dados cadastrais
-              </h2>
-              <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
-                {dados.map(([rotulo, valor, falta]) => (
-                  <div key={rotulo} className="flex flex-col gap-1">
-                    <Rotulo>{rotulo}</Rotulo>
-                    <span className={`text-[15px] ${falta ? 'text-alerta' : ''}`}>
-                      {valor}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-linha-fina pt-4">
-                <span className="pr-1">
-                  <Rotulo>Marcações</Rotulo>
-                </span>
-                {ficha.tags.length === 0 ? (
-                  <span className="text-[13.5px] text-tinta-fraca">
-                    nenhuma, marcação é o que a equipe precisa lembrar antes da aula
-                  </span>
-                ) : (
-                  ficha.tags.map((t) => <Etiqueta key={t} tinta="atencao">{t}</Etiqueta>)
-                )}
-              </div>
-            </section>
-          ),
         }}
       >
         <aside className="flex flex-col gap-3.5 xl:sticky xl:top-4">
+          {licenca ? (
+            <div className="hidden xl:block">
+              <CartaoLicenca
+                pessoaId={p.id}
+                nome={p.nome}
+                licencaId={licenca.id}
+                inicio={licenca.inicio}
+                voltaPrevista={licenca.voltaPrevista}
+                podeMexer={operacional}
+              />
+            </div>
+          ) : null}
           {p.observacao ? (
             <section className="rounded-grande border border-atencao-linha bg-atencao-superficie px-4 py-4">
               <div className="flex items-center gap-2 pb-2.5">
@@ -955,32 +950,6 @@ export default async function Pessoa({
             ) : null}
           </section>
 
-          <section className={`${cartao} px-4 py-4`}>
-            <div className="pb-3">
-              <Rotulo>Em números</Rotulo>
-            </div>
-            <dl className="flex flex-col gap-2.5">
-              {([
-                ['Presença', frequencia === null ? 'Sem registro' : `${frequencia}%`,
-                 frequencia !== null && frequencia >= 80 ? 'text-positivo' : 'text-tinta'],
-                ['Faltas nos últimos 30 dias', String(p.faltasRecentes),
-                 p.faltasRecentes > 1 ? 'text-alerta' : 'text-tinta'],
-                ['Reposições em aberto', String(ficha.reposicoesAbertas.length),
-                 ficha.reposicoesAbertas.length > 0 ? 'text-atencao' : 'text-tinta'],
-                // "ativas" concordaria com a palavra do cliente ("Contratos
-                // ativas"), e "Cadastrada" com o gênero de quem está na ficha.
-                // Os dois qualificadores saíram de perto da palavra.
-                [`${rotulos.vaga.plural} em vigor`, String(ficha.vagas.filter((v) => !v.fim).length),
-                 'text-tinta'],
-                ['No sistema desde', mesAno(p.criadoEm.slice(0, 10)), 'text-tinta'],
-              ] as const).map(([rotulo, valor, cor]) => (
-                <div key={rotulo} className="flex items-baseline justify-between gap-2.5">
-                  <dt className="text-[13.5px] text-tinta-media">{rotulo}</dt>
-                  <dd className={`font-mono text-[14.5px] ${cor}`}>{valor}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
 
           {/* já anonimizada, fica o registro do que aconteceu; o botão de
               excluir mora junto das outras ações, no topo da ficha */}

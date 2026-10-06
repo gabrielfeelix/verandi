@@ -96,15 +96,15 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 6 abas, 4 cartões laterais, 4 botões no cabeçalho.
 
-- [ ] Cabeçalho: uma ação principal (**Marcar aula**) e o resto no menu "⋯"
-      (Editar, Inativar, Excluir dados).
-- [ ] Aba **Perfil** sai: repete os 6 dados do cabeçalho. "Marcações" vai para
-      Editar.
-- [ ] "Em números" no lateral sai: a aba Histórico já diz "veio N%".
-- [ ] "Criar vaga" aparece uma vez (hoje: cabeçalho e aba Agenda). Na conta com
-      contrato, o horário fixo nasce do contrato; "Criar vaga" avulsa fica só
-      para conta sem financeiro.
-- [ ] Mostrar a **licença aberta** (início, volta prevista, botão Voltou).
+- [x] Cabeçalho: **Marcar aula** (principal), **Editar dados** (secundária),
+      Inativar e Excluir dados em texto discreto embaixo. Menu "⋯" não: os
+      dois abrem modal próprio, e esconder num menu custava um toque a mais.
+- [x] Aba **Perfil** sai: repetia os 6 dados e as marcações do cabeçalho.
+- [x] "Em números" no lateral sai: a aba Histórico já diz "veio N%".
+- [x] "Criar vaga" aparece uma vez, na aba Agenda (o cabeçalho virou Marcar
+      aula). Esconder "Criar vaga" em conta com contrato ficou de fora: muda
+      regra de cadastro, decidir com o Gabriel.
+- [x] Mostrar a **licença aberta** (início, volta prevista, botão Voltou).
 
 ## 8. Financeiro
 
