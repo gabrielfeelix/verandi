@@ -7,7 +7,7 @@ import { aulasDoPeriodo } from '@/server/relatorio/consultas'
 import { ressalvaDoTotal } from '@/core/relatorio/aulas'
 import { competenciaDe } from '@/core/financeiro/cobranca'
 import { dataCurta, somarDias } from '@/core/agenda/datas'
-import { Vazio, cartao } from '@/components/ui/pecas'
+import { Avatar, Vazio, cartao } from '@/components/ui/pecas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
@@ -74,9 +74,9 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
         <a
           href={`/aulas/exportar?de=${de}&ate=${ate}`}
           download
-          className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
+          className="inline-flex min-h-11 items-center rounded-media border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
         >
-          Planilha
+          Baixar planilha
         </a>
       </header>
       <SecoesDoFinanceiro ativa="aulas" />
@@ -108,13 +108,12 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
                 <thead>
                   <tr className="border-b border-linha-fina text-left">
                     <Cabeca>{rotulos.profissional.singular}</Cabeca>
-                    <Cabeca numero>Dadas</Cabeca>
+                    <Cabeca numero>Aulas dadas</Cabeca>
                     <Cabeca numero>Presenças</Cabeca>
-                    <Cabeca numero>Com presença</Cabeca>
-                    <Cabeca numero>Sem ninguém</Cabeca>
+                    <Cabeca numero>Sem alunos</Cabeca>
                     <Cabeca numero>Sem chamada</Cabeca>
                     <Cabeca numero>Canceladas</Cabeca>
-                    <Cabeca numero>A acontecer</Cabeca>
+                    <Cabeca numero>Agendadas</Cabeca>
                   </tr>
                 </thead>
                 <tbody>
@@ -123,12 +122,14 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
                       key={l.profissionalId ?? 'sem'}
                       className="border-b border-linha-fina last:border-b-0 hover:bg-superficie-tenue"
                     >
-                      <td className="px-5 py-3.5 text-[14.5px]">
-                        {l.profissionalNome}
+                      <td className="px-5 py-3 text-[14.5px]">
+                        <span className="flex items-center gap-2.5 font-medium">
+                          <Avatar nome={l.profissionalNome} tamanho={32} decorativo />
+                          {l.profissionalNome}
+                        </span>
                       </td>
                       <Celula forte>{l.aplicadas}</Celula>
                       <Celula>{l.atendimentos}</Celula>
-                      <Celula>{l.comPresenca}</Celula>
                       <Celula apagado={l.semNinguem === 0}>{l.semNinguem}</Celula>
                       <Celula alerta={l.semChamada > 0}>{l.semChamada}</Celula>
                       <Celula apagado={l.canceladas === 0}>
@@ -146,31 +147,17 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
               </table>
             </div>
 
-            <div className="border-t border-linha-fina bg-superficie-suave px-5 py-4">
-              <p className="text-[13.5px] leading-relaxed text-tinta-media">
-                <strong>Dadas</strong> são as aulas que já aconteceram e não foram
-                canceladas, mesmo quando ninguém apareceu. As outras colunas
-                detalham esse número.
-                {/* as frases concordam no singular: "As 1 canceladas" é o
-                    tipo de erro que aparece justamente no mês tranquilo */}
-                {r.total.porFeriado > 0 ? (
-                  <>
-                    {' '}
-                    {r.total.porFeriado === 1
-                      ? 'Uma cancelada é dia fechado, feriado ou fechamento do estúdio, e não falta de ninguém.'
-                      : `${r.total.porFeriado} canceladas são dia fechado, feriado ou fechamento do estúdio, e não falta de ninguém.`}
-                  </>
-                ) : null}
-                {r.total.semChamada > 0 ? (
-                  <>
-                    {' '}
-                    {r.total.semChamada === 1
-                      ? 'Uma delas aconteceu e ninguém registrou quem veio; ela está em Pendências.'
-                      : `${r.total.semChamada} delas aconteceram e ninguém registrou quem veio; elas estão em Pendências.`}
-                  </>
-                ) : null}
-              </p>
-            </div>
+            {/* só o aviso que pede ação: aula dada sem chamada */}
+            {r.total.semChamada > 0 ? (
+              <div className="border-t border-linha-fina px-5 py-3.5 text-[13.5px] text-tinta-media">
+                {r.total.semChamada === 1
+                  ? '1 aula aconteceu sem chamada registrada.'
+                  : `${r.total.semChamada} aulas aconteceram sem chamada registrada.`}{' '}
+                <Link href="/pendencias" className="font-medium text-marca hover:underline">
+                  Ver em Pendências
+                </Link>
+              </div>
+            ) : null}
           </>
         )}
       </div>

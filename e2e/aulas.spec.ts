@@ -80,7 +80,7 @@ test('o relatório conta a aula que aconteceu, e explica o feriado', async ({ pa
   await expect(page.getByText(/3 aulas aplicadas, com 2 presenças/)).toBeVisible()
   await expect(page.getByText(/1 dia fechado no período/)).toBeVisible()
   await expect(page.getByText(/1 ainda por dar/)).toBeVisible()
-  await expect(page.getByText(/feriado ou fechamento do estúdio/)).toBeVisible()
+  await expect(page.getByText('(1 fechado)')).toBeVisible()
 
   // a linha do profissional, com o número grande e a ressalva ao lado
   const linha = page.getByRole('row').filter({ hasText: 'Marina' })
@@ -116,7 +116,7 @@ test('a chamada não registrada aparece, e não é escondida do total', async ({
 
   await expect(page.getByText(/1 aula aplicada/)).toBeVisible()
   await expect(page.getByText(/1 sem chamada registrada/)).toBeVisible()
-  await expect(page.getByText(/aconteceu e ninguém registrou quem veio/)).toBeVisible()
+  await expect(page.getByText(/aconteceu sem chamada registrada/)).toBeVisible()
 })
 
 test('período vazio explica que não é falha de carregamento', async ({ page }) => {

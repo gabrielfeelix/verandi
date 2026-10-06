@@ -35,8 +35,8 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
   Enxugar o topo; filtros secundários em "Mais filtros".
 - [x] **Financeiro, Fechamento**: ninguém entende. Reorganizar em cards
   claros, avatar das pessoas, ilustração no vazio.
-- [ ] **Financeiro, Recibos**: mesmo padrão de tabela.
-- [ ] **Aulas por professor**: questionar se mora no Financeiro. Proposta:
+- [x] **Financeiro, Recibos**: mesmo padrão de tabela.
+- [x] **Aulas por professor** (mantida no Financeiro: é a base do pagamento da equipe e só o dono vê): questionar se mora no Financeiro. Proposta:
   sair do Financeiro para a Agenda ou Equipe (é relatório de aulas dadas;
   valor só para dono).
 - [ ] **Hoje, Agenda, Pendências, Alunos, Configuração, Entrar, convite,

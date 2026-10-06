@@ -74,7 +74,7 @@ export function ListaDeRecibos({
       <Vazio
         icone="lista"
         titulo="Nenhum recibo ainda"
-        texto="O recibo nasce de um pagamento, no Financeiro: a linha de quem pagou tem o botão de emitir. Nem todo pagamento precisa virar papel."
+        texto="Para emitir, abra o menu de uma cobrança paga em Cobranças e escolha Emitir recibo."
       />
     )
   }
