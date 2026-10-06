@@ -10,18 +10,12 @@ import { Sino } from '@/components/ui/sino'
 import { notificacoesDaConta } from '@/server/notificacoes'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Abas } from '@/components/ui/abas'
-import { Icone } from '@/components/ui/icones'
 import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
 import { ProximaTurma } from '@/components/hoje/proxima-turma'
-import {
-  Bloco, CartaoNumero, FaixaPeriodo, LinhaAgenda, AvatarProf,
-} from '@/components/hoje/pecas'
+import { Bloco, FaixaPeriodo, LinhaAgenda } from '@/components/hoje/pecas'
 import { AvisoDeAcesso } from '@/components/ui/aviso-de-acesso'
 import { cartao } from '@/components/ui/pecas'
-import { ArrumarHome } from '@/components/hoje/arrumar'
 import { Saudacao } from '@/components/hoje/saudacao'
-import { arranjoSalvo } from '@/server/home/consultas'
-import { arranjoEfetivo, daFaixa } from '@/core/home/blocos'
 import { caixaDoMes } from '@/server/financeiro/consultas'
 import { variacao } from '@/core/financeiro/metricas'
 import { emReais } from '@/core/planos/plano'
@@ -29,7 +23,7 @@ import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
 type Busca = Promise<{
-  dia?: string; todos?: string; periodo?: string; prof?: string; restrita?: string
+  dia?: string; todos?: string; prof?: string; restrita?: string
 }>
 
 /** Manhã até 12h, tarde até 18h, noite depois, a divisão que o protótipo usa. */
@@ -73,7 +67,7 @@ function dataLonga(dia: string, fuso: string) {
 }
 
 export default async function Hoje({ searchParams }: { searchParams: Busca }) {
-  const { dia: diaParam, todos, periodo: periodoBruto, prof, restrita } = await searchParams
+  const { dia: diaParam, todos, prof, restrita } = await searchParams
   const conta = await exigirConta()
   const db = await clienteServidor()
 
@@ -120,25 +114,11 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
   const pendentes = sessoes.filter(
     (s) => passou(s) && s.chamada === 'pendente' && s.status !== 'cancelada',
   ).length
-  /*
-   * O cartão conta o mesmo que a tela de Pendências: os últimos 30 dias, não
-   * só hoje. Antes Hoje dizia 1 e Pendências dizia 58, e as duas pareciam
-   * erradas. Quem não vê Pendências (profissional) segue com o número do dia.
-   */
-  const chamadasEmAberto = podeVerTodos
-    ? grupos.find((g) => g.tipo === 'chamada_nao_feita')?.itens.length ?? 0
-    : pendentes
   const presencas = sessoes.reduce(
     (n, s) => n + s.pessoas.filter((p) => p.status === 'presente').length,
     0,
   )
-  const reposicoes = grupos.find((g) => g.tipo === 'reposicao_aberta')?.itens ?? []
-  const maisAntiga = reposicoes.reduce(
-    (n, r) => Math.max(n, r.diasEmAberto ?? 0), 0,
-  )
-  const ultima = vivas.at(-1)
-
-  // uma coluna por profissional que atende hoje, para a carga do dia
+  // quem atende hoje, para o filtro por profissional da agenda do dia
   const carga = new Map<string, { nome: string; cor: string | null; n: number }>()
   for (const s of vivas) {
     if (!s.profissional) continue
@@ -150,7 +130,6 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
     })
   }
   const profs = [...carga.values()].sort((a, b) => b.n - a.n)
-  const maiorCarga = profs[0]?.n ?? 1
 
   const link = (d: string, t = verTodos) => `/hoje?dia=${d}${t ? '&todos=1' : ''}`
 
@@ -166,54 +145,33 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
    * muda por causa de um filtro.
    */
   const PERIODOS = ['Manhã', 'Tarde', 'Noite'] as const
-  const periodoFiltro = PERIODOS.find((p) => p === periodoBruto) ?? null
   const profFiltro = prof && vivas.some((s) => s.profissional === prof) ? prof : null
 
-  const daAgenda = sessoes.filter((s) =>
-    (!periodoFiltro || periodoDe(s.hora) === periodoFiltro)
-    && (!profFiltro || s.profissional === profFiltro))
+  const daAgenda = sessoes.filter((s) => !profFiltro || s.profissional === profFiltro)
 
   const porPeriodo = PERIODOS
     .map((p) => ({ periodo: p, itens: daAgenda.filter((s) => periodoDe(s.hora) === p) }))
     .filter((g) => g.itens.length > 0)
 
-  /* quantas aulas cada recorte tem, para o filtro não oferecer lista vazia */
-  const quantasNoPeriodo = (p: string) => sessoes.filter((s) =>
-    periodoDe(s.hora) === p && (!profFiltro || s.profissional === profFiltro)).length
-
   const recorte = (mudanca: Record<string, string | null>) => {
     const b = new URLSearchParams()
     if (dia !== hoje) b.set('dia', dia)
     if (verTodos) b.set('todos', '1')
-    const atual: Record<string, string | null> = {
-      periodo: periodoFiltro, prof: profFiltro, ...mudanca,
-    }
+    const atual: Record<string, string | null> = { prof: profFiltro, ...mudanca }
     for (const [k, v] of Object.entries(atual)) if (v) b.set(k, v)
     const q = b.toString()
     return q ? `/hoje?${q}` : '/hoje'
   }
 
   /*
-   * O arranjo da tela, desta pessoa.
-   *
-   * Quem nunca mexeu não tem linha no banco, e `arranjoEfetivo` monta o padrão:
-   * é o caminho da esmagadora maioria das aberturas, e ele não escreve nada.
+   * A tela tem uma ordem só, igual para todo mundo: a próxima turma, a agenda
+   * do dia, o que espera decisão e o caixa. Até 06/out cada pessoa podia
+   * arrumar os blocos; ninguém arrumava, e o painel de arrumar era mais uma
+   * coisa a entender na tela que mais se abre.
    */
-  const arranjo = arranjoEfetivo(
-    user ? await arranjoSalvo(db, conta.contaId, user.id) : null,
-    { operacional: podeVerTodos },
-  )
-  const mostra = (id: string) => arranjo.some((b) => b.id === id && b.visivel)
-
-  /*
-   * O caixa só é consultado se o bloco estiver ligado. Quem desligou não paga
-   * a consulta, e quem não pode ver dinheiro nem chega aqui.
-   */
-  const caixa = mostra('caixa') ? await caixaDoMes(db, conta.contaId, hoje) : null
+  const caixa = podeVerTodos ? await caixaDoMes(db, conta.contaId, hoje) : null
   const variou = caixa ? variacao(caixa.recebidoCent, caixa.recebidoAntesCent) : null
 
-  const blocosPrincipais = daFaixa(arranjo, 'principal')
-  const blocosLaterais = daFaixa(arranjo, 'lateral')
   /*
    * Cada bloco é montado uma vez, num objeto, e a ordem quem dá é o arranjo.
    *
@@ -223,42 +181,6 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
    * construir JSX que ninguém renderiza.
    */
   const PRINCIPAL: Record<string, React.ReactNode> = {
-    numeros: (
-      <div key="numeros" className="grid gap-3 grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4">
-        <CartaoNumero
-          rotulo={`${rotulos.sessao.plural} hoje`}
-          valor={vivas.length}
-          sub={ultima ? `Até ${ultima.hora}` : 'Nada marcado'}
-          glifo="≡"
-          tom="info"
-        />
-        <CartaoNumero
-          rotulo="Chamadas pendentes"
-          valor={chamadasEmAberto}
-          sub={!podeVerTodos || (pendentes > 0 && chamadasEmAberto <= pendentes)
-            ? 'De turmas que já passaram hoje'
-            : pendentes > 0
-              ? `${pendentes} de hoje, ${chamadasEmAberto - pendentes} de dias anteriores`
-              : 'Nos últimos 30 dias'}
-          glifo="!"
-          tom={chamadasEmAberto > 0 ? 'alerta' : 'atencao'}
-        />
-        <CartaoNumero
-          rotulo="Presenças"
-          valor={presencas}
-          sub="Registradas no dia"
-          glifo="✓"
-          tom="positivo"
-        />
-        <CartaoNumero
-          rotulo="Reposições em aberto"
-          valor={reposicoes.length}
-          sub={maisAntiga ? `Mais antiga: ${maisAntiga} dias` : 'Nenhuma esperando'}
-          glifo="↺"
-          tom={reposicoes.length > 0 ? 'alerta' : 'info'}
-        />
-      </div>
-    ),
 
     proxima: (
       <div key="proxima" className="contents">
@@ -349,7 +271,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-3 pt-3 pb-2">
           <h2 className="font-titulo text-[18px] font-semibold">Agenda do dia</h2>
           <span className="text-[13px] text-tinta-media">
-            {periodoFiltro || profFiltro
+            {profFiltro
               ? `${daAgenda.length} de ${sessoes.length} ${rotulos.sessao.plural.toLowerCase()}`
               : `${vivas.length} ${rotulos.sessao.plural.toLowerCase()} · ${pendentes} ${pendentes === 1 ? 'chamada pendente' : 'chamadas pendentes'}`}
           </span>
@@ -369,25 +291,6 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           data-imprimir="fora"
           className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-linha-fina px-3 pt-1 pb-3"
         >
-          <div className="flex flex-wrap items-center gap-1.5">
-            <FiltroDaAgenda href={recorte({ periodo: null })} ligado={!periodoFiltro}>
-              Dia todo
-            </FiltroDaAgenda>
-            {PERIODOS.map((p) => {
-              const n = quantasNoPeriodo(p)
-              return (
-                <FiltroDaAgenda
-                  key={p}
-                  href={recorte({ periodo: p })}
-                  ligado={periodoFiltro === p}
-                  vazio={n === 0}
-                >
-                  {p} <span className="text-[12px] opacity-70">{n}</span>
-                </FiltroDaAgenda>
-              )
-            })}
-          </div>
-
           {profs.length > 1 ? (
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-[12px] text-tinta-fraca">
@@ -431,7 +334,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           {porPeriodo.length === 0 ? (
             <p className="px-3 py-6 text-center text-[13.5px] text-tinta-media">
               Nada neste recorte.{' '}
-              <Link href={recorte({ periodo: null, prof: null })} className="text-marca underline">
+              <Link href={recorte({ prof: null })} className="text-marca underline">
                 Ver o dia todo
               </Link>
               .
@@ -489,39 +392,6 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       </Bloco>
     ),
 
-    equipe: (
-      <Bloco key="equipe" titulo={`${rotulos.profissional.plural} hoje`}>
-        <div className="flex flex-col gap-3">
-          {profs.map((p) => (
-            <div key={p.nome} className="flex items-center gap-2.5">
-              <AvatarProf nome={p.nome} cor={p.cor} tamanho={30} />
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <span className="truncate text-[14px] font-medium">{p.nome}</span>
-                <span className="block h-[5px] overflow-hidden rounded-[3px] bg-neutro-fundo">
-                  <span
-                    className="block h-[5px] rounded-[3px]"
-                    style={{
-                      width: `${Math.round((p.n / maiorCarga) * 100)}%`,
-                      background: p.cor ?? '#0E7C6B',
-                    }}
-                  />
-                </span>
-              </div>
-              <span className="font-mono text-[12.5px] text-tinta-media">
-                {p.n}{' '}
-                {(p.n === 1 ? rotulos.sessao.singular : rotulos.sessao.plural).toLowerCase()}
-              </span>
-            </div>
-          ))}
-          {profs.length === 0 ? (
-            <p className="text-[13.5px] text-tinta-media">
-              Ninguém da equipe tem {rotulos.sessao.singular.toLowerCase()}
-              {' '}neste dia.
-            </p>
-          ) : null}
-        </div>
-      </Bloco>
-    ),
 
     /*
      * O caixa, na coluna estreita e depois da equipe.
@@ -655,29 +525,18 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               />
             ) : null}
 
-            {/* arrumar a tela mora na tela que se arruma: a pergunta nasce
-                olhando para ela, e quem precisa sair daqui para responder não
-                responde */}
-            <ArrumarHome
-              inicial={arranjo.map((b) => ({
-                id: b.id,
-                titulo: b.titulo,
-                sobre: b.sobre,
-                faixa: b.faixa,
-                fixo: Boolean(b.fixo),
-                visivel: b.visivel,
-              }))}
-            />
           </div>
         </header>
 
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_316px]">
           <div className="flex min-w-0 flex-col gap-3.5">
-            {blocosPrincipais.map((b) => PRINCIPAL[b.id] ?? null)}
+            {PRINCIPAL.proxima}
+            {PRINCIPAL.agenda}
           </div>
 
           <div className="flex min-w-0 flex-col gap-3.5">
-            {blocosLaterais.map((b) => LATERAL[b.id] ?? null)}
+            {LATERAL.pendencias}
+            {LATERAL.caixa}
           </div>
         </div>
       </div>

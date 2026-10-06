@@ -69,75 +69,6 @@ test('receber adiantado abre os próximos meses do contrato', async ({ page }) =
   expect(data!.slice(1).every((l) => l.vencimento.endsWith('-10'))).toBe(true)
 })
 
-test('arrumar a tela inicial muda a ordem, e só para quem arrumou', async ({ page }) => {
-  const c = await cenario('Estúdio da home')
-  await entrar(page, c.email)
-  await page.goto('/hoje')
-
-  await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
-  const painel = page.getByRole('dialog')
-  await expect(painel.getByRole('heading', { name: 'Coluna larga' })).toBeVisible()
-
-  // o caixa nasce embaixo da equipe, na coluna estreita, e sobe um lugar
-  await painel.getByRole('button', { name: 'Subir Caixa do mês' }).click()
-  // e a equipe sai de vez
-  await painel.getByRole('checkbox', { name: /Equipe hoje/ }).uncheck()
-  await painel.getByRole('button', { name: 'Salvar' }).click()
-  await expect(page.locator('dialog[open]')).toHaveCount(0)
-
-  await page.reload()
-  await expect(page.getByRole('heading', { name: 'Caixa do mês' })).toBeVisible()
-
-  /*
-   * O que se confere é o painel, e não o título do cartão: o cartão da equipe
-   * se chama com a palavra do cliente ("Profissionais", "Professores"), e o
-   * rótulo do painel vem do catálogo e não muda de conta para conta.
-   */
-  await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
-  await expect(page.getByRole('dialog').getByRole('checkbox', { name: /Equipe hoje/ }))
-    .not.toBeChecked()
-  await page.getByRole('dialog').getByRole('button', { name: 'Fechar' }).click()
-
-  // o arranjo é da pessoa, e o caixa passou a equipe na coluna estreita
-  const { data } = await admin.from('preferencia_home')
-    .select('blocos').eq('conta_id', c.contaId).single<{ blocos: Array<{ id: string; visivel: boolean }> }>()
-  const ids = data!.blocos.map((b) => b.id)
-  expect(ids.indexOf('caixa')).toBeLessThan(ids.indexOf('equipe'))
-  expect(data!.blocos.find((b) => b.id === 'equipe')!.visivel).toBe(false)
-})
-
-test('voltar ao padrão apaga a preferência, e não grava uma foto do padrão', async ({ page }) => {
-  const c = await cenario('Estúdio do padrão')
-  await entrar(page, c.email)
-  await page.goto('/hoje')
-
-  await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
-  await page.getByRole('dialog').getByRole('checkbox', { name: /Equipe hoje/ }).uncheck()
-  await page.getByRole('dialog').getByRole('button', { name: 'Salvar' }).click()
-  await expect(page.locator('dialog[open]')).toHaveCount(0)
-
-  await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
-  await page.getByRole('dialog').getByRole('button', { name: 'Voltar ao padrão' }).click()
-  await expect(page.locator('dialog[open]')).toHaveCount(0)
-
-  /*
-   * A linha some, e não vira o padrão gravado: quem restaurou hoje ganha o
-   * bloco que a tela receber amanhã, em vez de ficar com a foto de hoje.
-   */
-  await expect.poll(async () => {
-    const { count } = await admin.from('preferencia_home')
-      .select('*', { count: 'exact', head: true }).eq('conta_id', c.contaId)
-    return count ?? 0
-  }).toBe(0)
-
-  // recarrega antes de conferir: o painel copia o arranjo do servidor ao abrir,
-  // e sem a volta ao servidor ele leria a versão que estava na tela
-  await page.reload()
-  await page.getByRole('button', { name: 'Arrumar a tela inicial' }).click()
-  await expect(page.getByRole('dialog').getByRole('checkbox', { name: /Equipe hoje/ }))
-    .toBeChecked()
-})
-
 test('o financeiro diz quanto, e não só quantas', async ({ page }) => {
   const c = await cenario('Estúdio dos números')
   await entrar(page, c.email)
@@ -177,13 +108,9 @@ test('a ficha responde se a pessoa está em dia', async ({ page }) => {
   await expect(page.getByText('Último pagamento')).toBeVisible()
 })
 
-test('a agenda do dia se recorta por período e por profissional', async ({ page }) => {
+test('a agenda do dia agrupa por período, sem filtro de período', async ({ page }) => {
   const c = await cenario('Estúdio do recorte')
 
-  /*
-   * Três aulas hoje, uma em cada período: sem aula nenhuma o bloco mostra o
-   * estado vazio, e recortar o vazio não é pergunta que alguém faça.
-   */
   const hoje = new Date().toLocaleDateString('en-CA')
   await admin.from('sessao').insert(
     ['08:00', '14:00', '19:00'].map((hora) => ({
@@ -197,23 +124,11 @@ test('a agenda do dia se recorta por período e por profissional', async ({ page
   await entrar(page, c.email)
   await page.goto('/hoje')
 
+  // um dia cabe numa tela: os períodos são faixas da lista, não filtros
   const agenda = page.locator('section', { has: page.getByRole('heading', { name: 'Agenda do dia' }) })
-  await expect(agenda.getByRole('link', { name: 'Dia todo' })).toBeVisible()
-
-  /*
-   * O recorte mora na URL e não em estado de componente: assim ele sobrevive ao
-   * recarregar e ao voltar do navegador, e o endereço pode ser mandado para
-   * alguém. Filtro que some ao apertar "voltar" é filtro que se aplica duas
-   * vezes.
-   */
-  await agenda.getByRole('link', { name: /^Manhã/ }).click()
-  await expect(page).toHaveURL(/periodo=Manh/)
-
-  await page.reload()
-  await expect(agenda.getByRole('link', { name: /^Manhã/ })).toHaveAttribute('aria-current', 'true')
-
-  await agenda.getByRole('link', { name: 'Dia todo' }).click()
-  await expect(page).not.toHaveURL(/periodo=/)
+  await expect(agenda.getByText('Manhã').first()).toBeVisible()
+  await expect(agenda.getByRole('link', { name: 'Dia todo' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Arrumar a tela inicial' })).toHaveCount(0)
 })
 
 test('a tela inicial não repete o lembrete de lotação', async ({ page }) => {

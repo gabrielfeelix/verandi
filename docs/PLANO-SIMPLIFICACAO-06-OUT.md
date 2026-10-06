@@ -64,12 +64,14 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 ## 4. Hoje
 
-- [ ] Sai o bloco dos 4 números (`hoje/page.tsx:226`): nenhum é link, e
+- [x] Sai o bloco dos 4 números (`hoje/page.tsx:226`): nenhum é link, e
       "chamadas pendentes" já aparece 5 vezes na mesma tela.
-- [ ] Sai "Arrumar a tela inicial" (modal de subir e descer bloco). Uma tela
+- [x] Sai "Arrumar a tela inicial" (modal de subir e descer bloco). Uma tela
       bem ordenada não precisa ser montada por cada usuário.
-- [ ] Sai o filtro Manhã/Tarde/Noite da agenda do dia: um dia cabe numa tela.
-- [ ] "Equipe hoje" sai; a carga por professor mora em Agenda > Dia por recurso.
+- [x] Sai o filtro Manhã/Tarde/Noite da agenda do dia: um dia cabe numa tela.
+      Os períodos continuam como faixas da lista. A tabela de preferência do
+      arranjo (`tests/home.test.ts`) fica no banco sem uso, até uma limpeza.
+- [x] "Equipe hoje" sai; a carga por professor mora em Agenda > Dia por recurso.
 - [ ] Fica: próxima aula, agenda do dia, prévia de Pendências, Caixa do mês.
 
 ## 5. Pendências
