@@ -108,27 +108,27 @@
   /* fundo do estado marcado (presente, vaga fixa): mais saturado que o chip */
   --color-positivo-marcado: #dcede7;
 
-  --color-alerta-fundo: #fde9e0;
-  --color-alerta: #b24826;
-  --color-alerta-forte: #a8411f;
-  --color-alerta-mais-forte: #9c3d1f;
-  --color-alerta-linha: #f7dacb;
+  --color-alerta-fundo: #fde8e8;
+  --color-alerta: #b91c1c;
+  --color-alerta-forte: #a51f1f;
+  --color-alerta-mais-forte: #8f1a1a;
+  --color-alerta-linha: #f8d4d4;
   /* a borda do botão de ícone destrutivo, um passo acima da borda de aviso */
-  --color-alerta-linha-forte: #f0d6c8;
-  --color-alerta-superficie: #fff6f1;
-  --color-alerta-marcado: #fbe4d9;
-  --color-alerta-texto: #8a4526;
+  --color-alerta-linha-forte: #f3c4c4;
+  --color-alerta-superficie: #fff5f5;
+  --color-alerta-marcado: #fde2e2;
+  --color-alerta-texto: #991b1b;
 
-  --color-atencao-fundo: #f6e7c9;
-  --color-atencao: #806320;
-  --color-atencao-linha: #f2e3d4;
-  --color-atencao-superficie: #fffbf7;
+  --color-atencao-fundo: #fef0c7;
+  --color-atencao: #a14a06;
+  --color-atencao-linha: #f8e2a8;
+  --color-atencao-superficie: #fffbeb;
 
-  --color-info-fundo: #e4e9f5;
-  --color-info: #42507a;
+  --color-info-fundo: #e6edfd;
+  --color-info: #1d4ed8;
 
-  --color-licenca-fundo: #e9e6f3;
-  --color-licenca: #5b4c7c;
+  --color-licenca-fundo: #efeafc;
+  --color-licenca: #6141b8;
 
   /* Registro de presença em cor sólida (botão da chamada e legendas). Cores
      limpas e saturadas de propósito: as terrosas pareciam etiqueta e não

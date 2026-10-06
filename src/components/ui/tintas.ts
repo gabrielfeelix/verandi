@@ -81,12 +81,13 @@ export const GLIFO_PRESENCA = {
  * pareciam contornadas. Fundo escuro com letra clara passa de 4,5:1 em todos.
  */
 export const PARES_AVATAR = [
-  ['#0B6B5C', '#E6F4EF'],
-  ['#3A4870', '#E9EDF7'],
-  ['#9A4524', '#FDEEE6'],
-  ['#4F416E', '#EFEBF7'],
-  ['#435D2F', '#EDF4E6'],
-  ['#735818', '#FBF1DC'],
+  // limpas e saturadas: marrom, oliva e mostarda deixavam a lista terrosa
+  ['#0E7C6B', '#E6F4EF'],
+  ['#1D4ED8', '#E6EDFD'],
+  ['#C2410C', '#FFEDE3'],
+  ['#6D4FC2', '#EFEAFC'],
+  ['#BE185D', '#FDE7F1'],
+  ['#0369A1', '#E0F2FE'],
 ] as const
 
 /** As cores que um profissional pode ter na grade. */
