@@ -1,4 +1,5 @@
 import { expandirSerie } from '@/core/agenda/expandir'
+import { dentroDaLicenca, type JanelaDeLicenca } from '@/core/agenda/licenca'
 import type { Excecao, Serie } from '@/core/agenda/tipos'
 import type { Db } from '../supabase'
 import { instante, localDe } from './fuso'
@@ -35,7 +36,7 @@ type LinhaSessao = { id: string; inicio: string }
  * pronta: a primeira abertura da semana cria tudo, as outras cinquenta do dia
  * não têm nada para criar. Mandar mesmo assim um `upsert` por série era uma
  * escrita por leitura de página, com o banco descartando cada linha no índice
- * único — barato numa conta de teste, e a primeira coisa a doer quando a grade
+ * único: barato numa conta de teste, e a primeira coisa a doer quando a grade
  * tem cem séries e a recepção deixa a aba aberta.
  *
  * A conferência é uma consulta só, das sessões que já existem na janela. O
@@ -79,7 +80,7 @@ export async function materializarJanela(
    * `.returns<>()` aqui **não** é resquício de antes dos tipos gerados: ele diz
    * o que o gerador não tem como saber. `excecao_calendario.tipo` é `text` com
    * `check (tipo in ('feriado','fechado'))`, e checagem de texto não vira união
-   * em TypeScript — o arquivo gerado diz `string`. Quem sabe que são dois
+   * em TypeScript: o arquivo gerado diz `string`. Quem sabe que são dois
    * valores é a migration, e a união mora em `core/agenda/tipos.ts`.
    */
   const { data: excecoesBrutas } = await db
@@ -92,6 +93,16 @@ export async function materializarJanela(
     .from('vaga').select('serie_id, pessoa_id, inicio, fim').eq('conta_id', contaId)
     
   const vagas = vagasBrutas ?? []
+
+  // quem está de licença: a aula gerada no período já nasce em `licenca`, e o
+  // lugar fica livre para encaixe desde o primeiro minuto
+  const { data: licencasBrutas, error: erroLicencas } = await db
+    .from('licenca').select('pessoa_id, inicio, volta_prevista')
+    .eq('conta_id', contaId).is('encerrada_em', null)
+  if (erroLicencas) throw erroLicencas
+  const licencas = new Map<string, JanelaDeLicenca>(
+    (licencasBrutas ?? []).map((l) => [l.pessoa_id, { inicio: l.inicio, voltaPrevista: l.volta_prevista }]),
+  )
 
   /*
    * O que já existe na janela, por `serie_id` e instante.
@@ -171,14 +182,18 @@ export async function materializarJanela(
       const dia = localDe(sessao.inicio, fuso).data
       return dasSerie
         .filter((v) => v.inicio <= dia && (v.fim === null || v.fim >= dia))
-        .map((v) => ({
-          conta_id: contaId,
-          sessao_id: sessao.id,
-          pessoa_id: v.pessoa_id,
-          origem: 'recorrente' as const,
-          status: 'esperada' as const,
-          registrado_por_origem: 'sistema' as const,
-        }))
+        .map((v) => {
+          const licenca = licencas.get(v.pessoa_id)
+          return {
+            conta_id: contaId,
+            sessao_id: sessao.id,
+            pessoa_id: v.pessoa_id,
+            origem: 'recorrente' as const,
+            status: licenca && dentroDaLicenca(dia, licenca)
+              ? ('licenca' as const) : ('esperada' as const),
+            registrado_por_origem: 'sistema' as const,
+          }
+        })
     })
     if (!participacoes.length) continue
 

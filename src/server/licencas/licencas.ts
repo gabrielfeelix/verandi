@@ -1,4 +1,8 @@
 import type { Db } from '../supabase'
+import { ajusteDaLicenca, type AulaDaPessoa, type JanelaDeLicenca } from '@/core/agenda/licenca'
+import type { StatusParticipacao } from '@/core/agenda/ocupacao'
+import { localDe } from '../agenda/fuso'
+import { avisarQuemEspera } from '../agenda/espera'
 
 /**
  * A licença como período acompanhado (ver `0070_vr_licenca.sql`).
@@ -37,23 +41,25 @@ export async function abrirLicenca(
   if (error) throw error
 
   if (aberta) {
-    if (!opts.voltaPrevista) return
-    const { error: e } = await db.from('licenca')
-      .update({ volta_prevista: maiorData(opts.voltaPrevista, aberta.inicio) })
-      .eq('id', aberta.id)
-    if (e) throw e
-    return
+    if (opts.voltaPrevista) {
+      const { error: e } = await db.from('licenca')
+        .update({ volta_prevista: maiorData(opts.voltaPrevista, aberta.inicio) })
+        .eq('id', aberta.id)
+      if (e) throw e
+    }
+  } else {
+    const { error: e } = await db.from('licenca').insert({
+      conta_id: contaId,
+      pessoa_id: pessoaId,
+      inicio: opts.inicio,
+      volta_prevista: opts.voltaPrevista ? maiorData(opts.voltaPrevista, opts.inicio) : null,
+      criado_por_usuario_id: opts.usuarioId ?? null,
+    })
+    // duas abas marcando ao mesmo tempo: o índice único segura, e a outra já abriu
+    if (e && e.code !== '23505') throw e
   }
 
-  const { error: e } = await db.from('licenca').insert({
-    conta_id: contaId,
-    pessoa_id: pessoaId,
-    inicio: opts.inicio,
-    volta_prevista: opts.voltaPrevista ? maiorData(opts.voltaPrevista, opts.inicio) : null,
-    criado_por_usuario_id: opts.usuarioId ?? null,
-  })
-  // duas abas marcando ao mesmo tempo: o índice único segura, e a outra já abriu
-  if (e && e.code !== '23505') throw e
+  await acertarAulas(db, contaId, pessoaId, await licencaDaPessoa(db, contaId, pessoaId))
 }
 
 /** Fecha a licença aberta da pessoa, se houver. Devolve se fechou alguma. */
@@ -64,8 +70,10 @@ export async function encerrarLicenca(
   const { data, error } = await db.from('licenca')
     .update({ encerrada_em: new Date().toISOString(), encerrada_por: por })
     .eq('conta_id', contaId).in('pessoa_id', pessoaIds).is('encerrada_em', null)
-    .select('id')
+    .select('pessoa_id')
   if (error) throw error
+  // voltou: as aulas futuras que estavam em licença são dela de novo
+  for (const l of data ?? []) await acertarAulas(db, contaId, l.pessoa_id, null)
   return data?.length ?? 0
 }
 
@@ -73,18 +81,80 @@ export async function encerrarLicenca(
 export async function prorrogarLicenca(
   db: Db, contaId: string, licencaId: string, voltaPrevista: string | null,
 ): Promise<void> {
-  const { data: l, error } = await db.from('licenca').select('inicio')
+  const { data: l, error } = await db.from('licenca').select('inicio, pessoa_id')
     .eq('conta_id', contaId).eq('id', licencaId).maybeSingle()
   if (error) throw error
   if (!l) return
+  const volta = voltaPrevista ? maiorData(voltaPrevista, l.inicio) : null
   const { error: e } = await db.from('licenca')
     .update({
-      volta_prevista: voltaPrevista ? maiorData(voltaPrevista, l.inicio) : null,
+      volta_prevista: volta,
       // nova data é nova combinação: o "voltou e não reagendou" deixa de valer
       voltou_sem_reagendar_em: null,
     })
     .eq('id', licencaId)
   if (e) throw e
+  // data maior recolhe mais aulas; data menor devolve as que ficaram fora
+  await acertarAulas(db, contaId, l.pessoa_id, { inicio: l.inicio, voltaPrevista: volta })
+}
+
+/**
+ * Põe as aulas futuras da pessoa de acordo com a licença (ver
+ * `ajusteDaLicenca`). `janela` nula é licença encerrada.
+ *
+ * O carimbo é `sistema`: quem marcou foi a regra, não alguém na chamada. É
+ * também o que deixa o "Desfazer" distinguir a aula tocada das que vieram
+ * junto.
+ *
+ * Cada aula que ganhou um lugar avisa a fila de espera interna. O webhook
+ * `participacao.cancelada` fica de fora de propósito: o bot trata esse evento
+ * como desistência e mandaria mensagem errada para a pessoa afastada.
+ */
+async function acertarAulas(
+  db: Db, contaId: string, pessoaId: string, janela: JanelaDeLicenca | null,
+): Promise<void> {
+  const agora = new Date()
+  const { data: conta, error: erroConta } = await db
+    .from('conta').select('fuso').eq('id', contaId).single()
+  if (erroConta) throw erroConta
+
+  const { data, error } = await db.from('participacao')
+    .select('id, status, sessao_id, sessao:sessao_id!inner(inicio, status)')
+    .eq('conta_id', contaId).eq('pessoa_id', pessoaId)
+    .in('status', ['esperada', 'confirmada', 'licenca'])
+    .eq('sessao.status', 'prevista')
+    .gt('sessao.inicio', agora.toISOString())
+  if (error) throw error
+
+  const aulas: AulaDaPessoa[] = (data ?? []).map((p) => ({
+    participacaoId: p.id,
+    sessaoId: p.sessao_id,
+    status: p.status as StatusParticipacao,
+    sessaoInicio: p.sessao.inicio,
+    data: localDe(p.sessao.inicio, conta.fuso).data,
+  }))
+  const { paraLicenca, paraEsperada } = ajusteDaLicenca(aulas, janela, agora.getTime())
+
+  const carimbo = {
+    registrado_por_origem: 'sistema' as const,
+    registrado_por_usuario_id: null,
+    registrado_em: agora.toISOString(),
+  }
+  if (paraLicenca.length) {
+    const { error: e } = await db.from('participacao')
+      .update({ status: 'licenca', ...carimbo })
+      .in('id', paraLicenca.map((a) => a.participacaoId))
+    if (e) throw e
+    for (const sessaoId of new Set(paraLicenca.map((a) => a.sessaoId))) {
+      await avisarQuemEspera(db, contaId, sessaoId)
+    }
+  }
+  if (paraEsperada.length) {
+    const { error: e } = await db.from('participacao')
+      .update({ status: 'esperada', ...carimbo })
+      .in('id', paraEsperada.map((a) => a.participacaoId))
+    if (e) throw e
+  }
 }
 
 export async function licencasAbertas(db: Db, contaId: string): Promise<LicencaAberta[]> {
@@ -122,9 +192,11 @@ function maiorData(a: string, b: string) {
 /**
  * O "Desfazer" de uma licença marcada por engano.
  *
- * Se nenhuma aula da licença aberta continua como licença, ela nasceu do toque
- * que acabou de ser desfeito, e some. Apagar e não encerrar: uma licença
- * encerrada no mesmo minuto em que abriu é ruído no histórico da pessoa.
+ * Se nenhuma aula da licença aberta continua como licença marcada por alguém,
+ * ela nasceu do toque que acabou de ser desfeito, e some. As aulas que a regra
+ * recolheu junto (carimbo `sistema`) não contam, e voltam a `esperada`. Apagar
+ * e não encerrar: uma licença encerrada no mesmo minuto em que abriu é ruído no
+ * histórico da pessoa.
  */
 export async function desfazerLicencaSemAula(
   db: Db, contaId: string, pessoaId: string,
@@ -134,10 +206,12 @@ export async function desfazerLicencaSemAula(
   const { count, error } = await db.from('participacao')
     .select('id, sessao:sessao_id!inner(inicio)', { count: 'exact', head: true })
     .eq('conta_id', contaId).eq('pessoa_id', pessoaId).eq('status', 'licenca')
+    .neq('registrado_por_origem', 'sistema')
     .gte('sessao.inicio', `${aberta.inicio}T00:00:00Z`)
   if (error) throw error
   if ((count ?? 0) > 0) return
-  const { error: e } = await db.from('licenca').delete()
-    .eq('id', aberta.id).is('voltou_sem_reagendar_em', null)
+  const { data: apagada, error: e } = await db.from('licenca').delete()
+    .eq('id', aberta.id).is('voltou_sem_reagendar_em', null).select('id')
   if (e) throw e
+  if (apagada?.length) await acertarAulas(db, contaId, pessoaId, null)
 }

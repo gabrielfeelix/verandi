@@ -30,6 +30,7 @@ export async function definirVolta(pessoaId: string, voltaPrevista: string | nul
   })
   revalidatePath('/pendencias')
   revalidatePath('/hoje')
+  revalidatePath('/semana')
 }
 
 /** "Prorrogar" em Pendências: nova data, ou sem data. */
@@ -40,6 +41,7 @@ export async function mudarVolta(licencaId: string, voltaPrevista: string | null
   await prorrogarLicenca(db, conta.contaId, licencaId, dataOuNulo(voltaPrevista))
   revalidatePath('/pendencias')
   revalidatePath('/hoje')
+  revalidatePath('/semana')
 }
 
 /** "Voltou" em Pendências: encerra sem precisar esperar a próxima chamada. */
@@ -50,4 +52,5 @@ export async function marcarVolta(pessoaId: string): Promise<void> {
   await encerrarLicenca(db, conta.contaId, [pessoaId], 'operador')
   revalidatePath('/pendencias')
   revalidatePath('/hoje')
+  revalidatePath('/semana')
 }

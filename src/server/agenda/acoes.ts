@@ -92,6 +92,8 @@ export async function mudarStatus(
       usuarioId: carimbo.registrado_por_usuario_id,
     })
     revalidatePath('/pendencias')
+    // o lugar desta aula abriu; o evento do bot fica de fora (ver `acertarAulas`)
+    await avisarQuemEspera(db, conta.contaId, data.sessao_id)
   } else if (status === 'presente') {
     await encerrarLicenca(db, conta.contaId, [data.pessoa_id], 'presenca')
   } else if (status === 'esperada' || status === 'confirmada') {
