@@ -166,7 +166,7 @@ export const ROTAS: Rota[] = [
     resumo:
       'Os horários fixos dela, o que vem pela frente e quantas reposições estão em aberto. É a rota que responde "quais são meus horários?" e "quantas aulas eu tenho para repor?".',
     atencao:
-      'É daqui que sai o participacaoId, e sem ele não há como desmarcar. Guarde o identificador quando marcar, ou consulte esta rota antes de cancelar. Cada item de proximas diz em podeReporSeCancelarAgora se cancelar neste momento ainda dá direito à reposição: consulte antes de confirmar o cancelamento, porque depois do DELETE a resposta chega tarde. O veredito envelhece, ele vale para o instante da consulta. Observação e data de nascimento nunca aparecem aqui: são dados de ficha, e ficha é da tela.',
+      'É daqui que sai o participacaoId, e sem ele não há como desmarcar. Guarde o identificador quando marcar, ou consulte esta rota antes de cancelar. Cada item de proximas diz em podeReporSeCancelarAgora se cancelar neste momento ainda dá direito à reposição: consulte antes de confirmar o cancelamento, porque depois do DELETE a resposta chega tarde. O veredito envelhece, ele vale para o instante da consulta. Observação e data de nascimento nunca aparecem aqui: são dados de ficha, e ficha é da tela. modalidadeUnica traz servicoId e nome quando os contratos ativos dela são de uma modalidade só, e null quando são mais de uma ou nenhuma: com ela o bot não precisa perguntar qual aula.',
     exemplo: `curl ${BASE}/pessoas/77c0... \\
   -H "Authorization: Bearer vr_sua_chave_aqui"`,
     resposta: `{

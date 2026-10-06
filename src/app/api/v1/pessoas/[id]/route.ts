@@ -1,4 +1,5 @@
 import { licencaDaPessoa } from '@/server/licencas/licencas'
+import { servicosDaPessoa } from '@/server/contratos/consultas'
 import { NextResponse, type NextRequest } from 'next/server'
 import { fichaDaPessoa } from '@/server/pessoas/consultas'
 import { situacaoDe } from '@/core/pessoas/situacao'
@@ -21,8 +22,8 @@ import { idObrigatorio } from '@/core/api/pedido'
  *
  * **Cada próxima aula diz se ainda dá tempo de avisar.** Sem isso o bot só
  * descobre que a pessoa perdeu a reposição **depois** de já ter cancelado, e a
- * frase que o estúdio pediu — *"caso realize o cancelamento essa aula não
- * poderá ser reposta, deseja prosseguir?"* — não tem como ser dita, porque ela
+ * frase que o estúdio pediu, *"caso realize o cancelamento essa aula não
+ * poderá ser reposta, deseja prosseguir?"*, não tem como ser dita, porque ela
  * precisa vir antes da decisão. O `DELETE` já devolvia o veredito; devolver só
  * lá é chegar tarde.
  *
@@ -65,6 +66,7 @@ export const GET = comChave<{ id: string }>(async (
 
   const agora = new Date()
   const licenca = await licencaDaPessoa(ctx.db, ctx.contaId, ficha.pessoa.id)
+  const servicos = await servicosDaPessoa(ctx.db, ctx.contaId, ficha.pessoa.id)
 
   const s = situacaoDe({
     ativo: ficha.pessoa.ativo,
@@ -81,6 +83,11 @@ export const GET = comChave<{ id: string }>(async (
     ultimaPresenca: ficha.pessoa.ultimaPresenca,
     /* "voltei de licença": o bot sabe se há licença aberta antes de perguntar */
     licenca: licenca ? { inicio: licenca.inicio, voltaPrevista: licenca.voltaPrevista } : null,
+    /* a modalidade do contrato, quando é uma só: o bot pula o "qual aula?" e
+       não pergunta o que a agenda já sabe. Duas ou nenhuma: `null`, e pergunta */
+    modalidadeUnica: servicos.length === 1
+      ? { servicoId: servicos[0].id, nome: servicos[0].nome }
+      : null,
 
     /* os horários fixos dela: é o que responde "eu venho terça e quinta" */
     horariosFixos: ficha.vagas.map((v) => ({
@@ -100,7 +107,7 @@ export const GET = comChave<{ id: string }>(async (
        * O veredito é calculado para **agora**, que é quando a pessoa está
        * conversando. Ele envelhece: uma aula que ainda podia ser cancelada às
        * 13h já não pode às 14h. É por isso que quem grava a decisão é o
-       * `DELETE`, que refaz a conta no instante do aviso — aqui é o que o bot
+       * `DELETE`, que refaz a conta no instante do aviso; aqui é o que o bot
        * precisa para escolher a frase, não para valer como registro.
        */
       const v = avaliarAviso(agora, new Date(p.inicio), minutosExigidos)
@@ -136,7 +143,7 @@ export const GET = comChave<{ id: string }>(async (
      * A regra da conta, dita uma vez e por extenso.
      *
      * O bot precisa dela para montar a frase ("fora do prazo de 2h") sem ter
-     * que traduzir minutos por conta própria — e traduzir na ponta é onde cada
+     * que traduzir minutos por conta própria, e traduzir na ponta é onde cada
      * integração inventa um texto diferente para a mesma regra.
      */
     regraDeCancelamento: {
