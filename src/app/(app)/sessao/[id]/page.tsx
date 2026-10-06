@@ -65,7 +65,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
   }
 
   const cancelada = sessao.status === 'cancelada'
-  const podeRegistrar = !cancelada && conta.papel !== 'suporte'
+  const podeRegistrar = !cancelada
 
   const dia = new Date(`${sessao.data}T12:00:00Z`)
   const dataLonga = `${DIAS[dia.getUTCDay()]}, ${dia.getUTCDate()} de ${MESES[dia.getUTCMonth()]}`

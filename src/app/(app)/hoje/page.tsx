@@ -260,7 +260,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               rotulo={rotulos.sessao.singular}
               rotuloPessoa={rotulos.pessoa.singular}
               faltam={quantoFalta(proxima.inicio, agora, fuso)}
-              podeRegistrar={conta.papel !== 'suporte'}
+              podeRegistrar
             />
           </div>
         ) : null}
