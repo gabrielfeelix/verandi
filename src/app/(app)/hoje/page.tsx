@@ -273,7 +273,11 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           <span className="text-[13.5px] text-tinta-media">
             {profFiltro
               ? `${daAgenda.length} de ${sessoes.length} ${rotulos.sessao.plural.toLowerCase()}`
-              : `${vivas.length} ${rotulos.sessao.plural.toLowerCase()} · ${pendentes} ${pendentes === 1 ? 'chamada pendente' : 'chamadas pendentes'}`}
+              // "0 chamadas pendentes" ao lado de "3 chamadas não feitas" em
+              // Pendências parecia contradição: aqui só aparece quando há
+              : `${vivas.length} ${rotulos.sessao.plural.toLowerCase()}${pendentes
+                ? ` · ${pendentes} ${pendentes === 1 ? 'chamada pendente' : 'chamadas pendentes'}`
+                : ''}`}
           </span>
         </div>
 
@@ -492,7 +496,9 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 : dataLonga(dia, fuso)}
             </h1>
             <p className="pt-[3px] text-[14.5px] text-tinta-media">
-              {dataLonga(dia, fuso)} · {conta.nome}
+              {/* a conta já está no rail (e no topo, no celular): repetir aqui
+                  era a terceira vez na mesma dobra */}
+              {dataLonga(dia, fuso)}
             </p>
           </div>
 

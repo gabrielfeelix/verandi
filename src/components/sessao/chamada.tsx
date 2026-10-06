@@ -260,7 +260,7 @@ export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
     <button
       type="button"
       onClick={abrirCancelar}
-      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media border border-alerta-linha bg-alerta-superficie px-3.5 text-[14.5px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-fundo"
+      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media px-3.5 text-[14.5px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-superficie"
     >
       <Icone nome="proibido" tamanho={18} />
       {rotulo}

@@ -59,7 +59,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
           <input
             id="email" name="email" type="email" required autoComplete="email"
             defaultValue={emailInicial}
-            placeholder="Insira seu e-mail aqui"
+            placeholder="Exemplo: voce@seuestudio.com.br"
             className={entrada}
           />
         </div>
@@ -87,7 +87,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
           </div>
         </div>
 
-        {/* O erro nunca diz se o e-mail existe — dizer é entregar uma lista de
+        {/* O erro nunca diz se o e-mail existe: dizer é entregar uma lista de
             quem trabalha no estúdio para quem só tem um formulário. */}
         {estado?.erro ? (
           <p className="flex items-center gap-2.5 rounded-padrao border border-alerta-linha bg-alerta-superficie px-3 py-2.5 text-[13.5px] text-alerta-texto">

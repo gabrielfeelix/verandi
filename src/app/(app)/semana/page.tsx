@@ -201,13 +201,19 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             }}
           />
 
-          {!ehDia ? <BotaoImprimir /> : null}
+          {/* imprimir a semana é coisa de balcão, não de telefone */}
+          {!ehDia ? <span className="hidden md:contents"><BotaoImprimir /></span> : null}
         </div>
       </header>
 
       {/* Filtro por pessoa é o mais usado: a pergunta frequente é "como está a
           semana da Marina". O de local só aparece quando há mais de um lugar. */}
-      <div data-imprimir="fora" className="flex flex-wrap items-center gap-1.5">
+      {/* no celular a faixa rola de lado: quebrando, eram cinco linhas de
+          filtro antes da primeira aula */}
+      <div
+        data-imprimir="fora"
+        className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] *:shrink-0 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+      >
         <span data-guia="agenda-vaga" className="inline-flex">
           <Chip href={q({ vaga: soComVaga ? undefined : 'sim' })} ativo={soComVaga}>
             Só com vaga

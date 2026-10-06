@@ -833,7 +833,7 @@ function BotaoMiudo({
       {...resto}
       className={`min-h-9 cursor-pointer rounded-peca border px-3 text-[13.5px] disabled:opacity-50 ${
         perigo
-          ? 'border-alerta-linha bg-superficie text-alerta hover:bg-alerta-superficie'
+          ? 'border-transparent bg-superficie text-tinta-media hover:bg-alerta-superficie hover:text-alerta'
           : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
       }`}
     >

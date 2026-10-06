@@ -101,8 +101,9 @@ export function BotaoLinha({
   children, tom = 'neutro', className = '', ...resto
 }: {
   children: ReactNode
-  /* `perigo` é vermelho, e vermelho aqui é só o que tira algo do ar:
-     desativar, excluir. Fechar e cancelar não são perigo, são desistir. */
+  /* `perigo` é o que tira algo do ar: desativar, excluir. Em repouso é texto
+     discreto e só fica vermelho no hover; vermelho em toda linha da lista
+     gritava a ação que menos se usa. Fechar e cancelar não são perigo. */
   tom?: 'neutro' | 'marca' | 'perigo'
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
@@ -113,7 +114,7 @@ export function BotaoLinha({
         tom === 'marca'
           ? 'border-linha-suave bg-superficie text-marca hover:bg-positivo-superficie'
           : tom === 'perigo'
-            ? 'border-alerta-linha-forte bg-alerta-superficie text-alerta hover:bg-alerta-fundo'
+            ? 'border-transparent text-tinta-media hover:bg-alerta-superficie hover:text-alerta'
             : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-suave hover:text-tinta'
       } ${className}`}
     >

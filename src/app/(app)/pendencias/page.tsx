@@ -54,7 +54,7 @@ export default async function Pendencias() {
 
         {/* uma coluna só: o "Resumo" ao lado repetia a contagem que já está no
             título de cada grupo, e a dica do Dispensar mora no próprio modal */}
-        <div data-guia="pendencias-lista" className="max-w-[920px]">
+        <div data-guia="pendencias-lista">
           <ListaPendencias grupos={grupos} />
         </div>
       </div>

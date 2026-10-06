@@ -137,7 +137,7 @@ export function Vagas({
                 type="button"
                 disabled={pendente}
                 aria-label={`Encerrar ${v.rotulo}`}
-                className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-alerta-linha-forte bg-alerta-superficie px-3 text-[13.5px] text-alerta hover:bg-alerta-fundo"
+                className="min-h-9 shrink-0 cursor-pointer rounded-peca px-3 text-[13.5px] text-tinta-media hover:bg-alerta-superficie hover:text-alerta"
                 onClick={() => setEncerrando({ id: v.id, rotulo: v.rotulo })}
               >
                 Encerrar

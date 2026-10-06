@@ -105,8 +105,8 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
           </nav>
 
           <article className={`flex flex-wrap items-start justify-between gap-x-6 gap-y-4.5 ${cartao} px-5.5 py-5`}>
-            <div className="flex min-w-0 flex-[1_1_340px] items-start gap-5.5">
-              <div className="flex flex-col gap-1 border-r border-linha-suave pr-5.5">
+            <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-3 sm:flex-row sm:items-start sm:gap-5.5">
+              <div className="flex flex-col gap-1 sm:border-r sm:border-linha-suave sm:pr-5.5">
                 <span className="font-titulo text-[34px] leading-none font-semibold tracking-[-.03em]">
                   {sessao.hora}
                 </span>

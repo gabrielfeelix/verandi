@@ -132,7 +132,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <a
             href={exportar}
             download
-            className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
+            className="hidden min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave md:inline-flex"
           >
             Exportar
           </a>
@@ -146,7 +146,8 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
       {/* Os filtros são o motivo desta tela existir: a planilha já dá a lista,
           o que ela não dá é "quem está sumindo" e "quem eu não consigo avisar".
           O número em cada chip é o que faz reparar sem precisar clicar. */}
-      <div className="flex flex-wrap gap-1.5">
+      {/* no celular a faixa rola de lado, como na Agenda */}
+      <div className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] *:shrink-0 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
         <Chip href={endereco((b) => { b.delete('f'); b.delete('t') })} ativo={semFiltro}>
           Todos <Contador ativo={semFiltro}>{contagem.ativos}</Contador>
         </Chip>
@@ -179,7 +180,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
       </div>
 
       <section className={`overflow-hidden ${cartao}`}>
-        <div className="hidden grid-cols-[minmax(0,1fr)_132px_108px_116px_128px] gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid">
+        <div className="hidden grid-cols-[minmax(0,1fr)_132px_116px_116px_148px] gap-3.5 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3 md:grid">
           {['Nome', 'Telefone', rotulos.serie.singular, 'Última presença', 'Situação']
             .map((c) => (
               <span
@@ -208,7 +209,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                 <li key={p.id}>
                   <Link
                     href={`/pessoas/${p.id}`}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 border-b border-linha-fina px-4.5 py-3.5 hover:bg-superficie-tenue md:grid-cols-[minmax(0,1fr)_132px_108px_116px_128px]"
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 border-b border-linha-fina px-4.5 py-3.5 hover:bg-superficie-tenue md:grid-cols-[minmax(0,1fr)_132px_116px_116px_148px]"
                   >
                     <span className="flex min-w-0 items-center gap-2.5">
                       <span
@@ -262,7 +263,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                             <span className="text-tinta-fraca"> +{p.vagasAtivas - 1}</span>
                           ) : null}
                         </>
-                      ) : 'Sem registro'}
+                      ) : 'Sem horário fixo'}
                     </span>
 
                     <span className="hidden text-[14.5px] text-tinta-media md:block">
@@ -270,7 +271,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                     </span>
 
                     <span
-                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[12px] font-medium ${TINTA[situacao.tinta]}`}
+                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[12px] font-medium whitespace-nowrap ${TINTA[situacao.tinta]}`}
                     >
                       <span aria-hidden className="size-1.5 rounded-full bg-current" />
                       {situacao.rotulo}

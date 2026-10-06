@@ -46,7 +46,7 @@ export function ProximaTurma({
       />
 
       <div className="relative flex flex-wrap items-start justify-between gap-x-6.5 gap-y-4.5">
-        <div className="flex min-w-0 flex-[1_1_330px] gap-5.5">
+        <div className="flex min-w-0 flex-[1_1_330px] flex-col gap-4 sm:flex-row sm:gap-5.5">
           <div className="flex flex-col gap-2">
             <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-menta">
               <span aria-hidden className="size-[7px] rounded-full bg-menta" />

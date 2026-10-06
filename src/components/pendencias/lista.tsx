@@ -129,14 +129,14 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
                           router.refresh()
                         })
                       }}
-                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[13.5px] font-medium whitespace-nowrap text-tinta-clara hover:bg-escuro-hover"
+                      className="inline-flex min-h-10 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13.5px] font-medium whitespace-nowrap text-tinta hover:border-tinta-media hover:bg-superficie-mais-suave"
                     >
                       Voltou
                     </button>
                     <button
                       type="button"
                       onClick={() => setProrrogando(p)}
-                      className="min-h-10 rounded-padrao border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                      className="min-h-10 rounded-padrao px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
                     >
                       {p.licenca.voltaPrevista ? 'Prorrogar' : 'Definir volta'}
                     </button>
@@ -145,14 +145,14 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
                   <span className="flex items-center gap-1.5">
                     <Link
                       href={p.href}
-                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[13.5px] font-medium whitespace-nowrap text-tinta-clara hover:bg-escuro-hover"
+                      className="inline-flex min-h-10 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[13.5px] font-medium whitespace-nowrap text-tinta hover:border-tinta-media hover:bg-superficie-mais-suave"
                     >
                       {ACAO_GRUPO[p.tipo] ?? 'Resolver'}
                     </Link>
                     <button
                       type="button"
                       onClick={() => setDispensando(p)}
-                      className="min-h-10 rounded-padrao border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                      className="min-h-10 rounded-padrao px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
                     >
                       Dispensar
                     </button>

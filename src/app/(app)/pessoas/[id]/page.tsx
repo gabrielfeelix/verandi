@@ -728,6 +728,7 @@ export default async function Pessoa({
                 <h3 className="font-titulo text-[18px] font-semibold">Cobranças</h3>
                 <ListaDeCobrancas
                   linhas={cobrancas}
+                  naFicha
                   vazio={{
                     titulo: 'Nenhuma cobrança ainda',
                     texto: 'Elas nascem do contrato, com a data de vencimento que ele diz. Sem contrato em vigor, não há o que cobrar.',

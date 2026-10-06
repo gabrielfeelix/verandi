@@ -25,7 +25,6 @@ import { SecaoIntegracoes } from '@/components/config/integracoes'
 import { avisoDaConta } from '@/server/webhook/consultas'
 import { listarChaves } from '@/server/api/chave'
 import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
-import { cartao } from '@/components/ui/pecas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
@@ -33,15 +32,15 @@ import Carregando from './loading'
 // seção pelo canto do olho depois da terceira visita
 const SECOES = [
   { chave: 'servicos', icone: 'lista' },
-  { chave: 'planos', icone: 'regua' },
-  { chave: 'recibo', icone: 'dinheiro' },
+  { chave: 'planos', icone: 'dinheiro' },
+  { chave: 'recibo', icone: 'recibo' },
   { chave: 'equipe', icone: 'pessoas' },
   { chave: 'locais', icone: 'local' },
-  { chave: 'padroes', icone: 'regua' },
+  { chave: 'padroes', icone: 'arrumar' },
   { chave: 'vocabulario', icone: 'texto' },
   { chave: 'funcionamento', icone: 'relogio' },
   { chave: 'usuarios', icone: 'chave' },
-  { chave: 'integracoes', icone: 'lista' },
+  { chave: 'integracoes', icone: 'clipe' },
 ] as const satisfies ReadonlyArray<{ chave: string; icone: NomeIcone }>
 
 type Secao = (typeof SECOES)[number]['chave']
@@ -114,9 +113,11 @@ export default async function Config({
         </header>
 
         <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">
+          {/* no celular as dez seções viram uma faixa que rola de lado: em
+              lista, ocupavam a primeira tela inteira antes do conteúdo */}
           <nav
             aria-label="Seções da configuração"
-            className={`flex flex-col gap-0.5 ${cartao} p-2`}
+            className="-mx-4 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] *:shrink-0 md:mx-0 md:flex-col md:gap-0.5 md:rounded-cartao md:border md:border-linha md:bg-superficie md:p-2"
           >
             {SECOES.map((x) => (
               <Link
@@ -126,7 +127,7 @@ export default async function Config({
                 className={`flex min-h-11 items-center gap-3 rounded-media px-3 transition-colors duration-150 ${
                   secao === x.chave
                     ? 'bg-escuro text-tinta-clara'
-                    : 'text-tinta-media hover:bg-superficie-mais-suave'
+                    : 'border border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave md:border-0 md:bg-transparent'
                 }`}
               >
                 <Icone nome={x.icone} tamanho={18} />

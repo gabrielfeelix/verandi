@@ -71,13 +71,15 @@ export function ListaParticipacao({
 
   return (
     <section className={`${cartao} px-2.5 pt-2 pb-3`}>
-      <div className="flex items-center justify-between p-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 p-3">
         <h2 className="font-titulo text-[18px] font-semibold">{titulo}</h2>
-        <span className="text-[13.5px] text-tinta-media">
-          {podeRegistrar && comecou && pendentes > 0
-            ? 'quem não for marcado conta como presente'
-            : 'vaga fixa em cima, encaixes abaixo'}
-        </span>
+        {/* só o aviso que muda o resultado; "vaga fixa em cima, encaixes
+            abaixo" explicava a ordem da lista, que se vê olhando */}
+        {podeRegistrar && comecou && pendentes > 0 ? (
+          <span className="text-[13.5px] text-tinta-media">
+            quem não for marcado conta como presente
+          </span>
+        ) : null}
       </div>
 
       <ul className="flex flex-col gap-1.5" aria-label={rotuloPessoas}>

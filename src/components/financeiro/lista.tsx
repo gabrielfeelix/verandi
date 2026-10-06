@@ -77,10 +77,15 @@ type Modo =
   | { tipo: 'emitir'; c: CobrancaLinha; pagamentoId: string; valorCent: number }
 
 export function ListaDeCobrancas({
-  linhas: carregadas, vazio,
+  linhas: carregadas, vazio, naFicha = false,
 }: {
   linhas: CobrancaLinha[]
   vazio: { titulo: string; texto: string }
+  /**
+   * Dentro da ficha a pessoa é sempre a mesma: avatar e nome em toda linha
+   * eram a mesma informação repetida, e o plano sobe para o lugar do título.
+   */
+  naFicha?: boolean
 }) {
   const { linhas, procurando } = useFiltroLocal(carregadas)
   const [modo, setModo] = useState<Modo | null>(null)
@@ -135,18 +140,26 @@ export function ListaDeCobrancas({
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
               <span className="flex min-w-[220px] flex-1 items-center gap-3">
-                <Avatar nome={c.pessoaNome} tamanho={40} decorativo />
+                {naFicha ? null : <Avatar nome={c.pessoaNome} tamanho={40} decorativo />}
                 <span className="flex min-w-0 flex-col gap-1">
-                  <Link
-                    href={`/pessoas/${c.pessoaId}?aba=contratos`}
-                    className="truncate text-[14.5px] font-semibold text-tinta hover:underline"
-                  >
-                    {c.pessoaNome}
-                  </Link>
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-tinta-media">
-                    <span className="rounded-minima bg-superficie-mais-suave px-1.5 py-0.5 font-medium text-tinta-media">
+                  {naFicha ? (
+                    <span className="truncate text-[14.5px] font-semibold text-tinta">
                       {c.planoNome || 'Sem plano'}
                     </span>
+                  ) : (
+                    <Link
+                      href={`/pessoas/${c.pessoaId}?aba=contratos`}
+                      className="truncate text-[14.5px] font-semibold text-tinta hover:underline"
+                    >
+                      {c.pessoaNome}
+                    </Link>
+                  )}
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-tinta-media">
+                    {naFicha ? null : (
+                      <span className="rounded-minima bg-superficie-mais-suave px-1.5 py-0.5 font-medium text-tinta-media">
+                        {c.planoNome || 'Sem plano'}
+                      </span>
+                    )}
                     <span>ref. {competenciaCurta(c.competencia)}</span>
                     <span aria-hidden className="text-linha-tracejada">•</span>
                     <span className="inline-flex items-center gap-1">
