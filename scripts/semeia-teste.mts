@@ -53,9 +53,12 @@ const db = createClient<Database, 'app_verandi'>(`https://${REF}.supabase.co`, s
   auth: { persistSession: false, autoRefreshToken: false },
 })
 
-function ok<T>(r: { data: T; error: { message: string } | null }, oque: string): T {
+// `NonNullable` porque sem erro o dado veio: o `null` do tipo do Supabase é o
+// caso do erro, que já virou exceção na linha de cima
+function ok<T>(r: { data: T; error: { message: string } | null }, oque: string): NonNullable<T> {
   if (r.error) throw new Error(`${oque}: ${r.error.message}`)
-  return r.data
+  if (r.data === null || r.data === undefined) throw new Error(`${oque}: veio vazio`)
+  return r.data as NonNullable<T>
 }
 
 /* ------------------------------------------------------------ datas */
@@ -400,9 +403,10 @@ for (const [email, papel, nome] of logins) {
   const achado = await acharUsuario(email)
   let id = achado?.id
   if (id) {
-    ok(await db.auth.admin.updateUserById(id, { password: senha }), `senha ${email}`)
+    ok<{ user: unknown }>(await db.auth.admin.updateUserById(id, { password: senha }), `senha ${email}`)
   } else {
-    id = ok(await db.auth.admin.createUser({ email, password: senha, email_confirm: true }),
+    id = ok<{ user: { id: string } | null }>(
+      await db.auth.admin.createUser({ email, password: senha, email_confirm: true }),
       `criar ${email}`).user!.id
   }
   ok(await db.from('usuario_conta').upsert(
