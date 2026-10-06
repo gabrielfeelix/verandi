@@ -149,13 +149,16 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
                     >
                       {ACAO_GRUPO[p.tipo] ?? 'Resolver'}
                     </Link>
-                    <button
-                      type="button"
-                      onClick={() => setDispensando(p)}
-                      className="min-h-10 rounded-padrao px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
-                    >
-                      Dispensar
-                    </button>
+                    {/* horário sem contrato não se esconde: resolve-se */}
+                    {p.tipo === 'horario_sem_contrato' ? null : (
+                      <button
+                        type="button"
+                        onClick={() => setDispensando(p)}
+                        className="min-h-10 rounded-padrao px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                      >
+                        Dispensar
+                      </button>
+                    )}
                   </span>
                   )}
                 </li>

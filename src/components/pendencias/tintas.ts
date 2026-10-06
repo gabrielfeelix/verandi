@@ -3,7 +3,7 @@
  *
  * Não é organização: a lista é cliente e o "Resumo" da coluna direita é
  * servidor. Exportar a constante do módulo cliente e importá-la no servidor
- * devolve uma referência de módulo, não o objeto — e o ponto colorido some da
+ * devolve uma referência de módulo, não o objeto, e o ponto colorido some da
  * tela sem que nada quebre nem apareça no `tsc`.
  */
 
@@ -14,6 +14,7 @@ export const TINTA_GRUPO: Record<string, string> = {
   licenca: 'bg-licenca-fundo text-licenca',
   reserva_esperando: 'bg-info-fundo text-info',
   cadastro_incompleto: 'bg-neutro-fundo text-tinta-media',
+  horario_sem_contrato: 'bg-alerta-fundo text-alerta',
 }
 
 /*
@@ -30,4 +31,5 @@ export const ACAO_GRUPO: Record<string, string> = {
   licenca: 'Voltou',
   reserva_esperando: 'Encaixar',
   cadastro_incompleto: 'Completar',
+  horario_sem_contrato: 'Criar contrato',
 }

@@ -521,6 +521,7 @@ export default async function Pessoa({
                     profissional: v.profissional,
                   }))}
                   series={opcoesSerie}
+                  modalidadesContratadas={operacional ? modalidades : undefined}
                   rotuloVaga={rotulos.vaga.singular}
                   rotuloSerie={rotulos.serie.singular}
                   podeEditar={operacional}

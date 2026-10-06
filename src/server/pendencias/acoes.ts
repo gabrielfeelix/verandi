@@ -8,7 +8,7 @@ import type { TipoPendencia } from './consultas'
  * Dispensar é um fato, não um estado.
  *
  * A lista precisa ser esvaziável: pendência que nunca zera vira ruído e a
- * pessoa para de abrir a tela. Por isso dispensar existe — e por isso pede
+ * pessoa para de abrir a tela. Por isso dispensar existe, e por isso pede
  * motivo, que é o que separa "resolvi por fora" de "isso nunca foi problema".
  */
 export async function dispensarPendencia(entrada: {
@@ -19,6 +19,11 @@ export async function dispensarPendencia(entrada: {
   const conta = await exigirConta()
   if (conta.papel === 'profissional') {
     throw new Error('pendências são da operação')
+  }
+
+  // aula dada sem cobrança se resolve com contrato ou encerrando o horário
+  if (entrada.tipo === 'horario_sem_contrato') {
+    throw new Error('horário sem contrato se resolve criando o contrato ou encerrando o horário')
   }
 
   const motivo = entrada.motivo.trim()

@@ -8,7 +8,7 @@ import { licencasAbertas } from '../licencas/licencas'
 /**
  * O inbox de quem opera: o que exige ação humana hoje.
  *
- * Nenhum grupo é coluna. Cada um é uma consulta sobre o dado que já existe —
+ * Nenhum grupo é coluna. Cada um é uma consulta sobre o dado que já existe:
  * coluna de estado derivado é coluna que um dia mente. O que se grava é o ato
  * de dispensar.
  */
@@ -19,13 +19,14 @@ export type TipoPendencia =
   | 'licenca'
   | 'reserva_esperando'
   | 'cadastro_incompleto'
+  | 'horario_sem_contrato'
 
 export type Pendencia = {
   tipo: TipoPendencia
   referenciaId: string
   titulo: string
   detalhe: string
-  /** há quantos dias isto está em aberto — crédito velho lê diferente */
+  /** há quantos dias isto está em aberto: crédito velho lê diferente */
   diasEmAberto: number | null
   href: string
   /** a etiqueta da direita quando "há N dias" não é a informação certa */
@@ -46,7 +47,7 @@ const DIA = 864e5
 /**
  * Por que esta pessoa tem crédito, na linha da pendência.
  *
- * O nome do estado, igual ao da chamada e do resumo — e não o verbo do dia a
+ * O nome do estado, igual ao da chamada e do resumo, e não o verbo do dia a
  * dia ("faltou", "avisou que não vinha"), que muda a mesma informação de nome
  * de uma tela para outra. Sem vocabulário da conta de propósito: qualquer
  * artigo colado numa palavra do cliente vira "a atendimento".
@@ -86,12 +87,13 @@ export async function listarPendencias(
   const prazo = conta.data?.prazo_reposicao_dias ?? 60
   const creditoAvisada = conta.data?.credito_falta_avisada ?? true
 
-  const [chamadas, reposicoes, reservas, cadastros, licencas] = await Promise.all([
+  const [chamadas, reposicoes, reservas, cadastros, licencas, semContrato] = await Promise.all([
     chamadasNaoFeitas(db, contaId, fuso, agora),
     reposicoesAbertas(db, contaId, prazo, creditoAvisada),
     reservasEsperando(db, contaId, agora),
     cadastrosIncompletos(db, contaId, hoje),
     licencasEmAcompanhamento(db, contaId, hoje),
+    horariosSemContrato(db, contaId, hoje),
   ])
 
   const grupos: GrupoPendencia[] = [
@@ -120,6 +122,14 @@ export async function listarPendencias(
       itens: reservas.filter(vale),
     },
     {
+      // sem "Dispensar": aula dada sem cobrança não é ruído para esconder, e
+      // se resolve criando o contrato ou encerrando o horário
+      tipo: 'horario_sem_contrato',
+      titulo: 'Horário fixo sem contrato',
+      sub: 'vem toda semana numa modalidade que não contratou',
+      itens: semContrato,
+    },
+    {
       tipo: 'cadastro_incompleto',
       titulo: 'Cadastros incompletos',
       sub: 'sem telefone ou sem identificador',
@@ -132,7 +142,7 @@ export async function listarPendencias(
 /**
  * Sessão que já passou e ainda tem gente em `esperada` ou `confirmada`.
  *
- * A mesma definição derivada da tela de Hoje — se divergisse, a pendência
+ * A mesma definição derivada da tela de Hoje: se divergisse, a pendência
  * apontaria para uma sessão que a outra tela mostra como resolvida.
  */
 async function chamadasNaoFeitas(
@@ -175,7 +185,7 @@ async function chamadasNaoFeitas(
  * Falta com crédito não usado, dentro do prazo da conta.
  *
  * O prazo é o que faz esta lista esvaziar. Sem ele, crédito de dois anos atrás
- * continuaria pedindo ação para sempre — e lista que nunca zera vira ruído, que
+ * continuaria pedindo ação para sempre, e lista que nunca zera vira ruído, que
  * é quando a pessoa para de abrir a tela.
  *
  * `cancelada` entra **sempre**, e não depende do `credito_falta_avisada` da
@@ -281,13 +291,66 @@ async function cadastrosIncompletos(
 }
 
 /**
+ * Quem tem horário fixo numa modalidade sem contrato ativo dela.
+ *
+ * Não é proibido: aula experimental, troca de modalidade no meio do mês e
+ * cortesia são casos de verdade, e por isso a matrícula avisa e não bloqueia.
+ * Mas o que passa em silêncio é aula dada sem cobrança, e é aqui que aparece,
+ * inclusive o que veio de importação antes do aviso existir.
+ */
+async function horariosSemContrato(
+  db: Db, contaId: string, hoje: string,
+): Promise<Pendencia[]> {
+  const { data, error } = await db
+    .from('pessoa')
+    .select(`id, nome,
+             vaga(inicio, fim, serie(servico_id, servico(nome))),
+             contrato(status, plano(servico_id))`)
+    .eq('conta_id', contaId)
+    .eq('ativo', true)
+    .returns<Array<{
+      id: string; nome: string
+      vaga: Array<{
+        inicio: string; fim: string | null
+        serie: { servico_id: string; servico: { nome: string } | null } | null
+      }>
+      contrato: Array<{ status: string; plano: { servico_id: string } | null }>
+    }>>()
+  if (error) throw error
+
+  const itens: Pendencia[] = []
+  for (const p of data ?? []) {
+    const cobertas = new Set(p.contrato
+      .filter((c) => c.status === 'ativo' && c.plano)
+      .map((c) => c.plano!.servico_id))
+    const faltam: string[] = []
+    for (const v of p.vaga) {
+      const vale = v.inicio <= hoje && (v.fim === null || v.fim >= hoje)
+      if (!vale || !v.serie || cobertas.has(v.serie.servico_id)) continue
+      const nome = v.serie.servico?.nome ?? 'modalidade sem nome'
+      if (!faltam.includes(nome)) faltam.push(nome)
+    }
+    if (!faltam.length) continue
+    itens.push({
+      tipo: 'horario_sem_contrato',
+      referenciaId: p.id,
+      titulo: p.nome,
+      detalhe: `horário fixo em ${faltam.join(' e ')}, sem contrato`,
+      diasEmAberto: null,
+      href: `/pessoas/${p.id}?aba=contratos`,
+    })
+  }
+  return itens.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
+}
+
+/**
  * Quantas pendências saíram da lista hoje.
  *
  * Uma tela cujo objetivo é zerar precisa mostrar o progresso, senão ela só
  * mostra dívida: dezesseis itens ontem e dezesseis hoje parecem a mesma coisa
  * mesmo quando quatro foram resolvidos e quatro novos nasceram.
  *
- * Conta o que foi **dispensado** hoje — é o único ato que fica gravado. A
+ * Conta o que foi **dispensado** hoje: é o único ato que fica gravado. A
  * chamada feita hoje sai da lista sozinha, e contá-la exigiria um log de
  * resolução que ainda não existe.
  */

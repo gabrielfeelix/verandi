@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  createContext, useContext, useState, useTransition, type ReactNode,
+  createContext, useContext, useEffect, useState, useTransition, type ReactNode,
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
@@ -27,6 +27,13 @@ type Props = {
   rotuloSerie: string
   /** quem dá aula consulta os horários da pessoa, mas não cria nem encerra */
   podeEditar?: boolean
+  /**
+   * As modalidades com contrato ativo. Escolher horário de outra mostra o
+   * aviso, sem bloquear: aula experimental e troca de modalidade existem, mas
+   * horário fixo sem contrato é aula dada sem cobrança. Ausente, não avisa
+   * (quem não vê dinheiro não decide contrato).
+   */
+  modalidadesContratadas?: string[]
 }
 
 /*
@@ -66,7 +73,15 @@ export function BotaoAgendar({ children }: { children: ReactNode }) {
 
 export function Vagas({
   pessoaId, vagas, series, rotuloVaga, rotuloSerie, podeEditar = true,
+  modalidadesContratadas,
 }: Props) {
+  const [escolhidasAgora, setEscolhidasAgora] = useState<string[]>([])
+  const semContrato = modalidadesContratadas
+    ? [...new Set(series
+        .filter((s) => escolhidasAgora.includes(s.id) && s.servico
+          && !modalidadesContratadas.includes(s.servico))
+        .map((s) => s.servico!))]
+    : []
   const [pendente, iniciar] = useTransition()
   const [criando, setCriando] = useState(false)
   const [encerrando, setEncerrando] =
@@ -218,7 +233,17 @@ export function Vagas({
               <EscolhaDeHorario
                 series={series}
                 aoTrocar={() => setErro(null)}
+                aoEscolher={setEscolhidasAgora}
               />
+              {semContrato.length ? (
+                <Nota tom="atencao">
+                  Sem contrato de {semContrato.join(' e ')}. O horário pode ser
+                  criado, mas a cobrança só existe com contrato.{' '}
+                  <a href={`/pessoas/${pessoaId}?aba=contratos`} className="font-medium underline">
+                    Criar contrato
+                  </a>
+                </Nota>
+              ) : null}
               <Campo
                 rotulo="A partir de quando?" htmlFor="vg-desde"
                 dica="Vale desta data em diante. O que já passou não muda"
@@ -274,14 +299,16 @@ const ORDEM_DOS_DIAS = [1, 2, 3, 4, 5, 6, 0]
  * abria parava no primeiro dia que aparecia.
  */
 function EscolhaDeHorario({
-  series, aoTrocar,
+  series, aoTrocar, aoEscolher,
 }: {
   series: Props['series']
   aoTrocar: () => void
+  aoEscolher?: (ids: string[]) => void
 }) {
   const dias = ORDEM_DOS_DIAS.filter((d) => series.some((s) => s.dia === d))
   const [dia, setDia] = useState(dias[0])
   const [escolhidas, setEscolhidas] = useState<string[]>([])
+  useEffect(() => { aoEscolher?.(escolhidas) }, [escolhidas, aoEscolher])
   const doDia = series.filter((s) => s.dia === dia)
   const variasModalidades = new Set(series.map((s) => s.servico)).size > 1
   const marcadas = series
