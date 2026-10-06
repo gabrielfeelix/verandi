@@ -4,7 +4,7 @@ import { useFiltroLocal } from './busca'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Menu } from '@/components/ui/menu'
+import { Menu, type ItemMenu } from '@/components/ui/menu'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Avatar, Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
 import { Icone, type NomeIcone } from '@/components/ui/icones'
@@ -121,211 +121,156 @@ export function ListaDeCobrancas({
 
   return (
     <div className="flex flex-col gap-2.5">
-      {linhas.map((c) => {
-        const falta = Math.max(0, c.valorCent - c.valorPagoCent)
-        const recebivel = c.situacao !== 'paga' && c.situacao !== 'cancelada'
-        const s = SITUACAO[c.situacao] ?? SITUACAO.aberta
-        return (
-          <article
-            key={c.id}
-            className={`rounded-grande border border-l-4 bg-superficie py-3.5 pr-4 pl-4 shadow-[0_1px_2px_rgba(20,26,24,.04)] transition-shadow hover:shadow-elevado ${s.borda} ${s.faixa}`}
-          >
-            {/*
-              * A borda da esquerda é a situação, lida de relance: numa lista de
-              * quarenta cobranças o olho procura o vermelho antes de ler nome.
-              * Ela nunca anda sozinha, a etiqueta à direita diz o mesmo em texto.
-              * É borda, e não faixa por cima com `overflow-hidden`: o recorte
-              * engolia o menu dos três pontos, que abre para fora do cartão.
-              */}
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-              <span className="flex min-w-[220px] flex-1 items-center gap-3">
-                {naFicha ? null : <Avatar nome={c.pessoaNome} tamanho={40} decorativo />}
-                <span className="flex min-w-0 flex-col gap-1">
-                  {naFicha ? (
-                    <span className="truncate text-[14.5px] font-semibold text-tinta">
-                      {c.planoNome || 'Sem plano'}
-                    </span>
-                  ) : (
-                    <Link
-                      href={`/pessoas/${c.pessoaId}?aba=contratos`}
-                      className="truncate text-[14.5px] font-semibold text-tinta hover:underline"
-                    >
-                      {c.pessoaNome}
-                    </Link>
-                  )}
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-tinta-media">
-                    {naFicha ? null : (
-                      <span className="rounded-minima bg-superficie-mais-suave px-1.5 py-0.5 font-medium text-tinta-media">
-                        {c.planoNome || 'Sem plano'}
-                      </span>
-                    )}
-                    <span>ref. {competenciaCurta(c.competencia)}</span>
-                    <span aria-hidden className="text-linha-tracejada">•</span>
-                    <span className="inline-flex items-center gap-1">
-                      <Icone nome="relogio" tamanho={13} />
-                      vence {dataCurta(c.vencimento)}
-                    </span>
-                  </span>
-                </span>
-              </span>
-
-              <span className="flex items-center gap-3">
-                <span className="flex flex-col items-end">
-                  <span className="font-titulo text-[18px] leading-none font-semibold tracking-[-.01em] text-tinta tabular-nums">
-                    {emReais(c.valorCent)}
-                  </span>
-                  {c.valorPagoCent > 0 && falta > 0 ? (
-                    <span className="mt-1 text-[12px] text-tinta-media">
-                      faltam {emReais(falta)}
-                    </span>
-                  ) : null}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium ${s.etiqueta}`}
-                >
-                  <Icone nome={s.icone} tamanho={13} />
-                  {ROTULO_SITUACAO[c.situacao]}
-                  {c.situacao === 'atrasada' ? ` · ${c.diasDeAtraso}d` : ''}
-                </span>
-              </span>
-
-              {recebivel || c.situacao === 'cancelada' ? (
-                <span className="flex flex-wrap items-center gap-2 sm:min-w-[196px] sm:justify-end">
-                  {recebivel ? (
-                    <Miudo primario onClick={() => setModo({ tipo: 'receber', c })}>
-                      Receber
-                    </Miudo>
-                  ) : null}
-                  {/* o telefone à mão: a lista de atraso existe para alguém ligar */}
-                  {c.situacao === 'atrasada' && c.telefone ? (
-                    <a
-                      href={`tel:${c.telefone.replace(/\D/g, '')}`}
-                      className="inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
-                    >
-                      Ligar
-                    </a>
-                  ) : null}
-                  {c.situacao === 'cancelada' ? (
-                    <Miudo onClick={() => agir(() => reabrirCobranca(c.id), 'Cobrança reaberta')}>
-                      Reabrir
-                    </Miudo>
-                  ) : null}
-                  {/*
-                    * Receber e ligar ficam à vista porque são o que se faz o tempo
-                    * todo; corrigir e cancelar moram no menu, senão cada linha da
-                    * lista vira uma barra de ferramentas de quatro botões, e o
-                    * vermelho do cancelar disputa atenção com a ação principal.
-                    */}
-                  {recebivel && c.valorPagoCent === 0 ? (
-                    <Menu
-                      titulo={`Mais sobre a cobrança de ${c.pessoaNome}`}
-                      itens={[
-                        {
-                          rotulo: 'Corrigir o valor',
-                          icone: 'lapis',
-                          aoEscolher: () => setModo({ tipo: 'corrigir', c }),
-                        },
-                        {
-                          rotulo: 'Cancelar a cobrança',
-                          icone: 'proibido',
-                          perigo: true,
-                          aoEscolher: () => setModo({ tipo: 'cancelar', c }),
-                        },
-                      ]}
-                    />
-                  ) : null}
-                </span>
-              ) : null}
-            </div>
-
-            {c.motivoCancelamento ? (
-              <p className="mt-3 rounded-padrao bg-superficie-suave px-3 py-2 text-[12px] text-tinta-media">
-                Cancelada: {c.motivoCancelamento}
-              </p>
-            ) : null}
-
-            {c.pagamentos.length > 0 ? (
-              <ul className="mt-3 flex flex-col gap-1.5">
-                {c.pagamentos.map((p) => (
-                  <li
-                    key={p.id}
-                    className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-padrao px-3 py-2 text-[13.5px] ${
-                      p.estornado ? 'bg-superficie-suave' : 'bg-positivo-superficie'
-                    }`}
-                  >
-                    <span
-                      aria-hidden
-                      className={`flex size-6 shrink-0 items-center justify-center rounded-full ${
-                        p.estornado ? 'bg-neutro-fundo text-tinta-fraca' : 'bg-positivo-fundo text-positivo'
-                      }`}
-                    >
-                      <Icone nome={p.estornado ? 'x' : 'check'} tamanho={13} />
-                    </span>
-                    <span className={`flex flex-1 flex-wrap items-center gap-x-2 ${p.estornado ? 'text-tinta-fraca' : 'text-tinta'}`}>
-                      <span className={`font-medium tabular-nums ${p.estornado ? 'line-through' : ''}`}>
-                        {p.estornado ? 'Estornado' : 'Recebido'} {emReais(p.valorCent)}
-                      </span>
-                      <span className="text-tinta-media">
-                        {ROTULO_FORMA[p.forma]} · {dataCurta(p.recebidoEm)}
-                      </span>
-                      {p.estornado ? (
-                        <span className="text-[12px] text-tinta-media">
-                          motivo: {p.motivoEstorno}
-                        </span>
-                      ) : null}
-                    </span>
-                    {p.estornado ? null : (
-                      <span className="flex items-center gap-1.5">
-                        {/*
-                          * O recibo nasce daqui, da linha do pagamento, que é
-                          * onde a pessoa pede o papel. Emitir não é automático:
-                          * a maior parte dos pagamentos de um estúdio pequeno
-                          * não vira recibo, e gastar número de sequência com o
-                          * que ninguém pediu é o mesmo buraco do cancelamento,
-                          * sem nem a desculpa de ter havido um erro.
-                          */}
-                        {p.recibo ? (
-                          <Link
-                            href={`/recibos/${p.recibo.id}`}
-                            className="inline-flex min-h-8 items-center gap-1.5 rounded-peca px-2 text-[12px] font-medium text-marca hover:bg-superficie"
-                          >
-                            <Icone nome="recibo" tamanho={14} />
-                            {p.recibo.descricao}
-                            {p.recibo.cancelado ? ' (cancelado)' : ''}
-                          </Link>
+      {/*
+        * Tabela, não pilha de cartões: quarenta cobranças em cartões eram
+        * quatro telas de rolagem, e o que se compara aqui (quem, quanto,
+        * desde quando) se lê melhor em coluna. Receber fica à vista; o resto
+        * mora no "⋮" da linha. A primeira coluna fica presa ao rolar de lado.
+        */}
+      <div className="overflow-x-auto rounded-grande border border-linha bg-superficie">
+        <table className="w-full min-w-[880px] border-collapse text-left">
+          <thead>
+            <tr className="border-b border-linha bg-superficie-tenue">
+              <Th fixa>{naFicha ? 'Plano' : 'Aluno'}</Th>
+              <Th>Referência</Th>
+              <Th>Vencimento</Th>
+              <Th className="text-right">Valor</Th>
+              <Th>Situação</Th>
+              <Th>Recebimento</Th>
+              <Th className="text-right"><span className="sr-only">Ações</span></Th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map((c) => {
+              const falta = Math.max(0, c.valorCent - c.valorPagoCent)
+              const recebivel = c.situacao !== 'paga' && c.situacao !== 'cancelada'
+              const s = SITUACAO[c.situacao] ?? SITUACAO.aberta
+              const validos = c.pagamentos.filter((p) => !p.estornado)
+              const ultimo = validos[validos.length - 1]
+              const itens: ItemMenu[] = [
+                ...(c.telefone ? [{
+                  rotulo: 'Ligar',
+                  aoEscolher: () => { window.location.href = `tel:${c.telefone!.replace(/\D/g, '')}` },
+                }] : []),
+                ...validos.map((p) => p.recibo
+                  ? {
+                      rotulo: `Ver ${p.recibo.descricao}${p.recibo.cancelado ? ' (cancelado)' : ''}`,
+                      icone: 'recibo' as const,
+                      aoEscolher: () => router.push(`/recibos/${p.recibo!.id}`),
+                    }
+                  : {
+                      rotulo: `Emitir recibo de ${emReais(p.valorCent)}`,
+                      icone: 'recibo' as const,
+                      aoEscolher: () => setModo({ tipo: 'emitir', c, pagamentoId: p.id, valorCent: p.valorCent }),
+                    }),
+                ...(recebivel && c.valorPagoCent === 0 ? [{
+                  rotulo: 'Corrigir o valor', icone: 'lapis' as const,
+                  aoEscolher: () => setModo({ tipo: 'corrigir', c }),
+                }] : []),
+                ...validos.map((p) => ({
+                  rotulo: `Estornar ${emReais(p.valorCent)} de ${dataCurta(p.recebidoEm)}`,
+                  perigo: true,
+                  aoEscolher: () => setModo({
+                    tipo: 'estornar', c, pagamentoId: p.id,
+                    recibo: p.recibo && !p.recibo.cancelado ? p.recibo.descricao : null,
+                  }),
+                })),
+                ...(recebivel && c.valorPagoCent === 0 ? [{
+                  rotulo: 'Cancelar a cobrança', icone: 'proibido' as const, perigo: true,
+                  aoEscolher: () => setModo({ tipo: 'cancelar', c }),
+                }] : []),
+              ]
+              return (
+                <tr key={c.id} className="group border-b border-linha-suave last:border-b-0 hover:bg-superficie-tenue">
+                  <td className="sticky left-0 z-[1] bg-superficie px-4 py-3 group-hover:bg-superficie-tenue">
+                    <span className="flex min-w-[200px] items-center gap-3">
+                      {naFicha ? null : <Avatar nome={c.pessoaNome} tamanho={32} decorativo />}
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        {naFicha ? (
+                          <span className="truncate text-[14.5px] font-medium">{c.planoNome || 'Sem plano'}</span>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => setModo({
-                              tipo: 'emitir', c, pagamentoId: p.id, valorCent: p.valorCent,
-                            })}
-                            disabled={pendente}
-                            className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-peca border border-positivo-linha bg-superficie px-2.5 text-[12px] font-medium text-marca hover:border-marca disabled:opacity-50"
-                          >
-                            <Icone nome="recibo" tamanho={14} />
-                            Emitir recibo
-                          </button>
+                          <>
+                            <Link
+                              href={`/pessoas/${c.pessoaId}?aba=contratos`}
+                              className="truncate text-[14.5px] font-medium text-tinta hover:underline"
+                            >
+                              {c.pessoaNome}
+                            </Link>
+                            <span className="truncate text-[12px] text-tinta-media">{c.planoNome || 'Sem plano'}</span>
+                          </>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => setModo({
-                            tipo: 'estornar', c, pagamentoId: p.id,
-                            recibo: p.recibo && !p.recibo.cancelado ? p.recibo.descricao : null,
-                          })}
-                          className="inline-flex min-h-8 cursor-pointer items-center rounded-peca px-2 text-[12px] text-tinta-media hover:bg-superficie hover:text-alerta"
-                        >
-                          Estornar
-                        </button>
                       </span>
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap text-tinta-media capitalize">
+                    {competenciaCurta(c.competencia)}
+                  </td>
+                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap tabular-nums">
+                    {dataCurta(c.vencimento)}
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <span className="block text-[14.5px] font-semibold tabular-nums">{emReais(c.valorCent)}</span>
+                    {c.valorPagoCent > 0 && falta > 0 ? (
+                      <span className="block text-[12px] text-tinta-media tabular-nums">falta {emReais(falta)}</span>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium whitespace-nowrap ${s.etiqueta}`}>
+                      <Icone nome={s.icone} tamanho={13} />
+                      {ROTULO_SITUACAO[c.situacao]}
+                      {c.situacao === 'atrasada'
+                        ? ` há ${c.diasDeAtraso} ${c.diasDeAtraso === 1 ? 'dia' : 'dias'}`
+                        : ''}
+                    </span>
+                    {c.motivoCancelamento ? (
+                      <span className="mt-1 block max-w-[220px] truncate text-[12px] text-tinta-media" title={c.motivoCancelamento}>
+                        {c.motivoCancelamento}
+                      </span>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap">
+                    {ultimo ? (
+                      <span className="flex flex-col">
+                        <span className="tabular-nums">{emReais(c.valorPagoCent)}</span>
+                        <span className="text-[12px] text-tinta-media">
+                          {ROTULO_FORMA[ultimo.forma]} · {dataCurta(ultimo.recebidoEm)}
+                          {validos.length > 1 ? ` (+${validos.length - 1})` : ''}
+                        </span>
+                      </span>
+                    ) : c.pagamentos.some((p) => p.estornado) ? (
+                      <span className="flex flex-col">
+                        <span className="text-tinta-media">Estornado</span>
+                        <span className="max-w-[200px] truncate text-[12px] text-tinta-media">
+                          {c.pagamentos.find((p) => p.estornado)?.motivoEstorno}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-tinta-fraca">Nenhum</span>
                     )}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </article>
-        )
-      })}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="flex items-center justify-end gap-1.5">
+                      {recebivel ? (
+                        <Miudo primario onClick={() => setModo({ tipo: 'receber', c })}>
+                          Receber
+                        </Miudo>
+                      ) : null}
+                      {c.situacao === 'cancelada' ? (
+                        <Miudo onClick={() => agir(() => reabrirCobranca(c.id), 'Cobrança reaberta')}>
+                          Reabrir
+                        </Miudo>
+                      ) : null}
+                      {itens.length ? (
+                        <Menu titulo={`Mais sobre a cobrança de ${c.pessoaNome}`} itens={itens} />
+                      ) : <span className="inline-block w-[34px]" />}
+                    </span>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
 
       {modo?.tipo === 'receber' ? (
         <ModalFormulario
@@ -544,5 +489,20 @@ function Miudo({
     >
       {children}
     </button>
+  )
+}
+
+function Th({ children, className = '', fixa = false }: {
+  children?: React.ReactNode; className?: string; fixa?: boolean
+}) {
+  return (
+    <th
+      scope="col"
+      className={`px-4 py-3 text-[12px] font-semibold whitespace-nowrap text-tinta-fraca ${
+        fixa ? 'sticky left-0 z-[2] bg-superficie-tenue' : ''
+      } ${className}`}
+    >
+      {children}
+    </th>
   )
 }

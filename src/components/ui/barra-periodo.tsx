@@ -29,7 +29,7 @@ import { ATALHOS, atalhoDe, periodoPorExtenso, type Periodo } from '@/core/finan
 const USADOS = ['mes', 'mes-passado', 'ano']
 
 export function BarraDePeriodo({
-  base, periodo, hoje, rotulo, escondidos = {}, abrirDatas = false,
+  base, periodo, hoje, rotulo, escondidos = {}, abrirDatas = false, menu = false,
 }: {
   /** o caminho da tela, sem busca: `/financeiro` */
   base: string
@@ -41,6 +41,12 @@ export function BarraDePeriodo({
   escondidos?: Record<string, string | undefined>
   /** `?datas=1`: quem tocou em "Escolher datas" e ainda não filtrou */
   abrirDatas?: boolean
+  /**
+   * Recolhida num botão "Vencimento: Este mês": numa barra de filtros, os
+   * chips de data competiam com os de situação. Sem JavaScript: é um
+   * `<details>`, e cada opção continua sendo um link.
+   */
+  menu?: boolean
 }) {
   const ligado = atalhoDe(periodo, hoje)
   const dito = periodoPorExtenso(periodo)
@@ -60,7 +66,7 @@ export function BarraDePeriodo({
     }`
   const personalizado = periodo !== null && !USADOS.includes(ligado ?? '')
 
-  return (
+  const conteudo = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <span className="text-[12px] font-semibold text-tinta-fraca">
         {rotulo}
@@ -117,5 +123,23 @@ export function BarraDePeriodo({
         </form>
       ) : null}
     </div>
+  )
+
+  if (!menu) return conteudo
+
+  const resumo = periodo === null
+    ? 'Todas as datas'
+    : ATALHOS.find((a) => a.id === ligado)?.rotulo ?? dito
+  return (
+    <details className="group relative" open={abrirDatas || undefined}>
+      <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-media border border-linha bg-superficie px-3.5 text-[13.5px] whitespace-nowrap hover:bg-superficie-mais-suave [&::-webkit-details-marker]:hidden">
+        <span className="text-tinta-media">{rotulo}:</span>
+        <span className="font-medium">{resumo}</span>
+        <span aria-hidden className="text-tinta-fraca transition-transform group-open:rotate-180">▾</span>
+      </summary>
+      <div className="absolute right-0 z-30 mt-1.5 w-[min(92vw,560px)] rounded-grande border border-linha-suave bg-superficie p-3 shadow-elevado">
+        {conteudo}
+      </div>
+    </details>
   )
 }

@@ -137,7 +137,7 @@ test('o pagamento pela metade fica parcial, e as duas datas ficam', async ({ pag
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await expect(page.getByText('Pago em parte')).toBeVisible()
-  await expect(page.getByText('faltam R$ 435,00')).toBeVisible()
+  await expect(page.getByText('falta R$ 435,00')).toBeVisible()
 
   // e o segundo recebimento já vem preenchido com o que falta
   await page.getByRole('button', { name: 'Receber' }).first().click()
@@ -157,8 +157,9 @@ test('a tela abre pelo que está em atraso, com os dias e o telefone', async ({ 
    * contrato e o mês que vem, e todos os vencidos entram aqui: é o
    * comportamento certo, e é por isso que o teste olha o primeiro.
    */
-  await expect(page.getByText(/Em atraso · 40d/)).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Ligar' }).first()).toBeVisible()
+  await expect(page.getByText(/Em atraso há 40 dias/)).toBeVisible()
+  await page.getByRole('button', { name: /Mais sobre a cobrança/ }).first().click()
+  await expect(page.getByRole('menuitem', { name: 'Ligar' })).toBeVisible()
   await expect(page.getByText(/cobranças? em atraso/)).toBeVisible()
 })
 
@@ -172,7 +173,8 @@ test('estornar risca o pagamento e devolve a cobrança para o aberto', async ({ 
 
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
-  await page.getByRole('button', { name: 'estornar' }).click()
+  await page.getByRole('button', { name: /Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Estornar/ }).click()
   await page.getByLabel('Motivo').fill('digitado em dobro')
   // com o modal aberto, o "Estornar" da linha também existe: escopo no dialog
   await page.locator('dialog[open]').getByRole('button', { name: 'Estornar', exact: true }).click()
@@ -204,7 +206,7 @@ test('cancelar pede motivo, e a cobrança continua listada com ele', async ({ pa
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await page.goto('/financeiro?aba=canceladas')
-  await expect(page.getByText('Cancelada: cortesia combinada com a dona')).toBeVisible()
+  await expect(page.getByText('cortesia combinada com a dona')).toBeVisible()
 })
 
 test('o fechamento soma o dia por forma de pagamento', async ({ page }) => {

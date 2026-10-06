@@ -29,12 +29,38 @@ const TINTA: Record<string, string> = {
  * perde a tarde procurando a diferença.
  */
 export function FaixaDeNumeros({
-  itens, aviso,
+  itens, aviso, compacta = false,
 }: {
   itens: NumeroDaFaixa[]
   /** dito quando a soma não cobriu tudo, em vez de sair parcial em silêncio */
   aviso?: string | null
+  /**
+   * Uma linha só, sem cartão por número: em cima de uma tabela, quatro
+   * cartões empurravam a lista para o meio da tela. A nota vira dica.
+   */
+  compacta?: boolean
 }) {
+  if (compacta) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <dl className="flex flex-wrap gap-y-3">
+          {itens.map((n) => (
+            <div
+              key={n.rotulo}
+              title={n.nota}
+              className="flex flex-col gap-1 border-linha-suave pr-6 not-first:border-l not-first:pl-6"
+            >
+              <dt className="text-[12px] font-medium text-tinta-media">{n.rotulo}</dt>
+              <dd className={`font-titulo text-[18px] leading-none font-semibold tabular-nums ${TINTA[n.tom ?? 'neutro']}`}>
+                {n.valor}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {aviso ? <p className="text-[12px] text-atencao">{aviso}</p> : null}
+      </div>
+    )
+  }
   return (
     <div className="flex flex-col gap-2">
       <div className="grid gap-2.5 grid-cols-2 lg:grid-cols-4">

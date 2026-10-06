@@ -113,25 +113,35 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
       <div className="flex flex-col gap-4">
         <Cabecalho atrasadas={atrasadas} hoje={hoje} />
         <SecoesDoFinanceiro ativa="cobrancas" />
-        <Trilha aba={aba} q={q} periodo={periodo} atrasadas={atrasadas} />
-
-        <FaixaDeNumeros
-          itens={numeros}
-          aviso={completo ? null
-            : `A soma cobre as primeiras ${TETO_DO_RESUMO.toLocaleString('pt-BR')} cobranças deste recorte. Filtre por data para fechar o número.`}
-        />
-
-        <div className={`${cartao} flex flex-col gap-3 p-4`}>
-          <BarraDePeriodo
-            base="/financeiro"
-            periodo={periodo}
-            hoje={hoje}
-            rotulo="Vencimento"
-            escondidos={{ aba, q }}
-            abrirDatas={datas === '1'}
-          />
+        <div className={`${cartao} flex flex-col gap-4 p-4`}>
+          {/* uma barra só: situação à esquerda, busca e período à direita.
+              Eram quatro faixas empilhadas (situação, números, período,
+              busca), e a lista começava no meio da tela */}
           <ProvedorDeBusca servidor={q?.trim() ?? ''}>
-            <BuscaDeCobranca valorInicial={q?.trim() ?? ''} aba={aba} />
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
+              <Trilha aba={aba} q={q} periodo={periodo} atrasadas={atrasadas} />
+              <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
+                <div className="w-full sm:w-64">
+                  <BuscaDeCobranca valorInicial={q?.trim() ?? ''} aba={aba} />
+                </div>
+                <BarraDePeriodo
+                  base="/financeiro"
+                  periodo={periodo}
+                  hoje={hoje}
+                  rotulo="Vencimento"
+                  escondidos={{ aba, q }}
+                  abrirDatas={datas === '1'}
+                  menu
+                />
+              </div>
+            </div>
+
+            <FaixaDeNumeros
+              compacta
+              itens={numeros}
+              aviso={completo ? null
+                : `A soma cobre as primeiras ${TETO_DO_RESUMO.toLocaleString('pt-BR')} cobranças deste recorte. Filtre por data para fechar o número.`}
+            />
 
             <ListaDeCobrancas
               linhas={linhas}
@@ -247,8 +257,6 @@ function faixaDaAba(aba: FiltroCobranca, r: ResumoDeCobrancas): NumeroDaFaixa[] 
       nota: 'destas mesmas cobranças' },
     { rotulo: 'Cobrado', valor: emReais(r.totalCent),
       nota: quantas(r.quantidade - r.quantidadeCancelada) },
-    { rotulo: 'Valor médio', valor: emReais(r.ticketCent),
-      nota: 'por cobrança' },
   ]
 }
 

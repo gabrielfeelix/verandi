@@ -29,7 +29,7 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
   - "Atenção na aula" está bom; tirar o selo "só quem atende".
   - Cortar dicas miúdas: "cada matrícula tem vigência, encerrar não apaga o
     passado", "Ocupa esse horário toda semana, por tempo indeterminado".
-- [ ] **Financeiro, Cobranças**: virar **tabela** (pessoa com avatar, contrato,
+- [x] **Financeiro, Cobranças**: virar **tabela** (pessoa com avatar, contrato,
   status, valor, crédito/recebido, ações à direita). Hoje a tabela só começa
   no meio da tela: filtro de vencimento + busca + cards + filtros + abas.
   Enxugar o topo; filtros secundários em "Mais filtros".
