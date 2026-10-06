@@ -17,7 +17,89 @@ import { digitosDaBusca, semAcento } from '@/core/pessoas/busca'
 
 export type FiltroPessoa =
   | 'sem_telefone' | 'sem_horario_fixo' | 'plano_vencendo' | 'plano_vencido'
-  | 'faltou_duas' | 'inativa'
+  | 'faltou_duas' | 'faltou_sem_avisar' | 'de_licenca' | 'inativa'
+
+/**
+ * Os filtros que a view não responde: saem da participação, como lista de ids.
+ *
+ * Uma coluna a mais na `pessoa_resumo` seria a sexta subconsulta correlacionada
+ * por linha (ver `enriquecer`), paga em toda listagem para servir dois chips.
+ */
+const POR_PARTICIPACAO = ['faltou_sem_avisar', 'de_licenca'] as const
+type FiltroPorParticipacao = (typeof POR_PARTICIPACAO)[number]
+
+const DIA = 86_400_000
+
+async function idsPorParticipacao(
+  db: Db, contaId: string, filtro: FiltroPorParticipacao,
+): Promise<string[]> {
+  const agora = new Date().toISOString()
+
+  /*
+   * Faltou sem avisar: `falta`, e não `falta_avisada`, nos mesmos trinta dias
+   * de `faltas_recentes`. É a lista de quem precisa de uma ligação, e não de
+   * uma reposição: quem avisou já conversou com alguém.
+   */
+  if (filtro === 'faltou_sem_avisar') {
+    const { data, error } = await db
+      .from('participacao')
+      .select('pessoa_id, sessao:sessao_id!inner(inicio)')
+      .eq('conta_id', contaId)
+      .eq('status', 'falta')
+      .gte('sessao.inicio', new Date(Date.now() - 30 * DIA).toISOString())
+    if (error) throw error
+    return [...new Set((data ?? []).map((p) => p.pessoa_id))]
+  }
+
+  /*
+   * De licença: a última aula registrada da pessoa está como licença.
+   *
+   * A licença se marca aula a aula, na chamada, e não existe período gravado.
+   * Quem está afastada recebe licença em cada horário até voltar; a primeira
+   * presença ou falta depois disso é a volta, e ela sai da lista sozinha.
+   * Primeiro os candidatos (só licenças, poucas linhas), depois o último
+   * registro só deles: a consulta larga bateria no teto de mil linhas.
+   */
+  const { data: licencas, error } = await db
+    .from('participacao')
+    .select('pessoa_id, sessao:sessao_id!inner(inicio)')
+    .eq('conta_id', contaId)
+    .eq('status', 'licenca')
+    .gte('sessao.inicio', new Date(Date.now() - 60 * DIA).toISOString())
+    .lte('sessao.inicio', agora)
+  if (error) throw error
+  const candidatos = [...new Set((licencas ?? []).map((p) => p.pessoa_id))]
+  if (candidatos.length === 0) return []
+
+  const { data: registros, error: e2 } = await db
+    .from('participacao')
+    .select('pessoa_id, status, sessao:sessao_id!inner(inicio)')
+    .eq('conta_id', contaId)
+    .in('pessoa_id', candidatos)
+    .in('status', ['presente', 'falta', 'falta_avisada', 'licenca'])
+    .gte('sessao.inicio', new Date(Date.now() - 60 * DIA).toISOString())
+    .lte('sessao.inicio', agora)
+  if (e2) throw e2
+
+  const ultima = new Map<string, { inicio: string; status: string }>()
+  for (const r of registros ?? []) {
+    const atual = ultima.get(r.pessoa_id)
+    if (!atual || r.sessao.inicio > atual.inicio) {
+      ultima.set(r.pessoa_id, { inicio: r.sessao.inicio, status: r.status })
+    }
+  }
+  return [...ultima.entries()].filter(([, u]) => u.status === 'licenca').map(([id]) => id)
+}
+
+/** A interseção dos filtros por participação pedidos; `null` quando não há nenhum. */
+async function idsDosFiltros(
+  db: Db, contaId: string, filtros: FiltroPessoa[],
+): Promise<string[] | null> {
+  const pedidos = POR_PARTICIPACAO.filter((f) => filtros.includes(f))
+  if (pedidos.length === 0) return null
+  const listas = await Promise.all(pedidos.map((f) => idsPorParticipacao(db, contaId, f)))
+  return listas.reduce((a, b) => a.filter((id) => b.includes(id)))
+}
 
 export type PessoaLinha = {
   id: string
@@ -208,6 +290,12 @@ export async function listarPessoas(
     q = q.in('id', ids)
   }
 
+  const porParticipacao = await idsDosFiltros(db, contaId, opts.filtros ?? [])
+  if (porParticipacao) {
+    if (porParticipacao.length === 0) return { linhas: [], total: 0 }
+    q = q.in('id', porParticipacao)
+  }
+
   q = q.order('nome')
   if (!opts.tudo) {
     const pagina = Math.max(1, opts.pagina ?? 1)
@@ -299,17 +387,25 @@ export async function contarPessoas(
   etiquetas: EtiquetaContada[]
 }> {
   const conta = async (filtros: FiltroPessoa[]) => {
-    const { count } = await aplicarFiltros(
+    let q = aplicarFiltros(
       db.from('pessoa_resumo')
         .select('id', { count: 'exact', head: true })
         .eq('conta_id', contaId),
       { ...opts, filtros },
     )
+    // a mesma regra da lista, e não uma contagem à parte que discordaria dela
+    const ids = await idsDosFiltros(db, contaId, filtros)
+    if (ids) {
+      if (ids.length === 0) return 0
+      q = q.in('id', ids)
+    }
+    const { count } = await q
     return count ?? 0
   }
 
   const [
-    ativos, semTelefone, semHorario, planoVencendo, planoVencido, faltouDuas, inativos,
+    ativos, semTelefone, semHorario, planoVencendo, planoVencido, faltouDuas,
+    faltouSemAvisar, deLicenca, inativos,
   ] = await Promise.all([
     conta([]),
     conta(['sem_telefone']),
@@ -317,6 +413,8 @@ export async function contarPessoas(
     conta(['plano_vencendo']),
     conta(['plano_vencido']),
     conta(['faltou_duas']),
+    conta(['faltou_sem_avisar']),
+    conta(['de_licenca']),
     conta(['inativa']),
   ])
 
@@ -343,6 +441,8 @@ export async function contarPessoas(
       plano_vencendo: planoVencendo,
       plano_vencido: planoVencido,
       faltou_duas: faltouDuas,
+      faltou_sem_avisar: faltouSemAvisar,
+      de_licenca: deLicenca,
       inativa: inativos,
     },
     etiquetas: [...contagem.entries()]

@@ -8,6 +8,8 @@ import { AvatarProf } from '@/components/hoje/pecas'
 import { cartao, Chip, Rotulo, Vazio } from '@/components/ui/pecas'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 import { AreaQueTroca } from '@/components/ui/troca'
+import { BuscaDeVaga } from '@/components/vaga/busca'
+import { semAcento } from '@/core/pessoas/busca'
 import Carregando from './loading'
 
 type Busca = Promise<{
@@ -17,6 +19,7 @@ type Busca = Promise<{
   profissional?: string
   local?: string
   lotados?: string
+  q?: string
 }>
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
@@ -34,6 +37,22 @@ function porDia(linhas: Linha[]) {
   return [...mapa.entries()]
     .sort(([a], [b]) => (a < b ? -1 : 1))
     .map(([data, itens]) => [data, itens.sort((a, b) => a.hora.localeCompare(b.hora))] as const)
+}
+
+/*
+ * O que a busca enxerga de um horário: dia da semana, data, hora em dois
+ * formatos ("08:00" e "8h"), aula, professor e local. Cada palavra digitada
+ * precisa aparecer em algum deles, então "terça 18h aparelho" estreita em vez
+ * de somar.
+ */
+function textoDaBusca(s: SessaoResumo) {
+  const h = Number(s.hora.slice(0, 2))
+  return semAcento([
+    DIAS[diaDaSemanaDe(s.data)],
+    `${Number(s.data.slice(8))}/${Number(s.data.slice(5, 7))}`,
+    s.hora, `${h}h`, `${String(h).padStart(2, '0')}h`,
+    s.servico, s.profissional, s.local,
+  ].filter(Boolean).join(' '))
 }
 
 function porExtenso(data: string) {
@@ -56,6 +75,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
   const janela = p.dias === '15' ? 15 : 7
   const turno = p.turno === 'manha' || p.turno === 'tarde' || p.turno === 'noite' ? p.turno : null
   const comLotados = p.lotados === 'sim'
+  const termos = semAcento(p.q?.trim() ?? '').split(/\s+/).filter(Boolean)
 
   const hoje = hojeEm(conta.fuso)
   const ate = somarDias(hoje, janela - 1)
@@ -80,6 +100,10 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
     if (turno === 'manha' && s.hora >= '12:00') return false
     if (turno === 'tarde' && (s.hora < '12:00' || s.hora >= '18:00')) return false
     if (turno === 'noite' && s.hora < '18:00') return false
+    if (termos.length) {
+      const texto = textoDaBusca(s)
+      if (!termos.every((t) => texto.includes(t))) return false
+    }
     return true
   }
 
@@ -102,6 +126,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
     if (p.profissional) base.profissional = p.profissional
     if (p.local) base.local = p.local
     if (comLotados) base.lotados = 'sim'
+    if (p.q) base.q = p.q
     for (const [k, v] of Object.entries(extra)) {
       if (v === undefined) delete base[k]
       else base[k] = v
@@ -130,6 +155,8 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
 
       <div className="grid items-start gap-4 lg:grid-cols-[288px_minmax(0,1fr)]">
         <section data-guia="vaga-busca" className={`flex flex-col gap-4 ${cartao} p-4`}>
+          <BuscaDeVaga valorInicial={p.q ?? ''} />
+
           <Grupo rotulo={rotulos.servico.singular}>
             <Chip href={q({ servico: undefined })} ativo={!p.servico}>Todos</Chip>
             {(servicos ?? []).map((s) => (
@@ -231,7 +258,7 @@ export default async function BuscarVaga({ searchParams }: { searchParams: Busca
             <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie">
               <Vazio
                 icone="vaga"
-                titulo="Nenhum horário livre neste período"
+                titulo={termos.length ? `Nada encontrado para "${p.q?.trim()}"` : 'Nenhum horário livre neste período'}
                 texto={
                   comLotados
                     ? 'Com esses filtros não sobra nada, nem lotado. Amplie o período ou tire um filtro.'

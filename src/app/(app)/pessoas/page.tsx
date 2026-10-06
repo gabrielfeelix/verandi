@@ -22,6 +22,10 @@ const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   // dois tempos: quem renova esta semana, e quem já deixou passar.
   { valor: 'plano_vencido',    rotulo: 'Plano vencido' },
   { valor: 'faltou_duas',      rotulo: 'Duas faltas seguidas' },
+  // quem precisa de uma ligação: faltou sem avisar nos últimos 30 dias
+  { valor: 'faltou_sem_avisar', rotulo: 'Faltou sem avisar' },
+  // a última aula registrada está como licença: afastado, mantém o horário
+  { valor: 'de_licenca',       rotulo: 'De licença' },
   { valor: 'inativa',          rotulo: 'Cadastro inativo' },
 ]
 
