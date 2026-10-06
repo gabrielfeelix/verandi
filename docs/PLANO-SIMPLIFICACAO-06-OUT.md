@@ -35,17 +35,19 @@ Financeiro, Recibos, Aulas, Configuração (`src/app/(app)/layout.tsx:113`).
 Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 (`src/components/sessao/lista-participacao.tsx:21`).
 
-- [ ] Todo aluno começa como **Veio** (o sistema já grava assim ao concluir,
+- [x] Todo aluno começa como **Veio** (o sistema já grava assim ao concluir,
       `chamada.tsx:111`; passa a mostrar isso).
-- [ ] Um botão por aluno: **Não veio**. Tocar abre os motivos: *Sem avisar*
-      (pré-selecionado), *Avisou*, *Licença*.
-- [ ] Quem já avisou ou está de licença antes da aula chega marcado, e a
+- [x] Um botão por aluno, com o estado como rótulo. Antes da aula: **Agendado**,
+      com *Avisou que não vem* e *Licença* (ninguém "falta" numa aula de daqui
+      duas semanas). Depois que começa: **Veio** tracejado (provisório), com
+      *Faltou sem avisar*, *Avisou*, *Licença*. Ajuste do Gabriel em 06/out.
+- [x] Quem já avisou ou está de licença antes da aula chega marcado, e a
       professora não toca.
-- [ ] "Marcar todos presentes" vira **Concluir chamada**, um só lugar por
+- [x] "Marcar todos presentes" vira **Concluir chamada**, um só lugar por
       tamanho de tela (hoje está no cabeçalho, na barra do celular e no card de
       Hoje).
-- [ ] "Encaixar" aparece uma vez por tamanho de tela (hoje: cabeçalho, rodapé
-      da lista e barra do celular).
+- [x] "Encaixar" fica só no rodapé da lista. Card de Hoje vira "Fazer chamada"
+      (link para a aula), sem concluir às cegas.
 - [ ] Encaixe: a origem é deduzida (tem falta em aberto: Reposição; aula lotada:
       Reserva; senão: Avulso). Os chips de origem ficam só para corrigir.
       Avaliar se "Encaixe" e "Avulso" precisam ser duas origens.

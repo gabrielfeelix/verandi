@@ -10,8 +10,8 @@ import { HistoricoDaTurma } from '@/components/sessao/historico-turma'
 import { ModalEncaixe } from '@/components/sessao/modal-encaixe'
 import { ModalCancelar } from '@/components/sessao/modal-cancelar'
 import {
-  ProvedorChamada, BarraChamada, BotaoCancelarTurma, BotaoEncaixar,
-  BotaoMarcarTodos, EtiquetaEstado, NotaDeRegistro, ResumoChamada,
+  ProvedorChamada, BarraChamada, BotaoCancelarTurma,
+  BotaoConcluir, EtiquetaEstado, NotaDeRegistro, ResumoChamada,
 } from '@/components/sessao/chamada'
 import { TrocarProfissional } from '@/components/sessao/trocar-profissional'
 import { AvatarProf } from '@/components/hoje/pecas'
@@ -185,16 +185,11 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                 inteira, e mexer em quem está nela. Dentro do cartão de conteúdo
                 elas competiam com a lista. */}
             <div className="flex min-w-[214px] flex-[1_1_214px] flex-col gap-2.5">
-              <BotaoMarcarTodos />
-              <div className="flex gap-2">
-                <BotaoEncaixar
-                  rotulo={`Encaixar ${rotulos.pessoa.singular.toLowerCase()}`}
-                  className="flex-1"
-                />
-                <BotaoCancelarTurma
-                  rotulo={`Cancelar ${rotulos.sessao.singular.toLowerCase()}`}
-                />
-              </div>
+              <BotaoConcluir className="hidden md:block" />
+              {/* encaixar mora no rodapé da lista, junto das vagas livres */}
+              <BotaoCancelarTurma
+                rotulo={`Cancelar ${rotulos.sessao.singular.toLowerCase()}`}
+              />
             </div>
           </article>
 

@@ -1,11 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useState } from 'react'
 import type { SessaoResumo } from '@/server/agenda/consultas'
-import { marcarTodosPresentes } from '@/server/agenda/acoes'
-import { useAviso } from '@/components/ui/desfazer'
 import { paresDe, primeiroNome, iniciaisDe } from './pecas'
 
 /**
@@ -26,9 +23,6 @@ export function ProximaTurma({
   faltam: string
   podeRegistrar: boolean
 }) {
-  const [pendente, iniciar] = useTransition()
-  const avisar = useAviso()
-  const router = useRouter()
 
   // marcar em bloco só depois do começo, como na tela da chamada; o botão
   // libera sozinho na hora, sem recarregar
@@ -135,32 +129,21 @@ export function ProximaTurma({
         </div>
 
         <div className="flex min-w-[206px] flex-[1_1_206px] flex-col gap-2.5">
-          {podeRegistrar ? (
-            <button
-              type="button"
-              disabled={pendente || aMarcar === 0 || !comecou}
-              onClick={() =>
-                iniciar(async () => {
-                  const { marcadas } = await marcarTodosPresentes(sessao.id)
-                  avisar({
-                    texto: `${marcadas} ${marcadas === 1 ? 'presença registrada' : 'presenças registradas'}.`,
-                  })
-                  router.refresh()
-                })
-              }
-              className="min-h-11 rounded-padrao bg-menta px-4 text-[15px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px disabled:opacity-60"
-            >
-              {aMarcar === 0
-                ? 'Chamada feita'
-                : comecou ? 'Marcar todos presentes' : `Chamada abre às ${sessao.hora}`}
-            </button>
-          ) : null}
-
+          {/* a chamada se faz na tela da aula, onde dá para marcar quem não
+              veio: concluir daqui dava presença a todos sem olhar a lista */}
           <Link
             href={`/sessao/${sessao.id}`}
-            className="flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[14px] hover:bg-tinta-clara/10"
+            className={
+              podeRegistrar && comecou && aMarcar > 0
+                ? 'flex min-h-11 items-center justify-center rounded-padrao bg-menta px-4 text-[15px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px'
+                : 'flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[14px] hover:bg-tinta-clara/10'
+            }
           >
-            Abrir {rotulo.toLowerCase()}
+            {!podeRegistrar
+              ? `Abrir ${rotulo.toLowerCase()}`
+              : aMarcar === 0
+                ? 'Ver chamada'
+                : comecou ? 'Fazer chamada' : `Chamada abre às ${sessao.hora}`}
           </Link>
 
           <Link

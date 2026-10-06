@@ -7,8 +7,6 @@ import {
 import type { ParticipacaoDetalhe } from '@/server/agenda/consultas'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { marcarTodosPresentes, mudarStatus } from '@/server/agenda/acoes'
-import { definirVolta } from '@/server/licencas/acoes'
-import { ModalVolta } from '@/components/licenca/modal-volta'
 import { useAviso } from '@/components/ui/desfazer'
 import { cartao } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
@@ -38,7 +36,7 @@ type Chamada = {
   registrar: (p: ParticipacaoDetalhe, status: StatusParticipacao) => void
   marcarTodos: () => void
   agir: (fn: () => Promise<void>, texto: string) => void
-  /** o modal de encaixe é aberto de três lugares; o estado dele mora aqui */
+  /** o modal de encaixe abre do rodapé da lista e do #encaixar; o estado mora aqui */
   encaixeAberto: boolean
   abrirEncaixe: () => void
   fecharEncaixe: () => void
@@ -100,8 +98,6 @@ export function ProvedorChamada({
     if (window.location.hash === '#encaixar') setEncaixe(true)
   }, [])
   const [cancelarAberto, setCancelar] = useState(false)
-  // quem acabou de entrar em licença: o modal pergunta a data de volta
-  const [voltaDe, setVoltaDe] = useState<{ pessoaId: string; nome: string } | null>(null)
 
   const [lista, aplicar] = useOptimistic(
     participacoes,
@@ -132,8 +128,9 @@ export function ProvedorChamada({
     registrar: (p, pedido) => iniciar(async () => {
       const status: StatusParticipacao = p.status === pedido ? 'esperada' : pedido
       aplicar({ id: p.id, status })
+      // a data de volta da licença se define em Pendências: quem faz a chamada
+      // quase nunca sabe, e um modal a cada licença era um toque a mais
       await mudarStatus(p.id, status)
-      if (status === 'licenca') setVoltaDe({ pessoaId: p.pessoaId, nome: p.nome })
       // desfazer, não confirmar: o registro acontece e volta atrás num toque
       avisar({
         texto: `${p.nome}: ${O_QUE_FICOU[status] ?? 'registro alterado'}.`,
@@ -146,7 +143,9 @@ export function ProvedorChamada({
     marcarTodos: () => iniciar(async () => {
       aplicar({ todos: true })
       const { marcadas } = await marcarTodosPresentes(sessaoId)
-      avisar({ texto: marcadas === 1 ? '1 presença registrada' : `${marcadas} presenças registradas` })
+      avisar({
+        texto: `Chamada concluída: ${marcadas === 1 ? '1 presença' : `${marcadas} presenças`}.`,
+      })
     }),
     agir: (fn, texto) => iniciar(async () => {
       await fn()
@@ -163,30 +162,16 @@ export function ProvedorChamada({
   return (
     <Contexto.Provider value={valor}>
       {children}
-      {voltaDe ? (
-        <ModalVolta
-          aberto
-          nome={voltaDe.nome}
-          aoFechar={() => setVoltaDe(null)}
-          pendente={pendente}
-          aoSalvar={(data) => {
-            const quem = voltaDe
-            setVoltaDe(null)
-            if (!data) return
-            iniciar(async () => {
-              await definirVolta(quem.pessoaId, data)
-              avisar({ texto: `${quem.nome}: volta prevista registrada.` })
-            })
-          }}
-        />
-      ) : null}
     </Contexto.Provider>
   )
 }
 
 /** O rótulo do estado, derivado da lista viva: nunca de coluna no banco. */
-function estadoDe(registrados: number, total: number) {
+function estadoDe(registrados: number, total: number, comecou: boolean) {
   if (total === 0) return { rotulo: 'Sem ninguém', cor: 'bg-neutro-fundo text-tinta-media' }
+  // aula que ainda não começou não tem chamada: quem avisou antes não é chamada
+  // "em andamento"
+  if (!comecou) return { rotulo: 'Agendada', cor: 'bg-neutro-fundo text-tinta-media' }
   if (registrados === total) {
     return { rotulo: 'Chamada feita', cor: 'bg-positivo-fundo text-positivo' }
   }
@@ -197,10 +182,10 @@ function estadoDe(registrados: number, total: number) {
 }
 
 export function EtiquetaEstado({ cancelada = false }: { cancelada?: boolean }) {
-  const { registrados, total } = useChamada()
+  const { registrados, total, comecou } = useChamada()
   const e = cancelada
     ? { rotulo: 'Cancelada', cor: 'bg-neutro-fundo text-tinta-media' }
-    : estadoDe(registrados, total)
+    : estadoDe(registrados, total, comecou)
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${e.cor}`}
@@ -218,16 +203,26 @@ export function EtiquetaEstado({ cancelada = false }: { cancelada?: boolean }) {
  * ninguém abriu a chamada, o segundo diria que a turma inteira faltou.
  */
 export function NotaDeRegistro({ comecaEm }: { comecaEm: string | null }) {
-  const { registrados, total } = useChamada()
-  const texto = registrados === 0
+  const { registrados, total, comecou } = useChamada()
+  const texto = !comecou
+    ? comecaEm ?? ''
+    : registrados === 0
     ? ['Nenhum registro ainda', comecaEm].filter(Boolean).join(' · ')
     : `${registrados} de ${total} registrados`
   return <p className="text-[13px] text-tinta-media">{texto}</p>
 }
 
-export function BotaoMarcarTodos({ miudo = false }: { miudo?: boolean }) {
-  const { podeRegistrar, comecou, pendentes, ocupado, marcarTodos } = useChamada()
+/**
+ * Concluir a chamada: quem ficou sem marca conta como presente.
+ *
+ * Um lugar por tamanho de tela: no cabeçalho a partir de `md`, na barra colada
+ * no rodapé abaixo disso.
+ */
+export function BotaoConcluir({ miudo = false, className = '' }: { miudo?: boolean; className?: string }) {
+  const { podeRegistrar, comecou, pendentes, ocupado, marcarTodos, lista } = useChamada()
   if (!podeRegistrar || !comecou || pendentes === 0) return null
+  // o número diz o que o toque vai gravar: quem está sem marca vira presença
+  const vieram = lista.filter((p) => p.status === 'presente' || ABERTOS.has(p.status)).length
   return (
     <button
       type="button"
@@ -235,28 +230,9 @@ export function BotaoMarcarTodos({ miudo = false }: { miudo?: boolean }) {
       onClick={marcarTodos}
       className={`cursor-pointer rounded-media bg-escuro font-semibold whitespace-nowrap text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover active:translate-y-px disabled:opacity-50 ${
         miudo ? 'min-h-11 px-[18px] text-[14.5px]' : 'min-h-12 px-4 text-[15px]'
-      }`}
+      } ${className}`}
     >
-      Marcar todos presentes
-    </button>
-  )
-}
-
-export function BotaoEncaixar({
-  rotulo, className = '',
-}: {
-  rotulo: string
-  className?: string
-}) {
-  const { podeRegistrar, abrirEncaixe } = useChamada()
-  if (!podeRegistrar) return null
-  return (
-    <button
-      type="button"
-      onClick={abrirEncaixe}
-      className={`min-h-11 cursor-pointer rounded-media border border-linha bg-superficie-suave px-3 text-[14px] whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave ${className}`}
-    >
-      {rotulo}
+      Concluir chamada · {vieram} {vieram === 1 ? 'veio' : 'vieram'}
     </button>
   )
 }
@@ -293,7 +269,9 @@ export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
 }
 
 export function ResumoChamada() {
-  const { lista, registrados, total } = useChamada()
+  const { lista, registrados, total, comecou } = useChamada()
+  // antes da aula não há chamada para resumir
+  if (!comecou) return null
   const conta = (s: StatusParticipacao) => lista.filter((p) => p.status === s).length
 
   return (
@@ -335,7 +313,8 @@ export function ResumoChamada() {
  * lista rola e ela é a única ação alcançável com o polegar.
  */
 export function BarraChamada({ cancelada }: { cancelada: boolean }) {
-  const { registrados, total, podeRegistrar } = useChamada()
+  const { registrados, total, podeRegistrar, comecou } = useChamada()
+  if (!comecou) return null
   return (
     <div className="sticky bottom-3.5 z-20 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 rounded-grande border border-linha bg-superficie px-4 py-3 shadow-[0_16px_34px_-22px_rgba(20,26,24,.5)] md:hidden">
       <div className="flex min-w-0 items-center gap-3">
@@ -346,10 +325,7 @@ export function BarraChamada({ cancelada }: { cancelada: boolean }) {
       </div>
 
       {podeRegistrar ? (
-        <div className="flex gap-2">
-          <BotaoEncaixar rotulo="Encaixar" className="bg-superficie" />
-          <BotaoMarcarTodos miudo />
-        </div>
+        <BotaoConcluir miudo />
       ) : null}
     </div>
   )

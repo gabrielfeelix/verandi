@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import type { FaltaEmAberto } from '@/server/agenda/consultas'
 import { GLIFO_PRESENCA, TINTA_ORIGEM, TINTA_PRESENCA } from '@/components/ui/tintas'
@@ -10,28 +11,37 @@ import { MenuPessoa } from './menu-pessoa'
 import { useChamada } from './chamada'
 
 /**
- * Os quatro estados, como botões de 44px.
+ * O que cada aluno pode virar, e quando.
  *
- * O protótipo desenha 34px de altura. Esta tela é usada em pé, numa sala, com a
- * mão ocupada: 44px é o mínimo do alvo de toque, e aqui isso ganha do desenho.
+ * Antes da aula ninguém "faltou": a recepção só registra quem avisou que não
+ * vem (libera a vaga e gera reposição) ou entrou de licença. Depois que a aula
+ * começa, quem está sem marca aparece como "Veio", provisório, e vira presença
+ * ao concluir a chamada. Assim a turma cheia se fecha num toque, e só a
+ * exceção pede atenção. Alvo de 44px: a tela é usada em pé, com a mão ocupada.
  */
-const STATUS: Array<{
-  valor: StatusParticipacao; curto: string; titulo: string; glifo: string
+const MOTIVOS: Array<{
+  valor: StatusParticipacao; rotulo: string; explica: string; soDepois?: boolean
 }> = [
-  { valor: 'presente',      curto: 'Veio',    titulo: 'Presente',                              glifo: '✓' },
-  { valor: 'falta',         curto: 'Faltou',  titulo: 'Faltou sem avisar',                     glifo: '×' },
-  { valor: 'falta_avisada', curto: 'Avisou',  titulo: 'Avisou que não vem, libera a vaga',    glifo: '!' },
-  { valor: 'licenca',       curto: 'Licença', titulo: 'Afastado, mantém o horário',            glifo: '~' },
+  { valor: 'falta',         rotulo: 'Faltou sem avisar',   explica: 'Não veio e não avisou', soDepois: true },
+  { valor: 'falta_avisada', rotulo: 'Avisou que não vem',  explica: 'Libera a vaga e gera reposição' },
+  { valor: 'licenca',       rotulo: 'Licença',             explica: 'Afastado, mantém o horário' },
 ]
 
-const TINTA_BOTAO: Record<StatusParticipacao, string> = {
+/** o rótulo do botão em cada estado, e o que a tela só de leitura mostra */
+const CURTO: Partial<Record<StatusParticipacao, string>> = {
+  presente: 'Veio',
+  falta: 'Faltou',
+  falta_avisada: 'Avisou',
+  licenca: 'Licença',
+}
+
+const NAO_VEIO: ReadonlySet<StatusParticipacao> = new Set(['falta', 'falta_avisada', 'licenca'])
+
+const TINTA_BOTAO: Partial<Record<StatusParticipacao, string>> = {
   presente: 'border-positivo-fundo bg-positivo-fundo text-positivo',
   falta: 'border-alerta-fundo bg-alerta-fundo text-alerta',
   falta_avisada: 'border-atencao-fundo bg-atencao-fundo text-atencao',
   licenca: 'border-licenca-fundo bg-licenca-fundo text-licenca',
-  esperada: '',
-  confirmada: '',
-  cancelada: '',
 }
 
 const ORIGEM: Record<string, string> = {
@@ -55,14 +65,18 @@ type Props = {
 export function ListaParticipacao({
   titulo, rotuloPessoa, rotuloPessoas, livres, faltasPorPessoa,
 }: Props) {
-  const { lista, podeRegistrar, ocupado, registrar, agir, abrirEncaixe } = useChamada()
+  const {
+    lista, podeRegistrar, ocupado, registrar, agir, abrirEncaixe, pendentes, comecou,
+  } = useChamada()
 
   return (
     <section className={`${cartao} px-2.5 pt-2 pb-3`}>
       <div className="flex items-center justify-between p-3">
         <h2 className="font-titulo text-[18px] font-semibold">{titulo}</h2>
         <span className="text-[13px] text-tinta-media">
-          vaga fixa em cima, encaixes abaixo
+          {podeRegistrar && comecou && pendentes > 0
+            ? 'quem não for marcado conta como presente'
+            : 'vaga fixa em cima, encaixes abaixo'}
         </span>
       </div>
 
@@ -73,25 +87,26 @@ export function ListaParticipacao({
           return (
             <li
               key={p.id}
-              // no celular os botões descem para uma linha própria: os quatro
-              // ao lado do nome passavam por cima dele em 390
-              className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-3 rounded-grande border p-3 lg:grid-cols-[auto_minmax(0,1fr)_auto_auto] ${
+              className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2.5 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] rounded-grande border p-3 sm:gap-x-3.5 ${
                 decidido
                   ? 'border-linha-suave bg-superficie-tenue'
                   : 'border-linha-fina bg-superficie'
               }`}
             >
               {/* o nome está escrito ao lado; o avatar aqui é reconhecimento */}
-              <Avatar
-                nome={p.nome}
-                tamanho={40}
-                decorativo
-                selo={
-                  decidido
-                    ? { tinta: TINTA_PRESENCA[p.status], glifo: GLIFO_PRESENCA[p.status] }
-                    : undefined
-                }
-              />
+              {/* no celular o nome precisa da largura; o estado já está no botão */}
+              <span className="max-sm:hidden">
+                <Avatar
+                  nome={p.nome}
+                  tamanho={40}
+                  decorativo
+                  selo={
+                    decidido
+                      ? { tinta: TINTA_PRESENCA[p.status], glifo: GLIFO_PRESENCA[p.status] }
+                      : undefined
+                  }
+                />
+              </span>
 
               <span className="flex min-w-0 flex-col gap-1.5">
                 <span className="flex flex-wrap items-center gap-2">
@@ -125,37 +140,23 @@ export function ListaParticipacao({
               </span>
 
               {podeRegistrar ? (
-                <span className="col-span-full row-start-2 grid grid-cols-4 gap-1.5 lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:flex">
-                  {STATUS.map((s) => (
-                    <button
-                      key={s.valor}
-                      type="button"
-                      title={p.status === s.valor ? 'Tocar de novo desmarca' : s.titulo}
-                      // o nome curto é o nome acessível e o texto à vista; o
-                      // longo fica no `title`. Pôr o nome da pessoa aqui faria
-                      // cada busca por nome casar com meia dúzia de botões, e o
-                      // contexto já vem do item da lista
-                      disabled={ocupado}
-                      aria-pressed={p.status === s.valor}
-                      onClick={() => registrar(p, s.valor)}
-                      className={`flex h-11 min-w-0 items-center justify-center gap-1 rounded-padrao border px-1 text-[13.5px] sm:gap-1.5 sm:px-2.5 sm:text-[14px] font-medium ${
-                        p.status === s.valor
-                          ? TINTA_BOTAO[s.valor]
-                          : 'border-linha bg-superficie text-tinta-media hover:border-[#B7C4BF]'
-                      }`}
-                    >
-                      <span aria-hidden className="text-[15px]">{s.glifo}</span>
-                      {s.curto}
-                    </button>
-                  ))}
-                </span>
+                <Presenca
+                  status={p.status}
+                  nome={p.nome}
+                  comecou={comecou}
+                  ocupado={ocupado}
+                  aoEscolher={(status) => registrar(p, status)}
+                  // antes da aula, desfazer devolve à aula; depois, a pessoa
+                  // veio, e é isso que fica
+                  aoDesfazer={() => registrar(p, comecou ? 'presente' : 'esperada')}
+                />
               ) : (
-                <span className="col-span-full row-start-2 text-[13.5px] text-tinta-media lg:col-span-1 lg:col-start-3 lg:row-start-1">
-                  {STATUS.find((s) => s.valor === p.status)?.curto ?? 'Sem registro'}
+                <span className="text-[13.5px] text-tinta-media">
+                  {CURTO[p.status] ?? 'Sem registro'}
                 </span>
               )}
 
-              <span className="col-start-3 row-start-1 lg:col-start-4">
+              <span>
                 <MenuPessoa
                   participacao={p}
                   faltas={faltasPorPessoa[p.pessoaId] ?? []}
@@ -229,5 +230,121 @@ function Marca({
     >
       {children}
     </span>
+  )
+}
+
+/**
+ * O estado do aluno como um botão só, que abre o que ele pode virar.
+ *
+ * O rótulo é sempre o estado atual ("Agendado", "Veio", "Avisou"...), então a
+ * tela responde de relance quem veio sem ninguém precisar tocar. "Veio"
+ * provisório tem borda tracejada; firma ao concluir a chamada.
+ */
+function Presenca({
+  status, nome, comecou, ocupado, aoEscolher, aoDesfazer,
+}: {
+  status: StatusParticipacao
+  nome: string
+  comecou: boolean
+  ocupado: boolean
+  aoEscolher: (s: StatusParticipacao) => void
+  aoDesfazer: () => void
+}) {
+  const [aberto, setAberto] = useState(false)
+  const caixa = useRef<HTMLDivElement>(null)
+  const faltou = NAO_VEIO.has(status)
+  const semMarca = status === 'esperada' || status === 'confirmada'
+  const provisorio = semMarca && comecou
+  const primeiro = nome.split(' ')[0]
+
+  // clicar fora ou apertar Esc fecha
+  useEffect(() => {
+    if (!aberto) return
+    function fora(e: MouseEvent) {
+      if (!caixa.current?.contains(e.target as Node)) setAberto(false)
+    }
+    function esc(e: KeyboardEvent) {
+      if (e.key === 'Escape') setAberto(false)
+    }
+    document.addEventListener('mousedown', fora)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('mousedown', fora)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [aberto])
+
+  function escolher(fn: () => void) {
+    setAberto(false)
+    fn()
+  }
+
+  const rotulo = semMarca ? (comecou ? 'Veio' : 'Agendado') : (CURTO[status] ?? 'Agendado')
+  const tinta = provisorio
+    ? 'border-dashed border-positivo/45 bg-superficie text-positivo'
+    : semMarca
+      ? 'border-linha bg-superficie text-tinta-media hover:border-[#B7C4BF] hover:text-tinta'
+      : TINTA_BOTAO[status] ?? ''
+  const motivos = MOTIVOS.filter((m) => comecou || !m.soDepois || m.valor === status)
+
+  return (
+    <div ref={caixa} className="relative">
+      <button
+        type="button"
+        disabled={ocupado}
+        aria-expanded={aberto}
+        aria-haspopup="menu"
+        title={provisorio ? 'Conta como presente ao concluir a chamada' : `Mudar o registro de ${primeiro}`}
+        onClick={() => setAberto(!aberto)}
+        className={`flex h-11 min-w-[112px] cursor-pointer items-center justify-between gap-1.5 rounded-padrao border px-3 text-[14px] font-medium whitespace-nowrap transition-colors duration-150 disabled:opacity-60 ${tinta}`}
+      >
+        <span className="flex items-center gap-1.5">
+          {status === 'presente' || provisorio ? <span aria-hidden>✓</span> : null}
+          {rotulo}
+        </span>
+        <Icone nome="abaixo" tamanho={14} />
+      </button>
+
+      {aberto ? (
+        <>
+        {/* no celular o menu sobe como folha no rodapé: aberto no meio da
+            lista, ele caía atrás da barra da chamada */}
+        <div aria-hidden className="fixed inset-0 z-[40] bg-black/25 sm:hidden" />
+        <div
+          role="menu"
+          className="fixed inset-x-3 bottom-3 z-[41] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-2 shadow-elevado sm:absolute sm:inset-x-auto sm:top-[48px] sm:right-0 sm:bottom-auto sm:z-[25] sm:w-[240px] sm:p-1.5"
+        >
+          <p className="px-3 pt-1.5 pb-1 text-[13px] text-tinta-media sm:hidden">{nome}</p>
+          {motivos.map((m) => (
+            <button
+              key={m.valor}
+              type="button"
+              role="menuitemradio"
+              aria-checked={status === m.valor}
+              onClick={() => escolher(() => {
+                if (status !== m.valor) aoEscolher(m.valor)
+              })}
+              className={`flex cursor-pointer flex-col rounded-peca px-3 py-2.5 text-left hover:bg-superficie-suave ${
+                status === m.valor ? 'bg-superficie-suave' : ''
+              }`}
+            >
+              <span className="text-[14.5px] font-medium">{m.rotulo}</span>
+              <span className="text-[12.5px] text-tinta-media">{m.explica}</span>
+            </button>
+          ))}
+          {faltou ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => escolher(aoDesfazer)}
+              className="mt-0.5 cursor-pointer rounded-peca border-t border-linha-suave px-3 py-2.5 text-left text-[14px] text-tinta-media hover:bg-superficie-suave"
+            >
+              {comecou ? `Desfazer, ${primeiro} veio` : `Desfazer, ${primeiro} vem`}
+            </button>
+          ) : null}
+        </div>
+        </>
+      ) : null}
+    </div>
   )
 }
