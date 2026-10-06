@@ -249,12 +249,12 @@ describe('o fechamento', () => {
 
   it('os clientes são contados por ficha, e quem pediu exclusão sai das três contas', () => {
     const r = clientes([
-      { ativo: true, criadoEm: '2026-09-10T10:00:00Z', anonimizada: false },
-      { ativo: true, criadoEm: '2025-01-10T10:00:00Z', anonimizada: false },
-      { ativo: false, criadoEm: '2024-05-10T10:00:00Z', anonimizada: false },
+      { ativo: true, inicio: '2026-09-10T10:00:00Z', anonimizada: false },
+      { ativo: true, inicio: '2025-01-10T10:00:00Z', anonimizada: false },
+      { ativo: false, inicio: '2024-05-10T10:00:00Z', anonimizada: false },
       // anonimizada: a ficha existe por causa do histórico, e não descreve
       // mais ninguém
-      { ativo: true, criadoEm: '2026-09-11T10:00:00Z', anonimizada: true },
+      { ativo: true, inicio: '2026-09-11T10:00:00Z', anonimizada: true },
     ], '2026-09-01', '2026-09-30')
     expect(r).toEqual({ ativos: 2, inativos: 1, novos: 1 })
   })

@@ -188,7 +188,8 @@ test('editar mostra o que muda antes de salvar, e o passado não entra na conta'
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await page.getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: /^Ações das/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('6')
   await page.getByRole('button', { name: 'Salvar', exact: true }).click()
 
@@ -212,7 +213,8 @@ test('mudar o dia cancela as sessões do dia antigo em vez de deixá-las órfãs
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await page.getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: /^Ações das/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Editar' }).click()
   // por papel, e não por `escolher`: o campo é obrigatório, e o asterisco do
   // rótulo derruba o `exact` do helper
   await page.getByRole('combobox', { name: 'Dia da semana' }).click()
@@ -241,7 +243,8 @@ test('sessão já realizada não é tocada pela edição', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await page.getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: /^Ações das/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('9')
   await page.getByRole('button', { name: 'Salvar', exact: true }).click()
 
@@ -266,7 +269,8 @@ test('baixar a capacidade abaixo da ocupação avisa quantos ocupam', async ({ p
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await page.getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: /^Ações das/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('1')
   await page.getByRole('button', { name: 'Salvar', exact: true }).click()
 
@@ -279,7 +283,8 @@ test('duplicar repete o horário em outros dias', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await page.getByRole('button', { name: 'Duplicar' }).click()
+  await page.getByRole('button', { name: /^Ações das/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Duplicar' }).click()
   const dup = page.getByRole('dialog')
   await dup.getByRole('button', { name: 'ter', exact: true }).click()
   await dup.getByRole('button', { name: 'sáb', exact: true }).click()
@@ -303,7 +308,8 @@ test('encerrar pergunta quantos ocupam, e não apaga o passado', async ({ page }
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await page.getByRole('button', { name: 'Encerrar', exact: true }).click()
+  await page.getByRole('button', { name: /^Ações das/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Encerrar' }).click()
   await page.getByRole('dialog')
     .getByRole('button', { name: 'Encerrar', exact: true }).click()
 
@@ -329,7 +335,8 @@ test('mexer na grade registra quem fez', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/grade')
 
-  await page.getByRole('button', { name: 'Editar' }).click()
+  await page.getByRole('button', { name: /^Ações das/ }).first().click()
+  await page.getByRole('menuitem', { name: 'Editar' }).click()
   await page.getByLabel('Capacidade').fill('5')
   await page.getByRole('button', { name: 'Salvar', exact: true }).click()
   await page.getByRole('button', { name: 'Confirmar' }).click()

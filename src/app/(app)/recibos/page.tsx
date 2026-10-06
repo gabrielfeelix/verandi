@@ -57,6 +57,10 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
    */
   const periodo = periodoDaBusca(de, ate)
 
+  // conta que nunca emitiu: cartões zerados, filtros e busca em cima de uma
+  // lista vazia só davam trabalho de ler. Fica o aviso de onde o recibo nasce
+  const nenhumAinda = !q && aba === 'todos' && !de && !ate
+
   const [{ linhas, total }, { resumo, completo }, emitente] = await Promise.all([
     listarRecibos(db, conta.contaId, {
       filtro: aba, busca: q, pagina, periodo, fuso: conta.fuso,
@@ -66,6 +70,8 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
     }),
     emitenteDaConta(db, conta.contaId),
   ])
+
+  const nenhumAindaVazio = nenhumAinda && total === 0
 
   const [envios, emails] = await Promise.all([
     ultimosEnvios(db, conta.contaId, linhas.map((l) => l.id)),
@@ -115,6 +121,8 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
           </Nota>
         ) : null}
 
+        {nenhumAindaVazio ? null : (
+        <>
         {/* chips, como a situação em Cobranças: as abas de cima são as seções */}
         <nav aria-label="O que mostrar" className="flex flex-wrap gap-1.5">
           {ABAS.map((a) => {
@@ -161,16 +169,23 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
             : `A soma cobre os primeiros ${TETO_DO_RESUMO_RECIBO.toLocaleString('pt-BR')} recibos deste recorte. Filtre por data para fechar o número.`}
         />
 
+        </>
+        )}
+
         <div className={`${cartao} flex flex-col gap-3 p-4`}>
-          <BarraDePeriodo
-            base="/recibos"
-            periodo={periodo}
-            hoje={hoje}
-            rotulo="Emissão"
-            escondidos={{ aba, q }}
-            abrirDatas={datas === '1'}
-          />
-          <BuscaDeRecibo valorInicial={q ?? ''} aba={aba} />
+          {nenhumAindaVazio ? null : (
+            <>
+              <BarraDePeriodo
+                base="/recibos"
+                periodo={periodo}
+                hoje={hoje}
+                rotulo="Emissão"
+                escondidos={{ aba, q }}
+                abrirDatas={datas === '1'}
+              />
+              <BuscaDeRecibo valorInicial={q ?? ''} aba={aba} />
+            </>
+          )}
           <ListaDeRecibos
             linhas={linhas}
             envios={Object.fromEntries([...envios].map(([id, e]) => [

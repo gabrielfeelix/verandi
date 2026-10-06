@@ -233,7 +233,8 @@ export function estornosDoPeriodo(estornos: EstornoDoPeriodo[]): {
 
 export type PessoaDaConta = {
   ativo: boolean
-  criadoEm: string
+  /** desde quando é cliente: ver `inicioDaPessoa`, não é só o cadastro */
+  inicio: string
   anonimizada: boolean
 }
 
@@ -257,7 +258,7 @@ export function clientes(pessoas: PessoaDaConta[], de: string, ate: string): {
     ativos: vivas.filter((p) => p.ativo).length,
     inativos: vivas.filter((p) => !p.ativo).length,
     novos: vivas.filter((p) => {
-      const dia = p.criadoEm.slice(0, 10)
+      const dia = p.inicio.slice(0, 10)
       return dia >= de && dia <= ate
     }).length,
   }

@@ -1,5 +1,6 @@
 'use client'
 
+import { AtenderPedidoDeExclusao } from './acoes-da-ficha'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { editarPessoa, removerFotoDaPessoa, salvarFotoDaPessoa } from '@/server/pessoas/acoes'
@@ -109,13 +110,16 @@ const EXEMPLO: Record<string, string> = {
  * quem está conferindo o que digitar.
  */
 export function EditarPessoa({
-  pessoa, className = '',
+  pessoa, className = '', podeExcluir = false,
 }: {
   pessoa: Pessoa
   /** para o par de botões da ficha dividir a largura por igual */
   className?: string
+  /** dono e suporte atendem pedido de exclusão; a entrada mora no pé do modal */
+  podeExcluir?: boolean
 }) {
   const [aberto, setAberto] = useState(false)
+  const [excluindo, setExcluindo] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const [visivel, setVisivel] = useState(pessoa.observacaoVisivel)
@@ -338,7 +342,29 @@ export function EditarPessoa({
           </label>
 
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+
+          {podeExcluir ? (
+            <p className="border-t border-linha-fina pt-3 text-[13.5px] text-tinta-media">
+              A pessoa pediu para apagar os dados dela?{' '}
+              <button
+                type="button"
+                onClick={() => { fechar(); setExcluindo(true) }}
+                className="cursor-pointer text-alerta underline underline-offset-2"
+              >
+                Excluir dados
+              </button>
+            </p>
+          ) : null}
         </ModalFormulario>
+      ) : null}
+
+      {podeExcluir ? (
+        <AtenderPedidoDeExclusao
+          pessoaId={pessoa.id}
+          nome={pessoa.nome}
+          aberto={excluindo}
+          aoFechar={() => setExcluindo(false)}
+        />
       ) : null}
     </>
   )

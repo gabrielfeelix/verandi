@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { Menu } from '@/components/ui/menu'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -82,13 +83,17 @@ export function LinhaDaGrade({
     })
   }
 
+  const editavel = podeEscrever && !serie.encerrada
   const lotada = serie.ocupadas >= serie.capacidade
   const proporcao = Math.min(1, serie.ocupadas / Math.max(1, serie.capacidade))
 
   return (
     <li>
+      {/* a linha inteira abre a edição, que é o que mais se faz aqui; as
+          outras ações moram no menu, e eram quatro botões em cada horário */}
       <div
-        className={`flex flex-wrap items-center gap-x-4 gap-y-3 rounded-grande border p-3.5 transition-colors duration-150 ${
+        onClick={editavel ? () => setModo('editar') : undefined}
+        className={`flex flex-wrap items-center gap-x-4 gap-y-3 rounded-grande border p-3.5 transition-colors duration-150 ${editavel ? 'cursor-pointer' : ''} ${
           serie.encerrada
             ? 'border-linha-fina bg-superficie-tenue'
             : 'border-linha-suave bg-superficie hover:border-linha hover:bg-superficie-tenue'
@@ -119,22 +124,23 @@ export function LinhaDaGrade({
           >
             {serie.servico}
           </span>
-          <span className="flex flex-wrap items-center gap-1.5 text-[13.5px] text-tinta-media">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13.5px] text-tinta-media">
             {serie.profissional ? (
-              <span className="flex items-center gap-1.5 rounded-peca bg-superficie-suave py-1 pr-2.5 pl-1">
+              <span className="flex items-center gap-1.5">
                 <Avatar nome={serie.profissional} tamanho={24} decorativo />
                 {serie.profissional}
               </span>
             ) : null}
             {serie.local ? (
-              <span className="rounded-peca bg-superficie-suave px-2.5 py-1">
-                {serie.local}
-              </span>
+              <>
+                <span aria-hidden className="opacity-40">·</span>
+                <span>{serie.local}</span>
+              </>
             ) : null}
-            <span className="rounded-peca bg-superficie-suave px-2.5 py-1 text-[12px]">
-              {serie.duracaoMin} min
-            </span>
-            <span className="text-[12px] text-tinta-fraca">
+            <span aria-hidden className="opacity-40">·</span>
+            <span>{serie.duracaoMin} min</span>
+            <span aria-hidden className="opacity-40">·</span>
+            <span className="text-tinta-fraca">
               {serie.encerrada
                 ? `${mesCurto(serie.vigenciaInicio)} – ${mesCurto(serie.vigenciaFim!)}`
                 : `desde ${mesCurto(serie.vigenciaInicio)}`}
@@ -166,7 +172,8 @@ export function LinhaDaGrade({
         </span>
 
         {podeEscrever ? (
-          <span className="flex shrink-0 flex-wrap items-center gap-1.5">
+          // o clique nas ações não pode cair na linha e abrir a edição junto
+          <span className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
             {!serie.encerrada ? (
               <BotaoAcao
                 icone="pessoas" rotulo="Quem ocupa" pendente={pendente}
@@ -176,16 +183,18 @@ export function LinhaDaGrade({
                 })}
               />
             ) : null}
-            {!serie.encerrada ? (
-              <BotaoAcao icone="lapis" rotulo="Editar" onClick={() => setModo('editar')} />
-            ) : null}
-            <BotaoAcao icone="copiar" rotulo="Duplicar" onClick={() => setModo('duplicar')} />
-            {!serie.encerrada ? (
-              <BotaoAcao
-                icone="proibido" rotulo="Encerrar" perigo
-                onClick={() => setModo('encerrar')}
-              />
-            ) : null}
+            <Menu
+              titulo={`Ações das ${serie.horaInicio.slice(0, 5)}`}
+              itens={[
+                ...(!serie.encerrada
+                  ? [{ rotulo: 'Editar', icone: 'lapis' as const, aoEscolher: () => setModo('editar') }]
+                  : []),
+                { rotulo: 'Duplicar', icone: 'copiar' as const, aoEscolher: () => setModo('duplicar') },
+                ...(!serie.encerrada
+                  ? [{ rotulo: 'Encerrar', icone: 'proibido' as const, perigo: true, aoEscolher: () => setModo('encerrar') }]
+                  : []),
+              ]}
+            />
           </span>
         ) : null}
       </div>

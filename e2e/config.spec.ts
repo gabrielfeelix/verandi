@@ -18,7 +18,8 @@ test('cadastrar serviço e ele aparecer na grade', async ({ page }) => {
   await page.getByLabel('Capacidade padrão').fill('3')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
-  await expect(page.getByText('Fáscia avançada')).toBeVisible()
+  // o serviço também vira filtro de Planos, na mesma seção: a lista é a primeira
+  await expect(page.getByText('Fáscia avançada').first()).toBeVisible()
 
   // o catálogo da grade enxerga na hora
   await page.goto('/grade')
@@ -57,7 +58,7 @@ test('local guarda capacidade, e sem capacidade também vale', async ({ page }) 
 
   await page.getByRole('button', { name: 'Cadastrar local' }).click()
   await page.getByLabel('Nome').fill('Sala 2')
-  await page.getByLabel('Capacidade').fill('6')
+  await page.locator('dialog[open]').getByLabel('Capacidade', { exact: true }).fill('6')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
   await expect(page.getByText('Capacidade 6')).toBeVisible()
@@ -85,7 +86,7 @@ test('encaixe acima da capacidade é escolha, e a tela explica o limite dela', a
   await entrar(page, c.email)
   await page.goto('/config?s=padroes')
 
-  await expect(page.getByText(/A busca de vaga e a API continuam sem oferecer horário cheio/))
+  await expect(page.getByText(/A busca de vaga e o agendamento automático nunca oferecem horário cheio/))
     .toBeVisible()
 
   await page.getByRole('button', { name: 'Bloquear' }).click()

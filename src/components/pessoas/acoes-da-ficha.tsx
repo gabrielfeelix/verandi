@@ -110,12 +110,24 @@ export function AvisoDeCadastro() {
  * responsabilidade de quem responde pelo negócio perante o titular.
  */
 export function AtenderPedidoDeExclusao({
-  pessoaId, nome,
+  pessoaId, nome, aberto: abertoFora, aoFechar,
 }: {
   pessoaId: string
   nome: string
+  /**
+   * Aberto por fora, sem o próprio botão: é como o "Editar dados" o chama,
+   * do pé do modal dele. Pedido de exclusão é raro, e o link vermelho no topo
+   * de toda ficha pesava o mesmo que marcar uma aula.
+   */
+  aberto?: boolean
+  aoFechar?: () => void
 }) {
-  const [aberto, setAberto] = useState(false)
+  const [abertoAqui, setAbertoAqui] = useState(false)
+  const controlado = abertoFora !== undefined
+  const aberto = controlado ? abertoFora : abertoAqui
+  const setAberto = (v: boolean) => {
+    if (controlado) { if (!v) aoFechar?.() } else setAbertoAqui(v)
+  }
   const [confere, setConfere] = useState('')
   const [pendente, iniciar] = useTransition()
 
@@ -125,13 +137,15 @@ export function AtenderPedidoDeExclusao({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setAberto(true)}
-        className="min-h-9 cursor-pointer px-2 text-[13.5px] text-alerta underline-offset-2 hover:underline"
-      >
-        Excluir dados
-      </button>
+      {controlado ? null : (
+        <button
+          type="button"
+          onClick={() => setAberto(true)}
+          className="min-h-9 cursor-pointer px-2 text-[13.5px] text-alerta underline-offset-2 hover:underline"
+        >
+          Excluir dados
+        </button>
+      )}
 
       <Modal
         aberto={aberto}

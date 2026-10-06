@@ -1,3 +1,4 @@
+import { inicioDaPessoa } from '@/core/pessoas/inicio'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { clienteServidor, exigirConta } from '@/server/conta'
@@ -6,7 +7,7 @@ import { fichaDaPessoa, type Ficha } from '@/server/pessoas/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { EditarPessoa } from '@/components/pessoas/editar-pessoa'
 import {
-  AtenderPedidoDeExclusao, AvisoDeCadastro, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
+  AvisoDeCadastro, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
 } from '@/components/pessoas/acoes-da-ficha'
 import { ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
 import { ReposicoesAbertas } from '@/components/pessoas/reposicoes'
@@ -175,6 +176,17 @@ export default async function Pessoa({
   const temContrato = operacional ? contratosEmVigor > 0 : modalidades.length > 0
   const licenca = await licencaDaPessoa(db, conta.contaId, id)
 
+  // "desde" é o mais antigo entre cadastro, primeiro contrato e primeira aula:
+  // quem foi importado tem o cadastro do dia da importação
+  const [{ data: primeiroContrato }, { data: primeiraAula }] = await Promise.all([
+    db.from('contrato').select('inicio')
+      .eq('conta_id', conta.contaId).eq('pessoa_id', id)
+      .order('inicio').limit(1).maybeSingle(),
+    db.from('sessao').select('inicio, participacao!inner(pessoa_id)')
+      .eq('conta_id', conta.contaId).eq('participacao.pessoa_id', id)
+      .order('inicio').limit(1).maybeSingle(),
+  ])
+
   // o "Marcar aula" abre na modalidade dela, e deixa trocar entre as da conta
   const [servicosDela, { data: catalogoServicos }] = operacional
     ? await Promise.all([
@@ -293,7 +305,7 @@ export default async function Pessoa({
      */
     ['Modalidade', modalidades.length ? modalidades.join(' + ') : 'Sem contrato ativo'],
     ['Nascimento', p.nascimento ? curta(p.nascimento) : 'Sem registro'],
-    [`${rotulos.pessoa.singular} desde`, mesAno(p.criadoEm.slice(0, 10))],
+    [`${rotulos.pessoa.singular} desde`, mesAno(inicioDaPessoa([p.criadoEm, primeiroContrato?.inicio, primeiraAula?.inicio]))],
   ]
 
   const semanas = semanasDe(ficha.historico, hoje)
@@ -363,6 +375,9 @@ export default async function Pessoa({
               {!p.ativo ? (
                 <Etiqueta tinta="neutro">Cadastro inativo, continua no histórico</Etiqueta>
               ) : null}
+              {/* o cartão da licença fica na coluna lateral; o estado precisa
+                  estar junto do nome, que é onde o olho bate primeiro */}
+              {licenca ? <Etiqueta tinta="licenca">De licença</Etiqueta> : null}
             </div>
 
             <div className="flex flex-wrap gap-x-[22px] gap-y-2">
@@ -404,6 +419,7 @@ export default async function Pessoa({
             </MarcarAula>
             <EditarPessoa
               className="w-full"
+              podeExcluir={!p.anonimizadaEm && (conta.papel === 'dono' || conta.papel === 'suporte')}
               pessoa={{
                 id: p.id,
                 nome: p.nome,
@@ -427,9 +443,6 @@ export default async function Pessoa({
                 ativo={p.ativo}
                 rotuloPessoa={rotulos.pessoa.plural}
               />
-              {!p.anonimizadaEm && (conta.papel === 'dono' || conta.papel === 'suporte') ? (
-                <AtenderPedidoDeExclusao pessoaId={p.id} nome={p.nome} />
-              ) : null}
             </div>
           </div>
         </div>

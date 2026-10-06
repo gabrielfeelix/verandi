@@ -30,40 +30,36 @@ import Carregando from './loading'
 
 // os glifos são os do protótipo: mono, discretos, e o suficiente para achar a
 // seção pelo canto do olho depois da terceira visita
+/*
+ * Seis seções, e não dez. Serviço e plano se configuram juntos (o plano é o
+ * preço do serviço); quem dá aula e quem entra no sistema são a mesma pergunta
+ * de equipe; locais, horário de funcionamento e padrões dizem como a agenda
+ * funciona. Dez itens faziam procurar onde estava cada coisa.
+ *
+ * As chaves antigas (`?s=planos`, `?s=usuarios`...) continuam valendo: caem na
+ * seção que as contém, e nenhum link antigo quebra.
+ */
 const SECOES = [
-  { chave: 'servicos', icone: 'lista' },
-  { chave: 'planos', icone: 'dinheiro' },
-  { chave: 'recibo', icone: 'recibo' },
-  { chave: 'equipe', icone: 'pessoas' },
-  { chave: 'locais', icone: 'local' },
-  { chave: 'padroes', icone: 'arrumar' },
-  { chave: 'vocabulario', icone: 'texto' },
-  { chave: 'funcionamento', icone: 'relogio' },
-  { chave: 'usuarios', icone: 'chave' },
-  { chave: 'integracoes', icone: 'clipe' },
-] as const satisfies ReadonlyArray<{ chave: string; icone: NomeIcone }>
+  { chave: 'servicos', icone: 'lista', inclui: ['servicos', 'planos'] },
+  { chave: 'equipe', icone: 'pessoas', inclui: ['equipe', 'usuarios'] },
+  { chave: 'funcionamento', icone: 'relogio', inclui: ['funcionamento', 'locais', 'padroes'] },
+  { chave: 'recibo', icone: 'recibo', inclui: ['recibo'] },
+  { chave: 'vocabulario', icone: 'texto', inclui: ['vocabulario'] },
+  { chave: 'integracoes', icone: 'clipe', inclui: ['integracoes'] },
+] as const satisfies ReadonlyArray<{ chave: string; icone: NomeIcone; inclui: readonly string[] }>
 
 type Secao = (typeof SECOES)[number]['chave']
+type Painel = (typeof SECOES)[number]['inclui'][number]
 
 /**
- * O menu da Configuração fala a língua da conta nas três seções que nomeiam
- * coisas do negócio.
- *
- * "Serviços", "Equipe" e "Locais" estavam escritos aqui, e o painel de cada uma
- * já mostrava a palavra do cliente no título: quem chamava serviço de
- * "modalidade" clicava em "Serviços" e caía numa tela chamada "Modalidades".
- * As outras quatro nomeiam partes do sistema, não do negócio, e ficam.
+ * O menu fala a língua da conta onde nomeia coisas do negócio: quem chama
+ * serviço de "modalidade" lê "Modalidades e planos".
  */
 function rotuloDaSecao(chave: Secao, r: Rotulos): string {
-  if (chave === 'servicos') return r.servico.plural
-  if (chave === 'equipe') return r.profissional.plural
-  if (chave === 'locais') return r.local.plural
-  // "Planos e valores" é palavra nossa: todo negócio que cobra chama o que
-  // vende de plano, e o gênero não muda com o vocabulário da conta
-  return { padroes: 'Padrões', vocabulario: 'Vocabulário',
-           funcionamento: 'Funcionamento', usuarios: 'Usuários',
-           integracoes: 'Integrações', planos: 'Planos e valores',
-           recibo: 'Recibo' }[chave]
+  if (chave === 'servicos') return `${r.servico.plural} e planos`
+  if (chave === 'equipe') return `${r.profissional.plural} e acessos`
+  return { funcionamento: 'Funcionamento', vocabulario: 'Vocabulário',
+           integracoes: 'Integrações', recibo: 'Recibo' }[chave]
 }
 
 /** O que cada palavra do vocabulário nomeia, em uma linha. */
@@ -92,7 +88,10 @@ export default async function Config({
   const conta = await exigirPapel(ADMINISTRA, 'Configuração')
 
   const { s } = await searchParams
-  const secao: Secao = SECOES.some((x) => x.chave === s) ? (s as Secao) : 'servicos'
+  const secao: Secao = SECOES.find((x) => (x.inclui as readonly string[]).includes(s ?? ''))?.chave
+    ?? 'servicos'
+  const paineis: readonly Painel[] = SECOES.find((x) => x.chave === secao)!.inclui
+  const mostra = (p: Painel) => paineis.includes(p)
 
   const db = await clienteServidor()
   const voc = await carregarVocabulario(db, conta.contaId)
@@ -144,7 +143,7 @@ export default async function Config({
 
         {/* `data-guia` é a âncora do balão do onboarding, e nada além disso:
             ele só é lido pelo guia, e sumir daqui não quebra a tela. */}
-        {secao === 'servicos' ? (
+        {mostra('servicos') ? (
           <div data-guia="config-servicos">
             <SecaoServicos
               servicos={await listarServicos(db, conta.contaId)}
@@ -155,7 +154,7 @@ export default async function Config({
           </div>
         ) : null}
 
-        {secao === 'planos' ? (
+        {mostra('planos') ? (
           <SecaoPlanos
             planos={await listarPlanos(db, conta.contaId)}
             servicos={await listarServicos(db, conta.contaId)}
@@ -163,9 +162,9 @@ export default async function Config({
           />
         ) : null}
 
-        {secao === 'recibo' ? <PainelDoRecibo db={db} contaId={conta.contaId} /> : null}
+        {mostra('recibo') ? <PainelDoRecibo db={db} contaId={conta.contaId} /> : null}
 
-        {secao === 'equipe' ? (
+        {mostra('equipe') ? (
           <SecaoEquipe
             equipe={await listarEquipe(db, conta.contaId)}
             servicos={(await listarServicos(db, conta.contaId))
@@ -178,7 +177,14 @@ export default async function Config({
           />
         ) : null}
 
-        {secao === 'locais' ? (
+        {mostra('funcionamento') ? (
+          <SecaoFuncionamento
+            dias={await carregarFuncionamento(db, conta.contaId)}
+            datas={await listarDatasFechadas(db, conta.contaId, hojeEm(conta.fuso))}
+          />
+        ) : null}
+
+        {mostra('locais') ? (
           <SecaoLocais
             locais={await listarLocais(db, conta.contaId)}
             rotulo={rotulos.local}
@@ -187,14 +193,14 @@ export default async function Config({
           />
         ) : null}
 
-        {secao === 'padroes' ? (
+        {mostra('padroes') ? (
           <SecaoPadroes
             padroes={await carregarPadroes(db, conta.contaId)}
             ultima={await ultimaAlteracao(db, conta.contaId, 'conta')}
           />
         ) : null}
 
-        {secao === 'vocabulario' ? (
+        {mostra('vocabulario') ? (
           <SecaoVocabulario
             itens={(Object.keys(PADRAO) as ChaveVocabulario[]).map((chave) => ({
               chave,
@@ -206,7 +212,7 @@ export default async function Config({
           />
         ) : null}
 
-        {secao === 'usuarios' ? (
+        {mostra('usuarios') ? (
           <SecaoUsuarios
             usuarios={await listarUsuarios(db, conta.contaId)}
             convites={await listarConvites(db, conta.contaId)}
@@ -214,19 +220,13 @@ export default async function Config({
           />
         ) : null}
 
-        {secao === 'integracoes' ? (
+        {mostra('integracoes') ? (
           <SecaoIntegracoes
             chaves={await listarChaves(db, conta.contaId)}
             aviso={await avisoDaConta(conta.contaId)}
           />
         ) : null}
 
-        {secao === 'funcionamento' ? (
-          <SecaoFuncionamento
-            dias={await carregarFuncionamento(db, conta.contaId)}
-            datas={await listarDatasFechadas(db, conta.contaId, hojeEm(conta.fuso))}
-          />
-        ) : null}
           </div>
         </div>
       </div>

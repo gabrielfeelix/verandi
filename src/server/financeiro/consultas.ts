@@ -1,3 +1,4 @@
+import { inicioDaPessoa } from '@/core/pessoas/inicio'
 import type { Db } from '../supabase'
 import { semAcento } from '@/core/pessoas/busca'
 import type { Recorrencia } from '@/core/planos/plano'
@@ -581,10 +582,13 @@ export async function materialDoFechamento(
         valor_cent: number; estornado_em: string; motivo_estorno: string | null
         cobranca: { pessoa: { nome: string } | null } | null
       }>>(),
+    // o contrato mais antigo de cada um entra na conta do "novo": quem foi
+    // importado tem o cadastro do dia da importação
     db.from('pessoa')
-      .select('ativo, criado_em, anonimizada_em').eq('conta_id', contaId)
+      .select('id, ativo, criado_em, anonimizada_em, contrato(inicio)').eq('conta_id', contaId)
       .returns<Array<{
-        ativo: boolean; criado_em: string; anonimizada_em: string | null
+        id: string; ativo: boolean; criado_em: string; anonimizada_em: string | null
+        contrato: Array<{ inicio: string }> | null
       }>>(),
   ])
 
@@ -598,6 +602,29 @@ export async function materialDoFechamento(
    * materialização, com o horizonte um mês à frente, e por isso já respeita
    * licença e fim de contrato sem repetir a regra aqui.
    */
+  /*
+   * A primeira aula só importa para quem parece novo: cadastrado dentro do
+   * período e sem contrato mais antigo. Consultar o histórico de todos a cada
+   * fechamento seria varrer anos de chamada para responder uma contagem.
+   */
+  const candidatas = (pessoas.data ?? []).filter((p) => {
+    const ini = inicioDaPessoa([p.criado_em, ...(p.contrato ?? []).map((c) => c.inicio)])
+    return ini >= de && ini <= ate
+  }).map((p) => p.id)
+  const primeiraAula = new Map<string, string>()
+  if (candidatas.length) {
+    const { data: antes } = await db.from('participacao')
+      .select('pessoa_id, sessao!inner(inicio)')
+      .eq('conta_id', contaId)
+      .in('pessoa_id', candidatas)
+      .lt('sessao.inicio', `${de}T00:00:00`)
+      .returns<Array<{ pessoa_id: string; sessao: { inicio: string } }>>()
+    for (const a of antes ?? []) {
+      const atual = primeiraAula.get(a.pessoa_id)
+      if (!atual || a.sessao.inicio < atual) primeiraAula.set(a.pessoa_id, a.sessao.inicio)
+    }
+  }
+
   const alvo = proximaCompetencia(competenciaDe(ate))
   let previstoCent = 0
   for (const c of contratos.data ?? []) {
@@ -636,7 +663,11 @@ export async function materialDoFechamento(
     })),
     pessoas: (pessoas.data ?? []).map((p) => ({
       ativo: p.ativo,
-      criadoEm: p.criado_em,
+      inicio: inicioDaPessoa([
+        p.criado_em,
+        ...(p.contrato ?? []).map((c) => c.inicio),
+        primeiraAula.get(p.id),
+      ]),
       anonimizada: p.anonimizada_em !== null,
     })),
     contratos: (contratos.data ?? []).map((c) => ({
