@@ -48,7 +48,7 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
       Hoje).
 - [x] "Encaixar" fica só no rodapé da lista. Card de Hoje vira "Fazer chamada"
       (link para a aula), sem concluir às cegas.
-- [ ] Encaixe: a origem é deduzida (tem falta em aberto: Reposição; aula lotada:
+- [x] Encaixe: a origem é deduzida (tem falta em aberto: Reposição; aula lotada:
       Reserva; senão: Avulso). Os chips de origem ficam só para corrigir.
       Avaliar se "Encaixe" e "Avulso" precisam ser duas origens.
 

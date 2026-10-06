@@ -7,7 +7,7 @@ import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { encaixarNaSessao, type PedidoDeEncaixe, type ResultadoEncaixe } from './encaixe'
 import { avisar } from '../webhook/eventos'
 import { avisarQuemEspera } from './espera'
-import type { OrigemParticipacao } from './consultas'
+import { faltasEmAberto, type FaltaEmAberto, type OrigemParticipacao } from './consultas'
 import { semAcento } from '../pessoas/consultas'
 import { CANDIDATOS_EM_MEMORIA } from '@/core/pessoas/busca'
 import { horariosLivres } from './disponibilidade'
@@ -478,4 +478,13 @@ export async function agendarReposicao(
   })
   if (r.ok) atualizarTela(sessaoId)
   return r
+}
+
+/**
+ * As faltas que esta pessoa ainda pode repor, para o encaixe já sugerir
+ * "Reposição" sem a recepção ter que lembrar.
+ */
+export async function faltasParaRepor(pessoaId: string): Promise<FaltaEmAberto[]> {
+  const { db, conta } = await quemRegistra()
+  return faltasEmAberto(db, conta.contaId, pessoaId)
 }

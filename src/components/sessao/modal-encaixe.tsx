@@ -5,8 +5,9 @@ import { useEffect, useState, useTransition } from 'react'
 import type { Ocupacao } from '@/core/agenda/ocupacao'
 import { filtrarPorNome } from '@/core/pessoas/busca'
 import {
-  ajustarCapacidade, buscarCandidatos, encaixar, listarCandidatos,
+  ajustarCapacidade, buscarCandidatos, encaixar, faltasParaRepor, listarCandidatos,
 } from '@/server/agenda/acoes'
+import type { FaltaEmAberto } from '@/server/agenda/consultas'
 import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { Avatar, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
@@ -37,7 +38,10 @@ export function ModalEncaixe({
   const { encaixeAberto, fecharEncaixe } = useChamada()
   const [pendente, iniciar] = useTransition()
   const [busca, setBusca] = useState('')
-  const [origem, setOrigem] = useState<'avulso' | 'reposicao' | 'encaixe' | 'reserva'>('avulso')
+  const [origem, setOrigem] = useState<'avulso' | 'reposicao'>('avulso')
+  /** a falta mais antiga ainda sem reposição de quem foi escolhido */
+  const [falta, setFalta] = useState<FaltaEmAberto | null>(null)
+  const [trocando, setTrocando] = useState(false)
   const [aviso, setAviso] = useState<string | null>(null)
   /** quem foi tocado na lista: o toque escolhe, o botão do rodapé grava */
   const [escolhido, setEscolhido] = useState<Candidato | null>(null)
@@ -109,7 +113,10 @@ export function ModalEncaixe({
     setAviso(null)
     setNoLimite(null)
     iniciar(async () => {
-      const r = await encaixar({ sessaoId, pessoaId, origem, confirmarAcima, passarDoLimite })
+      const r = await encaixar({
+        sessaoId, pessoaId, origem, confirmarAcima, passarDoLimite,
+        reposicaoDeId: origem === 'reposicao' ? falta?.participacaoId : undefined,
+      })
       if (r.ok) {
         setBusca('')
         setExcedente(null)
@@ -144,18 +151,43 @@ export function ModalEncaixe({
     })
   }
 
+  /*
+   * A origem é deduzida, não perguntada: quem tem falta para repor entra como
+   * Reposição (da falta mais antiga), o resto é Avulso, e "Trocar" fica para a
+   * exceção. "Encaixe" e "Reserva" saíram da escolha: passar da capacidade já
+   * pede confirmação própria, e Reserva ocupava lugar igual a Avulso, sem ser a
+   * fila de espera de verdade (`espera`), o que só confundia.
+   */
   const ORIGENS = [
     ['avulso', 'Avulso'],
     ['reposicao', 'Reposição'],
-    ['encaixe', 'Encaixe'],
-    ['reserva', 'Reserva'],
   ] as const
   const nomeDaOrigem = ORIGENS.find(([v]) => v === origem)?.[1] ?? 'Avulso'
 
+  function escolher(c: Candidato) {
+    setEscolhido(c); setExcedente(null); setAviso(null); setTrocando(false)
+    setFalta(null)
+    setOrigem('avulso')
+    iniciar(async () => {
+      const faltas = await faltasParaRepor(c.id)
+      // a lista vem da mais nova para a mais antiga; repõe primeiro a que vence antes
+      const antiga = faltas.at(-1) ?? null
+      setFalta(antiga)
+      if (antiga) setOrigem('reposicao')
+    })
+  }
+
   function fechar() {
     setAviso(null); setExcedente(null); setEscolhido(null); setBusca('')
+    setFalta(null); setTrocando(false)
     fecharEncaixe()
   }
+
+  const porQue = origem === 'reposicao'
+    ? falta
+      ? `repõe a falta de ${falta.data.slice(8, 10)}/${falta.data.slice(5, 7)}`
+      : 'sem falta em aberto para apontar'
+    : 'só desta vez'
 
   return (
     <Modal
@@ -178,18 +210,6 @@ export function ModalEncaixe({
       pendente={pendente}
       aoFechar={fechar}
     >
-      {/* a origem vem primeiro: é a pergunta que muda o que fica registrado */}
-      <div className="flex flex-col gap-2">
-        <Rotulo>Origem</Rotulo>
-        <div role="group" aria-label="Origem" className="flex flex-wrap gap-1.5">
-          {ORIGENS.map(([valor, rotulo]) => (
-            <Chip key={valor} ativo={origem === valor} onClick={() => setOrigem(valor)}>
-              {rotulo}
-            </Chip>
-          ))}
-        </div>
-      </div>
-
       <div className="flex flex-col gap-2">
         <label htmlFor="busca-pessoa">
           <Rotulo>Quem</Rotulo>
@@ -206,7 +226,7 @@ export function ModalEncaixe({
           * A lista rola por dentro, com altura de três nomes e meio.
           *
           * Antes ela crescia com o resultado: digitar duas letras trazia oito
-          * pessoas, o modal esticava até o pé da janela e "Origem" saía da
+          * pessoas, o modal esticava até o pé da janela e o botão saía da
           * vista. Meio nome cortado na borda é o que diz que há mais para rolar.
           */}
         {lista.length > 0 ? (
@@ -217,7 +237,7 @@ export function ModalEncaixe({
                   type="button"
                   disabled={pendente}
                   aria-pressed={escolhido?.id === c.id}
-                  onClick={() => { setEscolhido(c); setExcedente(null); setAviso(null) }}
+                  onClick={() => escolher(c)}
                   className={`flex w-full cursor-pointer items-center gap-3 rounded-media border px-3 py-2.5 text-left transition-colors duration-150 ${
                     escolhido?.id === c.id
                       ? 'border-marca bg-positivo-superficie'
@@ -238,6 +258,33 @@ export function ModalEncaixe({
           </ul>
         ) : null}
       </div>
+
+      {escolhido ? (
+        <div className="flex flex-col gap-2 rounded-media border border-linha-suave bg-superficie-suave p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[14px]">
+              Entra como <strong className="font-semibold">{nomeDaOrigem}</strong>
+              <span className="text-tinta-media">, {porQue}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => setTrocando(!trocando)}
+              className="shrink-0 cursor-pointer text-[13.5px] font-medium text-marca hover:underline"
+            >
+              {trocando ? 'Pronto' : 'Trocar'}
+            </button>
+          </div>
+          {trocando ? (
+            <div role="group" aria-label="Origem" className="flex flex-wrap gap-1.5">
+              {ORIGENS.map(([valor, rotulo]) => (
+                <Chip key={valor} ativo={origem === valor} onClick={() => setOrigem(valor)}>
+                  {rotulo}
+                </Chip>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Passa da capacidade: a tela conta o que vai acontecer e pede o segundo
           toque. 5/4 é decisão de quem está no balcão, com nome e registro ,
@@ -297,31 +344,35 @@ export function ModalEncaixe({
         * São coisas diferentes: encaixar é o botão do rodapé; isto
         * aqui só muda o número de vagas deste dia.
         */}
-      <form
-        action={(f) => {
-          const n = Number(f.get('capacidade'))
-          iniciar(async () => {
-            await ajustarCapacidade(sessaoId, n)
-            setAviso(null)
-          })
-        }}
-        className="flex flex-col gap-2 rounded-media border border-linha-suave bg-superficie-suave p-3"
-      >
-        <label htmlFor="capacidade">
-          <Rotulo>Capacidade só deste dia</Rotulo>
-        </label>
-        <div className="flex items-center gap-2">
-          <span className="w-24">
-            <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={ocupacao.capacidade} />
-          </span>
-          <Botao type="submit" tom="secundario" miudo disabled={pendente}>
-            Aplicar
-          </Botao>
-        </div>
-        <p className="text-[12.5px] leading-relaxed text-tinta-media">
-          Muda só este horário. A grade fixa das outras semanas continua igual.
-        </p>
-      </form>
+      {/* só aparece quando falta vaga: com lugar sobrando, é um campo pedindo
+          para ser mexido sem motivo */}
+      {ocupacao.lotada || aviso || excedente ? (
+        <form
+          action={(f) => {
+            const n = Number(f.get('capacidade'))
+            iniciar(async () => {
+              await ajustarCapacidade(sessaoId, n)
+              setAviso(null)
+            })
+          }}
+          className="flex flex-col gap-2 rounded-media border border-linha-suave bg-superficie-suave p-3"
+        >
+          <label htmlFor="capacidade">
+            <Rotulo>Capacidade só deste dia</Rotulo>
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="w-24">
+              <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={ocupacao.capacidade} />
+            </span>
+            <Botao type="submit" tom="secundario" miudo disabled={pendente}>
+              Aplicar
+            </Botao>
+          </div>
+          <p className="text-[12.5px] leading-relaxed text-tinta-media">
+            Muda só este horário. A grade fixa das outras semanas continua igual.
+          </p>
+        </form>
+      ) : null}
     </Modal>
   )
 }
