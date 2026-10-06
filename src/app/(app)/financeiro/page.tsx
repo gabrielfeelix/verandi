@@ -10,14 +10,14 @@ import {
   aReceber, carteira, clientes, descontoDeVinculo, emAtraso, estornosDoPeriodo,
   faturamentoPor, recebidoPorForma,
 } from '@/core/financeiro/fechamento'
-import { competenciaDe, competenciaPorExtenso } from '@/core/financeiro/cobranca'
+import { competenciaDe } from '@/core/financeiro/cobranca'
 import { recibosDoPeriodo } from '@/server/recibo/consultas'
 import { emReais } from '@/core/planos/plano'
 import { dataCurta, somarDias } from '@/core/agenda/datas'
 import { ListaDeCobrancas } from '@/components/financeiro/lista'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { BuscaDeCobranca, ProvedorDeBusca } from '@/components/financeiro/busca'
-import { Paginacao, Vazio, cartao } from '@/components/ui/pecas'
+import { Avatar, Paginacao, Vazio, cartao } from '@/components/ui/pecas'
 import { BarraDePeriodo } from '@/components/ui/barra-periodo'
 import { FaixaDeNumeros, type NumeroDaFaixa } from '@/components/ui/faixa-numeros'
 import { periodoDaBusca } from '@/core/financeiro/periodo'
@@ -357,6 +357,9 @@ async function Fechamento({
     </Link>
   )
 
+  const vencidoTotal = atraso.reduce((t, a) => t + a.totalCent, 0)
+  const maiorForma = Math.max(1, ...recebido.porForma.map((f) => f.totalCent))
+
   return (
     <div className="flex flex-col gap-4">
       <Cabecalho atrasadas={atrasadas} hoje={hoje} />
@@ -368,58 +371,87 @@ async function Fechamento({
         {periodo('Esta semana', somarDias(hoje, -6), hoje)}
         {periodo('Este mês', competenciaDe(hoje), hoje)}
         {periodo('Este ano', `${hoje.slice(0, 4)}-01-01`, hoje)}
-        <span className="text-[13.5px] text-tinta-fraca">
-          de {dataCurta(de)} a {dataCurta(ate)}
+        <span className="text-[13.5px] text-tinta-media">
+          {dataCurta(de)} a {dataCurta(ate)}
         </span>
         <a
           href={`/financeiro/exportar?de=${de}&ate=${ate}`}
           download
-          className="ml-auto inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] hover:bg-superficie-mais-suave"
+          className="ml-auto inline-flex min-h-10 items-center rounded-media border border-linha bg-superficie px-3.5 text-[13.5px] font-medium hover:bg-superficie-mais-suave"
         >
-          Planilha
+          Baixar planilha
         </a>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <Numero
-          titulo="Entrou no período"
-          valor={emReais(recebido.totalCent)}
-          nota={recebido.porForma.length
-            ? recebido.porForma.map((f) => `${f.rotulo}: ${emReais(f.totalCent)}`).join(' · ')
-            : 'nenhum pagamento registrado'}
-        />
-        <Numero
-          titulo="Estornos no período"
-          valor={emReais(estornos.totalCent)}
-          nota={estornos.quantidade === 0
-            ? 'nenhum pagamento voltou atrás'
-            : `${estornos.quantidade} ${estornos.quantidade === 1 ? 'pagamento devolvido' : 'pagamentos devolvidos'}`}
-        />
-        <Numero
-          titulo="Clientes ativos"
-          valor={String(gente.ativos)}
-          nota={`${gente.inativos} ${gente.inativos === 1 ? 'inativo' : 'inativos'}, que não somem e ficam fora do padrão`}
-        />
-        <Numero
-          titulo="Novos no período"
-          valor={String(gente.novos)}
-          nota={`cadastrados entre ${dataCurta(de)} e ${dataCurta(ate)}`}
-        />
-        <Numero
-          titulo="Recibos emitidos"
-          valor={String(recibos.emitidos)}
-          nota={recibos.cancelados === 0
-            ? `${emReais(recibos.emitidoCent)} em papel, nenhum cancelado`
-            : `${recibos.cancelados} ${recibos.cancelados === 1 ? 'cancelado' : 'cancelados'}, somando ${emReais(recibos.canceladoCent)}`}
-        />
+      {/*
+        * O que entrou é a pergunta do fechamento, e ganha o cartão grande,
+        * com a divisão por forma em barras. Os outros números ficam num
+        * cartão só, sem a frase-explicação embaixo de cada um: eram cinco
+        * cartões iguais, e nenhum se destacava.
+        */}
+      <div className="grid items-stretch gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <section className={`${cartao} flex flex-col gap-4 p-5`}>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="flex flex-col gap-1.5">
+              <h2 className="text-[13.5px] font-medium text-tinta-media">Entrou no período</h2>
+              <p className="font-titulo text-[34px] leading-none font-semibold tracking-[-.02em] tabular-nums">
+                {emReais(recebido.totalCent)}
+              </p>
+            </div>
+          </div>
+          {recebido.porForma.length ? (
+            <ul className="flex flex-col gap-2.5">
+              {recebido.porForma.map((f) => (
+                <li key={f.rotulo} className="grid grid-cols-[120px_minmax(0,1fr)_auto] items-center gap-3 text-[13.5px]">
+                  <span className="text-tinta-media">{f.rotulo}</span>
+                  <span className="h-2 overflow-hidden rounded-full bg-superficie-mais-suave">
+                    <span
+                      className="block h-full rounded-full bg-marca"
+                      style={{ width: `${Math.max(3, (f.totalCent / maiorForma) * 100)}%` }}
+                    />
+                  </span>
+                  <span className="font-medium tabular-nums">{emReais(f.totalCent)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-[13.5px] text-tinta-media">Nenhum pagamento registrado no período.</p>
+          )}
+          <div className="mt-auto flex items-center justify-between border-t border-linha-suave pt-3 text-[13.5px]">
+            <span className="text-tinta-media">Estornos no período</span>
+            <span className={`font-medium tabular-nums ${estornos.quantidade ? 'text-reg-falta' : ''}`}>
+              {emReais(estornos.totalCent)}
+            </span>
+          </div>
+        </section>
+
+        <section className={`${cartao} grid grid-cols-2 gap-px overflow-hidden bg-linha-suave p-0`}>
+          {([
+            ['Clientes ativos', String(gente.ativos), `${gente.inativos} inativos`],
+            ['Novos no período', String(gente.novos), null],
+            ['Contratos em vigor', String(cart.emVigor), `${cart.novos} novos, ${cart.encerrados} encerrados`],
+            ['Recibos emitidos', String(recibos.emitidos),
+              recibos.emitidos ? emReais(recibos.emitidoCent) : null],
+          ] as const).map(([rotulo, valor, nota]) => (
+            <div key={rotulo} className="flex flex-col gap-1.5 bg-superficie p-4">
+              <span className="text-[13.5px] text-tinta-media">{rotulo}</span>
+              <span className="font-titulo text-[24px] leading-none font-semibold tabular-nums">{valor}</span>
+              {nota ? <span className="text-[12px] text-tinta-fraca">{nota}</span> : null}
+            </div>
+          ))}
+        </section>
       </div>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
         <section className={`${cartao} p-4`}>
-          <h2 className="pb-1 font-titulo text-[18px] font-semibold">Cobranças em atraso</h2>
-          <p className="pb-3 text-[13.5px] text-tinta-media">
-            Situação de hoje, do atraso mais antigo para o mais recente.
-          </p>
+          <div className="flex items-baseline justify-between gap-3 pb-3">
+            <h2 className="font-titulo text-[18px] font-semibold">Em atraso hoje</h2>
+            {atraso.length ? (
+              <span className="text-[14.5px] font-semibold text-reg-falta tabular-nums">
+                {emReais(vencidoTotal)}
+              </span>
+            ) : null}
+          </div>
           {atraso.length === 0 ? (
             <Vazio
               icone="dinheiro"
@@ -427,31 +459,38 @@ async function Fechamento({
               texto="Nenhuma cobrança vencida sem pagamento."
             />
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col">
               {atraso.map((a) => (
                 <li
                   key={a.pessoaId}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-linha-suave pb-2 last:border-0"
+                  className="flex items-center gap-3 border-b border-linha-suave py-2.5 last:border-0"
                 >
-                  <Link
-                    href={`/pessoas/${a.pessoaId}?aba=contratos`}
-                    className="flex-1 text-[14.5px] hover:underline"
-                  >
-                    {a.pessoaNome}
-                  </Link>
-                  <span className="text-[13.5px] text-tinta-media">
-                    {a.cobrancas} {a.cobrancas === 1 ? 'cobrança' : 'cobranças'} ·{' '}
-                    {a.diasDoMaisVelho} dias
+                  <Avatar nome={a.pessoaNome} tamanho={32} decorativo />
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <Link
+                      href={`/pessoas/${a.pessoaId}?aba=contratos`}
+                      className="truncate text-[14.5px] font-medium hover:underline"
+                    >
+                      {a.pessoaNome}
+                    </Link>
+                    <span className="text-[12px] text-tinta-media">
+                      {a.cobrancas} {a.cobrancas === 1 ? 'cobrança' : 'cobranças'}
+                    </span>
                   </span>
-                  <span className="text-[14.5px]">{emReais(a.totalCent)}</span>
+                  <span className="rounded-full bg-alerta-fundo px-2 py-0.5 text-[12px] font-medium whitespace-nowrap text-alerta">
+                    {a.diasDoMaisVelho} {a.diasDoMaisVelho === 1 ? 'dia' : 'dias'}
+                  </span>
+                  <span className="w-[92px] text-right text-[14.5px] font-semibold tabular-nums">
+                    {emReais(a.totalCent)}
+                  </span>
                   {a.telefone ? (
                     <a
                       href={`tel:${a.telefone.replace(/\D/g, '')}`}
-                      className="text-[13.5px] text-marca underline"
+                      className="inline-flex min-h-9 w-16 items-center justify-center rounded-media border border-linha bg-superficie text-[13.5px] font-medium hover:bg-superficie-mais-suave"
                     >
-                      ligar
+                      Ligar
                     </a>
-                  ) : null}
+                  ) : <span className="w-16" />}
                 </li>
               ))}
             </ul>
@@ -460,16 +499,13 @@ async function Fechamento({
 
         <div className="flex flex-col gap-3">
           <section className={`${cartao} p-4`}>
-            <h2 className="pb-1 font-titulo text-[18px] font-semibold">
+            <h2 className="pb-3 font-titulo text-[18px] font-semibold">
               Faturamento por modalidade
             </h2>
-            <p className="pb-3 text-[13.5px] text-tinta-media">
-              sobre o que entrou, e não sobre o que foi cobrado
-            </p>
             <Barras itens={porServico} />
             {porPlano.length > 1 ? (
               <>
-                <h3 className="pt-4 pb-2 text-[12px] font-semibold text-tinta-fraca">
+                <h3 className="pt-4 pb-2 text-[13.5px] font-medium text-tinta-media">
                   Por plano
                 </h3>
                 <Barras itens={porPlano} />
@@ -478,37 +514,24 @@ async function Fechamento({
           </section>
 
           <section className={`${cartao} p-4`}>
-            {/* era um parágrafo com seis números dentro, e "preço de vínculo
-                custa" só fazia sentido para quem escreveu a regra */}
-            <h2 className="pb-3 font-titulo text-[18px] font-semibold">Contratos</h2>
-            <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Par termo="Novos" valor={String(cart.novos)} />
-              <Par termo="Encerrados" valor={String(cart.encerrados)} />
-              <Par termo="Em vigor hoje" valor={String(cart.emVigor)} />
-              <Par termo="Mensalidades" valor={emReais(cart.recorrenteCent)} />
-            </dl>
-            <dl className="mt-4 flex flex-col gap-2 border-t border-linha-suave pt-3 text-[13.5px]">
+            <h2 className="pb-3 font-titulo text-[18px] font-semibold">Previsão</h2>
+            <dl className="flex flex-col gap-2 text-[13.5px]">
+              <Linha termo="Mensalidades em vigor" valor={emReais(cart.recorrenteCent)} />
               <Linha termo="Ainda vence este mês" valor={emReais(receber.aVencerCent)} />
               <Linha termo="Vencido sem pagamento" valor={emReais(vencido.vencidoCent)} />
               <Linha termo="Previsto para o próximo mês" valor={emReais(material.previstoCent)} />
-              <Linha
-                termo={`Desconto para quem faz outra modalidade (${vinculo.contratos} ${vinculo.contratos === 1 ? 'contrato' : 'contratos'})`}
-                valor={emReais(vinculo.totalCent)}
-              />
+              {vinculo.contratos > 0 ? (
+                <Linha
+                  termo={`Desconto por segunda modalidade (${vinculo.contratos})`}
+                  valor={emReais(vinculo.totalCent)}
+                />
+              ) : null}
             </dl>
-            <p className="pt-3 text-[12px] text-tinta-fraca">
-              Mensalidades somam os contratos em vigor, sem os trancados.
-            </p>
           </section>
 
           {estornos.quantidade > 0 ? (
             <section className={`${cartao} p-4`}>
-              <h2 className="pb-1 font-titulo text-[18px] font-semibold">
-                O que voltou atrás
-              </h2>
-              <p className="pb-3 text-[13.5px] text-tinta-media">
-                estornos do período, com o motivo que quem estornou escreveu
-              </p>
+              <h2 className="pb-3 font-titulo text-[18px] font-semibold">Estornos</h2>
               <ul className="flex flex-col gap-2">
                 {estornos.linhas.map((e, i) => (
                   <li
@@ -519,7 +542,7 @@ async function Fechamento({
                     <span className="text-tinta-media">
                       {dataCurta(e.estornadoEm.slice(0, 10))} · {e.motivo}
                     </span>
-                    <span className="">{emReais(e.valorCent)}</span>
+                    <span className="tabular-nums">{emReais(e.valorCent)}</span>
                   </li>
                 ))}
               </ul>
@@ -527,24 +550,7 @@ async function Fechamento({
           ) : null}
         </div>
       </div>
-
-      <p className="text-[13.5px] text-tinta-fraca">
-        Período de {competenciaPorExtenso(competenciaDe(de))}, de {dataCurta(de)} a{' '}
-        {dataCurta(ate)}.
-      </p>
     </div>
-  )
-}
-
-function Numero({ titulo, valor, nota }: { titulo: string; valor: string; nota: string }) {
-  return (
-    <section className={`${cartao} flex flex-col gap-1 p-4`}>
-      <h2 className="text-[12px] font-semibold text-tinta-fraca">
-        {titulo}
-      </h2>
-      <p className="font-titulo text-[26px] leading-none font-semibold">{valor}</p>
-      <p className="text-[13.5px] text-tinta-media">{nota}</p>
-    </section>
   )
 }
 
@@ -553,15 +559,6 @@ function Linha({ termo, valor }: { termo: string; valor: string }) {
     <div className="flex items-baseline justify-between gap-3">
       <dt className="text-tinta-media">{termo}</dt>
       <dd className="shrink-0">{valor}</dd>
-    </div>
-  )
-}
-
-function Par({ termo, valor }: { termo: string; valor: string }) {
-  return (
-    <div className="flex flex-col">
-      <dt className="text-[12px] text-tinta-media">{termo}</dt>
-      <dd className="font-titulo text-[18px] font-semibold">{valor}</dd>
     </div>
   )
 }

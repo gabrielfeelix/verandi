@@ -33,7 +33,7 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
   status, valor, crédito/recebido, ações à direita). Hoje a tabela só começa
   no meio da tela: filtro de vencimento + busca + cards + filtros + abas.
   Enxugar o topo; filtros secundários em "Mais filtros".
-- [ ] **Financeiro, Fechamento**: ninguém entende. Reorganizar em cards
+- [x] **Financeiro, Fechamento**: ninguém entende. Reorganizar em cards
   claros, avatar das pessoas, ilustração no vazio.
 - [ ] **Financeiro, Recibos**: mesmo padrão de tabela.
 - [ ] **Aulas por professor**: questionar se mora no Financeiro. Proposta:

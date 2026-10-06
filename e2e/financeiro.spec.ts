@@ -224,8 +224,9 @@ test('o fechamento soma o dia por forma de pagamento', async ({ page }) => {
 
   await expect(page.getByText('Entrou no período')).toBeVisible()
   await expect(page.getByText('R$ 735,00').first()).toBeVisible()
-  await expect(page.getByText(/Pix: R\$ 500,00 · Dinheiro: R\$ 235,00/)).toBeVisible()
-  await expect(page.getByText('Em vigor hoje')).toBeVisible()
+  await expect(page.getByRole('listitem').filter({ hasText: 'Pix' })).toContainText('R$ 500,00')
+  await expect(page.getByRole('listitem').filter({ hasText: 'Dinheiro' })).toContainText('R$ 235,00')
+  await expect(page.getByText('Contratos em vigor')).toBeVisible()
 
   // os quatro números do topo são os do documento do cliente: faturado,
   // estornos, clientes ativos e novos no período

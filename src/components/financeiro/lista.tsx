@@ -236,6 +236,17 @@ export function ListaDeCobrancas({
                           {ROTULO_FORMA[ultimo.forma]} · {dataCurta(ultimo.recebidoEm)}
                           {validos.length > 1 ? ` (+${validos.length - 1})` : ''}
                         </span>
+                        {validos.filter((p) => p.recibo).map((p) => (
+                          <Link
+                            key={p.id}
+                            href={`/recibos/${p.recibo!.id}`}
+                            className="inline-flex items-center gap-1 text-[12px] font-medium text-marca hover:underline"
+                          >
+                            <Icone nome="recibo" tamanho={12} />
+                            {p.recibo!.descricao}
+                            {p.recibo!.cancelado ? ' (cancelado)' : ''}
+                          </Link>
+                        ))}
                       </span>
                     ) : c.pagamentos.some((p) => p.estornado) ? (
                       <span className="flex flex-col">
