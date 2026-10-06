@@ -35,7 +35,7 @@ export function DiaPorRecurso({
   if (horas.length === 0 || colunas.length === 0) {
     return (
       <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie">
-        <Vazio icone="semana" titulo="Nada marcado neste dia" texto={vazio || undefined} />
+        <Vazio icone="semana" desenho="dia" titulo="Nada marcado neste dia" texto={vazio || undefined} />
       </section>
     )
   }

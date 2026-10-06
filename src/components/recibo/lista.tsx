@@ -73,6 +73,7 @@ export function ListaDeRecibos({
     return (
       <Vazio
         icone="lista"
+        desenho="dinheiro"
         titulo="Nenhum recibo ainda"
         texto="Para emitir, abra o menu de uma cobrança paga em Cobranças e escolha Emitir recibo."
       />

@@ -608,6 +608,7 @@ export default async function Pessoa({
               {ficha.historico.length === 0 ? (
                 <Vazio
                   icone="hoje"
+                  desenho="lista"
                   titulo="Ainda não há histórico"
                   texto="As presenças e faltas aparecem aqui conforme forem registradas."
                 />

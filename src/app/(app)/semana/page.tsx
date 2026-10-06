@@ -353,6 +353,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               <div className="rounded-grande border border-dashed border-linha-tracejada">
                 <Vazio
                   icone="semana"
+                  desenho="dia"
                   titulo={soComVaga ? 'Nenhum horário com vaga neste dia' : 'Nada marcado neste dia'}
                   texto={soComVaga ? 'Escolha outro dia acima.' : undefined}
                 />

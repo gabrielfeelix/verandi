@@ -455,6 +455,7 @@ async function Fechamento({
           {atraso.length === 0 ? (
             <Vazio
               icone="dinheiro"
+              desenho="tudo-certo"
               titulo="Ninguém em atraso"
               texto="Nenhuma cobrança vencida sem pagamento."
             />

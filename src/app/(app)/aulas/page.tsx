@@ -96,6 +96,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
         {r.linhas.length === 0 ? (
           <Vazio
             icone="pessoas"
+            desenho="semana"
             titulo="Nada para contar neste período"
             texto="As aulas aparecem aqui depois de acontecerem. Se você esperava alguma, confira se a grade cobre esses dias, na Grade fixa."
           />
