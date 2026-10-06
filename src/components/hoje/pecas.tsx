@@ -94,8 +94,8 @@ export function PilhaPessoas({
 const ESTADO: Record<string, { rotulo: string; bg: string; fg: string }> = {
   feita: { rotulo: 'Feita', bg: 'bg-positivo-fundo', fg: 'text-positivo' },
   pendente: { rotulo: 'Pendente', bg: 'bg-alerta-fundo', fg: 'text-alerta' },
-  sem_ninguem: { rotulo: 'Vazia', bg: 'bg-neutro-fundo', fg: 'text-neutro' },
-  aberta: { rotulo: 'Aberta', bg: 'bg-neutro-fundo', fg: 'text-neutro' },
+  sem_ninguem: { rotulo: 'Sem inscritos', bg: 'bg-neutro-fundo', fg: 'text-neutro' },
+  aberta: { rotulo: 'A seguir', bg: 'bg-info-fundo', fg: 'text-info' },
   cancelada: { rotulo: 'Cancelada', bg: 'bg-neutro-fundo', fg: 'text-neutro' },
 }
 
@@ -126,23 +126,23 @@ export function LinhaAgenda({
   agora: boolean
 }) {
   const cancelada = sessao.status === 'cancelada'
+  // aula que ainda vai acontecer não tem estado a mostrar: "Aberta" em todas as
+  // linhas da tarde era ruído. Só a próxima ganha selo
   const estado = cancelada
     ? 'cancelada'
     : passou
       ? sessao.chamada
-      : 'aberta'
+      : agora ? 'aberta' : null
 
   const nota = [
     sessao.local,
     cancelada
-      ? `cancelada, ${sessao.motivoCancelamento ?? 'Sem motivo'}`
-      : agora
-        ? 'próxima'
-        : passou && sessao.chamada === 'feita'
-          ? resumoDaChamada(sessao)
-          : passou && sessao.chamada === 'pendente'
-            ? 'ninguém registrou'
-            : null,
+      ? sessao.motivoCancelamento
+      : passou && sessao.chamada === 'feita'
+        ? resumoDaChamada(sessao)
+        : passou && sessao.chamada === 'pendente'
+          ? 'chamada não registrada'
+          : null,
   ]
     .filter(Boolean)
     .join(' · ')
@@ -203,7 +203,7 @@ export function LinhaAgenda({
         </span>
       </span>
 
-      <SeloEstado estado={estado} />
+      {estado ? <SeloEstado estado={estado} /> : <span aria-hidden />}
     </Link>
   )
 }
@@ -220,24 +220,17 @@ function resumoDaChamada(s: SessaoResumo) {
   return partes.length ? partes.join(', ') : 'registrada'
 }
 
-/** O cabeçalho de período: MANHÃ, TARDE, NOITE. */
-export function FaixaPeriodo({
-  titulo, n, rotulo,
-}: {
-  titulo: string
-  n: number
-  /** o vocabulário da conta: "turmas" no pilates, "atendimentos" na clínica */
-  rotulo: { singular: string; plural: string }
-}) {
+/**
+ * O cabeçalho de período: Manhã, Tarde, Noite. Sem contagem: o total do dia já
+ * está no título do bloco, e três números a mais não mudam decisão nenhuma.
+ */
+export function FaixaPeriodo({ titulo }: { titulo: string }) {
   return (
     <div className="flex items-center gap-2.5 px-3 pt-3.5 pb-2">
       <span className="text-[12px] font-semibold text-tinta-media">
         {titulo}
       </span>
       <span aria-hidden className="h-px flex-1 bg-linha-fina" />
-      <span className="text-[12px] text-tinta-media">
-        {n} {(n === 1 ? rotulo.singular : rotulo.plural).toLowerCase()}
-      </span>
     </div>
   )
 }

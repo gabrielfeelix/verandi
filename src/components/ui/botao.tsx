@@ -58,7 +58,7 @@ export function Botao({
 /**
  * Botão de ícone: quadrado, sem rótulo visível.
  *
- * `titulo` é obrigatório — ícone sozinho sem nome é um botão que só quem
+ * `titulo` é obrigatório: ícone sozinho sem nome é um botão que só quem
  * desenhou sabe para que serve, e é invisível para leitor de tela.
  *
  * 34px no desktop, como o design system pede, e 44px no celular, onde o alvo é

@@ -130,25 +130,21 @@ export function ProximaTurma({
 
         <div className="flex min-w-[206px] flex-[1_1_206px] flex-col gap-2.5">
           {/* a chamada se faz na tela da aula, onde dá para marcar quem não
-              veio: concluir daqui dava presença a todos sem olhar a lista */}
+              veio: concluir daqui dava presença a todos sem olhar a lista.
+              Antes da hora, o botão abre a aula; "Chamada abre às 17:00" num
+              botão parecia um botão desligado */}
           <Link
             href={`/sessao/${sessao.id}`}
-            className={
-              podeRegistrar && comecou && aMarcar > 0
-                ? 'flex min-h-11 items-center justify-center rounded-padrao bg-menta px-4 text-[14.5px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px'
-                : 'flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[14.5px] hover:bg-tinta-clara/10'
-            }
+            className="flex min-h-11 items-center justify-center rounded-padrao bg-menta px-4 text-[14.5px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px"
           >
-            {!podeRegistrar
+            {!podeRegistrar || !comecou
               ? `Abrir ${rotulo.toLowerCase()}`
-              : aMarcar === 0
-                ? 'Ver chamada'
-                : comecou ? 'Fazer chamada' : `Chamada abre às ${sessao.hora}`}
+              : aMarcar === 0 ? 'Ver chamada' : 'Fazer chamada'}
           </Link>
 
           <Link
             href={`/sessao/${sessao.id}#encaixar`}
-            className="text-center text-[13.5px] text-tinta-escura-media hover:text-tinta-clara"
+            className="flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[14.5px] font-medium text-tinta-clara hover:bg-tinta-clara/10"
           >
             Encaixar {rotuloPessoa.toLowerCase()}
           </Link>

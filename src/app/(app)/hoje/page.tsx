@@ -14,7 +14,7 @@ import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
 import { ProximaTurma } from '@/components/hoje/proxima-turma'
 import { Bloco, FaixaPeriodo, LinhaAgenda } from '@/components/hoje/pecas'
 import { AvisoDeAcesso } from '@/components/ui/aviso-de-acesso'
-import { cartao } from '@/components/ui/pecas'
+import { Chip, cartao } from '@/components/ui/pecas'
 import { Saudacao } from '@/components/hoje/saudacao'
 import { caixaDoMes } from '@/server/financeiro/consultas'
 import { variacao } from '@/core/financeiro/metricas'
@@ -196,11 +196,11 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           </div>
         ) : null}
 
-        {!proxima && sessoes.length > 0 ? (
+        {!proxima && sessoes.length > 0 && dia <= hoje ? (
           <section className={`flex flex-wrap items-center gap-x-5.5 gap-y-3.5 ${cartao} px-5 py-4.5`}>
             <div className="flex flex-col gap-[3px]">
               <span className="text-[12px] font-semibold text-tinta-media">
-                {ehHoje ? 'Dia encerrado' : 'Dia fechado'}
+                {ehHoje ? 'Dia encerrado' : 'Resumo do dia'}
               </span>
               <span className="font-titulo text-[18px] font-semibold tracking-[-.01em]">
                 {dataLonga(dia, fuso)}
@@ -222,7 +222,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
             {!ehHoje ? (
               <Link
                 href={link(hoje)}
-                className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14.5px] hover:bg-[#EDF3F0]"
+                className="ml-auto rounded-padrao border border-linha bg-superficie px-4 py-2.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
               >
                 Voltar para hoje
               </Link>
@@ -243,15 +243,11 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         <span className="font-titulo text-[18px] font-semibold">
           Nada marcado neste dia
         </span>
-        <span className="max-w-[340px] text-[14.5px] leading-relaxed text-tinta-media">
-          Pode ser domingo, feriado ou dia fechado na configuração de
-          funcionamento.
-        </span>
         <div className="flex flex-wrap justify-center gap-2 pt-1.5">
           {podeVerTodos ? (
             <Link
               href="/semana"
-              className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14.5px] hover:bg-[#EDF3F0]"
+              className="rounded-padrao border border-linha bg-superficie px-4 py-2.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
             >
               Ver a semana
             </Link>
@@ -291,39 +287,32 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           * quer dizer "hoje não tem", que são coisas diferentes para quem monta
           * a grade.
           */}
-        <div
-          data-imprimir="fora"
-          className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-linha-fina px-3 pt-1 pb-3"
-        >
-          {profs.length > 1 ? (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[12px] text-tinta-fraca">
-                {rotulos.profissional.singular}
-              </span>
-              <FiltroDaAgenda href={recorte({ prof: null })} ligado={!profFiltro}>
-                Todos
-              </FiltroDaAgenda>
-              {profs.map((p) => (
-                <FiltroDaAgenda
-                  key={p.nome}
-                  href={recorte({ prof: p.nome })}
-                  ligado={profFiltro === p.nome}
-                >
-                  {p.nome.split(' ')[0]}
-                </FiltroDaAgenda>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        {profs.length > 1 ? (
+          <div
+            data-imprimir="fora"
+            aria-label={`Filtrar por ${rotulos.profissional.singular.toLowerCase()}`}
+            className="flex items-center gap-1.5 overflow-x-auto border-b border-linha-fina px-3 pt-1 pb-3 [scrollbar-width:none] *:shrink-0"
+          >
+            <Chip href={recorte({ prof: null })} ativo={!profFiltro}>
+              Todos
+            </Chip>
+            {profs.map((p) => (
+              <Chip
+                key={p.nome}
+                href={recorte({ prof: p.nome })}
+                ativo={profFiltro === p.nome}
+                ponto={p.cor ?? undefined}
+              >
+                {p.nome.split(' ')[0]}
+              </Chip>
+            ))}
+          </div>
+        ) : null}
 
         <div className="flex flex-col" aria-label={rotulos.sessao.plural}>
           {porPeriodo.map((g) => (
             <div key={g.periodo}>
-              <FaixaPeriodo
-                titulo={g.periodo}
-                n={g.itens.length}
-                rotulo={rotulos.sessao}
-              />
+              <FaixaPeriodo titulo={g.periodo} />
               {g.itens.map((s) => (
                 <LinhaAgenda
                   key={s.id}
@@ -336,13 +325,15 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           ))}
 
           {porPeriodo.length === 0 ? (
-            <p className="px-3 py-6 text-center text-[13.5px] text-tinta-media">
-              Nada neste recorte.{' '}
-              <Link href={recorte({ prof: null })} className="text-marca underline">
+            <div className="flex flex-col items-center gap-3 px-3 py-6 text-[13.5px] text-tinta-media">
+              Nada neste filtro.
+              <Link
+                href={recorte({ prof: null })}
+                className="rounded-padrao border border-linha bg-superficie px-4 py-2 text-[13.5px] font-medium text-tinta hover:bg-superficie-mais-suave"
+              >
                 Ver o dia todo
               </Link>
-              .
-            </p>
+            </div>
           ) : null}
         </div>
       </section>
@@ -355,7 +346,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         key="pendencias"
         titulo="Pendências"
         acao={
-          <Link href="/pendencias" className="text-[13.5px] font-medium text-marca">
+          <Link href="/pendencias" className="text-[13.5px] font-medium text-marca hover:underline">
             Ver tudo
           </Link>
         }
@@ -376,7 +367,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               </span>
               <span className="flex min-w-0 flex-col leading-tight">
                 <span className="text-[14.5px] font-medium">{g.titulo}</span>
-                <span className="truncate text-[12px] text-tinta-media">
+                <span className="line-clamp-2 text-[12px] text-tinta-media">
                   {g.tipo === 'licenca' && g.itens[0]
                     ? `${g.itens[0].titulo} · ${g.itens[0].etiqueta?.texto ?? ''}`
                     : g.itens[0]?.detalhe ?? g.sub}
@@ -389,7 +380,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           ))}
           {grupos.every((g) => g.itens.length === 0) ? (
             <p className="px-1 py-2 text-[13.5px] text-tinta-media">
-              Nada esperando por você.
+              Nenhuma pendência.
             </p>
           ) : null}
         </div>
@@ -410,8 +401,8 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         key="caixa"
         titulo="Caixa do mês"
         acao={
-          <Link href="/financeiro" className="text-[13.5px] font-medium text-marca">
-            Abrir
+          <Link href="/financeiro" className="text-[13.5px] font-medium text-marca hover:underline">
+            Ver tudo
           </Link>
         }
       >
@@ -430,11 +421,11 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 * falta. Sem mês anterior, a linha some: sair de zero para
                 * quatro mil não é aumento infinito, é o primeiro mês.
                 */}
-              <span className="text-[12px] text-tinta-media">
-                {variou === null
-                  ? 'sem mês anterior para comparar'
-                  : `${variou >= 0 ? '+' : ''}${variou}% ante o mesmo trecho`}
-              </span>
+              {variou === null ? null : (
+                <span className="text-[12px] text-tinta-media">
+                  {`${variou >= 0 ? '+' : ''}${variou}% em relação ao mesmo período do mês anterior`}
+                </span>
+              )}
             </span>
             <span className="shrink-0 text-[14.5px] font-semibold text-positivo tabular-nums">
               {emReais(caixa.recebidoCent)}
@@ -463,7 +454,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               <span className="text-[12px] text-tinta-media">
                 {caixa.atrasadas === 0
                   ? 'nada vencido'
-                  : `${caixa.atrasadas} ${caixa.atrasadas === 1 ? 'cobrança' : 'cobranças'}, de qualquer mês`}
+                  : `${caixa.atrasadas} ${caixa.atrasadas === 1 ? 'cobrança vencida' : 'cobranças vencidas'}`}
               </span>
             </span>
             <span
@@ -548,38 +539,5 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       </div>
     </ProvedorDeAviso>
     </AreaQueTroca>
-  )
-}
-
-/**
- * Uma opção do recorte rápido da agenda.
- *
- * `<Link>` e não botão: o recorte mora na URL, então ele sobrevive ao recarregar
- * e ao voltar do navegador, e o endereço pode ser mandado para alguém. Filtro
- * que some ao apertar "voltar" é filtro que a pessoa aplica duas vezes.
- */
-function FiltroDaAgenda({
-  href, ligado, vazio = false, children,
-}: {
-  href: string
-  ligado: boolean
-  /** não há nada neste recorte hoje: continua clicável e sai do caminho do olho */
-  vazio?: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={ligado ? 'true' : undefined}
-      className={`inline-flex min-h-9 items-center gap-1 rounded-peca border px-2.5 text-[13.5px] ${
-        ligado
-          ? 'border-marca bg-positivo-superficie font-medium text-marca'
-          : vazio
-            ? 'border-dashed border-linha bg-superficie text-tinta-fraca'
-            : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
-      }`}
-    >
-      {children}
-    </Link>
   )
 }
