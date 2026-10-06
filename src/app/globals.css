@@ -433,6 +433,43 @@ select:focus-visible {
   }
 }
 
+/* Registro da chamada trocou: o rótulo encolhe e volta, como um carimbo. */
+@keyframes vd-marca {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.88);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Folha do celular: sobe do rodapé, de onde o dedo está. */
+@keyframes vd-folha {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes vd-esmaece {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Anel que pulsa uma vez por ciclo: marca "a próxima turma é esta". */
 @keyframes vd-halo {
   0%,

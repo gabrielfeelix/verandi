@@ -52,7 +52,7 @@ export function Suspenso({
           ref={painel}
           id={id}
           role="menu"
-          className="z-[25] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado"
+          className="z-[25] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado origin-top-left"
           style={{ animation: 'vd-pop .18s ease both' }}
         >
           {itens.map((i) => (
