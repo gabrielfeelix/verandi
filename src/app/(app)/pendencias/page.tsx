@@ -2,8 +2,6 @@ import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { esvaziadasHoje, listarPendencias } from '@/server/pendencias/consultas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { ListaPendencias } from '@/components/pendencias/lista'
-import { PONTO_GRUPO } from '@/components/pendencias/tintas'
-import { cartao } from '@/components/ui/pecas'
 
 /**
  * A primeira tela do dia de quem opera: o que precisa de alguém hoje.
@@ -54,38 +52,10 @@ export default async function Pendencias() {
           </div>
         </header>
 
-        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <div data-guia="pendencias-lista">
-            <ListaPendencias grupos={grupos} />
-          </div>
-
-          <div className="flex flex-col gap-3.5">
-            {total > 0 ? (
-              <section className={`${cartao} p-4`}>
-                <h2 className="pb-3 font-titulo text-[18px] font-semibold">Resumo</h2>
-                <ul className="flex flex-col gap-2.5">
-                  {grupos.map((g) => (
-                    <li key={g.tipo} className="flex items-center gap-2.5">
-                      <span
-                        aria-hidden
-                        className={`size-2 shrink-0 rounded-full ${PONTO_GRUPO[g.tipo]}`}
-                      />
-                      <span className="flex-1 text-[14px]">{g.titulo}</span>
-                      <span className="font-mono text-[14px] text-tinta-media">
-                        {g.itens.length}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-
-            <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-              <p className="text-[13.5px] leading-relaxed text-tinta-media">
-                Dispensar tira o item da lista e guarda o motivo.
-              </p>
-            </section>
-          </div>
+        {/* uma coluna só: o "Resumo" ao lado repetia a contagem que já está no
+            título de cada grupo, e a dica do Dispensar mora no próprio modal */}
+        <div data-guia="pendencias-lista" className="max-w-[920px]">
+          <ListaPendencias grupos={grupos} />
         </div>
       </div>
     </ProvedorDeAviso>

@@ -76,7 +76,7 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 ## 5. Pendências
 
-- [ ] Sai o card lateral "Resumo": repete a contagem que já está no título de
+- [x] Sai o card lateral "Resumo": repete a contagem que já está no título de
       cada grupo.
 - [ ] Licenças com 3 ordens em vez de 5: atrasada (data passou ou voltou sem
       reagendar), próximas, sem data.

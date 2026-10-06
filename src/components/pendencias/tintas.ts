@@ -16,15 +16,6 @@ export const TINTA_GRUPO: Record<string, string> = {
   cadastro_incompleto: 'bg-neutro-fundo text-tinta-media',
 }
 
-/** O mesmo par, chapado, para o ponto do "Resumo". */
-export const PONTO_GRUPO: Record<string, string> = {
-  chamada_nao_feita: 'bg-alerta',
-  reposicao_aberta: 'bg-atencao',
-  licenca: 'bg-licenca',
-  reserva_esperando: 'bg-info',
-  cadastro_incompleto: 'bg-tinta-fraca',
-}
-
 /*
  * O verbo, e não "Resolver".
  *
