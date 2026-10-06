@@ -75,7 +75,7 @@ const EXTRAS = [
  *
  * Antes era `flex-wrap` com largura mínima: cada campo ficava do tamanho que
  * sobrava, espremido, e nenhum deles alinhava com a caixa de observação logo
- * abaixo — o formulário parecia montado a esmo. Nome e vencimento atravessam as
+ * abaixo, e o formulário parecia montado a esmo. Nome e vencimento atravessam as
  * duas colunas porque nome é o campo mais longo e vencimento é o último: meia
  * linha solta no fim deixa um buraco.
  */
@@ -106,7 +106,7 @@ const EXEMPLO: Record<string, string> = {
  * o cartão esticava para uns novecentos pixels, o lado esquerdo virava um vazio
  * branco do tamanho da tela e o botão "Inativar" ficava órfão numa
  * coluna sozinha. O modal resolve porque o formulário não precisa caber no
- * lugar de onde nasceu — e a ficha continua inteira atrás, que é o contexto de
+ * lugar de onde nasceu, e a ficha continua inteira atrás, que é o contexto de
  * quem está conferindo o que digitar.
  */
 export function EditarPessoa({
@@ -189,7 +189,7 @@ export function EditarPessoa({
                 email: String(f.get('email') ?? ''),
                 identificadorExterno: String(f.get('identificador') ?? ''),
                 nascimento: String(f.get('nascimento') ?? ''),
-                // data que avisa, não valor que cobra — financeiro é outro produto
+                // data que avisa, não valor que cobra; financeiro é outro produto
                 vencimentoPlano: String(f.get('vencimento') ?? ''),
                 /*
                  * Restrita, a observação nem vai no pacote: mandar `''` daqui

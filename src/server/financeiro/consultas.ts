@@ -181,7 +181,7 @@ function recortar<T>(q: T, r: RecorteDeCobranca, hoje: string): T {
  * Quem casa com a busca por nome, resolvido antes da consulta principal.
  *
  * `ilike` em coluna de tabela ligada não filtra a de cima no PostgREST, e
- * trazer tudo para filtrar em memória pagina errado — o defeito que ninguém
+ * trazer tudo para filtrar em memória pagina errado: o defeito que ninguém
  * percebe até a lista passar de vinte linhas.
  *
  * Devolve `null` quando não há busca, e lista vazia quando a busca não achou
@@ -319,7 +319,7 @@ async function todasEmBlocos(
  * Traz duas colunas por linha, e nada mais. **Tem teto**, e o teto está dito na
  * resposta: acima dele a soma sairia cara e passaria a ser parcial em silêncio,
  * e a tela precisa poder avisar em vez de mentir. No tamanho real de um estúdio
- * — algumas centenas de cobranças por ano — ele nunca é alcançado.
+ * (algumas centenas de cobranças por ano) ele nunca é alcançado.
  */
 export const TETO_DO_RESUMO = 20000
 
