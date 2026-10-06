@@ -44,10 +44,12 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
     <Link
       key={rotulo}
       href={`/aulas?de=${novoDe}&ate=${novoAte}`}
-      className={`inline-flex min-h-9 items-center rounded-peca border px-3 text-[13.5px] ${
+      // o mesmo chip da barra de período das listas, para as quatro seções
+      // do Financeiro falarem a mesma língua
+      className={`inline-flex min-h-9 items-center rounded-full border px-3 text-[14px] ${
         de === novoDe && ate === novoAte
-          ? 'border-marca bg-positivo-superficie text-marca'
-          : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
+          ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+          : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
       }`}
     >
       {rotulo}

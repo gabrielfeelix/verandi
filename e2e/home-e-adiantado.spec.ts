@@ -93,8 +93,9 @@ test('o arquivo de recibos se recorta por data', async ({ page }) => {
 
   // e a barra de período diz o recorte em vez de deixar a tela mentir vazia
   await expect(page.getByText('em 19/01/26').first()).toBeVisible()
-  await page.getByRole('link', { name: 'limpar' }).click()
-  await expect(page.getByText('todas as datas')).toBeVisible()
+  // "Todas as datas" é o chip que desfaz o recorte
+  await page.getByRole('link', { name: 'Todas as datas' }).click()
+  await expect(page).not.toHaveURL(/de=2026-01-19/)
 })
 
 test('a ficha responde se a pessoa está em dia', async ({ page }) => {

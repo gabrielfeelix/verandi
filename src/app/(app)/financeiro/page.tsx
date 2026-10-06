@@ -46,13 +46,13 @@ const ABAS: Array<{ id: FiltroCobranca | 'fechamento'; rotulo: string }> = [
   { id: 'fechamento', rotulo: 'Fechamento' },
 ]
 
-type Busca = Promise<{ aba?: string; q?: string; p?: string; de?: string; ate?: string }>
+type Busca = Promise<{ aba?: string; q?: string; p?: string; de?: string; ate?: string; datas?: string }>
 
 export default async function Financeiro({ searchParams }: { searchParams: Busca }) {
   // dinheiro é do dono e da recepção; quem atende cai onde ele trabalha
   const conta = await exigirPapel(OPERA, 'Financeiro')
 
-  const { aba: abaBruta, q, p, de: deBruto, ate: ateBruto } = await searchParams
+  const { aba: abaBruta, q, p, de: deBruto, ate: ateBruto, datas } = await searchParams
   const db = await clienteServidor()
   const hoje = hojeEm(conta.fuso)
 
@@ -128,6 +128,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
             hoje={hoje}
             rotulo="Vencimento"
             escondidos={{ aba, q }}
+            abrirDatas={datas === '1'}
           />
           <ProvedorDeBusca servidor={q?.trim() ?? ''}>
             <BuscaDeCobranca valorInicial={q?.trim() ?? ''} aba={aba} />
@@ -336,10 +337,12 @@ async function Fechamento({
     <Link
       key={rotulo}
       href={`/financeiro?aba=fechamento&de=${novoDe}&ate=${novoAte}`}
-      className={`inline-flex min-h-9 items-center rounded-peca border px-3 text-[13.5px] ${
+      // o mesmo chip da barra de período das listas, para as quatro seções
+      // do Financeiro falarem a mesma língua
+      className={`inline-flex min-h-9 items-center rounded-full border px-3 text-[14px] ${
         de === novoDe && ate === novoAte
-          ? 'border-marca bg-positivo-superficie text-marca'
-          : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
+          ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+          : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
       }`}
     >
       {rotulo}

@@ -16,7 +16,7 @@ import { emitenteCompleto } from '@/core/recibo/recibo'
 import { ListaDeRecibos } from '@/components/recibo/lista'
 import { BuscaDeRecibo } from '@/components/recibo/busca'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
-import { Nota, Paginacao, cartao } from '@/components/ui/pecas'
+import { Chip, Nota, Paginacao, cartao } from '@/components/ui/pecas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
@@ -36,13 +36,13 @@ const ABAS: Array<{ id: FiltroRecibo; rotulo: string }> = [
 ]
 
 type Busca = Promise<{
-  aba?: string; q?: string; p?: string; de?: string; ate?: string
+  aba?: string; q?: string; p?: string; de?: string; ate?: string; datas?: string
 }>
 
 export default async function Recibos({ searchParams }: { searchParams: Busca }) {
   const conta = await exigirPapel(OPERA, 'Recibos')
 
-  const { aba: abaBruta, q, p, de, ate } = await searchParams
+  const { aba: abaBruta, q, p, de, ate, datas } = await searchParams
   const db = await clienteServidor()
   const hoje = hojeEm(conta.fuso)
 
@@ -115,10 +115,8 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
           </Nota>
         ) : null}
 
-        <nav
-          aria-label="O que mostrar"
-          className="inline-flex max-w-full gap-[3px] overflow-x-auto rounded-media border border-linha bg-superficie p-1"
-        >
+        {/* chips, como a situação em Cobranças: as abas de cima são as seções */}
+        <nav aria-label="O que mostrar" className="flex flex-wrap gap-1.5">
           {ABAS.map((a) => {
             const ligado = a.id === aba
             const b = new URLSearchParams({ aba: a.id })
@@ -127,18 +125,9 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
             // em "Cancelados" quer os cancelados de janeiro
             if (periodo) { b.set('de', periodo.de); b.set('ate', periodo.ate) }
             return (
-              <Link
-                key={a.id}
-                href={`/recibos?${b}`}
-                aria-current={ligado ? 'page' : undefined}
-                className={`inline-flex min-h-10 items-center rounded-padrao px-3.5 text-[14px] whitespace-nowrap ${
-                  ligado
-                    ? 'bg-escuro text-tinta-clara'
-                    : 'text-tinta-media hover:bg-superficie-mais-suave'
-                }`}
-              >
+              <Chip key={a.id} href={`/recibos?${b}`} ativo={ligado}>
                 {a.rotulo}
-              </Link>
+              </Chip>
             )
           })}
         </nav>
@@ -179,6 +168,7 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
             hoje={hoje}
             rotulo="Emissão"
             escondidos={{ aba, q }}
+            abrirDatas={datas === '1'}
           />
           <BuscaDeRecibo valorInicial={q ?? ''} aba={aba} />
           <ListaDeRecibos

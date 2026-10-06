@@ -10,6 +10,11 @@ import { ATALHOS, atalhoDe, periodoPorExtenso, type Periodo } from '@/core/finan
  * mil ela não resolve nada. Os atalhos cobrem o que se pergunta todo dia, e os
  * dois campos cobrem o resto.
  *
+ * **Três atalhos, não sete** (06/out/2026): Hoje, Ontem, 7 e 30 dias eram
+ * perguntas de caixa que ninguém fazia aqui; o mês, o mês passado e o ano são
+ * as que fecham conta. As datas exatas ficam atrás de "Escolher datas", que
+ * abre sozinho quando o período não é um dos atalhos.
+ *
  * **Nasce sem filtro, e isso é decisão.** Uma lista de cobranças que abre
  * filtrada por "este mês" esconde quem deve desde junho, que é exatamente a
  * pessoa para quem se liga hoje. O período é uma pergunta que alguém faz, e não
@@ -20,8 +25,11 @@ import { ATALHOS, atalhoDe, periodoPorExtenso, type Periodo } from '@/core/finan
  * navegador. Filtro que some ao apertar "voltar" é filtro que a pessoa digita
  * duas vezes.
  */
+/** os atalhos que a barra mostra, dos que `core/financeiro/periodo` conhece */
+const USADOS = ['mes', 'mes-passado', 'ano']
+
 export function BarraDePeriodo({
-  base, periodo, hoje, rotulo, escondidos = {},
+  base, periodo, hoje, rotulo, escondidos = {}, abrirDatas = false,
 }: {
   /** o caminho da tela, sem busca: `/financeiro` */
   base: string
@@ -31,6 +39,8 @@ export function BarraDePeriodo({
   rotulo: string
   /** o que precisa sobreviver ao filtro: aba, busca, e o que mais houver */
   escondidos?: Record<string, string | undefined>
+  /** `?datas=1`: quem tocou em "Escolher datas" e ainda não filtrou */
+  abrirDatas?: boolean
 }) {
   const ligado = atalhoDe(periodo, hoje)
   const dito = periodoPorExtenso(periodo)
@@ -42,74 +52,70 @@ export function BarraDePeriodo({
     return `${base}?${b}`
   }
 
+  const chip = (ativo: boolean) =>
+    `inline-flex min-h-9 cursor-pointer items-center rounded-full border px-3 text-[14px] ${
+      ativo
+        ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+        : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
+    }`
+  const personalizado = periodo !== null && !USADOS.includes(ligado ?? '')
+
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
         {rotulo}
       </span>
 
-      <div className="flex flex-wrap gap-1.5">
-        {ATALHOS.map((a) => {
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Link href={comParametros({})} className={chip(periodo === null && !abrirDatas)}>
+          Todas as datas
+        </Link>
+        {ATALHOS.filter((a) => USADOS.includes(a.id)).map((a) => {
           const j = a.janela(hoje)
           return (
             <Link
               key={a.id}
               href={comParametros({ de: j.de, ate: j.ate })}
-              className={`inline-flex min-h-9 items-center rounded-peca border px-2.5 text-[13.5px] ${
-                ligado === a.id
-                  ? 'border-marca bg-positivo-superficie text-marca'
-                  : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
-              }`}
+              className={chip(ligado === a.id)}
             >
               {a.rotulo}
             </Link>
           )
         })}
+
+        {/* as datas exatas abrem numa linha própria, sem JavaScript: o chip é
+            um link que liga `datas=1`, e o período fora dos atalhos já chega
+            com elas abertas */}
+        <Link
+          href={abrirDatas ? comParametros({}) : comParametros({ datas: '1' })}
+          className={chip(personalizado || abrirDatas)}
+        >
+          {personalizado ? dito : 'Escolher datas'}
+        </Link>
       </div>
 
-      {/*
-        * Os dois campos, para o dia exato que nenhum atalho cobre.
-        *
-        * `CampoData` e não `<input type="date">`: o nativo escreve a data na
-        * ordem da configuração do navegador, e um estúdio no Brasil com o
-        * navegador em inglês veria `mm/dd/yyyy` num sistema em português. É o
-        * mesmo componente que a agenda usa, e ele já entrega o `aaaa-mm-dd` num
-        * campo escondido, que é o que a URL precisa.
-        */}
-      {/*
-        * A `key` é o período: `CampoData` guarda o valor em estado, e o atalho
-        * navega sem remontar a página. Sem ela, clicar "Mês passado" depois de
-        * digitar o ano deixava os campos dizendo 01/01 a 31/12 ao lado de um
-        * recorte de setembro.
-        */}
-      <form key={`${periodo?.de ?? ''}:${periodo?.ate ?? ''}`}
-        method="get" action={base} className="flex flex-wrap items-center gap-1.5">
-        {Object.entries(escondidos).map(([k, v]) =>
-          v ? <input key={k} type="hidden" name={k} value={v} /> : null)}
-        <CampoData nome="de" valorInicial={periodo?.de ?? ''} />
-        <span aria-hidden className="text-[13.5px] text-tinta-fraca">a</span>
-        <CampoData nome="ate" valorInicial={periodo?.ate ?? ''} />
-        <button
-          type="submit"
-          className="min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
+      {personalizado || abrirDatas ? (
+        // `CampoData` e não o `<input type="date">` nativo, que escreve a data
+        // na ordem do navegador. A `key` é o período: o campo guarda estado, e
+        // o atalho navega sem remontar a página
+        <form
+          key={`${periodo?.de ?? ''}:${periodo?.ate ?? ''}`}
+          method="get" action={base}
+          className="flex w-full flex-wrap items-center gap-1.5"
         >
-          Filtrar
-        </button>
-      </form>
-
-      {periodo ? (
-        <>
-          <span className="text-[13px] text-tinta-media">{dito}</span>
-          <Link
-            href={comParametros({})}
-            className="text-[13.5px] text-tinta-media underline"
+          {Object.entries(escondidos).map(([k, v]) =>
+            v ? <input key={k} type="hidden" name={k} value={v} /> : null)}
+          <CampoData nome="de" valorInicial={periodo?.de ?? ''} />
+          <span aria-hidden className="text-[13.5px] text-tinta-fraca">a</span>
+          <CampoData nome="ate" valorInicial={periodo?.ate ?? ''} />
+          <button
+            type="submit"
+            className="min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
           >
-            limpar
-          </Link>
-        </>
-      ) : (
-        <span className="text-[13px] text-tinta-fraca">todas as datas</span>
-      )}
+            Filtrar
+          </button>
+        </form>
+      ) : null}
     </div>
   )
 }

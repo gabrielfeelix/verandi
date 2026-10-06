@@ -110,9 +110,11 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 - [x] Abas: Cobranças (com o filtro de situação dentro), Fechamento, Recibos,
       Aulas por professor.
-- [ ] Período: 4 atalhos (Este mês, Mês passado, Este ano, Escolher datas) em
-      vez de 7 mais formulário. Um componente só, usado no Financeiro, Recibos,
-      Fechamento e Aulas (hoje há dois jeitos diferentes).
+- [x] Período nas listas (Cobranças, Recibos): Todas as datas, Este mês, Mês
+      passado, Este ano, Escolher datas. Fechamento e Aulas por professor
+      mantêm Hoje/Semana/Mês/Ano: são as quatro janelas que o documento do
+      cliente pede para relatório. Os chips agora têm o mesmo visual nas quatro
+      seções, e Recibos usa chips como Cobranças.
 
 ## 9. Licença (Verandi + bot da MGM)
 
