@@ -54,7 +54,7 @@ const DIA = 864e5
  */
 const MOTIVO_DO_CREDITO: Partial<Record<StatusParticipacao, string>> = {
   falta: 'Falta',
-  falta_avisada: 'Falta avisada',
+  falta_avisada: 'Falta justificada',
   cancelada: 'Horário cancelado pelo estúdio',
 }
 

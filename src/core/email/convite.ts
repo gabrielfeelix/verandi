@@ -68,7 +68,7 @@ const OQUE_VOCE_FAZ: Record<string, [string, string][]> = {
     ['Achar um horário livre', 'Sem abrir planilha e sem perguntar para ninguém.'],
   ],
   profissional: [
-    ['Ver as suas turmas do dia', 'Quem está marcado, e quem avisou que não vem.'],
+    ['Ver as suas turmas do dia', 'Quem está marcado, e as faltas justificadas.'],
     ['Registrar presença e falta', 'Fica guardado. Ninguém precisa lembrar depois.'],
     ['Saber quem está repondo', 'A reposição aparece ligada à falta que a gerou.'],
   ],

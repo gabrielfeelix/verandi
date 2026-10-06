@@ -9,7 +9,7 @@ import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { marcarTodosPresentes, mudarStatus } from '@/server/agenda/acoes'
 import { useAviso } from '@/components/ui/desfazer'
 import { cartao } from '@/components/ui/pecas'
-import { Icone } from '@/components/ui/icones'
+import { Menu } from '@/components/ui/menu'
 
 /**
  * O estado vivo da chamada, num lugar só.
@@ -55,11 +55,11 @@ export function useChamada(): Chamada {
 
 /** o que o aviso diz depois do nome: "Murilo Bastos: faltou." */
 const O_QUE_FICOU: Partial<Record<StatusParticipacao, string>> = {
-  presente: 'veio',
-  falta: 'faltou',
-  falta_avisada: 'avisou que não vem',
-  licenca: 'em licença',
-  esperada: 'marcação removida',
+  presente: 'presença registrada',
+  falta: 'falta registrada',
+  falta_avisada: 'falta justificada registrada',
+  licenca: 'licença registrada',
+  esperada: 'registro removido',
   confirmada: 'confirmada',
 }
 
@@ -122,7 +122,7 @@ export function ProvedorChamada({
      * Tocar de novo no estado que já está marcado desmarca.
      *
      * Antes o segundo toque gravava o mesmo estado outra vez, e o "Desfazer"
-     * desse aviso devolvia ao que já estava: quem testou marcou "Avisou",
+     * desse aviso devolvia ao que já estava: quem testou marcou a falta,
      * tocou de novo para tirar, desfez, e nada mudava na tela.
      */
     registrar: (p, pedido) => iniciar(async () => {
@@ -232,60 +232,42 @@ export function BotaoConcluir({ miudo = false, className = '' }: { miudo?: boole
         miudo ? 'min-h-11 px-[18px] text-[14.5px]' : 'min-h-12 px-4 text-[14.5px]'
       } ${className}`}
     >
-      Concluir chamada · {vieram} {vieram === 1 ? 'veio' : 'vieram'}
+      Concluir chamada · {vieram} {vieram === 1 ? 'presente' : 'presentes'}
     </button>
   )
 }
 
 /**
- * Cancelar a turma inteira: só o glifo, com nome acessível.
- *
- * Fica ao lado de "encaixar" e não dentro de um menu porque é a segunda coisa
- * mais feita nesta tela quando o dia dá errado: professora doente, sala
- * interditada. Escondê-la num menu faria ligar para a recepção.
+ * O "⋮" do cabeçalho: o que se faz raramente e não pode ser tocado por engano.
+ * Hoje é só cancelar a aula, que abre a confirmação com quantas pessoas serão
+ * afetadas.
  */
-export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
+export function MaisAcoesDaSessao({ rotuloCancelar }: { rotuloCancelar: string }) {
   const { podeRegistrar, abrirCancelar } = useChamada()
   if (!podeRegistrar) return null
   return (
-    /*
-     * Com a palavra, não só o glifo.
-     *
-     * Era um quadrado de 44px com o sinal de proibido dentro, e ninguém
-     * descobre pelo desenho se aquilo cancela a aula, bloqueia o aluno ou
-     * suspende a conta: o `title` só aparece parando o mouse em cima, e no
-     * celular não aparece nunca. Botão que destrói tem que dizer o que
-     * destrói antes de ser clicado.
-     */
-    <button
-      type="button"
-      onClick={abrirCancelar}
-      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media px-3.5 text-[14.5px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-superficie"
-    >
-      <Icone nome="proibido" tamanho={18} />
-      {rotulo}
-    </button>
+    <Menu
+      titulo="Outras ações"
+      itens={[{ rotulo: rotuloCancelar, icone: 'proibido', perigo: true, aoEscolher: abrirCancelar }]}
+    />
   )
 }
 
 export function ResumoChamada() {
-  const { lista, registrados, total, comecou } = useChamada()
+  const { lista, comecou } = useChamada()
   // antes da aula não há chamada para resumir
   if (!comecou) return null
   const conta = (s: StatusParticipacao) => lista.filter((p) => p.status === s).length
 
   return (
     <section className={`${cartao} p-4`}>
-      <h2 className="font-titulo text-[18px] font-semibold">Resumo da chamada</h2>
-      <p className="pt-1 pb-3.5 text-[13.5px] text-tinta-media">
-        {registrados} de {total} registrados
-      </p>
+      <h2 className="pb-3.5 font-titulo text-[18px] font-semibold">Resumo da chamada</h2>
       <ul className="flex flex-col gap-2.5">
         {([
-          ['Presente', conta('presente'), 'bg-positivo'],
-          ['Falta', conta('falta'), 'bg-alerta'],
-          ['Falta avisada', conta('falta_avisada'), 'bg-atencao'],
-          ['Licença', conta('licenca'), 'bg-licenca'],
+          ['Presente', conta('presente'), 'bg-reg-presente'],
+          ['Falta', conta('falta'), 'bg-reg-falta'],
+          ['Falta justificada', conta('falta_avisada'), 'bg-reg-justificada'],
+          ['Licença', conta('licenca'), 'bg-reg-licenca'],
         ] as const).map(([rotulo, n, cor]) => (
           <li key={rotulo} className="flex items-center gap-2.5">
             <span aria-hidden className={`size-2 rounded-full ${cor}`} />

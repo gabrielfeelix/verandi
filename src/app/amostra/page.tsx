@@ -114,7 +114,7 @@ function Conteudo() {
         <div className="flex flex-wrap gap-2">
           <Etiqueta tinta="positivo" glifo="✓">Presente</Etiqueta>
           <Etiqueta tinta="alerta" glifo="×">Falta</Etiqueta>
-          <Etiqueta tinta="atencao" glifo="!">Falta avisada</Etiqueta>
+          <Etiqueta tinta="atencao" glifo="!">Falta justificada</Etiqueta>
           <Etiqueta tinta="licenca" glifo="~">Licença</Etiqueta>
           <Etiqueta tinta="info">Avulso</Etiqueta>
           <Etiqueta tinta="neutro">Reserva</Etiqueta>

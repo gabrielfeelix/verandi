@@ -24,7 +24,7 @@ import Carregando from './loading'
  */
 const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
   // falta sem aviso nos últimos 30 dias: quem precisa de uma ligação
-  { valor: 'faltou_sem_avisar', rotulo: 'Faltou sem avisar' },
+  { valor: 'faltou_sem_avisar', rotulo: 'Faltas recentes' },
   // licença aberta, a mesma de Pendências
   { valor: 'de_licenca',        rotulo: 'De licença' },
   { valor: 'plano_a_renovar',   rotulo: 'Plano a renovar' },

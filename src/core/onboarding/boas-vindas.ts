@@ -85,7 +85,7 @@ export function boasVindas(papel: Papel, r: Rotulos): Cartao[] {
       arte: PORTA,
     },
     {
-      titulo: 'Falta avisada vira crédito.',
+      titulo: 'Falta justificada vira crédito.',
       texto: `Quem avisa que não vem devolve o lugar e ganha uma reposição, com prazo. Ninguém precisa lembrar disso de cabeça, nem anotar em papel.`,
       arte: CHAVE,
     },

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import type { FaltaEmAberto } from '@/server/agenda/consultas'
-import { GLIFO_PRESENCA, TINTA_ORIGEM, TINTA_PRESENCA } from '@/components/ui/tintas'
 import { cartao, Avatar, Vazio } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
 import { MenuPessoa } from './menu-pessoa'
@@ -13,43 +12,40 @@ import { useChamada } from './chamada'
 /**
  * O que cada aluno pode virar, e quando.
  *
- * Antes da aula ninguém "faltou": a recepção só registra quem avisou que não
- * vem (libera a vaga e gera reposição) ou entrou de licença. Depois que a aula
- * começa, quem está sem marca aparece como "Veio", provisório, e vira presença
+ * Antes da aula não existe falta: a recepção só registra a falta justificada
+ * (libera a vaga e gera reposição) ou a licença. Depois que a aula começa,
+ * quem está sem marca aparece como "Presente", provisório, e vira presença
  * ao concluir a chamada. Assim a turma cheia se fecha num toque, e só a
  * exceção pede atenção. Alvo de 44px: a tela é usada em pé, com a mão ocupada.
  */
 const MOTIVOS: Array<{
   valor: StatusParticipacao; rotulo: string; explica: string; soDepois?: boolean
 }> = [
-  { valor: 'falta',         rotulo: 'Faltou sem avisar',   explica: 'Não veio e não avisou', soDepois: true },
-  { valor: 'falta_avisada', rotulo: 'Avisou que não vem',  explica: 'Libera a vaga e gera reposição' },
-  { valor: 'licenca',       rotulo: 'Licença',             explica: 'Afastado, mantém o horário' },
+  { valor: 'falta',         rotulo: 'Falta',             explica: 'Ausência sem aviso prévio', soDepois: true },
+  { valor: 'falta_avisada', rotulo: 'Falta justificada', explica: 'Libera a vaga e gera reposição' },
+  { valor: 'licenca',       rotulo: 'Licença',           explica: 'Afastamento, mantém o horário fixo' },
 ]
 
 /** o rótulo do botão em cada estado, e o que a tela só de leitura mostra */
 const CURTO: Partial<Record<StatusParticipacao, string>> = {
-  presente: 'Veio',
-  falta: 'Faltou',
-  falta_avisada: 'Avisou',
+  presente: 'Presente',
+  falta: 'Falta',
+  falta_avisada: 'Falta justificada',
   licenca: 'Licença',
 }
 
 const NAO_VEIO: ReadonlySet<StatusParticipacao> = new Set(['falta', 'falta_avisada', 'licenca'])
 
+/*
+ * Cor sólida com texto branco: o estado registrado é um botão, e pastel em
+ * botão parecia etiqueta. Pastel fica só no que não se clica. Todos os pares
+ * passam AA com o branco (5,1 a 6,7:1). Tokens `reg-*` em globals.css.
+ */
 const TINTA_BOTAO: Partial<Record<StatusParticipacao, string>> = {
-  presente: 'border-positivo-fundo bg-positivo-fundo text-positivo',
-  falta: 'border-alerta-fundo bg-alerta-fundo text-alerta',
-  falta_avisada: 'border-atencao-fundo bg-atencao-fundo text-atencao',
-  licenca: 'border-licenca-fundo bg-licenca-fundo text-licenca',
-}
-
-const ORIGEM: Record<string, string> = {
-  recorrente: 'Fixo',
-  avulso: 'Avulso',
-  reposicao: 'Reposição',
-  encaixe: 'Encaixe',
-  reserva: 'Reserva',
+  presente: 'border-reg-presente bg-reg-presente text-white hover:bg-reg-presente-forte',
+  falta: 'border-reg-falta bg-reg-falta text-white hover:bg-reg-falta-forte',
+  falta_avisada: 'border-reg-justificada bg-reg-justificada text-white hover:bg-reg-justificada-forte',
+  licenca: 'border-reg-licenca bg-reg-licenca text-white hover:bg-reg-licenca-forte',
 }
 
 type Props = {
@@ -89,7 +85,7 @@ export function ListaParticipacao({
           return (
             <li
               key={p.id}
-              className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2.5 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] rounded-grande border p-3 sm:gap-x-3.5 ${
+              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] rounded-grande border p-3 sm:gap-x-3.5 ${
                 decidido
                   ? 'border-linha-suave bg-superficie-tenue'
                   : 'border-linha-fina bg-superficie'
@@ -98,16 +94,8 @@ export function ListaParticipacao({
               {/* o nome está escrito ao lado; o avatar aqui é reconhecimento */}
               {/* no celular o nome precisa da largura; o estado já está no botão */}
               <span className="max-sm:hidden">
-                <Avatar
-                  nome={p.nome}
-                  tamanho={40}
-                  decorativo
-                  selo={
-                    decidido
-                      ? { tinta: TINTA_PRESENCA[p.status], glifo: GLIFO_PRESENCA[p.status] }
-                      : undefined
-                  }
-                />
+                {/* sem selo de estado: o botão ao lado já diz, em cor sólida */}
+                <Avatar nome={p.nome} tamanho={40} decorativo />
               </span>
 
               <span className="flex min-w-0 flex-col gap-1.5">
@@ -118,10 +106,6 @@ export function ListaParticipacao({
                   >
                     {p.nome}
                   </Link>
-
-                  {/* origem distinguível de relance: quem tem lugar fixo e quem
-                      entrou de encaixe são situações diferentes para quem dá a aula */}
-                  <Marca tinta={TINTA_ORIGEM[p.origem]}>{ORIGEM[p.origem] ?? p.origem}</Marca>
 
                   {p.tags.map((t) => (
                     <Marca key={t} tinta="atencao">{t}</Marca>
@@ -134,8 +118,8 @@ export function ListaParticipacao({
                   ) : null}
                 </span>
 
-                {/* por que esta pessoa está aqui, a linha que separa quatro
-                    nomes iguais em quatro situações diferentes */}
+                {/* por que esta pessoa está aqui (horário fixo, avulsa,
+                    encaixe, reposição): a etiqueta de origem repetia isto */}
                 {p.detalhe ? (
                   <span className="truncate text-[13.5px] text-tinta-media">{p.detalhe}</span>
                 ) : null}
@@ -153,12 +137,14 @@ export function ListaParticipacao({
                   aoDesfazer={() => registrar(p, comecou ? 'presente' : 'esperada')}
                 />
               ) : (
-                <span className="text-[13.5px] text-tinta-media">
+                <span className="text-[13.5px] text-tinta-media max-sm:col-span-2 max-sm:row-start-2 max-sm:mt-1">
                   {CURTO[p.status] ?? 'Sem registro'}
                 </span>
               )}
 
-              <span>
+              {/* no celular o estado desce para a linha de baixo, na largura
+                  toda, e o "⋮" fica ao lado do nome */}
+              <span className="max-sm:col-start-2 max-sm:row-start-1">
                 <MenuPessoa
                   participacao={p}
                   faltas={faltasPorPessoa[p.pessoaId] ?? []}
@@ -195,12 +181,12 @@ export function ListaParticipacao({
           </span>
           <span className="flex flex-col">
             <span className="text-[14.5px] font-medium text-marca">
-              {livres > 0
-                ? `${livres} vaga${livres > 1 ? 's' : ''} livre${livres > 1 ? 's' : ''}, encaixar alguém`
-                : 'Sem vaga livre, encaixar assim mesmo'}
+              Encaixar {rotuloPessoa.toLowerCase()}
             </span>
             <span className="text-[13.5px] text-tinta-media">
-              buscar {rotuloPessoa.toLowerCase()} que já existe ou cadastrar na hora
+              {livres > 0
+                ? `${livres} ${livres > 1 ? 'vagas livres' : 'vaga livre'}`
+                : 'Sem vaga livre'}
             </span>
           </span>
         </button>
@@ -238,8 +224,8 @@ function Marca({
 /**
  * O estado do aluno como um botão só, que abre o que ele pode virar.
  *
- * O rótulo é sempre o estado atual ("Agendado", "Veio", "Avisou"...), então a
- * tela responde de relance quem veio sem ninguém precisar tocar. "Veio"
+ * O rótulo é sempre o estado atual ("Agendado", "Presente", "Falta"...), então
+ * a tela responde de relance quem veio sem ninguém precisar tocar. "Presente"
  * provisório tem borda tracejada; firma ao concluir a chamada.
  */
 function Presenca({
@@ -281,7 +267,7 @@ function Presenca({
     fn()
   }
 
-  const rotulo = semMarca ? (comecou ? 'Veio' : 'Agendado') : (CURTO[status] ?? 'Agendado')
+  const rotulo = semMarca ? (comecou ? 'Presente' : 'Agendado') : (CURTO[status] ?? 'Agendado')
   const tinta = provisorio
     ? 'border-dashed border-positivo/45 bg-superficie text-positivo'
     : semMarca
@@ -290,7 +276,7 @@ function Presenca({
   const motivos = MOTIVOS.filter((m) => comecou || !m.soDepois || m.valor === status)
 
   return (
-    <div ref={caixa} className="relative">
+    <div ref={caixa} className="relative max-sm:col-span-2 max-sm:row-start-2 max-sm:mt-2.5">
       <button
         type="button"
         disabled={ocupado}
@@ -298,7 +284,7 @@ function Presenca({
         aria-haspopup="menu"
         title={provisorio ? 'Conta como presente ao concluir a chamada' : `Mudar o registro de ${primeiro}`}
         onClick={() => setAberto(!aberto)}
-        className={`flex h-11 min-w-[112px] cursor-pointer items-center justify-between gap-1.5 rounded-padrao border px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 disabled:opacity-60 ${tinta}`}
+        className={`flex h-11 min-w-[124px] max-sm:w-full cursor-pointer items-center justify-between gap-1.5 rounded-padrao border px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 disabled:opacity-60 ${tinta}`}
       >
         <span className="flex items-center gap-1.5">
           {status === 'presente' || provisorio ? <span aria-hidden>✓</span> : null}
@@ -341,7 +327,7 @@ function Presenca({
               onClick={() => escolher(aoDesfazer)}
               className="mt-0.5 cursor-pointer rounded-peca border-t border-linha-suave px-3 py-2.5 text-left text-[14.5px] text-tinta-media hover:bg-superficie-suave"
             >
-              {comecou ? `Desfazer, ${primeiro} veio` : `Desfazer, ${primeiro} vem`}
+              {comecou ? 'Desfazer, marcar presente' : 'Desfazer, manter agendado'}
             </button>
           ) : null}
         </div>

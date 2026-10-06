@@ -67,7 +67,7 @@ export async function notificacoesDaConta(
     ...(participacoes.data ?? []).map((p) => ({
       id: `p-${p.id}`,
       tipo: 'falta_avisada' as const,
-      texto: `${p.pessoa?.nome ?? 'Alguém'} avisou que não vem`,
+      texto: `${p.pessoa?.nome ?? 'Alguém'} registrou falta justificada`,
       detalhe: p.sessao
         ? `${p.sessao.servico?.nome ?? ''} ${hora(p.sessao.inicio)}`.trim()
         : '',

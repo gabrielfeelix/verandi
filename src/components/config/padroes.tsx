@@ -196,11 +196,11 @@ export function SecaoPadroes({
         </LinhaPadrao>
 
         <LinhaPadrao
-          rotulo="Falta avisada gera crédito"
+          rotulo="Falta justificada gera crédito"
           detalhe="Exigir antecedência mínima depende da hora em que o aviso chegou. Hoje o sistema registra apenas quando a recepção anotou"
         >
           <Opcoes
-            rotulo="Falta avisada gera crédito"
+            rotulo="Falta justificada gera crédito"
             valor={v.creditoFaltaAvisada}
             opcoes={[
               [true, 'Sim'],

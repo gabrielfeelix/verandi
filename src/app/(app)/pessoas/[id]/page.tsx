@@ -46,7 +46,7 @@ const ROTULO_STATUS: Record<string, string> = {
   confirmada: 'Confirmou',
   presente: 'Presente',
   falta: 'Falta',
-  falta_avisada: 'Falta avisada',
+  falta_avisada: 'Falta justificada',
   licenca: 'Licença',
   cancelada: 'Cancelada',
 }
@@ -587,7 +587,7 @@ export default async function Pessoa({
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-x-3.5 gap-y-1 pt-0.5">
-                  {[['#0E7C6B', 'Presente'], ['#F6E7C9', 'Falta avisada'], ['#FBE4D9', 'Falta'], ['#E9E6F3', 'Licença']].map(
+                  {[['#0E7C6B', 'Presente'], ['#F6E7C9', 'Falta justificada'], ['#FBE4D9', 'Falta'], ['#E9E6F3', 'Licença']].map(
                     ([cor, rotulo]) => (
                       <span key={rotulo} className="inline-flex items-center gap-1.5 text-[12px] text-tinta-fraca">
                         <span aria-hidden className="size-2 rounded-[3px]" style={{ background: cor }} />

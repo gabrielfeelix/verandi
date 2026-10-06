@@ -65,7 +65,7 @@ export type ParticipacaoDetalhe = {
    *
    * "vaga fixa desde março", "repõe a falta de 05/06 · Solo 07:00", "encaixe
    * feito por Recepção · hoje, 08:12". Sem ela, quatro nomes numa lista são
-   * quatro nomes iguais — e a diferença entre quem tem lugar e quem entrou
+   * quatro nomes iguais: e a diferença entre quem tem lugar e quem entrou
    * hoje muda o que se faz quando falta.
    *
    * É frase montada de dado que existe (`vaga.inicio`, `reposicao_de_id`,
@@ -229,7 +229,7 @@ const MESES_LONGOS = [
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ]
 
-/** "hoje, 08:12" · "ontem, 17:40" · "05 ago, 00:00" — relativo ao dia da conta. */
+/** "hoje, 08:12" · "ontem, 17:40" · "05 ago, 00:00": relativo ao dia da conta. */
 function quandoRelativo(iso: string, fuso: string, hoje: string): string {
   const { data, hora } = localDe(iso, fuso)
   if (data === hoje) return `hoje, ${hora}`
@@ -242,7 +242,7 @@ function quandoRelativo(iso: string, fuso: string, hoje: string): string {
   return `${d} ${MESES_CURTOS[Number(m) - 1]}, ${hora}`
 }
 
-/** "05/06" — a data curta que a planilha escrevia à mão no `REP 05/6`. */
+/** "05/06": a data curta que a planilha escrevia à mão no `REP 05/6`. */
 function diaEMes(data: string): string {
   const [, m, d] = data.split('-')
   return `${d}/${m}`
@@ -254,7 +254,7 @@ function diaEMes(data: string): string {
  * `papel` não é enfeite: observação marcada como "só profissionais" não pode
  * chegar à recepção, e a separação **não é RLS**. RLS é por linha; esconder uma
  * coluna de um papel e não de outro seria privilégio de coluna, e privilégio no
- * Postgres é por papel do banco — aqui todo usuário logado é o mesmo
+ * Postgres é por papel do banco: aqui todo usuário logado é o mesmo
  * `authenticated`, e "recepção" é uma linha em `usuario_conta`. Quem filtra é
  * este servidor, que é o único caminho até o dado. Está anotado no ESTADO.md.
  */
@@ -338,7 +338,7 @@ export async function sessaoDetalhe(
    *
    * A vaga é da série, não da sessão: é por isso que a busca vai pela
    * `serie_id` da sessão e não pela sessão em si. Sessão avulsa não tem série,
-   * e aí ninguém tem vaga fixa — o que é verdade, não falta de dado.
+   * e aí ninguém tem vaga fixa: o que é verdade, não falta de dado.
    */
   const desdeQuando = new Map<string, string>()
   if (data.serie_id) {
@@ -375,33 +375,40 @@ export async function sessaoDetalhe(
   const hoje = hojeEm(fuso)
   const anoDaSessao = resumo.data.slice(0, 4)
 
-  function detalheDe(p: LinhaDetalhe['participacao'][number]): string | null {
-    const quando = quandoRelativo(p.registrado_em, fuso, hoje)
-    const quem = quemRegistrou(p)
-
+  function detalheDe(p: LinhaDetalhe['participacao'][number]): string {
     if (p.origem === 'recorrente') {
       const desde = desdeQuando.get(p.pessoa!.id)
-      if (!desde) return null
+      if (!desde) return 'Horário fixo'
       const [ano, mes] = desde.split('-')
       const nomeDoMes = MESES_LONGOS[Number(mes) - 1]
       return ano === anoDaSessao
-        ? `vaga fixa desde ${nomeDoMes}`
-        : `vaga fixa desde ${nomeDoMes} de ${ano}`
+        ? `Horário fixo desde ${nomeDoMes}`
+        : `Horário fixo desde ${nomeDoMes} de ${ano}`
     }
 
     if (p.origem === 'reposicao') {
       const falta = p.reposicao_de_id ? reposicaoDe.get(p.reposicao_de_id) : undefined
       return falta
-        ? `repõe a falta de ${diaEMes(falta.data)} · ${falta.servico} ${falta.hora}`
-        : `reposição · sem a falta apontada`
+        ? `Reposição da falta de ${diaEMes(falta.data)} (${falta.servico}, ${falta.hora})`
+        : 'Reposição sem falta vinculada'
     }
 
-    const verbo = p.origem === 'encaixe'
-      ? 'encaixe feito'
+    const [tipo, feito] = p.origem === 'encaixe'
+      ? ['Encaixe', 'feito']
       : p.origem === 'reserva'
-        ? 'reserva feita'
-        : 'marcado avulso'
-    return quem ? `${verbo} ${quem} · ${quando}` : `${verbo} ${quando}`
+        ? ['Reserva', 'feita']
+        : ['Aula avulsa', 'agendada']
+    /*
+     * Quem agendou e quando só enquanto ninguém registrou a presença: o
+     * carimbo da linha é do último registro, e depois da chamada ele diria
+     * quem marcou a presença, não quem agendou.
+     */
+    if (p.status !== 'esperada' && p.status !== 'confirmada') return tipo
+    const quem = quemRegistrou(p)
+    const quando = quandoRelativo(p.registrado_em, fuso, hoje)
+      .replace(/^(hoje|ontem), /, '$1 às ')
+      .replace(/^(\d{2} \w{3}), /, 'em $1 às ')
+    return `${tipo}, ${feito} ${quem ? `${quem} ` : ''}${quando}`
   }
 
   /*
@@ -431,7 +438,7 @@ export async function sessaoDetalhe(
       detalhe: [detalheDe(p), podeLer(p) ? p.observacao : null]
         .filter(Boolean).join(' · ') || null,
     }))
-    // quem está na vaga fixa em cima, encaixe embaixo — é como a planilha
+    // quem está na vaga fixa em cima, encaixe embaixo: é como a planilha
     // resolve por posição, e a leitura de relance depende disso
     .sort((a, b) => {
       if (a.origem === b.origem) return a.nome.localeCompare(b.nome, 'pt-BR')
@@ -441,7 +448,7 @@ export async function sessaoDetalhe(
   /*
    * O histórico da turma, montado do que o banco já guarda.
    *
-   * Não é log de auditoria — mudança de presença não deixa rastro datado hoje.
+   * Não é log de auditoria: mudança de presença não deixa rastro datado hoje.
    * É a pergunta que a chamada faz de verdade: **quem não estava aqui na
    * semana passada, e por quê**. Vaga fixa fica de fora porque toda a turma
    * entrou no mesmo instante em que a sessão foi materializada; quatro linhas
@@ -495,7 +502,7 @@ export type FaltaEmAberto = {
  * As faltas desta pessoa que ainda geraram crédito e ninguém repôs.
  *
  * É o que o menu "apontar reposição" oferece: sem esta lista, quem repõe teria
- * que lembrar de cabeça qual falta está sendo paga — que é exatamente o que a
+ * que lembrar de cabeça qual falta está sendo paga: que é exatamente o que a
  * planilha fazia com `REP 05/6` escrito na célula.
  */
 export async function faltasEmAberto(

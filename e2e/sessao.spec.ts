@@ -36,12 +36,12 @@ test('mostra ocupação, origem e quem está sem telefone', async ({ page }) => 
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await expect(page.getByText('3/4', { exact: true })).toBeVisible()
+  await expect(page.getByText('3/4 vagas', { exact: true })).toBeVisible()
   await expect(page.getByText('Chamada pendente').first()).toBeVisible()
   await expect(page.getByText('gestante')).toBeVisible()
   // nenhuma das três tem telefone no cenário
   await expect(page.getByText('sem telefone').first()).toBeVisible()
-  await expect(page.getByText('Fixo').first()).toBeVisible()
+  await expect(page.getByText('Horário fixo').first()).toBeVisible()
 })
 
 test('cada linha diz por que a pessoa está ali, e o histórico conta como a turma ficou assim', async ({ page }) => {
@@ -69,7 +69,7 @@ test('cada linha diz por que a pessoa está ali, e o histórico conta como a tur
 
   await expect(
     page.getByRole('listitem').filter({ hasText: 'Helena Moraes' }),
-  ).toContainText('vaga fixa desde março')
+  ).toContainText('Horário fixo desde março')
 
   const historico = page.getByRole('list').filter({ hasText: 'Criada pela grade fixa' })
   await expect(historico).toContainText('Beatriz Nogueira entrou de encaixe pela equipe')
@@ -100,11 +100,11 @@ test('marcar a exceção primeiro e depois "todos vieram" preserva a falta', asy
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const linhaBeatriz = page.getByRole('listitem').filter({ hasText: 'Beatriz Nogueira' })
-  await linhaBeatriz.getByRole('button', { name: 'Veio', exact: true }).click()
-  await linhaBeatriz.getByRole('menuitemradio', { name: /Faltou sem avisar/ }).click()
+  await linhaBeatriz.getByRole('button', { name: 'Presente', exact: true }).click()
+  await linhaBeatriz.getByRole('menuitemradio', { name: /^Falta Ausência/ }).click()
   await expect(page.getByRole('status')).toContainText('Beatriz Nogueira')
 
-  await page.getByRole('button', { name: /^Concluir chamada · 2 vieram/ }).first().click()
+  await page.getByRole('button', { name: /^Concluir chamada · 2 presentes/ }).first().click()
   await expect(page.getByRole('button', { name: /^Concluir chamada/ })).toHaveCount(0)
 
   await expect.poll(async () => {
@@ -125,8 +125,8 @@ test('desfazer devolve o status anterior', async ({ page }) => {
   await page.goto(`/sessao/${c.sessaoId}`)
 
   const linha = page.getByRole('listitem').filter({ hasText: 'Helena Moraes' })
-  await linha.getByRole('button', { name: 'Veio', exact: true }).click()
-  await linha.getByRole('menuitemradio', { name: /Avisou que não vem/ }).click()
+  await linha.getByRole('button', { name: 'Presente', exact: true }).click()
+  await linha.getByRole('menuitemradio', { name: /Falta justificada/ }).click()
   await page.getByRole('button', { name: 'Desfazer' }).click()
 
   await expect.poll(async () => {
@@ -249,8 +249,8 @@ test('aula que ainda não começou mostra Agendado e não oferece concluir', asy
   const primeiro = page.getByRole('button', { name: 'Agendado', exact: true }).first()
   await expect(primeiro).toBeVisible()
   await primeiro.click()
-  await expect(page.getByRole('menuitemradio', { name: /Avisou que não vem/ })).toBeVisible()
-  await expect(page.getByRole('menuitemradio', { name: /Faltou sem avisar/ })).toHaveCount(0)
+  await expect(page.getByRole('menuitemradio', { name: /Falta justificada/ })).toBeVisible()
+  await expect(page.getByRole('menuitemradio', { name: /^Falta Ausência/ })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /^Concluir chamada/ })).toHaveCount(0)
   // a mais de um dia, o dia e a hora, e não "em 71h21"
   await expect(page.getByText(/começa \S+, \d\d\/\d\d, às \d\d:\d\d/)).toBeVisible()

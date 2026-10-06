@@ -12,7 +12,7 @@ const PONTO = {
 /**
  * Como esta turma ficou do jeito que está.
  *
- * Não é auditoria — é a resposta para "quem não estava aqui semana passada?".
+ * Não é auditoria: é a resposta para "quem não estava aqui semana passada?".
  * Sai do que o banco já guarda (`participacao.registrado_em` e a série que
  * criou a sessão); por isso a última linha é sempre a criação da turma, e não
  * existe linha para mudança de presença, que hoje não deixa data.

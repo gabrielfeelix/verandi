@@ -4,13 +4,12 @@ import { useState, useTransition } from 'react'
 import { trocarProfissionalDaSessao } from '@/server/agenda/acoes'
 import { useAviso } from '@/components/ui/desfazer'
 import { AvatarProf } from '@/components/hoje/pecas'
+import { Botao } from '@/components/ui/botao'
 
 /**
- * Trocar quem atende **só nesta sessão** — cobrir uma quarta não é mudar a
- * grade.
- *
- * A frase inteira é o link de propósito: "trocar" sozinho não diz que o alcance
- * é de um dia só, e essa é justamente a confusão mais provável do sistema.
+ * Trocar quem atende **só nesta sessão**: cobrir uma quarta não é mudar a
+ * grade. Botão secundário no grupo de ações do cabeçalho; o alcance de um dia
+ * só está escrito no pé do menu que ele abre.
  */
 export function TrocarProfissional({
   sessaoId, atual, equipe, rotulo, rotuloSessao,
@@ -35,18 +34,18 @@ export function TrocarProfissional({
 
   return (
     <span className="relative">
-      <button
+      <Botao
+        tom="secundario"
         type="button"
         disabled={pendente}
         onClick={() => setAberto((a) => !a)}
         aria-expanded={aberto}
-        className="font-medium text-marca hover:text-marca-forte"
       >
-        trocar {rotulo.toLowerCase()} só neste horário
-      </button>
+        Trocar {rotulo.toLowerCase()}
+      </Botao>
 
       {aberto ? (
-        <span className="absolute top-7 left-0 z-30 flex w-64 flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado">
+        <span className="absolute top-12 right-0 z-30 flex w-64 flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado">
           {equipe.map((p) => (
             <button
               key={p.id}
@@ -74,7 +73,7 @@ export function TrocarProfissional({
           ) : null}
 
           <span className="px-2.5 py-2 text-[12px] leading-relaxed text-tinta-media">
-            Vale só para este dia. A grade continua com quem estava.
+            Vale só para este dia. A grade fixa não muda.
           </span>
         </span>
       ) : null}

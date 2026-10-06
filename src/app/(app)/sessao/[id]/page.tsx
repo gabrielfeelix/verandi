@@ -10,7 +10,7 @@ import { HistoricoDaTurma } from '@/components/sessao/historico-turma'
 import { ModalEncaixe } from '@/components/sessao/modal-encaixe'
 import { ModalCancelar } from '@/components/sessao/modal-cancelar'
 import {
-  ProvedorChamada, BarraChamada, BotaoCancelarTurma,
+  ProvedorChamada, BarraChamada, MaisAcoesDaSessao,
   BotaoConcluir, EtiquetaEstado, NotaDeRegistro, ResumoChamada,
 } from '@/components/sessao/chamada'
 import { TrocarProfissional } from '@/components/sessao/trocar-profissional'
@@ -127,7 +127,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                         : 'bg-superficie-mais-suave text-tinta-media'
                     }`}
                   >
-                    {sessao.ocupacao.ocupadas}/{sessao.ocupacao.capacidade}
+                    {sessao.ocupacao.ocupadas}/{sessao.ocupacao.capacidade} vagas
                   </span>
                   <EtiquetaEstado cancelada={cancelada} />
                 </div>
@@ -151,18 +151,6 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                       <span>{sessao.local}</span>
                     </>
                   ) : null}
-                  {conta.papel !== 'profissional' && !cancelada ? (
-                    <>
-                      <span aria-hidden className="opacity-40">·</span>
-                      <TrocarProfissional
-                        sessaoId={sessao.id}
-                        atual={sessao.profissionalId}
-                        equipe={equipe ?? []}
-                        rotulo={rotulos.profissional.singular}
-                        rotuloSessao={rotulos.sessao.singular}
-                      />
-                    </>
-                  ) : null}
                 </div>
 
                 <NotaDeRegistro comecaEm={comecaEm} />
@@ -181,14 +169,22 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
               </div>
             </div>
 
-            {/* As duas ações da tela ficam no canto, juntas: registrar a turma
-                inteira, e mexer em quem está nela. Dentro do cartão de conteúdo
-                elas competiam com a lista. */}
-            <div className="flex min-w-[214px] flex-[1_1_214px] flex-col gap-2.5">
+            {/* As ações da aula num grupo só, no canto: concluir é a
+                principal; trocar quem atende é secundária; cancelar, que é
+                rara e destrói, fica no "⋮". */}
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <BotaoConcluir className="hidden md:block" />
-              {/* encaixar mora no rodapé da lista, junto das vagas livres */}
-              <BotaoCancelarTurma
-                rotulo={`Cancelar ${rotulos.sessao.singular.toLowerCase()}`}
+              {conta.papel !== 'profissional' && !cancelada ? (
+                <TrocarProfissional
+                  sessaoId={sessao.id}
+                  atual={sessao.profissionalId}
+                  equipe={equipe ?? []}
+                  rotulo={rotulos.profissional.singular}
+                  rotuloSessao={rotulos.sessao.singular}
+                />
+              ) : null}
+              <MaisAcoesDaSessao
+                rotuloCancelar={`Cancelar ${rotulos.sessao.singular.toLowerCase()}`}
               />
             </div>
           </article>
@@ -207,12 +203,6 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
 
               <HistoricoDaTurma eventos={sessao.historico} />
 
-              <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-                <p className="text-[13.5px] leading-relaxed text-tinta-media">
-                  A chamada salva a cada toque. Se a internet cair, nada se perde:
-                  ela continua e é enviada quando a conexão voltar.
-                </p>
-              </section>
             </div>
           </div>
 

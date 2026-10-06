@@ -33,7 +33,7 @@ async function cenarioCheio() {
  */
 async function abrirEncaixe(page: Page) {
   // o encaixe mora no rodapé da lista, junto das vagas livres
-  await page.getByRole('button', { name: /encaixar (alguém|assim mesmo)/ }).click()
+  await page.getByRole('button', { name: /Encaixar/ }).click()
   return page.getByRole('dialog')
 }
 
@@ -141,7 +141,8 @@ test('cancelar o horário avisa quantas pessoas serão afetadas', async ({ page 
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await page.getByRole('button', { name: 'Cancelar sessão' }).click()
+  await page.getByRole('button', { name: 'Outras ações' }).click()
+  await page.getByRole('menuitem', { name: 'Cancelar sessão' }).click()
 
   // a confirmação diz o efeito nos dados, e não um `confirm()` do navegador
   const confirmacao = page.getByRole('dialog')

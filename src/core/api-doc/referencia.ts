@@ -260,9 +260,9 @@ export const ROTAS: Rota[] = [
     caminho: '/participacoes/{participacaoId}',
     titulo: 'Desmarcar',
     resumo:
-      'Registra que a pessoa avisou que não vem. A vaga volta a ser oferecida na mesma hora, e a pessoa ganha o crédito de reposição se a conta trabalhar assim.',
+      'Registra a falta justificada (a pessoa avisou que não vem). A vaga volta a ser oferecida na mesma hora, e a pessoa ganha o crédito de reposição se a conta trabalhar assim.',
     atencao:
-      'Apesar do verbo, nada é apagado: a marcação fica no histórico com o estado de falta avisada. É isso que preserva o crédito de reposição e a contagem do negócio. Só funciona para horário futuro; aula que já aconteceu tem a chamada feita por quem estava na sala. Quem avisa com menos antecedência do que a conta exige desmarca do mesmo jeito, mas fica com status falta e temCredito false: a vaga abre e a reposição não. Chamar de novo devolve 200 com jaEstavaAssim true, para a reentrega não virar erro.',
+      'Apesar do verbo, nada é apagado: a marcação fica no histórico com o estado de falta justificada (`falta_avisada`). É isso que preserva o crédito de reposição e a contagem do negócio. Só funciona para horário futuro; aula que já aconteceu tem a chamada feita por quem estava na sala. Quem avisa com menos antecedência do que a conta exige desmarca do mesmo jeito, mas fica com status falta e temCredito false: a vaga abre e a reposição não. Chamar de novo devolve 200 com jaEstavaAssim true, para a reentrega não virar erro.',
     exemplo: `curl -X DELETE ${BASE}/participacoes/5e90... \\
   -H "Authorization: Bearer vr_sua_chave_aqui"`,
     resposta: `{

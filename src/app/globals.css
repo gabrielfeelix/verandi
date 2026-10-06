@@ -130,6 +130,18 @@
   --color-licenca-fundo: #e9e6f3;
   --color-licenca: #5b4c7c;
 
+  /* Registro de presença em cor sólida (botão da chamada e legendas). Cores
+     limpas e saturadas de propósito: as terrosas pareciam etiqueta e não
+     botão. Todas passam AA com texto branco. */
+  --color-reg-presente: #0e7c6b;
+  --color-reg-presente-forte: #0a5e51;
+  --color-reg-falta: #c62828;
+  --color-reg-falta-forte: #a51f1f;
+  --color-reg-justificada: #1d4ed8;
+  --color-reg-justificada-forte: #1e40af;
+  --color-reg-licenca: #6d4fc2;
+  --color-reg-licenca-forte: #5a3fa8;
+
   --color-neutro-fundo: #edf1ef;
   /* a etiqueta neutra é a que mais aparece ("esperada", "cancelada"), e era a
      pior do conjunto: 2,68:1 sobre o próprio fundo dela */

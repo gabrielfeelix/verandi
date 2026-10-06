@@ -73,7 +73,7 @@ export const PRIVACIDADE: Documento = {
           itens: [
             'identificação: nome, telefone, e-mail, data de nascimento e um identificador do próprio negócio, quando ele usa um;',
             'documento e endereço, quando o negócio os preenche: CPF, RG, endereço completo, sexo, estado civil, profissão e telefones adicionais. O CPF existe porque um recibo sem o documento de quem pagou não comprova pagamento nenhum;',
-            'operação da agenda: em quais horários a pessoa está marcada, presença, falta, falta avisada, licença, reposição e encaixe, com data e hora;',
+            'operação da agenda: em quais horários a pessoa está marcada, presença, falta, falta justificada, licença, reposição e encaixe, com data e hora;',
             'marcações que o negócio cria para organizar o atendimento;',
             'observações escritas pelo negócio, tanto na ficha quanto na chamada do dia;',
             'a relação comercial com o negócio: qual plano foi contratado, por quanto, de quando até quando, o que foi cobrado, o que foi pago, em que data e por qual forma, e o recibo emitido, quando houver. A Verandi não processa pagamento e não guarda dado de cartão: ela registra o que o negócio informa ter recebido;',
