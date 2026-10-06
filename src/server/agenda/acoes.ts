@@ -423,6 +423,7 @@ export type AulaParaRepor = {
   sessaoId: string
   data: string
   hora: string
+  servico: string
   profissional: string | null
   local: string | null
   livres: number
@@ -434,13 +435,17 @@ export type AulaParaRepor = {
  * Duas semanas: é o horizonte em que a recepção combina reposição no balcão, e
  * a lista cabe no modal sem virar a busca de vaga inteira.
  */
-export async function aulasParaRepor(servicoId: string | null): Promise<AulaParaRepor[]> {
+export async function aulasParaRepor(
+  servicoId: string | null, dias = 14,
+): Promise<AulaParaRepor[]> {
   const conta = await exigirConta()
   const db = await clienteServidor()
   const hoje = hojeEm(conta.fuso)
   const agora = new Date().toISOString()
+  // até oito semanas: o "ver mais adiante" da ficha cresce de duas em duas
+  const janela = Math.min(Math.max(1, Math.trunc(dias)), 56)
   const { livres } = await horariosLivres(db, conta.contaId, {
-    de: hoje, ate: somarDias(hoje, 13), servicoId: servicoId ?? undefined,
+    de: hoje, ate: somarDias(hoje, janela - 1), servicoId: servicoId ?? undefined,
   })
   return livres
     // a aula de hoje que já começou não é lugar para ninguém repor
@@ -450,6 +455,7 @@ export async function aulasParaRepor(servicoId: string | null): Promise<AulaPara
       sessaoId: s.id,
       data: s.data,
       hora: s.hora,
+      servico: s.servico,
       profissional: s.profissional,
       local: s.local,
       livres: s.ocupacao.livres,

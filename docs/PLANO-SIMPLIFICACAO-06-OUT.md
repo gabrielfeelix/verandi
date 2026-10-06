@@ -26,7 +26,7 @@ Financeiro, Recibos, Aulas, Configuração (`src/app/(app)/layout.tsx:113`).
 - [x] **Aulas** (`/aulas`, relatório de aulas dadas por professor, base do
       pagamento da equipe) vira aba do Financeiro: "Aulas por professor".
 - [x] **Grade fixa** vira aba da Agenda: "Semana | Dia por recurso | Grade fixa".
-- [ ] **Buscar vaga** sai da sidebar (ver 3). Rotas antigas redirecionam para o
+- [x] **Buscar vaga** sai da sidebar (ver 3). Rotas antigas redirecionam para o
       lugar novo, para não quebrar favorito nem link do onboarding
       (`src/core/onboarding/roteiro.ts` aponta `/vaga` e `/grade`).
 
@@ -54,12 +54,12 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 ## 3. Marcar aula começa pelo aluno
 
-- [ ] Ficha do aluno ganha **Marcar aula** como ação principal: lista só os
+- [x] Ficha do aluno ganha **Marcar aula** como ação principal: lista só os
       horários com vaga da modalidade dele, um toque marca. Uma falta em
       aberto vira reposição automaticamente.
-- [ ] Agenda ganha o filtro **Só com vaga**, que cobre o "tem horário quinta?"
+- [x] Agenda ganha o filtro **Só com vaga**, que cobre o "tem horário quinta?"
       do balcão.
-- [ ] `/vaga` deixa de existir como tela. Se sobrar, só busca por texto, sem os
+- [x] `/vaga` deixa de existir como tela. Se sobrar, só busca por texto, sem os
       cinco grupos de chips duplicando o que o texto já faz.
 
 ## 4. Hoje

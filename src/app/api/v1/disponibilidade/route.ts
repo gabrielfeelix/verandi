@@ -16,7 +16,7 @@ import type { SessaoResumo } from '@/server/agenda/consultas'
  * horário nesse dia" e "existe e está lotado". As duas conversas são
  * diferentes: a segunda vira lista de espera na Fase 5.
  *
- * A tela `/vaga` chama exatamente a mesma função. Divergência entre o que a
+ * O "Marcar aula" da ficha chama exatamente a mesma função. Divergência entre o que a
  * recepção vê e o que o bot promete destrói a confiança no sistema inteiro, e é
  * por isso que aqui não há consulta própria.
  *

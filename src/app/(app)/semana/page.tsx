@@ -11,7 +11,6 @@ import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
 import { cartao, Chip, Vazio } from '@/components/ui/pecas'
-import { Icone } from '@/components/ui/icones'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
@@ -22,6 +21,8 @@ type Busca = Promise<{
   dia?: string
   modo?: string
   eixo?: string
+  /** `sim`: só horário que ainda vai acontecer e tem lugar */
+  vaga?: string
 }>
 
 const DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -84,10 +85,21 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const de = ehDia ? diaFoco : segunda
   const ate = ehDia ? diaFoco : sabado
 
-  const sessoes = await sessoesDoIntervalo(db, conta.contaId, de, ate, {
+  const todas = await sessoesDoIntervalo(db, conta.contaId, de, ate, {
     ...(p.profissional ? { profissionalId: p.profissional } : {}),
     ...(p.local ? { localId: p.local } : {}),
   })
+
+  /*
+   * "Só com vaga" é o "tem horário quinta?" do balcão, respondido na própria
+   * agenda: some o que já passou, o cancelado e o cheio. Era uma tela à parte
+   * (Buscar vaga), com seis grupos de filtro antes do primeiro resultado.
+   */
+  const soComVaga = p.vaga === 'sim'
+  const agora = new Date().toISOString()
+  const sessoes = soComVaga
+    ? todas.filter((s) => s.status !== 'cancelada' && s.ocupacao.livres > 0 && s.inicio > agora)
+    : todas
 
   // dia sem linha em `funcionamento` é dia fechado: é o que separa o sábado
   // vazio do sábado que a casa não abre
@@ -115,6 +127,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     if (p.dia) base.dia = p.dia
     if (p.modo) base.modo = p.modo
     if (p.eixo) base.eixo = p.eixo
+    if (p.vaga) base.vaga = p.vaga
     for (const [k, v] of Object.entries(extra)) {
       if (v === undefined) delete base[k]
       else base[k] = v
@@ -122,7 +135,8 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     return `/semana?${new URLSearchParams(base)}`
   }
 
-  const vagas = sessoes.reduce(
+  // a ocupação é da semana inteira, mesmo com o filtro de vaga ligado
+  const vagas = todas.reduce(
     (acc, s) => ({
       ocupadas: acc.ocupadas + s.ocupacao.ocupadas,
       total: acc.total + s.ocupacao.capacidade,
@@ -194,6 +208,12 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
       {/* Filtro por pessoa é o mais usado: a pergunta frequente é "como está a
           semana da Marina". O de local só aparece quando há mais de um lugar. */}
       <div data-imprimir="fora" className="flex flex-wrap items-center gap-1.5">
+        <span data-guia="agenda-vaga" className="inline-flex">
+          <Chip href={q({ vaga: soComVaga ? undefined : 'sim' })} ativo={soComVaga}>
+            Só com vaga
+          </Chip>
+        </span>
+        <span aria-hidden className="mx-1 h-5 w-px bg-linha" />
         <Chip href={q({ profissional: undefined })} ativo={!p.profissional}>
           Equipe inteira
         </Chip>
@@ -261,9 +281,19 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                   }))
             }
             chaveDe={(s) => (porLocal ? s.localId : s.profissionalId)}
-            vazio={`Nada marcado neste dia. Pode ser feriado ou dia fechado na configuração de funcionamento.`}
+            vazio={soComVaga
+              ? 'Nenhum horário com vaga neste dia.'
+              : `Nada marcado neste dia. Pode ser feriado ou dia fechado na configuração de funcionamento.`}
           />
         </>
+      ) : soComVaga && sessoes.length === 0 ? (
+        <div className="rounded-grande border border-dashed border-linha-tracejada">
+          <Vazio
+            icone="semana"
+            titulo="Nenhum horário com vaga nesta semana"
+            texto="Tudo o que ainda vai acontecer está cheio. Veja a próxima semana, ou abra a aula e encaixe acima da capacidade."
+          />
+        </div>
       ) : (
         <>
           <div data-imprimir="inteiro" className="hidden md:block print:block">
@@ -310,8 +340,10 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               <div className="rounded-grande border border-dashed border-linha-tracejada">
                 <Vazio
                   icone="semana"
-                  titulo="Nada marcado neste dia"
-                  texto="Pode ser feriado ou dia fechado na configuração de funcionamento."
+                  titulo={soComVaga ? 'Nenhum horário com vaga neste dia' : 'Nada marcado neste dia'}
+                  texto={soComVaga
+                    ? 'Escolha outro dia acima.'
+                    : 'Pode ser feriado ou dia fechado na configuração de funcionamento.'}
                 />
               </div>
             ) : (

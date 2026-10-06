@@ -128,6 +128,25 @@ export async function temVinculo(
  * Devolve uma lista porque o schema permite mais de um contrato ativo, ainda
  * que hoje ninguém tenha dois: quem chamar decide como mostrar.
  */
+/** As modalidades dos contratos ativos, com id: o "Marcar aula" filtra por elas. */
+export async function servicosDaPessoa(
+  db: Db, contaId: string, pessoaId: string,
+): Promise<Array<{ id: string; nome: string }>> {
+  const { data, error } = await db
+    .from('contrato')
+    .select('plano(servico(id, nome))')
+    .eq('conta_id', contaId)
+    .eq('pessoa_id', pessoaId)
+    .eq('status', 'ativo')
+  if (error) throw error
+  const out: Array<{ id: string; nome: string }> = []
+  for (const c of data ?? []) {
+    const s = c.plano?.servico
+    if (s && !out.some((x) => x.id === s.id)) out.push({ id: s.id, nome: s.nome })
+  }
+  return out
+}
+
 export async function modalidadesDaPessoa(
   db: Db, contaId: string, pessoaId: string,
 ): Promise<string[]> {

@@ -48,6 +48,7 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
   const servico = r.servico.singular.toLowerCase()
   const series = r.serie.plural.toLowerCase()
   const sessoes = r.sessao.plural.toLowerCase()
+  const sessao = r.sessao.singular.toLowerCase()
   const vaga = r.vaga.singular.toLowerCase()
 
   /** A abertura, igual para todo mundo: onde se trabalha, e o menu. */
@@ -125,16 +126,10 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
 
   const vagaLivre: Passo[] = [
     {
-      href: '/pessoas',
-      alvo: 'rail-vaga',
+      href: '/semana',
+      alvo: 'agenda-vaga',
       titulo: 'Quando perguntam "tem horário?"',
-      texto: `Esta tela responde sem você abrir a semana inteira e ir procurando com o dedo.`,
-    },
-    {
-      href: '/vaga',
-      alvo: 'vaga-busca',
-      titulo: 'Diga o que a pessoa quer',
-      texto: `Diga o serviço, o dia e a faixa de horário. A tela mostra só onde ainda cabe alguém, e horário cheio nunca aparece aqui.`,
+      texto: `Ligue "Só com vaga": a agenda mostra só onde ainda cabe alguém. Para marcar, abra a ficha da pessoa e toque em Marcar ${sessao}.`,
     },
   ]
 

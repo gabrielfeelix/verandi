@@ -145,7 +145,7 @@ test('cancelar o horário avisa quantas pessoas serão afetadas', async ({ page 
 
   // a confirmação diz o efeito nos dados, e não um `confirm()` do navegador
   const confirmacao = page.getByRole('dialog')
-  await expect(confirmacao).toContainText('2 pessoa(s) serão avisadas')
+  await expect(confirmacao).toContainText('2 pessoas serão avisadas')
   await expect(confirmacao).toContainText('crédito de reposição')
 
   await confirmacao.getByLabel('Motivo').fill('Sala interditada')
@@ -201,11 +201,11 @@ test('desistir da confirmação não grava nada', async ({ page }) => {
   expect(count).toBe(2)
 })
 
-test('a busca de vaga não oferece horário cheio, mesmo com encaixe permitido', async ({ page }) => {
+test('"só com vaga" na agenda não oferece horário cheio, mesmo com encaixe permitido', async ({ page }) => {
   const c = await cenarioCheio()
   await admin.from('conta').update({ encaixe_acima: true }).eq('id', c.contaId)
 
-  // uma sessão cheia amanhã: a busca olha para frente
+  // uma sessão cheia amanhã: o filtro olha para frente
   const amanha = new Date(Date.now() + 864e5).toISOString().slice(0, 10)
   const { data: sessao } = await admin.from('sessao').insert({
     conta_id: c.contaId, servico_id: c.servicoId, profissional_id: c.profissionalId,
@@ -218,15 +218,10 @@ test('a busca de vaga não oferece horário cheio, mesmo com encaixe permitido',
   })
 
   await entrar(page, c.email)
+  // a antiga Buscar vaga leva ao filtro, e favorito velho não dá 404
   await page.goto('/vaga')
+  await expect(page).toHaveURL(/\/semana\?vaga=sim/)
 
-  // por padrão o lotado não é resultado de busca: quem pergunta "quando tem
-  // horário?" quer horário, não quase-horário
-  await expect(page.getByText('lotada')).toHaveCount(0)
-
-  // pedindo para incluir, ele entra na mesma lista, marcado, e com "Encaixar"
-  // no lugar de "Marcar", porque as duas ações não são a mesma coisa
-  await page.getByRole('link', { name: /Incluir lotados/ }).click()
-  await expect(page.getByText('1/1 lotada')).toBeVisible()
-  await expect(page.getByText('Encaixar').first()).toBeVisible()
+  // quem pergunta "quando tem horário?" quer horário, não quase-horário
+  await expect(page.getByText('Nenhum horário com vaga nesta semana')).toBeVisible()
 })

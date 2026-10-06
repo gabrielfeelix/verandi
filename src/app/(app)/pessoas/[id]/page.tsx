@@ -8,7 +8,7 @@ import { EditarPessoa } from '@/components/pessoas/editar-pessoa'
 import {
   AtenderPedidoDeExclusao, AvisoDeCadastro, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
 } from '@/components/pessoas/acoes-da-ficha'
-import { BotaoAgendar, ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
+import { ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
 import { ReposicoesAbertas } from '@/components/pessoas/reposicoes'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { AbasDaFicha } from '@/components/pessoas/abas-da-ficha'
@@ -19,7 +19,8 @@ import { TINTA_PRESENCA, TINTA_ORIGEM, type Tinta } from '@/components/ui/tintas
 import { erroDoTelefone, exibirTelefone, telefoneValido } from '@/core/telefone'
 import { PainelDeAvaliacao } from '@/components/avaliacao/painel'
 import { NovaMatricula, ContratosDaFicha } from '@/components/contratos/matricula'
-import { contratosDaPessoa, modalidadesDaPessoa } from '@/server/contratos/consultas'
+import { contratosDaPessoa, modalidadesDaPessoa, servicosDaPessoa } from '@/server/contratos/consultas'
+import { MarcarAula } from '@/components/pessoas/marcar-aula'
 import { cobrancasDaPessoa } from '@/server/financeiro/consultas'
 import { recibosDaPessoa, ultimosEnvios } from '@/server/recibo/consultas'
 import { ListaDeRecibos } from '@/components/recibo/lista'
@@ -169,6 +170,19 @@ export default async function Pessoa({
    */
   const modalidades = await modalidadesDaPessoa(db, conta.contaId, id)
   const temContrato = operacional ? contratosEmVigor > 0 : modalidades.length > 0
+
+  // o "Marcar aula" abre na modalidade dela, e deixa trocar entre as da conta
+  const [servicosDela, { data: catalogoServicos }] = operacional
+    ? await Promise.all([
+        servicosDaPessoa(db, conta.contaId, id),
+        db.from('servico').select('id, nome').eq('conta_id', conta.contaId)
+          .eq('ativo', true).order('nome'),
+      ])
+    : [[], { data: [] as Array<{ id: string; nome: string }> }]
+  // da mais antiga para a mais nova: repõe primeiro a que vence antes
+  const faltasParaRepor = [...ficha.reposicoesAbertas]
+    .sort((a, b) => `${a.data} ${a.hora}`.localeCompare(`${b.data} ${b.hora}`))
+    .map((r) => ({ id: r.id, quando: `${curta(r.data)}`, servicoId: r.servicoId }))
 
   /*
    * O retrato financeiro da pessoa.
@@ -378,7 +392,19 @@ export default async function Pessoa({
             se faz todo dia.
           */}
           <div className="grid grid-cols-2 gap-2">
-            <BotaoAgendar>Criar {rotulos.vaga.singular.toLowerCase()}</BotaoAgendar>
+            {/* marcar uma aula é o que se faz todo dia no balcão; criar o
+                horário fixo mora na aba Agenda, junto das vagas */}
+            <MarcarAula
+              pessoaId={p.id}
+              nome={p.nome}
+              servicos={catalogoServicos ?? []}
+              servicoInicial={servicosDela.length === 1 ? servicosDela[0].id : null}
+              faltas={faltasParaRepor}
+              rotuloSessao={rotulos.sessao.singular}
+              className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-media bg-escuro px-4 text-[14.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
+            >
+              Marcar {rotulos.sessao.singular.toLowerCase()}
+            </MarcarAula>
             <EditarPessoa
               className="w-full"
               pessoa={{
@@ -604,6 +630,9 @@ export default async function Pessoa({
             <section className="rounded-cartao border border-atencao-linha bg-atencao-superficie p-4">
               <ReposicoesAbertas
                 pessoaId={p.id}
+                nome={p.nome}
+                servicos={catalogoServicos ?? []}
+                rotuloSessao={rotulos.sessao.singular}
                 podeAgendar={operacional}
                 creditos={ficha.reposicoesAbertas.map((r) => ({
                   id: r.id,
