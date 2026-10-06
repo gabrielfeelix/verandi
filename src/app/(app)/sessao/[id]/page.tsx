@@ -127,7 +127,9 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                         : 'bg-superficie-mais-suave text-tinta-media'
                     }`}
                   >
-                    {sessao.ocupacao.ocupadas}/{sessao.ocupacao.capacidade} vagas
+                    {/* "1/3 vagas" se lia como "uma vaga", e o rodapé dizia
+                        "2 vagas livres" da mesma aula */}
+                    {sessao.ocupacao.ocupadas} de {sessao.ocupacao.capacidade} vagas ocupadas
                   </span>
                   <EtiquetaEstado cancelada={cancelada} />
                 </div>
