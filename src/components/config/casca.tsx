@@ -8,7 +8,7 @@ import { cartao } from '@/components/ui/pecas'
  *
  * O padrão é sempre o mesmo: um cartão branco de 20px de raio, cabeçalho com
  * título, subtítulo e a ação primária à direita, e **linhas separadas por
- * divisória** — não cartões soltos dentro do cartão. Lista com moldura em cada
+ * divisória**, não cartões soltos dentro do cartão. Lista com moldura em cada
  * item vira ruído quando são quarenta pessoas.
  */
 export function PainelConfig({
@@ -39,7 +39,7 @@ export function PainelConfig({
  * Uma linha da lista: nome em cima, o detalhe embaixo, etiquetas e a ação à
  * direita.
  *
- * `apagado` é o item desativado — continua legível, mas para de disputar
+ * `apagado` é o item desativado, continua legível, mas para de disputar
  * atenção com o que está no ar.
  */
 export function LinhaConfig({
@@ -74,7 +74,7 @@ export function LinhaConfig({
   )
 }
 
-/** O número entre parênteses da linha — capacidade, duração, contagem. */
+/** O número entre parênteses da linha, capacidade, duração, contagem. */
 export function Dado({ children }: { children: ReactNode }) {
   return (
     <span className="rounded-peca bg-superficie-mais-suave px-2.5 py-1 font-mono text-[13px] text-tinta-media">
@@ -96,13 +96,13 @@ export function Estado({ ativo }: { ativo: boolean }) {
   )
 }
 
-/** "Editar" é botão contornado, não link sublinhado — é ação, não navegação. */
+/** "Editar" é botão contornado, não link sublinhado, é ação, não navegação. */
 export function BotaoLinha({
   children, tom = 'neutro', className = '', ...resto
 }: {
   children: ReactNode
   /* `perigo` é vermelho, e vermelho aqui é só o que tira algo do ar:
-     desativar, excluir. Fechar e cancelar não são perigo — são desistir. */
+     desativar, excluir. Fechar e cancelar não são perigo, são desistir. */
   tom?: 'neutro' | 'marca' | 'perigo'
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
@@ -125,7 +125,7 @@ export function BotaoLinha({
 /**
  * A gaveta dos desativados, no pé da lista.
  *
- * Eles não somem — o histórico depende deles — mas também não ficam misturados
+ * Eles não somem (o histórico depende deles), mas também não ficam misturados
  * com o que está no ar, porque a pergunta do dia é "o que existe hoje".
  */
 export function Recolhivel({

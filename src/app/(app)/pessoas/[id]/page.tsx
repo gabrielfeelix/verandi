@@ -368,7 +368,7 @@ export default async function Pessoa({
             <div className="flex flex-wrap gap-x-[22px] gap-y-2">
               {dados.map(([rotulo, valor, falta]) => (
                 <span key={rotulo} className="flex flex-col leading-[1.4]">
-                  <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-inativa uppercase">
+                  <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
                     {rotulo}
                   </span>
                   <span className={`text-[14.5px] ${falta ? 'text-alerta' : ''}`}>

@@ -569,7 +569,7 @@ function FiltroDaAgenda({
         ligado
           ? 'border-marca bg-positivo-superficie font-medium text-marca'
           : vazio
-            ? 'border-linha-fina bg-superficie text-tinta-inativa'
+            ? 'border-dashed border-linha bg-superficie text-tinta-fraca'
             : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
       }`}
     >

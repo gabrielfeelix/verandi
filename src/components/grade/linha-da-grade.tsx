@@ -97,7 +97,7 @@ export function LinhaDaGrade({
         <span
           className={`flex h-14 w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-media font-mono leading-none ${
             serie.encerrada
-              ? 'bg-superficie-mais-suave text-tinta-inativa'
+              ? 'bg-superficie-mais-suave text-tinta-fraca'
               : 'bg-escuro text-tinta-clara'
           }`}
         >

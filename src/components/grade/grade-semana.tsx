@@ -12,7 +12,7 @@ import { cartao } from '@/components/ui/pecas'
  * cima, que é o respiro do cartão por onde a linha de baixo aparecia.
  *
  * Em estilo, e não em classe: `shadow-[...]` com vírgula quebra o gerador do
- * Tailwind, e o CSS inteiro deixa de ser produzido — a tela abre sem estilo.
+ * Tailwind, e o CSS inteiro deixa de ser produzido, a tela abre sem estilo.
  */
 const FRESTA = '0 6px 0 #fff, 0 -16px 0 #fff, 3px 0 0 #fff, -3px 0 0 #fff'
 
@@ -24,7 +24,7 @@ function diaDe(dataIso: string) {
 
 /**
  * A substituta da planilha. Aguenta 70 horários numa semana porque a linha é o
- * horário, não o bloco desenhado — acrescentar horário é acrescentar linha.
+ * horário, não o bloco desenhado, acrescentar horário é acrescentar linha.
  *
  * É uma grade CSS, não `<table>`: cada célula pode ter duas turmas paralelas
  * empilhadas, e tabela com célula composta vira leitura confusa em leitor de
@@ -63,7 +63,7 @@ export function GradeSemana({
   /*
    * A célula que está acontecendo agora.
    *
-   * É a última hora que já começou no dia de hoje — não a mais próxima do
+   * É a última hora que já começou no dia de hoje, não a mais próxima do
    * relógio. Às 09:40, a turma das 09:00 é a que está na sala; apontar para a
    * das 10:00 mandaria a recepção para a turma errada.
    */
@@ -103,14 +103,14 @@ export function GradeSemana({
     >
       <div className="grid min-w-[920px] grid-cols-[58px_repeat(7,minmax(0,1fr))] gap-1.5">
         {/* a sombra branca fecha as frestas: 6px embaixo e 3px de cada lado,
-            que é a metade do `gap` — sem isso a aula rolava por dentro do vão
+            que é a metade do `gap`, sem isso a aula rolava por dentro do vão
             entre dois cabeçalhos e ficava escrita por cima do número do dia */}
         <div className="sticky top-0 z-3 bg-superficie" style={{ boxShadow: FRESTA }} />
 
         {/*
           * O cabeçalho do dia carrega três coisas: qual dia é, quanto tem, e se
           * a casa abre. "12 turmas" embaixo do número é o que responde "onde
-          * está o buraco da semana?" sem contar cartão por cartão — e "fechado"
+          * está o buraco da semana?" sem contar cartão por cartão, e "fechado"
           * é a diferença entre um sábado vazio e um sábado que ninguém montou.
           */}
         {dias.map((d) => {
@@ -194,7 +194,7 @@ export function GradeSemana({
               /*
                * Duas turmas no mesmo horário não são erro: são dois
                * profissionais, ou duas salas. A etiqueta diz **qual dos dois**,
-               * porque as consequências são diferentes — sala repetida no mesmo
+               * porque as consequências são diferentes, sala repetida no mesmo
                * horário é conflito, professor diferente não é.
                */
               const salas = new Set(celula.map((s) => s.local ?? 'Sem registro'))
