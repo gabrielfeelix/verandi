@@ -50,8 +50,7 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
   if (total === 0) {
     return (
       <Nota tom="positivo">
-        Tudo em dia: chamadas feitas, nenhuma reposição esperando e ninguém na
-        fila.
+        Nenhuma pendência no momento.
       </Nota>
     )
   }
@@ -63,23 +62,19 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
           key={g.tipo}
           className={`overflow-hidden ${cartao}`}
         >
-          {/* cada grupo tem a sua tinta: quatro contagens laranja lado a lado
-              não hierarquizam nada */}
-          <div
-            className={`flex items-center gap-4 px-4.5 py-4 ${
-              TINTA_GRUPO[g.tipo] ?? 'bg-superficie-suave text-tinta-media'
-            }`}
-          >
-            {/* o número é o tamanho do problema: 30px, não 14 */}
-            <span className="font-titulo text-[28px] leading-none font-bold tracking-[-.03em]">
+          <div className="flex items-center gap-3.5 border-b border-linha-fina px-4.5 py-3.5">
+            <span
+              className={`flex h-9 min-w-9 shrink-0 items-center justify-center rounded-padrao px-2 font-titulo text-[18px] leading-none font-semibold tabular-nums ${
+                TINTA_GRUPO[g.tipo] ?? 'bg-solido-neutro text-white'
+              }`}
+            >
               {g.itens.length}
             </span>
-            <span aria-hidden className="w-px self-stretch bg-current opacity-[.22]" />
-            <span className="flex min-w-0 flex-col gap-[3px] leading-[1.25]">
+            <span className="flex min-w-0 flex-col gap-0.5 leading-[1.25]">
               <h2 className="font-titulo text-[18px] font-semibold tracking-[-.01em]">
                 {g.titulo}
               </h2>
-              <span className="text-[12px] opacity-75">{g.sub}</span>
+              <span className="text-[13.5px] text-tinta-media">{g.sub}</span>
             </span>
           </div>
 
@@ -174,8 +169,8 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
               className="w-full cursor-pointer bg-superficie-tenue px-4.5 py-3 text-left text-[13.5px] font-medium text-marca hover:bg-superficie-mais-suave"
             >
               {abertos.includes(g.tipo)
-                ? 'Mostrar só as primeiras ↑'
-                : `Ver as outras ${g.itens.length - MOSTRA} ↓`}
+                ? 'Mostrar menos'
+                : `Mostrar mais ${g.itens.length - MOSTRA}`}
             </button>
           ) : null}
         </section>
@@ -205,7 +200,7 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
         aberto={dispensando !== null}
         glifo="×"
         titulo="Dispensar pendência"
-        sub={dispensando ? `${dispensando.titulo}, sai da lista e não volta` : ''}
+        sub={dispensando ? dispensando.titulo : ''}
         primario="Dispensar"
         pendente={pendente}
         aoFechar={() => setDispensando(null)}
@@ -233,8 +228,7 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
           </select>
         </label>
         <Nota tom="neutro">
-          O item sai da lista e fica registrado com o motivo e o nome de quem
-          dispensou.
+          O item sai da lista. O motivo e o responsável ficam registrados.
         </Nota>
       </Modal>
     </div>

@@ -47,7 +47,7 @@ test('registrar a chamada tira a pendência sem passo extra', async ({ page }) =
   }).toBe('presente')
 
   await page.goto('/pendencias')
-  await expect(page.getByText('Nada pendente')).toBeVisible()
+  await expect(page.getByText('Nenhuma pendência no momento.')).toBeVisible()
 })
 
 test('dispensar pede motivo e some da lista', async ({ page }) => {
@@ -60,7 +60,7 @@ test('dispensar pede motivo e some da lista', async ({ page }) => {
   await page.getByLabel('Motivo').selectOption('Não se aplica')
   await page.getByRole('button', { name: 'Dispensar', exact: true }).last().click()
 
-  await expect(page.getByText('Nada pendente')).toBeVisible()
+  await expect(page.getByText('Nenhuma pendência no momento.')).toBeVisible()
 
   await expect.poll(async () => {
     const { data } = await admin.from('pendencia_dispensada')
@@ -75,7 +75,7 @@ test('conta sem nada mostra que isso é o normal, não erro', async ({ page }) =
 
   await entrar(page, email)
   await page.goto('/pendencias')
-  await expect(page.getByText('é assim que esta tela deve ficar')).toBeVisible()
+  await expect(page.getByText('Nenhuma pendência no momento.')).toBeVisible()
 })
 
 test('profissional não alcança pendências', async ({ page }) => {

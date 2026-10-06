@@ -100,25 +100,25 @@ export async function listarPendencias(
     {
       tipo: 'chamada_nao_feita',
       titulo: 'Chamadas não feitas',
-      sub: 'já passaram e ninguém registrou',
+      sub: 'Aulas encerradas sem registro de presença',
       itens: chamadas.filter(vale),
     },
     {
       tipo: 'reposicao_aberta',
       titulo: 'Reposições em aberto',
-      sub: 'crédito de falta ou de dia fechado que ninguém usou',
+      sub: 'Créditos de falta ou de dia fechado ainda não utilizados',
       itens: reposicoes.filter(vale),
     },
     {
       tipo: 'licenca',
       titulo: 'Licenças',
-      sub: 'afastados com horário guardado; na data de volta, alguém entra em contato',
+      sub: 'Alunos afastados com horário reservado',
       itens: licencas,
     },
     {
       tipo: 'reserva_esperando',
       titulo: 'Reservas esperando',
-      sub: 'pediram horário que estava cheio',
+      sub: 'Pedidos de horário que estava completo',
       itens: reservas.filter(vale),
     },
     {
@@ -126,13 +126,13 @@ export async function listarPendencias(
       // se resolve criando o contrato ou encerrando o horário
       tipo: 'horario_sem_contrato',
       titulo: 'Horário fixo sem contrato',
-      sub: 'vem toda semana numa modalidade que não contratou',
+      sub: 'Horário fixo em modalidade sem contrato ativo',
       itens: semContrato,
     },
     {
       tipo: 'cadastro_incompleto',
       titulo: 'Cadastros incompletos',
-      sub: 'sem telefone ou sem identificador',
+      sub: 'Sem telefone ou sem nº da ficha',
       itens: cadastros.filter(vale),
     },
   ]
@@ -283,8 +283,8 @@ async function cadastrosIncompletos(
       referenciaId: p.id,
       titulo: p.nome,
       detalhe: !p.telefone
-        ? 'sem telefone, não dá para avisar'
-        : 'sem identificador',
+        ? 'Sem telefone'
+        : 'Sem nº da ficha',
       diasEmAberto: null,
       href: `/pessoas/${p.id}`,
     }))
@@ -335,7 +335,7 @@ async function horariosSemContrato(
       tipo: 'horario_sem_contrato',
       referenciaId: p.id,
       titulo: p.nome,
-      detalhe: `horário fixo em ${faltam.join(' e ')}, sem contrato`,
+      detalhe: faltam.join(' e '),
       diasEmAberto: null,
       href: `/pessoas/${p.id}?aba=contratos`,
     })
@@ -387,7 +387,7 @@ async function licencasEmAcompanhamento(
       || (a.voltaPrevista ?? '9').localeCompare(b.voltaPrevista ?? '9')
       || a.pessoaNome.localeCompare(b.pessoaNome, 'pt-BR'))
     .map((l) => {
-      const desde = `em licença desde ${diaMes(l.inicio)}`
+      const desde = `Em licença desde ${diaMes(l.inicio)}`
       let etiqueta: Pendencia['etiqueta']
       let detalhe = desde
       if (!l.voltaPrevista) {

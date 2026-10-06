@@ -16,6 +16,7 @@ import { Bloco, FaixaPeriodo, LinhaAgenda } from '@/components/hoje/pecas'
 import { AvisoDeAcesso } from '@/components/ui/aviso-de-acesso'
 import { Chip, cartao } from '@/components/ui/pecas'
 import { Saudacao } from '@/components/hoje/saudacao'
+import { TINTA_GRUPO } from '@/components/pendencias/tintas'
 import { caixaDoMes } from '@/server/financeiro/consultas'
 import { variacao } from '@/core/financeiro/metricas'
 import { emReais } from '@/core/planos/plano'
@@ -30,19 +31,6 @@ type Busca = Promise<{
 function periodoDe(hora: string) {
   const h = Number(hora.slice(0, 2))
   return h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'
-}
-
-/**
- * Cada grupo de pendência tem a sua tinta: chamada não feita é alerta, crédito
- * de reposição é atenção, reserva é informação, cadastro incompleto é neutro.
- * Quatro números laranja lado a lado não hierarquizam nada.
- */
-const TINTA_PENDENCIA: Record<string, string> = {
-  chamada_nao_feita: 'bg-alerta-fundo text-alerta',
-  reposicao_aberta: 'bg-atencao-fundo text-atencao',
-  reserva_esperando: 'bg-info-fundo text-info',
-  cadastro_incompleto: 'bg-neutro-fundo text-neutro',
-  licenca: 'bg-licenca-fundo text-licenca',
 }
 
 /*
@@ -361,7 +349,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               className="flex items-center gap-3 rounded-media bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
             >
               <span
-                className={`flex size-7.5 items-center justify-center rounded-peca text-[14.5px] font-semibold ${TINTA_PENDENCIA[g.tipo] ?? 'bg-neutro-fundo text-neutro'}`}
+                className={`flex size-7.5 items-center justify-center rounded-peca text-[14.5px] font-semibold ${TINTA_GRUPO[g.tipo] ?? 'bg-solido-neutro text-white'}`}
               >
                 {g.itens.length}
               </span>

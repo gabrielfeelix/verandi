@@ -7,14 +7,18 @@
  * tela sem que nada quebre nem apareça no `tsc`.
  */
 
-/** A tinta de cada grupo, a mesma do cartão de Hoje. */
+/**
+ * A tinta de cada grupo, a mesma do cartão de Hoje: cor sólida só no número.
+ * O cabeçalho inteiro em pastel (salmão, bege, lilás) deixava a tela terrosa e
+ * fazia cinco faixas coloridas disputarem o olho.
+ */
 export const TINTA_GRUPO: Record<string, string> = {
-  chamada_nao_feita: 'bg-alerta-fundo text-alerta',
-  reposicao_aberta: 'bg-atencao-fundo text-atencao',
-  licenca: 'bg-licenca-fundo text-licenca',
-  reserva_esperando: 'bg-info-fundo text-info',
-  cadastro_incompleto: 'bg-neutro-fundo text-tinta-media',
-  horario_sem_contrato: 'bg-alerta-fundo text-alerta',
+  chamada_nao_feita: 'bg-reg-falta text-white',
+  reposicao_aberta: 'bg-solido-atencao text-white',
+  licenca: 'bg-reg-licenca text-white',
+  reserva_esperando: 'bg-reg-justificada text-white',
+  cadastro_incompleto: 'bg-solido-neutro text-white',
+  horario_sem_contrato: 'bg-reg-falta text-white',
 }
 
 /*

@@ -141,6 +141,11 @@
   --color-reg-justificada-forte: #1e40af;
   --color-reg-licenca: #6d4fc2;
   --color-reg-licenca-forte: #5a3fa8;
+  /* Sólidos de estado que não são de presença: contagem de pendência, selo
+     de grupo. Âmbar e grafite completam a família reg-*, branco por cima
+     passa AA (5,0:1 e 7,6:1). */
+  --color-solido-atencao: #b45309;
+  --color-solido-neutro: #4b5563;
 
   --color-neutro-fundo: #edf1ef;
   /* a etiqueta neutra é a que mais aparece ("esperada", "cancelada"), e era a

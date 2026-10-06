@@ -28,11 +28,12 @@ export default async function Pendencias() {
             <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
               Pendências
             </h1>
-            <p className="pt-[3px] text-[14.5px] text-tinta-media">
-              {total === 0
-                ? 'Nada pendente agora.'
-                : `${total} ${total === 1 ? 'item pendente' : 'itens pendentes'}.`}
-            </p>
+            {/* vazio, quem fala é a nota da lista: dizer duas vezes era eco */}
+            {total > 0 ? (
+              <p className="pt-[3px] text-[14.5px] text-tinta-media">
+                {`${total} ${total === 1 ? 'item pendente' : 'itens pendentes'}`}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
