@@ -55,7 +55,7 @@ export default async function Grade() {
             ativo="grade"
             itens={[
               { id: 'semana', rotulo: 'Semana', href: '/semana' },
-              { id: 'dia', rotulo: 'Dia por recurso', href: '/semana?modo=dia' },
+              { id: 'dia', rotulo: 'Dia', href: '/semana?modo=dia' },
               { id: 'grade', rotulo: 'Grade fixa', href: '/grade' },
             ]}
           />
@@ -67,21 +67,6 @@ export default async function Grade() {
         </div>
       </header>
 
-      {/* A confusão mais provável do sistema inteiro mora aqui, e por isso ela
-          é dita antes de qualquer edição, não depois. */}
-      <p className="flex items-start gap-2.5 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[14.5px] leading-relaxed text-[#2F6659]">
-        <span
-          aria-hidden
-          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-positivo-linha text-[12px]"
-        >
-          i
-        </span>
-        <span>
-          Editar {rotulos.serie.singular.toLowerCase()} vale{' '}
-          <strong className="font-semibold">daqui para frente</strong>.{' '}
-          {rotulos.sessao.plural} que já aconteceram ficam como estão.
-        </span>
-      </p>
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex flex-col gap-3.5">
@@ -131,9 +116,6 @@ export default async function Grade() {
             <h2 className="text-[14.5px] font-medium">
               {rotulos.serie.plural} que terminaram
             </h2>
-            <span className="text-[13.5px] text-tinta-media">
-              continuam existindo no histórico
-            </span>
           </div>
           <ul aria-label="Encerradas" className="flex flex-col gap-2 p-2.5">
             {encerradas.map((s) => (
@@ -151,13 +133,6 @@ export default async function Grade() {
         <div className="flex flex-col gap-3.5">
           <CapacidadeDaSemana series={vigentes} rotuloSerie={rotulos.serie} />
 
-          {/* As duas ações que assustam, explicadas antes de serem clicadas. */}
-          <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie-suave p-4">
-            <p className="text-[13.5px] leading-relaxed text-tinta-media">
-              Encerrar mostra antes quantas pessoas ocupam o horário. Duplicar
-              copia um horário para outro dia ou hora, com a mesma configuração.
-            </p>
-          </section>
         </div>
       </div>
     </div>

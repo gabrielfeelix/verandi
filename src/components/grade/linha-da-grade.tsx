@@ -12,7 +12,6 @@ import type { Colisao } from '@/core/agenda/serie'
 import type { Rotulos } from '@/core/vocabulario/padrao'
 import type { CatalogoGrade, SerieLinha } from '@/server/grade/consultas'
 import { mesCurto } from '@/core/agenda/mes-curto'
-import { Icone } from '@/components/ui/icones'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { Escolha } from '@/components/ui/escolha'
@@ -139,12 +138,16 @@ export function LinhaDaGrade({
             ) : null}
             <span aria-hidden className="opacity-40">·</span>
             <span>{serie.duracaoMin} min</span>
-            <span aria-hidden className="opacity-40">·</span>
-            <span className="text-tinta-fraca">
-              {serie.encerrada
-                ? `${mesCurto(serie.vigenciaInicio)} – ${mesCurto(serie.vigenciaFim!)}`
-                : `desde ${mesCurto(serie.vigenciaInicio)}`}
-            </span>
+            {/* "desde jul/26" em toda linha ativa não mudava decisão; a
+                vigência só importa no horário que já foi encerrado */}
+            {serie.encerrada ? (
+              <>
+                <span aria-hidden className="opacity-40">·</span>
+                <span className="text-tinta-fraca">
+                  {`${mesCurto(serie.vigenciaInicio)} a ${mesCurto(serie.vigenciaFim!)}`}
+                </span>
+              </>
+            ) : null}
           </span>
         </span>
 
@@ -174,20 +177,21 @@ export function LinhaDaGrade({
         {podeEscrever ? (
           // o clique nas ações não pode cair na linha e abrir a edição junto
           <span className="flex shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-            {!serie.encerrada ? (
-              <BotaoAcao
-                icone="pessoas" rotulo="Quem ocupa" pendente={pendente}
-                onClick={() => comErro(async () => {
-                  setModo('ocupa')
-                  setOcupantes(await quemOcupa(serie.id))
-                })}
-              />
-            ) : null}
             <Menu
               titulo={`Ações das ${serie.horaInicio.slice(0, 5)}`}
               itens={[
+                // "Quem ocupa" era um botão em cada uma das quarenta linhas
                 ...(!serie.encerrada
-                  ? [{ rotulo: 'Editar', icone: 'lapis' as const, aoEscolher: () => setModo('editar') }]
+                  ? [
+                      {
+                        rotulo: 'Quem ocupa', icone: 'pessoas' as const,
+                        aoEscolher: () => comErro(async () => {
+                          setModo('ocupa')
+                          setOcupantes(await quemOcupa(serie.id))
+                        }),
+                      },
+                      { rotulo: 'Editar', icone: 'lapis' as const, aoEscolher: () => setModo('editar') },
+                    ]
                   : []),
                 { rotulo: 'Duplicar', icone: 'copiar' as const, aoEscolher: () => setModo('duplicar') },
                 ...(!serie.encerrada
@@ -452,41 +456,5 @@ export function LinhaDaGrade({
         </ModalFormulario>
       ) : null}
     </li>
-  )
-}
-
-/**
- * Ação com ícone **e** palavra.
- *
- * Só o glifo é adivinhação: um X pode ser desativar, apagar ou fechar, e quem
- * descobre parando o mouse em cima descobre tarde, no celular, nunca. Em tela
- * estreita a palavra some e sobra o alvo de 44px, com o nome no `aria-label`.
- */
-function BotaoAcao({
-  icone, rotulo, onClick, perigo = false, pendente = false,
-}: {
-  icone: 'pessoas' | 'lapis' | 'copiar' | 'proibido'
-  rotulo: string
-  onClick: () => void
-  perigo?: boolean
-  pendente?: boolean
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={pendente}
-      aria-label={rotulo}
-      className={`flex min-h-9 cursor-pointer items-center gap-1.5 rounded-peca border px-2.5 text-[13.5px] transition-colors duration-150 disabled:opacity-60 ${
-        perigo
-          // vermelho só no gesto: setenta linhas com o mesmo botão vermelho
-          // faziam a grade inteira parecer um alarme
-          ? 'border-linha-suave bg-superficie text-tinta-media hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta'
-          : 'border-linha-suave bg-superficie text-tinta-media hover:bg-superficie-suave hover:text-tinta'
-      }`}
-    >
-      <Icone nome={icone} tamanho={15} />
-      <span className="hidden sm:inline">{rotulo}</span>
-    </button>
   )
 }

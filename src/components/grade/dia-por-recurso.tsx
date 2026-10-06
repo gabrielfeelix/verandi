@@ -12,7 +12,7 @@ export type Recurso = { id: string; nome: string; cor?: string | null }
  * célula empilhada e ilegível; aqui cada uma tem a sua coluna.
  */
 export function DiaPorRecurso({
-  sessoes, recursos, eixo, chaveDe, vazio,
+  sessoes, recursos, eixo, chaveDe, vazio, rotuloSessao,
 }: {
   sessoes: SessaoResumo[]
   recursos: Recurso[]
@@ -21,6 +21,8 @@ export function DiaPorRecurso({
   /** de qual recurso é esta sessão */
   chaveDe: (s: SessaoResumo) => string | null
   vazio: string
+  /** como a conta chama a aula, para o total de cada coluna */
+  rotuloSessao: { singular: string; plural: string }
 }) {
   const horas = [...new Set(sessoes.map((s) => s.hora))].sort()
 
@@ -33,7 +35,7 @@ export function DiaPorRecurso({
   if (horas.length === 0 || colunas.length === 0) {
     return (
       <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie">
-        <Vazio icone="semana" titulo="Nada marcado neste dia" texto={vazio} />
+        <Vazio icone="semana" titulo="Nada marcado neste dia" texto={vazio || undefined} />
       </section>
     )
   }
@@ -46,7 +48,7 @@ export function DiaPorRecurso({
 
   return (
     <section
-      aria-label="Dia por recurso"
+      aria-label="Agenda do dia"
       className={`max-h-[calc(100vh-210px)] overflow-auto ${cartao} p-3.5`}
     >
       <div
@@ -73,7 +75,7 @@ export function DiaPorRecurso({
               <span className="truncate text-[13.5px] font-medium">{r.nome}</span>
             </span>
             <span className="text-[12px] text-tinta-media">
-              {sessoes.filter((s) => (chaveDe(s) ?? '') === r.id).length} no dia
+              {contar(sessoes.filter((s) => (chaveDe(s) ?? '') === r.id).length, rotuloSessao)}
             </span>
           </div>
         ))}
@@ -112,4 +114,8 @@ export function DiaPorRecurso({
       </div>
     </section>
   )
+}
+
+function contar(n: number, r: { singular: string; plural: string }) {
+  return `${n} ${(n === 1 ? r.singular : r.plural).toLowerCase()}`
 }

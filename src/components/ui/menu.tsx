@@ -18,7 +18,7 @@ export type ItemMenu = {
  * pessoa faz o tempo todo fica à vista na linha; o resto mora aqui, senão cada
  * linha da lista vira uma barra de ferramentas.
  *
- * Fecha ao clicar fora, ao apertar `Esc` e ao escolher — e devolve o foco ao
+ * Fecha ao clicar fora, ao apertar `Esc` e ao escolher, e devolve o foco ao
  * gatilho, porque quem navega por teclado não tem para onde voltar sozinho.
  */
 export function Menu({ titulo, itens }: { titulo: string; itens: ItemMenu[] }) {

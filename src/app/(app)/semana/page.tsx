@@ -11,6 +11,7 @@ import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
 import { Abas } from '@/components/ui/abas'
 import { cartao, Chip, Vazio } from '@/components/ui/pecas'
+import { Suspenso } from '@/components/ui/suspenso'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
@@ -33,8 +34,11 @@ function segundaDe(data: string): string {
   return somarDias(data, d === 0 ? -6 : 1 - d)
 }
 
-function curta(data: string) {
-  return `${data.slice(8)}/${data.slice(5, 7)}`
+const SEMANA_LONGA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+
+/** "Terça, 6 de outubro": o mesmo jeito de dizer a data que a tela Hoje usa. */
+function dataLonga(data: string) {
+  return `${SEMANA_LONGA[diaDaSemanaDe(data)]}, ${Number(data.slice(8, 10))} de ${MESES[Number(data.slice(5, 7)) - 1]}`
 }
 
 const MESES = [
@@ -151,6 +155,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   // esgota; profissional é a alternativa para quem separa por pessoa
   const porLocal = (p.eixo ?? 'local') === 'local'
   const doDia = sessoes.filter((s) => s.data === diaFoco)
+  const localAtivo = (locais ?? []).find((l) => l.id === p.local)
 
   return (
     <AreaQueTroca esqueleto={<Carregando />}>
@@ -158,11 +163,11 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
           <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
-            {ehDia ? 'Dia por recurso' : 'Agenda da semana'}
+            {ehDia ? 'Agenda do dia' : 'Agenda da semana'}
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {ehDia
-              ? `${DIAS_CURTOS[diaDaSemanaDe(diaFoco)]} ${curta(diaFoco)}`
+              ? dataLonga(diaFoco)
               : faixaDaSemana(segunda, dias[6])}
             {' · '}
             {sessoes.length} {rotulos.sessao.plural.toLowerCase()}
@@ -176,7 +181,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             ativo={ehDia ? 'dia' : 'semana'}
             itens={[
               { id: 'semana', rotulo: 'Semana', href: q({ modo: undefined }) },
-              { id: 'dia', rotulo: 'Dia por recurso', href: q({ modo: 'dia', dia: diaFoco }) },
+              { id: 'dia', rotulo: 'Dia', href: q({ modo: 'dia', dia: diaFoco }) },
               // a grade fixa é o molde desta agenda: mora aqui, não no menu
               { id: 'grade', rotulo: 'Grade fixa', href: '/grade' },
             ]}
@@ -237,44 +242,45 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         {(locais ?? []).length > 1 ? (
           <>
             <span aria-hidden className="mx-1 h-5 w-px bg-linha" />
-            <Chip href={q({ local: undefined })} ativo={!p.local}>
-              Todos os locais
-            </Chip>
-            {(locais ?? []).map((l) => (
-              <Chip
-                key={l.id}
-                href={q({ local: p.local === l.id ? undefined : l.id })}
-                ativo={p.local === l.id}
-              >
-                {l.nome}
-              </Chip>
-            ))}
+            {/* local é filtro raro: num menu, em vez de mais três chips à vista */}
+            <Suspenso
+              rotulo={localAtivo ? localAtivo.nome : 'Todos os locais'}
+              ativo={!!localAtivo}
+              itens={[
+                { rotulo: 'Todos os locais', href: q({ local: undefined }), ativo: !p.local },
+                ...(locais ?? []).map((l) => ({
+                  rotulo: l.nome, href: q({ local: l.id }), ativo: p.local === l.id,
+                })),
+              ]}
+            />
           </>
+        ) : null}
+
+        {ehDia ? (
+          <span className="md:ml-auto">
+            <Abas
+              rotuloDoGrupo="O que fica nas colunas"
+              ativo={porLocal ? 'local' : 'profissional'}
+              itens={[
+                { id: 'local', rotulo: 'Por local', href: q({ eixo: 'local' }) },
+                {
+                  id: 'profissional',
+                  rotulo: `Por ${rotulos.profissional.singular.toLowerCase()}`,
+                  href: q({ eixo: 'profissional' }),
+                },
+              ]}
+            />
+          </span>
         ) : null}
       </div>
 
       {ehDia ? (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[13.5px] text-tinta-media">Colunas por</span>
-            <Abas
-              rotuloDoGrupo="O que fica nas colunas"
-              ativo={porLocal ? 'local' : 'profissional'}
-              itens={[
-                { id: 'local', rotulo: 'Local', href: q({ eixo: 'local' }) },
-                {
-                  id: 'profissional',
-                  rotulo: rotulos.profissional.singular,
-                  href: q({ eixo: 'profissional' }),
-                },
-              ]}
-            />
-            {feriados[diaFoco] ? (
-              <span className="rounded-peca bg-atencao-fundo px-2.5 py-1 text-[12px] font-medium text-atencao">
-                {feriados[diaFoco]}
-              </span>
-            ) : null}
-          </div>
+          {feriados[diaFoco] ? (
+            <span className="self-start rounded-peca bg-atencao-fundo px-2.5 py-1 text-[12px] font-medium text-atencao">
+              {feriados[diaFoco]}
+            </span>
+          ) : null}
 
           <DiaPorRecurso
             sessoes={sessoes}
@@ -289,7 +295,8 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             chaveDe={(s) => (porLocal ? s.localId : s.profissionalId)}
             vazio={soComVaga
               ? 'Nenhum horário com vaga neste dia.'
-              : `Nada marcado neste dia. Pode ser feriado ou dia fechado na configuração de funcionamento.`}
+              : ''}
+            rotuloSessao={rotulos.sessao}
           />
         </>
       ) : soComVaga && sessoes.length === 0 ? (
@@ -297,7 +304,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           <Vazio
             icone="semana"
             titulo="Nenhum horário com vaga nesta semana"
-            texto="Tudo o que ainda vai acontecer está cheio. Veja a próxima semana, ou abra a aula e encaixe acima da capacidade."
+            texto="Os horários desta semana estão completos. Veja a próxima semana."
           />
         </div>
       ) : (
@@ -347,9 +354,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                 <Vazio
                   icone="semana"
                   titulo={soComVaga ? 'Nenhum horário com vaga neste dia' : 'Nada marcado neste dia'}
-                  texto={soComVaga
-                    ? 'Escolha outro dia acima.'
-                    : 'Pode ser feriado ou dia fechado na configuração de funcionamento.'}
+                  texto={soComVaga ? 'Escolha outro dia acima.' : undefined}
                 />
               </div>
             ) : (

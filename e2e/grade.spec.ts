@@ -112,13 +112,13 @@ test('a grade mostra ocupação e separa as encerradas', async ({ page }) => {
   await expect(page.getByText('2/4', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: /que terminaram/i })).toBeVisible()
 
-  // a vigência é lida como época, não como dia: "mar/26 – ago/26"
+  // a vigência é lida como época, não como dia: "mar/26 a ago/26"
   const mes = (d: string) =>
     ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
      'jul', 'ago', 'set', 'out', 'nov', 'dez'][Number(d.slice(5, 7)) - 1]
       + '/' + d.slice(2, 4)
   await expect(
-    page.getByText(`${mes(anteontem)} – ${mes(ontem)}`),
+    page.getByText(`${mes(anteontem)} a ${mes(ontem)}`),
   ).toBeVisible()
 })
 

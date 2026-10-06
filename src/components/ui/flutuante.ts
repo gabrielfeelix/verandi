@@ -3,12 +3,12 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react'
 
 /**
- * Cola o painel embaixo do campo — ou em cima, quando não cabe embaixo.
+ * Cola o painel embaixo do campo, ou em cima, quando não cabe embaixo.
  *
  * `position: fixed`, e não `absolute`, por causa de onde estes campos moram: o
  * corpo do modal rola por dentro (`overflow-y-auto`), e ali um painel absoluto
  * é cortado na borda do card. Fixo escapa do corte porque o `<dialog>` termina
- * a animação em `transform: none` — com transform aplicado ele viraria bloco de
+ * a animação em `transform: none`: com transform aplicado ele viraria bloco de
  * contenção, e o fixo voltaria a ser cortado.
  *
  * Mede e escreve direto no `style` do nó, sem estado: posição de painel é
@@ -67,7 +67,7 @@ export function usePosicionar(
 }
 
 /**
- * Fecha ao clicar fora e no `Esc` — os dois gestos que todo mundo espera.
+ * Fecha ao clicar fora e no `Esc`: os dois gestos que todo mundo espera.
  *
  * O `Esc` é interceptado na **captura**, antes de chegar ao `<dialog>`: sem
  * isso, fechar o seletor fechava o modal inteiro junto, e quem só queria
