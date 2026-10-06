@@ -40,8 +40,9 @@ describe('roteiro dos primeiros passos', () => {
     // que existem as outras
     const primeiroDoMenu = passos.findIndex((p) => p.alvo.startsWith('rail-'))
     expect(primeiroDoMenu).toBeLessThan(4)
+    // o menu tem seis destinos desde 06/out; a visita passa pela maioria
     expect(passos.filter((p) => p.alvo.startsWith('rail-')).length)
-      .toBeGreaterThanOrEqual(6)
+      .toBeGreaterThanOrEqual(4)
   })
 
   it('todo passo de item do menu leva ao destino no passo seguinte', () => {

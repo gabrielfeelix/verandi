@@ -92,7 +92,7 @@ export default async function Grade() {
           <Vazio
             icone="grade"
             titulo="A grade está vazia"
-            texto={`Cadastre os horários que se repetem toda semana. Eles geram as ${rotulos.sessao.plural.toLowerCase()} que aparecem em Hoje e na Agenda.`}
+            texto="Cadastre os horários que se repetem toda semana. É deles que nasce o que aparece em Hoje e na Agenda."
           />
         </section>
       ) : (

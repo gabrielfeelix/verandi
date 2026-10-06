@@ -4,11 +4,13 @@ type Entrada = {
   ativo: boolean
   faltasRecentes: number
   vencimentoPlano: string | null
+  /** tem licença aberta (`licenca`); quem não sabe deixa de fora */
+  deLicenca?: boolean
 }
 
 export type Situacao = {
   rotulo: string
-  tinta: 'positivo' | 'atencao' | 'alerta' | 'neutro'
+  tinta: 'positivo' | 'atencao' | 'alerta' | 'neutro' | 'licenca'
 }
 
 /** Dias até o vencimento; negativo quando ele já passou. */
@@ -31,7 +33,7 @@ function diasAte(vencimento: string, hoje: Date): number {
  * meses atrás também satisfaz. Quem vence sexta recebe uma ligação de
  * renovação; quem venceu em maio e não voltou recebe outra conversa, ou sai da
  * lista. O estúdio mantém de propósito, entre os ativos, gente com contrato
- * vencido de quem ainda espera retorno — e é justamente essa lista que a
+ * vencido de quem ainda espera retorno, e é justamente essa lista que a
  * palavra errada escondia.
  *
  * "Tem crédito de reposição" **não** entra aqui de propósito: é tarefa da casa,
@@ -39,6 +41,9 @@ function diasAte(vencimento: string, hoje: Date): number {
  */
 export function situacaoDe(p: Entrada, hoje = new Date()): Situacao {
   if (!p.ativo) return { rotulo: 'inativa', tinta: 'neutro' }
+
+  // afastado com licença aberta: o plano e as faltas esperam a volta
+  if (p.deLicenca) return { rotulo: 'de licença', tinta: 'licenca' }
 
   if (p.vencimentoPlano) {
     const emQuantosDias = diasAte(p.vencimentoPlano, hoje)

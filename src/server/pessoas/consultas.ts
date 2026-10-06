@@ -17,7 +17,7 @@ import { digitosDaBusca, semAcento } from '@/core/pessoas/busca'
 
 export type FiltroPessoa =
   | 'sem_telefone' | 'sem_horario_fixo' | 'plano_vencendo' | 'plano_vencido'
-  | 'faltou_duas' | 'faltou_sem_avisar' | 'de_licenca' | 'inativa'
+  | 'plano_a_renovar' | 'faltou_duas' | 'faltou_sem_avisar' | 'de_licenca' | 'inativa'
 
 /**
  * Os filtros que a view não responde: saem da participação, como lista de ids.
@@ -33,7 +33,6 @@ const DIA = 86_400_000
 async function idsPorParticipacao(
   db: Db, contaId: string, filtro: FiltroPorParticipacao,
 ): Promise<string[]> {
-  const agora = new Date().toISOString()
 
   /*
    * Faltou sem avisar: `falta`, e não `falta_avisada`, nos mesmos trinta dias
@@ -52,43 +51,17 @@ async function idsPorParticipacao(
   }
 
   /*
-   * De licença: a última aula registrada da pessoa está como licença.
-   *
-   * A licença se marca aula a aula, na chamada, e não existe período gravado.
-   * Quem está afastada recebe licença em cada horário até voltar; a primeira
-   * presença ou falta depois disso é a volta, e ela sai da lista sozinha.
-   * Primeiro os candidatos (só licenças, poucas linhas), depois o último
-   * registro só deles: a consulta larga bateria no teto de mil linhas.
+   * De licença: tem licença aberta (`licenca`, migration 0070), a mesma fonte
+   * de Pendências e da API. Antes era deduzido da última aula registrada, e as
+   * duas telas podiam discordar sobre quem estava afastado.
    */
-  const { data: licencas, error } = await db
-    .from('participacao')
-    .select('pessoa_id, sessao:sessao_id!inner(inicio)')
+  const { data: abertas, error } = await db
+    .from('licenca')
+    .select('pessoa_id')
     .eq('conta_id', contaId)
-    .eq('status', 'licenca')
-    .gte('sessao.inicio', new Date(Date.now() - 60 * DIA).toISOString())
-    .lte('sessao.inicio', agora)
+    .is('encerrada_em', null)
   if (error) throw error
-  const candidatos = [...new Set((licencas ?? []).map((p) => p.pessoa_id))]
-  if (candidatos.length === 0) return []
-
-  const { data: registros, error: e2 } = await db
-    .from('participacao')
-    .select('pessoa_id, status, sessao:sessao_id!inner(inicio)')
-    .eq('conta_id', contaId)
-    .in('pessoa_id', candidatos)
-    .in('status', ['presente', 'falta', 'falta_avisada', 'licenca'])
-    .gte('sessao.inicio', new Date(Date.now() - 60 * DIA).toISOString())
-    .lte('sessao.inicio', agora)
-  if (e2) throw e2
-
-  const ultima = new Map<string, { inicio: string; status: string }>()
-  for (const r of registros ?? []) {
-    const atual = ultima.get(r.pessoa_id)
-    if (!atual || r.sessao.inicio > atual.inicio) {
-      ultima.set(r.pessoa_id, { inicio: r.sessao.inicio, status: r.status })
-    }
-  }
-  return [...ultima.entries()].filter(([, u]) => u.status === 'licenca').map(([id]) => id)
+  return [...new Set((abertas ?? []).map((l) => l.pessoa_id))]
 }
 
 /** A interseção dos filtros por participação pedidos; `null` quando não há nenhum. */
@@ -216,6 +189,12 @@ function aplicarFiltros<T extends { eq: unknown }>(
   }
   if (filtros.includes('plano_vencido')) {
     q = q.not('vencimento_plano', 'is', null).lt('vencimento_plano', hojeLocal)
+  }
+  // vencido ou vencendo em 15 dias: a mesma ligação, "vamos renovar?"
+  if (filtros.includes('plano_a_renovar')) {
+    const limite = new Date(Date.now() + 15 * 86_400_000).toISOString()
+    q = q.not('vencimento_plano', 'is', null)
+         .lte('vencimento_plano', localDe(limite, opts.fuso ?? 'UTC').data)
   }
   return q as T
   /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -383,7 +362,7 @@ export async function contarPessoas(
 ): Promise<{
   ativos: number
   inativos: number
-  porFiltro: Record<FiltroPessoa, number>
+  porFiltro: Partial<Record<FiltroPessoa, number>>
   etiquetas: EtiquetaContada[]
 }> {
   const conta = async (filtros: FiltroPessoa[]) => {
@@ -403,20 +382,16 @@ export async function contarPessoas(
     return count ?? 0
   }
 
-  const [
-    ativos, semTelefone, semHorario, planoVencendo, planoVencido, faltouDuas,
-    faltouSemAvisar, deLicenca, inativos,
-  ] = await Promise.all([
-    conta([]),
-    conta(['sem_telefone']),
-    conta(['sem_horario_fixo']),
-    conta(['plano_vencendo']),
-    conta(['plano_vencido']),
-    conta(['faltou_duas']),
-    conta(['faltou_sem_avisar']),
-    conta(['de_licenca']),
-    conta(['inativa']),
-  ])
+  // só os filtros que a tela mostra: cada chip é uma contagem a mais por abertura
+  const [ativos, semTelefone, aRenovar, faltouSemAvisar, deLicenca, inativos] =
+    await Promise.all([
+      conta([]),
+      conta(['sem_telefone']),
+      conta(['plano_a_renovar']),
+      conta(['faltou_sem_avisar']),
+      conta(['de_licenca']),
+      conta(['inativa']),
+    ])
 
   // as etiquetas são livres por conta: a lista de chips sai do que existe, e
   // não de uma lista fixa no código que envelheceria na primeira conta nova
@@ -437,10 +412,7 @@ export async function contarPessoas(
     inativos,
     porFiltro: {
       sem_telefone: semTelefone,
-      sem_horario_fixo: semHorario,
-      plano_vencendo: planoVencendo,
-      plano_vencido: planoVencido,
-      faltou_duas: faltouDuas,
+      plano_a_renovar: aRenovar,
       faltou_sem_avisar: faltouSemAvisar,
       de_licenca: deLicenca,
       inativa: inativos,

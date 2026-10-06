@@ -62,15 +62,15 @@ describe('como cobra', () => {
 
   it('diz a frequência quando o plano tem uma, no singular e no plural', () => {
     expect(comoCobra({ ...base, recorrencia: 'mensal', frequenciaSemanal: 2 }))
-      .toBe('Todo mês · 2 horários')
+      .toBe('Todo mês · 2 horários fixos')
     expect(comoCobra({ ...base, recorrencia: 'mensal', frequenciaSemanal: 1 }))
-      .toBe('Todo mês · 1 horário')
+      .toBe('Todo mês · 1 horário fixo')
   })
 
   it('conta as parcelas quando são mais de uma', () => {
     expect(comoCobra({
       ...base, recorrencia: 'trimestral', parcelas: 3, frequenciaSemanal: 2,
-    })).toBe('3 parcelas · 2 horários')
+    })).toBe('3 parcelas · 2 horários fixos')
   })
 
   it('o pacote fala em sessões e validade, que é o que ele é', () => {

@@ -85,11 +85,12 @@ Hoje cada aluno tem Veio, Faltou, Avisou, Licença
 
 10 chips fixos mais tags (`pessoas/page.tsx:17`).
 
-- [ ] Ficam: **Todos, Faltando, De licença, Plano vencendo** (junta vencendo e
-      vencido), **Cadastro incompleto**. "Inativos" vira chave ao lado. Tags
-      num seletor, não em chips.
-- [ ] Corrigir "Duas faltas seguidas": a regra conta 2 faltas quaisquer em 30
-      dias. Entra como "Faltando" com a regra certa, ou o rótulo diz a verdade.
+- [x] Ficam: **Todos, Faltou sem avisar, De licença, Plano a renovar** (junta
+      vencendo e vencido), **Sem telefone**. "Inativos" fica à parte, etiquetas
+      num seletor. "Faltou sem avisar" e "Sem telefone" mantiveram o nome
+      porque dizem a regra; "Faltando" e "Cadastro incompleto" não diziam.
+- [x] "Duas faltas seguidas" saiu (contava faltas quaisquer). "De licença" lê
+      a tabela `licenca`, e a coluna Situação diz "de licença".
 
 ## 7. Ficha do aluno
 

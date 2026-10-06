@@ -7,6 +7,7 @@ import {
 import { telefoneMascarado } from '@/core/pessoas/telefone'
 import { situacaoDe, DIAS_CURTOS } from '@/core/pessoas/situacao'
 import { NovaPessoa } from '@/components/pessoas/nova-pessoa'
+import { SeletorDeEtiqueta } from '@/components/pessoas/etiquetas'
 import { BuscaDePessoas } from '@/components/pessoas/busca'
 import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { cartao, Chip, Paginacao, Vazio } from '@/components/ui/pecas'
@@ -14,19 +15,20 @@ import { TINTA } from '@/components/ui/tintas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 
+/*
+ * Cinco perguntas, e não dez. Cada uma é uma ligação a fazer: quem sumiu sem
+ * avisar, quem está afastado, quem precisa renovar, quem não dá para avisar.
+ * "Duas faltas seguidas" saiu (contava faltas quaisquer, não seguidas) e
+ * "Sem horário fixo" também: em plano de horário livre isso é o normal.
+ * Vencido e vencendo viraram uma só, porque a conversa é a mesma.
+ */
 const FILTROS: Array<{ valor: FiltroPessoa; rotulo: string }> = [
-  { valor: 'sem_telefone',     rotulo: 'Telefone incompleto' },
-  { valor: 'sem_horario_fixo', rotulo: 'Sem horário fixo' },
-  { valor: 'plano_vencendo',   rotulo: 'Plano vencendo' },
-  // Vencido vem logo depois de vencendo porque a leitura é a mesma pergunta em
-  // dois tempos: quem renova esta semana, e quem já deixou passar.
-  { valor: 'plano_vencido',    rotulo: 'Plano vencido' },
-  { valor: 'faltou_duas',      rotulo: 'Duas faltas seguidas' },
-  // quem precisa de uma ligação: faltou sem avisar nos últimos 30 dias
+  // falta sem aviso nos últimos 30 dias: quem precisa de uma ligação
   { valor: 'faltou_sem_avisar', rotulo: 'Faltou sem avisar' },
-  // a última aula registrada está como licença: afastado, mantém o horário
-  { valor: 'de_licenca',       rotulo: 'De licença' },
-  { valor: 'inativa',          rotulo: 'Cadastro inativo' },
+  // licença aberta, a mesma de Pendências
+  { valor: 'de_licenca',        rotulo: 'De licença' },
+  { valor: 'plano_a_renovar',   rotulo: 'Plano a renovar' },
+  { valor: 'sem_telefone',      rotulo: 'Sem telefone' },
 ]
 
 /*
@@ -65,6 +67,13 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
     contarPessoas(db, conta.contaId, { busca: q, fuso: conta.fuso }),
   ])
 
+  // quem da página está de licença: a situação diz isso em vez de "ativa"
+  const { data: licencas } = pessoas.length
+    ? await db.from('licenca').select('pessoa_id').eq('conta_id', conta.contaId)
+        .is('encerrada_em', null).in('pessoa_id', pessoas.map((x) => x.id))
+    : { data: [] }
+  const emLicenca = new Set((licencas ?? []).map((l) => l.pessoa_id))
+
   const cadastrados = contagem.ativos + contagem.inativos
   const semFiltro = filtros.length === 0 && !tag
 
@@ -91,9 +100,6 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
       for (const x of filtros) if (x !== valor) b.append('f', x)
       if (!filtros.includes(valor)) b.append('f', valor)
     })
-
-  const alternarTag = (nome: string) =>
-    endereco((b) => { if (tag === nome) b.delete('t'); else b.set('t', nome) })
 
   const daPagina = (n: number) => endereco((b) => { if (n > 1) b.set('p', String(n)) })
   const exportar = endereco(() => {}).replace('/pessoas', '/pessoas/exportar')
@@ -149,19 +155,27 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           const ativo = filtros.includes(x.valor)
           return (
             <Chip key={x.valor} href={alternar(x.valor)} ativo={ativo}>
-              {x.rotulo} <Contador ativo={ativo}>{contagem.porFiltro[x.valor]}</Contador>
+              {x.rotulo} <Contador ativo={ativo}>{contagem.porFiltro[x.valor] ?? 0}</Contador>
             </Chip>
           )
         })}
 
+        <span aria-hidden className="mx-1 h-5 w-px bg-linha" />
+
         {/* as etiquetas são da conta, não do código: "gestante" aqui é escolha
             do estúdio, e outra conta terá outras */}
-        {contagem.etiquetas.map((e) => (
-          <Chip key={e.tag} href={alternarTag(e.tag)} ativo={tag === e.tag}>
-            <span className="capitalize">{e.tag}</span>{' '}
-            <Contador ativo={tag === e.tag}>{e.n}</Contador>
-          </Chip>
-        ))}
+        <SeletorDeEtiqueta
+          atual={tag}
+          limpar={endereco((b) => b.delete('t'))}
+          opcoes={contagem.etiquetas.map((e) => ({
+            tag: e.tag, n: e.n, href: endereco((b) => b.set('t', e.tag)),
+          }))}
+        />
+
+        {/* inativo não é problema a resolver: é outra lista, e fica de lado */}
+        <Chip href={alternar('inativa')} ativo={filtros.includes('inativa')}>
+          Inativos <Contador ativo={filtros.includes('inativa')}>{contagem.porFiltro.inativa ?? 0}</Contador>
+        </Chip>
       </div>
 
       <section className={`overflow-hidden ${cartao}`}>
@@ -187,7 +201,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <ul aria-label={rotulos.pessoa.plural}>
             {pessoas.map((p) => {
               const [fundo, frente] = paresDe(p.nome)
-              const situacao = situacaoDe(p)
+              const situacao = situacaoDe({ ...p, deLicenca: emLicenca.has(p.id) })
               const fone = telefoneMascarado(p.telefone)
 
               return (

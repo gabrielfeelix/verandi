@@ -509,7 +509,7 @@ export default async function Pessoa({
                   <Vazio
                     icone="hoje"
                     titulo="Nada marcado à frente"
-                    texto={`As próximas ${rotulos.sessao.plural.toLowerCase()} aparecem aqui assim que houver agendamento.`}
+                    texto="Assim que houver agendamento, ele aparece aqui."
                   />
                 ) : (
                   <ul className="flex flex-col gap-[7px]">
