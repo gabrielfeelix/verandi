@@ -53,7 +53,7 @@ export function BarraDePeriodo({
   }
 
   const chip = (ativo: boolean) =>
-    `inline-flex min-h-9 cursor-pointer items-center rounded-full border px-3 text-[14px] ${
+    `inline-flex min-h-9 cursor-pointer items-center rounded-full border px-3 text-[14.5px] ${
       ativo
         ? 'border-escuro bg-escuro font-medium text-tinta-clara'
         : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -62,7 +62,7 @@ export function BarraDePeriodo({
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+      <span className="text-[12px] font-semibold text-tinta-fraca">
         {rotulo}
       </span>
 

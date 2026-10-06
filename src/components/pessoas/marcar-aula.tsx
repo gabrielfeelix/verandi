@@ -167,7 +167,7 @@ export function MarcarAula({
         >
           {falta ? (
             <div className="flex items-center justify-between gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3 py-2.5">
-              <p className="text-[14px]">
+              <p className="text-[14.5px]">
                 {repor ? (
                   <>Entra como <strong className="font-semibold">Reposição</strong>
                     <span className="text-tinta-media">, da falta de {falta.quando}</span></>
@@ -225,7 +225,7 @@ export function MarcarAula({
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}
 
           {aulas === null ? (
-            <p className="py-3 text-[14px] text-tinta-media">Procurando horários com lugar…</p>
+            <p className="py-3 text-[14.5px] text-tinta-media">Procurando horários com lugar…</p>
           ) : visiveis.length === 0 ? (
             <Nota tom="atencao">
               {aulas.length === 0
@@ -236,7 +236,7 @@ export function MarcarAula({
             <div className="flex max-h-[46vh] flex-col gap-3 overflow-y-auto pb-1">
               {[...porDia.entries()].map(([data, itens]) => (
                 <section key={data} className="flex flex-col gap-1.5">
-                  <h3 className="text-[12.5px] font-semibold tracking-[.06em] text-tinta-media uppercase">
+                  <h3 className="text-[12px] font-semibold text-tinta-media">
                     {diaPorExtenso(data)}
                   </h3>
                   <ul className="flex flex-col gap-1.5">
@@ -248,14 +248,14 @@ export function MarcarAula({
                           onClick={() => marcar(a)}
                           className="flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-media border border-linha-suave bg-superficie px-3.5 py-2.5 text-left transition-colors duration-150 hover:border-marca hover:bg-superficie-tenue disabled:cursor-wait disabled:opacity-60"
                         >
-                          <span className="w-12 shrink-0 font-mono text-[15px] font-medium">{a.hora}</span>
+                          <span className="w-12 shrink-0 text-[14.5px] font-medium">{a.hora}</span>
                           <span className="flex min-w-0 flex-1 flex-col leading-[1.35]">
                             <span className="truncate text-[14.5px] font-medium">{a.servico}</span>
-                            <span className="truncate text-[12.5px] text-tinta-media">
+                            <span className="truncate text-[12px] text-tinta-media">
                               {[a.profissional, a.local].filter(Boolean).join(' · ')}
                             </span>
                           </span>
-                          <span className="shrink-0 text-[13px] text-tinta-media">
+                          <span className="shrink-0 text-[13.5px] text-tinta-media">
                             {a.livres === 1 ? '1 lugar' : `${a.livres} lugares`}
                           </span>
                           <span className="shrink-0 text-[13.5px] font-medium text-marca">Marcar</span>

@@ -84,8 +84,8 @@ export function SecaoPadroes({
 
   return (
     <section className={`${cartao} px-5 py-4.5`}>
-      <h2 className="font-titulo text-[19px] font-semibold">Padrões</h2>
-      <p className="pt-1.5 pb-4 text-[14px] text-tinta-media">
+      <h2 className="font-titulo text-[18px] font-semibold">Padrões</h2>
+      <p className="pt-1.5 pb-4 text-[14.5px] text-tinta-media">
         O que já vem preenchido quando você cria algo novo. Sempre dá para mudar
         na hora.
       </p>
@@ -226,7 +226,7 @@ export function SecaoPadroes({
                     horariosSugeridos: v.horariosSugeridos.filter((x) => x !== h),
                   })
                 }
-                className="inline-flex min-h-9 items-center gap-2 rounded-padrao border border-linha bg-superficie px-3 font-mono text-[13.5px] hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
+                className="inline-flex min-h-9 items-center gap-2 rounded-padrao border border-linha bg-superficie px-3 text-[13.5px] hover:border-alerta-linha-forte hover:bg-alerta-superficie hover:text-alerta"
               >
                 {h}
                 <span aria-hidden>×</span>
@@ -306,8 +306,8 @@ function LinhaPadrao({
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-grande border border-linha-fina bg-superficie-suave px-4 py-3.5">
       <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-[3px]">
-        <span className="text-[15px] font-medium">{rotulo}</span>
-        <span className="text-[13px] leading-[1.45] text-tinta-media">{detalhe}</span>
+        <span className="text-[14.5px] font-medium">{rotulo}</span>
+        <span className="text-[13.5px] leading-[1.45] text-tinta-media">{detalhe}</span>
       </div>
       {children}
     </div>
@@ -358,7 +358,7 @@ function Contador({
             const n = Number(e.target.value.replace(/\D/g, ''))
             if (!Number.isNaN(n)) aoMudar(limitar(n))
           }}
-          className="h-11 w-14 bg-transparent text-center font-mono text-[16px] font-medium outline-none"
+          className="h-11 w-14 bg-transparent text-center text-[16px] font-medium outline-none"
         />
         <span aria-hidden className="h-full w-px self-stretch bg-linha-fina" />
         <button
@@ -372,7 +372,7 @@ function Contador({
           <Icone nome="mais" />
         </button>
       </div>
-      <span className="text-[13px] text-tinta-media">{unidade}</span>
+      <span className="text-[13.5px] text-tinta-media">{unidade}</span>
     </div>
   )
 }

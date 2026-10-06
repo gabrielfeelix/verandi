@@ -14,7 +14,7 @@ export default function Esqueci() {
 
   return (
     <PainelAcesso tela="esqueci">
-      <h1 className="font-titulo text-[27px] font-semibold tracking-[-.02em]">
+      <h1 className="font-titulo text-[28px] font-semibold tracking-[-.02em]">
         Vamos criar outra
       </h1>
       <p className="pt-2 pb-6 text-[14.5px] leading-relaxed text-tinta-media">
@@ -44,7 +44,7 @@ export default function Esqueci() {
         <Botao
           type="submit"
           disabled={pendente}
-          className="mt-2 min-h-13 w-full rounded-media text-[15px] font-semibold"
+          className="mt-2 min-h-13 w-full rounded-media text-[14.5px] font-semibold"
         >
           {pendente ? 'Mandando…' : 'Mandar o link'}
         </Botao>

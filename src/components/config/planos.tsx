@@ -108,7 +108,7 @@ export function SecaoPlanos({
       }
     >
       {servicos.length === 0 ? (
-        <p className="px-5 py-6 text-[14px] text-tinta-media">
+        <p className="px-5 py-6 text-[14.5px] text-tinta-media">
           Um plano vende uma modalidade, então o catálogo de{' '}
           {rotuloServico.plural.toLowerCase()} vem antes. Cadastre pelo menos
           {' '}{rotuloServico.singular.toLowerCase() === 'serviço' ? 'um' : 'uma'}{' '}
@@ -151,7 +151,7 @@ export function SecaoPlanos({
       ) : null}
 
       {servicos.length > 0 && visiveis.length === 0 ? (
-        <p className="px-5 pb-6 text-[14px] text-tinta-media">
+        <p className="px-5 pb-6 text-[14.5px] text-tinta-media">
           {planos.length === 0
             ? 'Nada no catálogo ainda. O primeiro plano é o que faz a matrícula parar de digitar preço à mão.'
             : 'Nenhum plano com esse filtro.'}
@@ -160,7 +160,7 @@ export function SecaoPlanos({
 
       {grupos(visiveis).map(([nome, doGrupo]) => (
         <div key={nome}>
-          <p className="border-b border-linha-fina bg-superficie-suave px-5 py-2 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+          <p className="border-b border-linha-fina bg-superficie-suave px-5 py-2 text-[12px] font-semibold text-tinta-fraca">
             {nome} · {doGrupo.length}
           </p>
           {doGrupo.map((p) => (
@@ -286,7 +286,7 @@ function FormularioDePlano({
           <input
             id="pl-cod" name="codigo" required maxLength={12}
             defaultValue={plano?.codigo} placeholder="Exemplo: 001"
-            className={`${entrada} font-mono`}
+            className={`${entrada}`}
           />
         </Campo>
         <Campo rotulo="Nome do plano" htmlFor="pl-nome" obrigatorio>
@@ -317,7 +317,7 @@ function FormularioDePlano({
 
       {seRepete(recorrencia) ? (
         <fieldset className="flex flex-col gap-2">
-          <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+          <legend className="pb-1.5 text-[12px] font-semibold text-tinta-fraca">
             Como a pessoa escolhe o horário
           </legend>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -347,7 +347,7 @@ function FormularioDePlano({
                   </span>
                   {titulo}
                 </span>
-                <span className="text-[13px] leading-snug text-tinta-media">{texto}</span>
+                <span className="text-[13.5px] leading-snug text-tinta-media">{texto}</span>
               </button>
             ))}
           </div>
@@ -356,7 +356,7 @@ function FormularioDePlano({
 
       {seRepete(recorrencia) && livre ? (
         <fieldset className="flex flex-col gap-2">
-          <legend className="pb-1.5 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+          <legend className="pb-1.5 text-[12px] font-semibold text-tinta-fraca">
             Em quais dias pode marcar
           </legend>
           <div className="flex flex-wrap gap-1.5">
@@ -371,7 +371,7 @@ function FormularioDePlano({
                   aria-pressed={marcado}
                   disabled={unico}
                   onClick={() => setDias((a) => marcado ? a.filter((x) => x !== d) : [...a, d])}
-                  className={`flex min-h-10 min-w-[54px] items-center justify-center rounded-padrao border px-3 text-[14px] transition-colors duration-150 ${
+                  className={`flex min-h-10 min-w-[54px] items-center justify-center rounded-padrao border px-3 text-[14.5px] transition-colors duration-150 ${
                     marcado
                       ? 'border-escuro bg-escuro font-medium text-tinta-clara'
                       : 'cursor-pointer border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -382,7 +382,7 @@ function FormularioDePlano({
               )
             })}
           </div>
-          <p className="text-[13px] text-tinta-media">
+          <p className="text-[13.5px] text-tinta-media">
             {dias.length === 7
               ? 'Qualquer dia da semana, em qualquer horário que tenha lugar.'
               : `Só ${nomesDosDias(dias)}, em qualquer horário desses dias que tenha lugar.`}
@@ -448,7 +448,7 @@ function FormularioDePlano({
           <input
             id="pl-pv" name="precoVinculado" required inputMode="decimal"
             defaultValue={plano ? emReais(plano.precoVinculadoCent) : ''}
-            placeholder="Exemplo: 195,00" className={`${entrada} font-mono`}
+            placeholder="Exemplo: 195,00" className={`${entrada}`}
           />
         </Campo>
         <Campo
@@ -458,7 +458,7 @@ function FormularioDePlano({
           <input
             id="pl-pa" name="precoAvulso" required inputMode="decimal"
             defaultValue={plano ? emReais(plano.precoAvulsoCent) : ''}
-            placeholder="Exemplo: 230,00" className={`${entrada} font-mono`}
+            placeholder="Exemplo: 230,00" className={`${entrada}`}
           />
         </Campo>
       </div>
@@ -472,8 +472,8 @@ function FormularioDePlano({
 function Preco({ rotulo, valor }: { rotulo: string; valor: number }) {
   return (
     <span className="flex flex-col items-end leading-[1.3]">
-      <span className="text-[11.5px] text-tinta-fraca">{rotulo}</span>
-      <span className="font-mono text-[13.5px]">{emReais(valor)}</span>
+      <span className="text-[12px] text-tinta-fraca">{rotulo}</span>
+      <span className="text-[13.5px]">{emReais(valor)}</span>
     </span>
   )
 }

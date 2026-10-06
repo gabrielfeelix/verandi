@@ -98,9 +98,9 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
         <div className="flex flex-col gap-4">
           <nav className="flex items-center gap-2.5 text-[13.5px] text-tinta-media">
             <Link href={origem.href} className="font-medium text-marca">{origem.rotulo}</Link>
-            <span aria-hidden className="font-mono">/</span>
+            <span aria-hidden className="">/</span>
             <span>{dataLonga}</span>
-            <span aria-hidden className="font-mono">/</span>
+            <span aria-hidden className="">/</span>
             <span className="text-tinta">{sessao.servico} {sessao.hora}</span>
           </nav>
 
@@ -110,7 +110,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                 <span className="font-titulo text-[34px] leading-none font-semibold tracking-[-.03em]">
                   {sessao.hora}
                 </span>
-                <span className="text-[13px] whitespace-nowrap text-tinta-media">
+                <span className="text-[13.5px] whitespace-nowrap text-tinta-media">
                   {sessao.duracaoMin} min · até {terminaEm(sessao.hora, sessao.duracaoMin)}
                 </span>
               </div>
@@ -121,7 +121,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                     {sessao.servico}
                   </h1>
                   <span
-                    className={`rounded-peca px-2.5 py-1 font-mono text-[13px] ${
+                    className={`rounded-peca px-2.5 py-1 text-[13.5px] ${
                       sessao.ocupacao.excedida
                         ? 'bg-alerta-fundo text-alerta'
                         : 'bg-superficie-mais-suave text-tinta-media'
@@ -132,7 +132,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                   <EtiquetaEstado cancelada={cancelada} />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-[14px] text-tinta-media">
+                <div className="flex flex-wrap items-center gap-3 text-[14.5px] text-tinta-media">
                   {sessao.profissional ? (
                     <span className="inline-flex items-center gap-2">
                       <AvatarProf

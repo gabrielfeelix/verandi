@@ -147,7 +147,7 @@ export function SecaoUsuarios({
                     ? 'Não chegou? Mande o link direto:'
                     : 'O e-mail não saiu. Mande o link direto:'}
               </span>
-              <input readOnly value={link.url} className={`${entrada} font-mono text-[13px]`}
+              <input readOnly value={link.url} className={`${entrada} text-[13.5px]`}
                 aria-label="Link do convite" onFocus={(e) => e.currentTarget.select()} />
               <div className="flex flex-wrap gap-2">
                 <Botao
@@ -180,7 +180,7 @@ export function SecaoUsuarios({
               detalhe={
                 <span className="flex flex-col">
                   <span>{u.email}</span>
-                  <span className="text-[12.5px] text-tinta-media">
+                  <span className="text-[12px] text-tinta-media">
                     {u.ultimoAcesso
                       ? `último acesso ${new Date(u.ultimoAcesso).toLocaleDateString('pt-BR')}`
                       : 'nunca acessou'}
@@ -237,7 +237,7 @@ export function SecaoUsuarios({
             </LinhaConfig>
           ))}
 
-          <p className="px-5 py-3.5 text-[13px] text-tinta-media">
+          <p className="px-5 py-3.5 text-[13.5px] text-tinta-media">
             Remover não apaga nada do que a pessoa registrou: a presença marcada
             por ela continua marcada por ela. Se for profissional, o nome segue
             na grade, o que acaba é o acesso.

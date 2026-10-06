@@ -54,8 +54,8 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
           {/* no celular o rail some, e o contexto precisa continuar à vista:
               mexer na plataforma achando que está num estúdio é o erro caro */}
           <p className="mb-3 flex items-center gap-2 md:hidden">
-            <span className="font-titulo text-[16px] font-semibold">Administração</span>
-            <span className="text-[12.5px] text-tinta-media">Admin 4YU</span>
+            <span className="font-titulo text-[18px] font-semibold">Administração</span>
+            <span className="text-[12px] text-tinta-media">Admin 4YU</span>
           </p>
 
           <ProvedorDeAviso>

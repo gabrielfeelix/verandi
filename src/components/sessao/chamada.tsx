@@ -188,7 +188,7 @@ export function EtiquetaEstado({ cancelada = false }: { cancelada?: boolean }) {
     : estadoDe(registrados, total, comecou)
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${e.cor}`}
+      className={`inline-flex items-center gap-1.5 rounded-peca px-2.5 py-[5px] text-[12px] font-medium ${e.cor}`}
     >
       <span aria-hidden className="size-1.5 rounded-full bg-current" />
       {e.rotulo}
@@ -209,7 +209,7 @@ export function NotaDeRegistro({ comecaEm }: { comecaEm: string | null }) {
     : registrados === 0
     ? ['Nenhum registro ainda', comecaEm].filter(Boolean).join(' · ')
     : `${registrados} de ${total} registrados`
-  return <p className="text-[13px] text-tinta-media">{texto}</p>
+  return <p className="text-[13.5px] text-tinta-media">{texto}</p>
 }
 
 /**
@@ -229,7 +229,7 @@ export function BotaoConcluir({ miudo = false, className = '' }: { miudo?: boole
       disabled={ocupado}
       onClick={marcarTodos}
       className={`cursor-pointer rounded-media bg-escuro font-semibold whitespace-nowrap text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover active:translate-y-px disabled:opacity-50 ${
-        miudo ? 'min-h-11 px-[18px] text-[14.5px]' : 'min-h-12 px-4 text-[15px]'
+        miudo ? 'min-h-11 px-[18px] text-[14.5px]' : 'min-h-12 px-4 text-[14.5px]'
       } ${className}`}
     >
       Concluir chamada · {vieram} {vieram === 1 ? 'veio' : 'vieram'}
@@ -260,7 +260,7 @@ export function BotaoCancelarTurma({ rotulo }: { rotulo: string }) {
     <button
       type="button"
       onClick={abrirCancelar}
-      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media border border-alerta-linha bg-alerta-superficie px-3.5 text-[14px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-fundo"
+      className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-media border border-alerta-linha bg-alerta-superficie px-3.5 text-[14.5px] font-medium text-alerta transition-colors duration-150 hover:bg-alerta-fundo"
     >
       <Icone nome="proibido" tamanho={18} />
       {rotulo}
@@ -277,7 +277,7 @@ export function ResumoChamada() {
   return (
     <section className={`${cartao} p-4`}>
       <h2 className="font-titulo text-[18px] font-semibold">Resumo da chamada</h2>
-      <p className="pt-1 pb-3.5 text-[13px] text-tinta-media">
+      <p className="pt-1 pb-3.5 text-[13.5px] text-tinta-media">
         {registrados} de {total} registrados
       </p>
       <ul className="flex flex-col gap-2.5">
@@ -289,8 +289,8 @@ export function ResumoChamada() {
         ] as const).map(([rotulo, n, cor]) => (
           <li key={rotulo} className="flex items-center gap-2.5">
             <span aria-hidden className={`size-2 rounded-full ${cor}`} />
-            <span className="flex-1 text-[14px]">{rotulo}</span>
-            <span className="font-mono text-[14px] text-tinta-media">{n}</span>
+            <span className="flex-1 text-[14.5px]">{rotulo}</span>
+            <span className="text-[14.5px] text-tinta-media">{n}</span>
           </li>
         ))}
       </ul>

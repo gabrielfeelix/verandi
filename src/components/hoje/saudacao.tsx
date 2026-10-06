@@ -39,7 +39,7 @@ export function Saudacao({
         <button
           type="button"
           onClick={() => setAberto(true)}
-          className="ml-3 cursor-pointer align-middle font-sans text-[14px] font-medium tracking-normal text-marca underline underline-offset-2"
+          className="ml-3 cursor-pointer align-middle font-sans text-[14.5px] font-medium tracking-normal text-marca underline underline-offset-2"
         >
           Adicionar seu nome
         </button>

@@ -72,7 +72,7 @@ export function DiaPorRecurso({
               ) : null}
               <span className="truncate text-[13.5px] font-medium">{r.nome}</span>
             </span>
-            <span className="font-mono text-[12px] text-tinta-media">
+            <span className="text-[12px] text-tinta-media">
               {sessoes.filter((s) => (chaveDe(s) ?? '') === r.id).length} no dia
             </span>
           </div>
@@ -81,7 +81,7 @@ export function DiaPorRecurso({
         {horas.map((hora) => (
           <div key={hora} className="contents">
             <div className="flex items-start justify-end pt-1.5 pr-2">
-              <span className="font-mono text-[13px] text-tinta-media">{hora}</span>
+              <span className="text-[13.5px] text-tinta-media">{hora}</span>
             </div>
 
             {colunas.map((r) => {
@@ -90,7 +90,7 @@ export function DiaPorRecurso({
                 return (
                   <div
                     key={r.id}
-                    className="flex min-h-14 items-center justify-center rounded-padrao border border-linha-fina bg-superficie-tenue font-mono text-[14px] text-linha-tracejada"
+                    className="flex min-h-14 items-center justify-center rounded-padrao border border-linha-fina bg-superficie-tenue text-[14.5px] text-linha-tracejada"
                   >
                     <span aria-hidden>+</span>
                   </div>

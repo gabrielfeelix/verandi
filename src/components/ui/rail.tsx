@@ -118,15 +118,15 @@ export function Rail({
       <div className="ruido-escuro h-full overflow-hidden bg-escuro">
       <div className="relative z-[1] flex h-full flex-col gap-5 px-3 py-4">
       <div className="flex items-center gap-3 pl-1">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[19px] font-bold text-escuro">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[18px] font-bold text-escuro">
           V
         </span>
         {aberto ? (
           <span className="flex min-w-0 flex-col leading-tight">
-            <span className="font-titulo text-[16px] font-semibold text-tinta-clara">
+            <span className="font-titulo text-[18px] font-semibold text-tinta-clara">
               Verandi
             </span>
-            <span className="truncate font-mono text-[11px] tracking-[.12em] text-tinta-fraca uppercase">
+            <span className="truncate text-[12px] font-medium text-tinta-fraca">
               {conta}
             </span>
           </span>
@@ -157,15 +157,15 @@ export function Rail({
               <span
                 className={
                   aberto
-                    ? 'min-w-0 flex-1 truncate text-[14px]'
-                    : 'text-[11px] leading-none tracking-[.04em]'
+                    ? 'min-w-0 flex-1 truncate text-[14.5px]'
+                    : 'text-[12px] leading-none tracking-[.04em]'
                 }
               >
                 {aberto ? i.rotulo : i.curto}
               </span>
               {i.badge ? (
                 <span
-                  className={`flex h-[18px] min-w-[19px] items-center justify-center rounded-peca bg-destaque px-1.5 text-[11.5px] font-semibold text-white ${
+                  className={`flex h-[18px] min-w-[19px] items-center justify-center rounded-peca bg-destaque px-1.5 text-[12px] font-semibold text-escuro ${
                     aberto ? 'ml-auto' : 'absolute top-1 right-1'
                   }`}
                 >
@@ -293,9 +293,9 @@ export function BarraInferior({
               className={`${ABA} ${ativo ? 'bg-positivo-superficie text-marca' : 'text-tinta-media'}`}
             >
               <Icone nome={i.icone} />
-              <span className="text-[11.5px] font-medium">{i.curto}</span>
+              <span className="text-[12px] font-medium">{i.curto}</span>
               {i.badge ? (
-                <span className="absolute top-1 right-3 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destaque px-1 text-[11px] font-semibold text-white">
+                <span className="absolute top-1 right-3 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-destaque px-1 text-[12px] font-semibold text-escuro">
                   {i.badge}
                 </span>
               ) : null}
@@ -311,7 +311,7 @@ export function BarraInferior({
           className={`${ABA} ${maisAtivo ? 'bg-positivo-superficie text-marca' : 'text-tinta-media'}`}
         >
           <Icone nome="kebab" />
-          <span className="text-[11.5px] font-medium">Mais</span>
+          <span className="text-[12px] font-medium">Mais</span>
           {maisAvisa ? (
             <span className="absolute top-1.5 right-[calc(50%-18px)] size-2.5 rounded-full bg-destaque">
               <span className="sr-only">há aviso dentro</span>
@@ -339,14 +339,14 @@ export function BarraInferior({
                 href={i.href}
                 onClick={() => setAberto(false)}
                 aria-current={ativo ? 'page' : undefined}
-                className={`flex min-h-12 items-center gap-3 rounded-media px-3 text-[15px] ${
+                className={`flex min-h-12 items-center gap-3 rounded-media px-3 text-[14.5px] ${
                   ativo ? 'bg-positivo-superficie text-marca' : 'text-tinta'
                 }`}
               >
                 <Icone nome={i.icone} />
                 <span className="min-w-0 flex-1 truncate">{i.rotulo}</span>
                 {i.badge ? (
-                  <span className="flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-destaque px-1.5 text-[11.5px] font-semibold text-white">
+                  <span className="flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-destaque px-1.5 text-[12px] font-semibold text-escuro">
                     {i.badge}
                     <span className="sr-only"> {i.badgeRotulo ?? 'aguardando decisão'}</span>
                   </span>
@@ -364,7 +364,7 @@ export function BarraInferior({
             </span>
             <span className="flex min-w-0 flex-1 flex-col leading-tight">
               <span className="truncate text-[14.5px]">{pessoa}</span>
-              <span className="text-[12.5px] text-tinta-media">
+              <span className="text-[12px] text-tinta-media">
                 {papel}
                 {podeTrocar ? (
                   <>
@@ -380,7 +380,7 @@ export function BarraInferior({
               <form action={sair}>
                 <button
                   type="submit"
-                  className="flex min-h-11 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14px] text-tinta-media"
+                  className="flex min-h-11 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14.5px] text-tinta-media"
                 >
                   <Icone nome="sair" tamanho={16} />
                   Sair

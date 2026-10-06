@@ -144,12 +144,12 @@ export function TabelaDeUsuarios({
         sub={<>{contagem.todos} {contagem.todos === 1 ? 'pessoa' : 'pessoas'} com acesso · {contagem.admin} {contagem.admin === 1 ? 'admin' : 'admins'}</>}
       >
         <form className="relative flex items-center" action="/admin/usuarios">
-          <span aria-hidden className="pointer-events-none absolute left-3.5 font-mono text-[14px] text-tinta-fraca">⌕</span>
+          <span aria-hidden className="pointer-events-none absolute left-3.5 font-mono text-[14.5px] text-tinta-fraca">⌕</span>
           {filtro !== 'todos' ? <input type="hidden" name="f" value={filtro} /> : null}
           <input
             name="q" defaultValue={busca} aria-label="Buscar usuário"
             placeholder="E-mail, nome ou empresa"
-            className="min-h-11 min-w-[228px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[14px] placeholder:text-tinta-fraca"
+            className="min-h-11 min-w-[228px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[14.5px] placeholder:text-tinta-fraca"
           />
           <button type="submit" className="sr-only focus:not-sr-only focus:ml-2">Buscar</button>
         </form>
@@ -179,7 +179,7 @@ export function TabelaDeUsuarios({
         </div>
 
         {usuarios.length === 0 ? (
-          <p className="px-4.5 py-6 text-[14px] text-tinta-media">
+          <p className="px-4.5 py-6 text-[14.5px] text-tinta-media">
             {busca ? `Ninguém com "${busca}".` : 'Ninguém aqui.'}
           </p>
         ) : null}
@@ -193,24 +193,24 @@ export function TabelaDeUsuarios({
               <span className="flex min-w-0 items-center gap-3">
                 <Avatar nome={u.nome ?? u.email} tamanho={32} decorativo />
                 <span className="flex min-w-0 flex-col leading-[1.35]">
-                  <span className="flex flex-wrap items-center gap-2 text-[15px] font-medium">
+                  <span className="flex flex-wrap items-center gap-2 text-[14.5px] font-medium">
                     <span className="truncate">{u.nome ?? u.email}</span>
                     {u.admin ? <Etiqueta tinta="atencao">Admin</Etiqueta> : null}
                     {u.suspensa ? <Etiqueta tinta="alerta">Suspenso</Etiqueta> : null}
                     {u.id === eu ? <Etiqueta tinta="neutro">Você</Etiqueta> : null}
                   </span>
-                  {u.nome ? <span className="truncate text-[12.5px] text-tinta-media">{u.email}</span> : null}
+                  {u.nome ? <span className="truncate text-[12px] text-tinta-media">{u.email}</span> : null}
                 </span>
               </span>
 
               <span className="flex min-w-0 flex-wrap gap-1.5">
                 {u.contas.length === 0 ? (
-                  <span className="text-[13px] text-tinta-fraca">{u.admin ? 'só administração' : 'nenhuma'}</span>
+                  <span className="text-[13.5px] text-tinta-fraca">{u.admin ? 'só administração' : 'nenhuma'}</span>
                 ) : u.contas.map((c) => (
                   <Link
                     key={c.contaId}
                     href={`/admin/empresas/${c.contaId}`}
-                    className={`inline-flex items-center gap-1 rounded-peca border border-linha-fina px-2 py-[3px] text-[12.5px] hover:border-tinta-fraca ${c.ativo ? '' : 'text-tinta-fraca line-through'}`}
+                    className={`inline-flex items-center gap-1 rounded-peca border border-linha-fina px-2 py-[3px] text-[12px] hover:border-tinta-fraca ${c.ativo ? '' : 'text-tinta-fraca line-through'}`}
                     title={c.ativo ? undefined : 'vínculo desligado'}
                   >
                     {c.contaNome}
@@ -219,7 +219,7 @@ export function TabelaDeUsuarios({
                 ))}
               </span>
 
-              <span className={`text-[13px] ${u.ultimoAcesso ? 'text-tinta-media' : 'font-medium text-alerta'}`}>
+              <span className={`text-[13.5px] ${u.ultimoAcesso ? 'text-tinta-media' : 'font-medium text-alerta'}`}>
                 {u.ultimoAcesso ? new Date(u.ultimoAcesso).toLocaleDateString('pt-BR') : 'nunca'}
               </span>
 
@@ -303,7 +303,7 @@ export function TabelaDeUsuarios({
         {link ? (
           <div className="flex flex-col gap-2">
             <input readOnly value={link.url} aria-label="Link de senha"
-              className={`${entrada} font-mono text-[13px]`}
+              className={`${entrada} font-mono text-[13.5px]`}
               onFocus={(e) => e.currentTarget.select()} />
             <Botao tom="secundario" miudo className="self-start"
               onClick={() => {

@@ -46,7 +46,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
       href={`/aulas?de=${novoDe}&ate=${novoAte}`}
       // o mesmo chip da barra de período das listas, para as quatro seções
       // do Financeiro falarem a mesma língua
-      className={`inline-flex min-h-9 items-center rounded-full border px-3 text-[14px] ${
+      className={`inline-flex min-h-9 items-center rounded-full border px-3 text-[14.5px] ${
         de === novoDe && ate === novoAte
           ? 'border-escuro bg-escuro font-medium text-tinta-clara'
           : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -61,7 +61,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
             Financeiro
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
@@ -74,7 +74,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
         <a
           href={`/aulas/exportar?de=${de}&ate=${ate}`}
           download
-          className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
+          className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
         >
           Planilha
         </a>
@@ -87,7 +87,7 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
         {periodo('Esta semana', somarDias(hoje, -6), hoje)}
         {periodo('Este mês', competenciaDe(hoje), hoje)}
         {periodo('Este ano', `${hoje.slice(0, 4)}-01-01`, hoje)}
-        <span className="text-[13px] text-tinta-fraca">
+        <span className="text-[13.5px] text-tinta-fraca">
           de {dataCurta(de)} a {dataCurta(ate)}
         </span>
       </div>
@@ -183,7 +183,7 @@ function Cabeca({ children, numero = false }: { children: React.ReactNode; numer
   return (
     <th
       scope="col"
-      className={`px-5 py-3 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase ${
+      className={`px-5 py-3 text-[12px] font-semibold text-tinta-fraca ${
         numero ? 'text-right' : ''
       }`}
     >
@@ -202,7 +202,7 @@ function Celula({
 }) {
   return (
     <td
-      className={`px-5 py-3.5 text-right font-mono text-[14px] ${
+      className={`px-5 py-3.5 text-right text-[14.5px] ${
         forte ? 'font-medium text-tinta' : ''
       } ${apagado ? 'text-tinta-fraca' : ''} ${alerta ? 'text-alerta' : ''}`}
     >

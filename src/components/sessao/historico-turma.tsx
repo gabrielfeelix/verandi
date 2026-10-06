@@ -39,8 +39,8 @@ export function HistoricoDaTurma({ eventos }: { eventos: EventoDaTurma[] }) {
                 i < eventos.length - 1 ? 'pb-3.5' : ''
               }`}
             >
-              <span className="text-[14px]">{e.texto}</span>
-              <span className="text-[12.5px] text-tinta-media">{e.quando}</span>
+              <span className="text-[14.5px]">{e.texto}</span>
+              <span className="text-[12px] text-tinta-media">{e.quando}</span>
             </span>
           </li>
         ))}

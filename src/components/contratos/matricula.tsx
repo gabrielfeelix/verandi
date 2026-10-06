@@ -77,7 +77,7 @@ const NOME_DA_ETAPA: Record<Etapa, string> = {
   pagamento: 'Início e pagamento',
 }
 
-const rotuloDeSecao = 'text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase'
+const rotuloDeSecao = 'text-[12px] font-semibold text-tinta-fraca'
 
 export function NovaMatricula({
   pessoaId, pessoaNome, planos, horarios,
@@ -279,9 +279,9 @@ export function NovaMatricula({
                     >
                       <span className="flex min-w-0 flex-col">
                         <span className="text-[14.5px] font-medium">{p.nome}</span>
-                        <span className="text-[13px] text-tinta-media">{comoCobra(p)}</span>
+                        <span className="text-[13.5px] text-tinta-media">{comoCobra(p)}</span>
                       </span>
-                      <span className="shrink-0 font-mono text-[14px]">
+                      <span className="shrink-0 text-[14.5px]">
                         {emReais(p.precoAvulsoCent)}
                       </span>
                     </button>
@@ -343,7 +343,7 @@ export function NovaMatricula({
                           aria-selected={ativo}
                           aria-label={DIAS[d]}
                           onClick={() => setDia(d)}
-                          className={`relative flex min-h-10 min-w-[54px] shrink-0 cursor-pointer items-center justify-center rounded-padrao border px-3 text-[14px] transition-colors duration-150 ${
+                          className={`relative flex min-h-10 min-w-[54px] shrink-0 cursor-pointer items-center justify-center rounded-padrao border px-3 text-[14.5px] transition-colors duration-150 ${
                             ativo
                               ? 'border-escuro bg-escuro font-medium text-tinta-clara'
                               : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -353,7 +353,7 @@ export function NovaMatricula({
                           {nele > 0 ? (
                             <span
                               aria-hidden
-                              className={`absolute -top-1.5 -right-1.5 flex size-[18px] items-center justify-center rounded-full text-[11px] font-semibold ${
+                              className={`absolute -top-1.5 -right-1.5 flex size-[18px] items-center justify-center rounded-full text-[12px] font-semibold ${
                                 ativo ? 'bg-marca text-white ring-2 ring-superficie' : 'bg-marca text-white'
                               }`}
                             >
@@ -388,17 +388,17 @@ export function NovaMatricula({
                           }`}
                         >
                           <span className="flex w-full items-center justify-between gap-2">
-                            <span className="font-mono text-[16px] font-medium">{t.horaInicio}</span>
+                            <span className="text-[16px] font-medium">{t.horaInicio}</span>
                             {marcada ? (
                               <span className="flex size-5 items-center justify-center rounded-full bg-marca text-white">
                                 <Icone nome="check" tamanho={12} />
                               </span>
                             ) : t.codigo ? (
-                              <span className="font-mono text-[11.5px] text-tinta-fraca">{t.codigo}</span>
+                              <span className="text-[12px] text-tinta-fraca">{t.codigo}</span>
                             ) : null}
                           </span>
                           {t.profissional ? (
-                            <span className="w-full truncate text-[12.5px] text-tinta-media">
+                            <span className="w-full truncate text-[12px] text-tinta-media">
                               {primeiroNome(t.profissional)}
                             </span>
                           ) : null}
@@ -413,7 +413,7 @@ export function NovaMatricula({
                   </div>
 
                   {lotou && pede > 1 ? (
-                    <p className="text-[13px] text-tinta-media">
+                    <p className="text-[13.5px] text-tinta-media">
                       Para trocar um horário, desmarque um dos escolhidos.
                     </p>
                   ) : null}
@@ -549,7 +549,7 @@ function PlanoEscolhido({ plano, trocar }: { plano: PlanoLinha; trocar: () => vo
     <div className="flex items-center justify-between gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3.5 py-2.5">
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-[14.5px] font-medium">{plano.nome}</span>
-        <span className="truncate text-[13px] text-tinta-media">
+        <span className="truncate text-[13.5px] text-tinta-media">
           {plano.servicoNome} · {emReais(plano.precoAvulsoCent)}
         </span>
       </span>
@@ -606,7 +606,7 @@ export function ContratosDaFicha({
 
   if (contratos.length === 0) {
     return (
-      <p className="text-[14px] text-tinta-media">
+      <p className="text-[14.5px] text-tinta-media">
         Nenhum contrato ainda. É ela que diz qual plano {pessoaNome.split(' ')[0]}{' '}
         contratou, por quanto, e até quando.
       </p>
@@ -629,16 +629,16 @@ export function ContratosDaFicha({
               <span className="text-[14.5px] font-medium">
                 {c.planoCodigo ? `${c.planoCodigo} · ` : ''}{c.planoNome}
               </span>
-              <span className="text-[13px] text-tinta-media">
+              <span className="text-[13.5px] text-tinta-media">
                 {c.servicoNome}
                 {c.fim ? ` · até ${c.fim.split('-').reverse().join('/')}` : ' · sem fim previsto'}
                 {c.vagasVivas > 0 ? ` · ocupa ${c.vagasVivas}` : ''}
               </span>
             </span>
             <span className="flex items-center gap-2">
-              <span className="font-mono text-[14px]">{emReais(c.precoAplicadoCent)}</span>
+              <span className="text-[14.5px]">{emReais(c.precoAplicadoCent)}</span>
               <span
-                className={`rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${
+                className={`rounded-peca px-2.5 py-[5px] text-[12px] font-medium ${
                   c.status === 'ativo' ? 'bg-positivo-fundo text-positivo'
                     : c.status === 'pausado' ? 'bg-atencao-fundo text-atencao'
                     : 'bg-superficie-mais-suave text-tinta-media'
@@ -652,13 +652,13 @@ export function ContratosDaFicha({
 
           {/* por que aquele preço, sem precisar procurar na tabela */}
           {c.vinculoUsado ? (
-            <p className="text-[12.5px] text-tinta-media">
+            <p className="text-[12px] text-tinta-media">
               Preço de quem já é cliente de outra modalidade.
             </p>
           ) : null}
 
           {c.saldo ? (
-            <p className={`text-[13px] ${c.saldo.acabou ? 'text-alerta' : 'text-tinta-media'}`}>
+            <p className={`text-[13.5px] ${c.saldo.acabou ? 'text-alerta' : 'text-tinta-media'}`}>
               {c.saldo.acabou
                 ? `Pacote esgotado: ${c.saldo.usadas} sessões usadas.`
                 : `Restam ${c.saldo.restantes} de ${c.saldo.usadas + c.saldo.restantes} sessões.`}

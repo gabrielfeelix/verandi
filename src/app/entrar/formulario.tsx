@@ -40,7 +40,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
 
   return (
     <PainelAcesso tela="entrar">
-      <h1 className="font-titulo text-[27px] font-semibold tracking-[-.02em]">
+      <h1 className="font-titulo text-[28px] font-semibold tracking-[-.02em]">
         Que bom te ver
       </h1>
       <p className="pt-2 pb-6 text-[14.5px] leading-relaxed text-tinta-media">
@@ -75,12 +75,12 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
                  cursor tem que estar no único campo que falta */
               autoFocus={Boolean(emailInicial)}
               type={verSenha ? 'text' : 'password'}
-              className="min-h-12 min-w-0 flex-1 bg-transparent px-[15px] text-[15px] tracking-[.02em] outline-none"
+              className="min-h-12 min-w-0 flex-1 bg-transparent px-[15px] text-[14.5px] tracking-[.02em] outline-none"
             />
             <button
               type="button"
               onClick={() => setVerSenha((v) => !v)}
-              className="min-h-9 cursor-pointer rounded-peca px-2 text-[13px] font-medium text-marca hover:text-marca-forte"
+              className="min-h-9 cursor-pointer rounded-peca px-2 text-[13.5px] font-medium text-marca hover:text-marca-forte"
             >
               {verSenha ? 'ocultar' : 'mostrar'}
             </button>
@@ -99,7 +99,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
         <Botao
           type="submit"
           disabled={carregando}
-          className="mt-2 min-h-13 w-full rounded-media text-[15px] font-semibold"
+          className="mt-2 min-h-13 w-full rounded-media text-[14.5px] font-semibold"
         >
           {carregando ? 'Entrando…' : 'Entrar'}
         </Botao>
@@ -107,7 +107,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
         {/* Junto do botão, e não no rodapé: aceite só vale se a pessoa teve como
             ler o que aceitou, e link escondido no pé da página é a versão fraca
             disso. O registro de quem aceitou o quê fica em `aceite_de_termos`. */}
-        <p className="pt-1 text-center text-[12.5px] leading-[1.6] text-tinta-fraca">
+        <p className="pt-1 text-center text-[12px] leading-[1.6] text-tinta-fraca">
           Ao entrar, você concorda com os{' '}
           <Link href="/termos" className="text-marca hover:text-marca-forte">
             Termos de uso

@@ -33,7 +33,7 @@ export default async function VisaoGeral() {
       <section className="flex flex-col gap-2.5">
         <h2 className="font-titulo text-[18px] font-semibold">Empresas paradas</h2>
         {r.contasParadas.length === 0 ? (
-          <p className={`px-4.5 py-4 text-[14px] text-tinta-media ${cartao}`}>
+          <p className={`px-4.5 py-4 text-[14.5px] text-tinta-media ${cartao}`}>
             Toda empresa ativa teve alguém entrando nos últimos sete dias.
           </p>
         ) : (
@@ -44,8 +44,8 @@ export default async function VisaoGeral() {
                   href={`/admin/empresas/${c.id}`}
                   className="flex items-center justify-between gap-3 px-4.5 py-3 hover:bg-superficie-tenue"
                 >
-                  <span className="text-[15px] font-medium">{c.nome}</span>
-                  <span className="text-[13px] font-medium text-alerta">
+                  <span className="text-[14.5px] font-medium">{c.nome}</span>
+                  <span className="text-[13.5px] font-medium text-alerta">
                     {c.ultimoAcesso
                       ? `último acesso em ${new Date(c.ultimoAcesso).toLocaleDateString('pt-BR')}`
                       : 'ninguém entrou ainda'}

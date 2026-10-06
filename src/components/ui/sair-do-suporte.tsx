@@ -30,8 +30,8 @@ export function SairDoSuporte({ claro = false }: { claro?: boolean }) {
         router.push('/admin/empresas')
       })}
       className={claro
-        ? 'flex min-h-11 shrink-0 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14px] text-tinta-media'
-        : 'min-h-9 shrink-0 rounded-peca px-2 text-[13px] text-tinta-escura-fraca underline hover:text-tinta-clara'}
+        ? 'flex min-h-11 shrink-0 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14.5px] text-tinta-media'
+        : 'min-h-9 shrink-0 rounded-peca px-2 text-[13.5px] text-tinta-escura-fraca underline hover:text-tinta-clara'}
     >
       {pendente ? 'Saindo…' : 'Sair'}
     </button>

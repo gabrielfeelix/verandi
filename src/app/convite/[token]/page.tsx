@@ -74,7 +74,7 @@ export default async function Convite({
             quando entrou, e repetir aceite em tela de socorro é ruído.
           */}
           {r.tipo === 'acesso' ? (
-            <p className="pt-4 text-center text-[12.5px] leading-[1.6] text-tinta-fraca">
+            <p className="pt-4 text-center text-[12px] leading-[1.6] text-tinta-fraca">
               Ao criar sua senha, você concorda com os{' '}
               <a href="/termos" className="text-marca hover:text-marca-forte">
                 Termos de uso
@@ -95,7 +95,7 @@ export default async function Convite({
           </p>
           <a
             href="/entrar"
-            className="inline-flex min-h-12 items-center justify-center rounded-media bg-escuro px-4 text-[15px] font-semibold text-tinta-clara"
+            className="inline-flex min-h-12 items-center justify-center rounded-media bg-escuro px-4 text-[14.5px] font-semibold text-tinta-clara"
           >
             Ir para a entrada
           </a>

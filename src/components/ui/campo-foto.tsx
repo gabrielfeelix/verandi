@@ -154,7 +154,7 @@ export function CampoFoto({
           <span className="text-[14.5px] font-medium">
             {mostra ? 'Trocar a foto' : 'Arraste a foto aqui, ou clique para escolher'}
           </span>
-          <span className="text-[13px] text-tinta-fraca">
+          <span className="text-[13.5px] text-tinta-fraca">
             {ocupado ? 'Preparando a foto…' : dica}
           </span>
         </span>
@@ -173,7 +173,7 @@ export function CampoFoto({
       </div>
       )}
 
-      {erro ? <span className="text-[13px] text-alerta">{erro}</span> : null}
+      {erro ? <span className="text-[13.5px] text-alerta">{erro}</span> : null}
 
       {(previa || atual) ? (
         <div className="flex gap-3">

@@ -157,7 +157,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
             {ehDia ? 'Dia por recurso' : 'Agenda da semana'}
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
@@ -264,7 +264,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               ]}
             />
             {feriados[diaFoco] ? (
-              <span className="rounded-peca bg-atencao-fundo px-2.5 py-1 text-[12.5px] font-medium text-atencao">
+              <span className="rounded-peca bg-atencao-fundo px-2.5 py-1 text-[12px] font-medium text-atencao">
                 {feriados[diaFoco]}
               </span>
             ) : null}
@@ -322,10 +322,10 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                       : 'border-linha bg-superficie'
                   }`}
                 >
-                  <span className="text-[11.5px] uppercase">
+                  <span className="text-[12px] font-medium capitalize">
                     {DIAS_CURTOS[diaDaSemanaDe(d)]}
                   </span>
-                  <span className="font-mono text-[14px]">{d.slice(8)}</span>
+                  <span className="text-[14.5px]">{d.slice(8)}</span>
                 </Link>
               ))}
             </nav>
@@ -362,7 +362,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
 
       {/* a amostra é a célula em miniatura, com a borda reforçada: no tamanho
           real as cores claras sumiam no fundo, e a legenda não se lia */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-tinta-media">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13.5px] text-tinta-media">
         {[
           ['bg-superficie border-tinta-inativa', 'Com vaga'],
           ['bg-alerta-fundo border-alerta/60', 'Lotada'],

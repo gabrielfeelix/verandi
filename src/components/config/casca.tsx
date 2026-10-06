@@ -23,7 +23,7 @@ export function PainelConfig({
     <section className={`overflow-hidden ${cartao}`}>
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-5 py-4">
         <div>
-          <h2 className="font-titulo text-[19px] font-semibold">{titulo}</h2>
+          <h2 className="font-titulo text-[18px] font-semibold">{titulo}</h2>
           {sub ? (
             <p className="pt-[3px] text-[13.5px] text-tinta-media">{sub}</p>
           ) : null}
@@ -61,12 +61,12 @@ export function LinhaConfig({
       {antes}
       <div className="flex min-w-0 flex-[1_1_180px] flex-col leading-[1.35]">
         <span
-          className={`text-[15px] font-medium ${apagado ? 'text-tinta-media' : ''}`}
+          className={`text-[14.5px] font-medium ${apagado ? 'text-tinta-media' : ''}`}
         >
           {nome}
         </span>
         {detalhe ? (
-          <span className="text-[13px] text-tinta-media">{detalhe}</span>
+          <span className="text-[13.5px] text-tinta-media">{detalhe}</span>
         ) : null}
       </div>
       {children}
@@ -77,7 +77,7 @@ export function LinhaConfig({
 /** O número entre parênteses da linha, capacidade, duração, contagem. */
 export function Dado({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-peca bg-superficie-mais-suave px-2.5 py-1 font-mono text-[13px] text-tinta-media">
+    <span className="rounded-peca bg-superficie-mais-suave px-2.5 py-1 text-[13.5px] text-tinta-media">
       {children}
     </span>
   )
@@ -87,7 +87,7 @@ export function Dado({ children }: { children: ReactNode }) {
 export function Estado({ ativo }: { ativo: boolean }) {
   return (
     <span
-      className={`rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${
+      className={`rounded-peca px-2.5 py-[5px] text-[12px] font-medium ${
         ativo ? 'bg-positivo-fundo text-positivo' : 'bg-alerta-fundo text-alerta'
       }`}
     >
@@ -144,7 +144,7 @@ export function Recolhivel({
         className="flex w-full items-center justify-between gap-3 border-t border-linha-fina bg-superficie-tenue px-5 py-3.5 text-left hover:bg-superficie-mais-suave"
       >
         <span className="text-[13.5px] text-tinta-media">{rotulo}</span>
-        <span aria-hidden className="font-mono text-[14px] text-tinta-inativa">
+        <span aria-hidden className="text-[14.5px] text-tinta-inativa">
           {aberto ? '▴' : '▾'}
         </span>
       </button>

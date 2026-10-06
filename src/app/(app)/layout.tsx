@@ -189,8 +189,8 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
               errada é o erro mais caro que este sistema permite, e é silencioso.
               No rail ela está sempre no topo; em celular, aqui. */}
           <p data-imprimir="fora" className="mb-3 flex items-center gap-2 md:hidden">
-            <span className="font-titulo text-[16px] font-semibold">{conta.nome}</span>
-            <span className="text-[12.5px] text-tinta-media">
+            <span className="font-titulo text-[18px] font-semibold">{conta.nome}</span>
+            <span className="text-[12px] text-tinta-media">
               {PAPEL[conta.papel] ?? conta.papel}
             </span>
             {contas.length > 1 ? (

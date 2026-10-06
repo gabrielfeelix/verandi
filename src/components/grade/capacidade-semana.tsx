@@ -58,8 +58,8 @@ export function CapacidadeDaSemana({
         {linhas.map((l, i) => (
           <li key={l.servico} className="flex flex-col gap-1.5">
             <span className="flex items-baseline justify-between gap-3">
-              <span className="truncate text-[14px] font-medium">{l.servico}</span>
-              <span className="shrink-0 font-mono text-[12.5px] text-tinta-media">
+              <span className="truncate text-[14.5px] font-medium">{l.servico}</span>
+              <span className="shrink-0 text-[12px] text-tinta-media">
                 {l.n} {(l.n === 1 ? rotuloSerie.singular : rotuloSerie.plural)
                   .toLowerCase()} · {l.pct}%
               </span>

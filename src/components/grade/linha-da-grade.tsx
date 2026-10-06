@@ -95,7 +95,7 @@ export function LinhaDaGrade({
         }`}
       >
         <span
-          className={`flex h-14 w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-media font-mono leading-none ${
+          className={`flex h-14 w-[72px] shrink-0 flex-col items-center justify-center gap-1 rounded-media leading-none ${
             serie.encerrada
               ? 'bg-superficie-mais-suave text-tinta-fraca'
               : 'bg-escuro text-tinta-clara'
@@ -105,7 +105,7 @@ export function LinhaDaGrade({
           <span className="text-[16px] font-semibold">{serie.horaInicio.slice(0, 5)}</span>
           {/* conta que não numera horário não pode ganhar uma linha vazia */}
           {serie.codigo ? (
-            <span className="font-mono text-[11.5px] opacity-60">
+            <span className="text-[12px] opacity-60">
               {serie.codigo}
             </span>
           ) : null}
@@ -113,13 +113,13 @@ export function LinhaDaGrade({
 
         <span className="flex min-w-[160px] flex-1 flex-col gap-1.5">
           <span
-            className={`truncate text-[15px] font-medium ${
+            className={`truncate text-[14.5px] font-medium ${
               serie.encerrada ? 'text-tinta-media' : ''
             }`}
           >
             {serie.servico}
           </span>
-          <span className="flex flex-wrap items-center gap-1.5 text-[13px] text-tinta-media">
+          <span className="flex flex-wrap items-center gap-1.5 text-[13.5px] text-tinta-media">
             {serie.profissional ? (
               <span className="flex items-center gap-1.5 rounded-peca bg-superficie-suave py-1 pr-2.5 pl-1">
                 <Avatar nome={serie.profissional} tamanho={24} decorativo />
@@ -131,10 +131,10 @@ export function LinhaDaGrade({
                 {serie.local}
               </span>
             ) : null}
-            <span className="rounded-peca bg-superficie-suave px-2.5 py-1 font-mono text-[12.5px]">
+            <span className="rounded-peca bg-superficie-suave px-2.5 py-1 text-[12px]">
               {serie.duracaoMin} min
             </span>
-            <span className="text-[12.5px] text-tinta-fraca">
+            <span className="text-[12px] text-tinta-fraca">
               {serie.encerrada
                 ? `${mesCurto(serie.vigenciaInicio)} – ${mesCurto(serie.vigenciaFim!)}`
                 : `desde ${mesCurto(serie.vigenciaInicio)}`}
@@ -146,7 +146,7 @@ export function LinhaDaGrade({
             se lê varrendo trinta horários de uma vez */}
         <span className="flex w-[86px] shrink-0 flex-col gap-1.5">
           <span
-            className={`text-right font-mono text-[13.5px] ${
+            className={`text-right text-[13.5px] ${
               serie.ocupadas > serie.capacidade ? 'text-alerta' : 'text-tinta-media'
             }`}
             title={`${serie.ocupadas} de ${serie.capacidade} ${rotulos.vaga.plural.toLowerCase()}`}
@@ -216,7 +216,7 @@ export function LinhaDaGrade({
                   >
                     <Avatar nome={o.nome} tamanho={32} decorativo />
                     <span className="min-w-0 flex-1 truncate">{o.nome}</span>
-                    <span className="font-mono text-[12.5px] text-tinta-fraca">
+                    <span className="text-[12px] text-tinta-fraca">
                       desde {mesCurto(o.desde)}
                     </span>
                   </Link>
@@ -282,7 +282,7 @@ export function LinhaDaGrade({
               <input
                 id={`t-${serie.id}`} name="codigo" maxLength={12}
                 defaultValue={serie.codigo ?? ''} placeholder="001"
-                className={`${entrada} w-full font-mono`}
+                className={`${entrada} w-full`}
               />
             </Campo>
             <Campo rotulo="Duração (min)" htmlFor={`m-${serie.id}`}>
@@ -374,7 +374,7 @@ export function LinhaDaGrade({
           })}
         >
           <fieldset className="flex flex-col gap-2">
-            <legend className="pb-2 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+            <legend className="pb-2 text-[12px] font-semibold text-tinta-fraca">
               Repetir este horário em
             </legend>
             <div className="flex flex-wrap gap-2">

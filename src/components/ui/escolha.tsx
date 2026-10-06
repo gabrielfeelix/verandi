@@ -146,7 +146,7 @@ export function Escolha({
           {escolhida ? escolhida.rotulo : placeholder}
         </span>
         {escolhida?.detalhe ? (
-          <span className="hidden shrink-0 text-[13px] text-tinta-fraca sm:block">
+          <span className="hidden shrink-0 text-[13.5px] text-tinta-fraca sm:block">
             {escolhida.detalhe}
           </span>
         ) : null}
@@ -166,7 +166,7 @@ export function Escolha({
         >
           {temFiltro ? (
             <div className="flex shrink-0 items-center gap-2 border-b border-linha-fina px-3 py-2">
-              <span aria-hidden className="font-mono text-[14px] text-tinta-fraca">⌕</span>
+              <span aria-hidden className="text-[14.5px] text-tinta-fraca">⌕</span>
               <input
                 autoFocus
                 value={filtro}
@@ -177,7 +177,7 @@ export function Escolha({
                 className="min-w-0 flex-1 bg-transparent text-[14.5px] outline-none placeholder:text-tinta-fraca"
               />
               {filtro ? (
-                <span className="shrink-0 text-[12.5px] text-tinta-fraca">
+                <span className="shrink-0 text-[12px] text-tinta-fraca">
                   {visiveis.length}
                 </span>
               ) : null}
@@ -199,7 +199,7 @@ export function Escolha({
               visiveis.map((o, i) => (
                   <li key={o.valor}>
                     {o.abreGrupo ? (
-                      <p className="sticky top-0 z-10 bg-superficie px-2.5 pt-2 pb-1 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                      <p className="sticky top-0 z-10 bg-superficie px-2.5 pt-2 pb-1 text-[12px] font-semibold text-tinta-fraca">
                         {o.grupo}
                       </p>
                     ) : null}
@@ -216,7 +216,7 @@ export function Escolha({
                       <span className="flex min-w-0 flex-1 flex-col leading-tight">
                         <span className="truncate text-[14.5px] font-medium">{o.rotulo}</span>
                         {o.detalhe ? (
-                          <span className="truncate text-[12.5px] text-tinta-fraca">
+                          <span className="truncate text-[12px] text-tinta-fraca">
                             {o.detalhe}
                           </span>
                         ) : null}

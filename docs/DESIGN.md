@@ -93,23 +93,30 @@ a mesma pessoa tem sempre a mesma cor, em qualquer tela.
 
 | Uso | Fonte |
 |---|---|
-| Título e número grande | **Bricolage Grotesque** 500/600/700 |
-| Texto, rótulo, botão | **DM Sans** 400/500/600 |
-| Hora, contagem, identificador | **DM Mono** 400/500 |
+| Título de tela, de bloco e número grande | **Bricolage Grotesque** 600 |
+| Todo o resto, inclusive hora, valor e contagem | **Inter** 400/500/600, com `tnum` ligado no `body` |
+| Chave, token, slug, URL (só integrações, admin e suporte) | **DM Mono** |
 
-Escala real do protótipo, que é miúda de propósito, é uma tela de trabalho, e a
-densidade é o ponto:
+Cinco tamanhos de texto, decididos em 06/out/2026 (antes eram 26):
 
 ```
-30px   título de tela            Bricolage 600, letter-spacing -.02em
-19px   título de bloco           Bricolage 600
-17px   título de cartão          Bricolage 500
-14px   texto forte
-13px   texto padrão              DM Sans 400
-12.5px texto de apoio
-11.5px meta, etiqueta
-10.5px rótulo maiúsculo          letter-spacing .1em, DM Sans 500
+28px   título de tela        Bricolage 600, -.02em
+18px   título de bloco       Bricolage 600
+14.5px texto                 Inter 400/500  (é o tamanho do body)
+13.5px apoio                 Inter 400, tinta-media
+12px   meta, etiqueta        Inter 500/600
 ```
+
+Display fora da escala: números grandes (24 a 40px, Bricolage) e iniciais de
+avatar, que saem de `fonteDasIniciais()` em `src/components/ui/tintas.ts`.
+
+- **Sem mono para número.** O Inter com `tnum` já alinha algarismo em coluna;
+  o mono em hora, valor e telefone era o que mais cansava.
+- **Sem caixa alta com tracking largo.** Rótulo miúdo se distingue por peso
+  (500/600) e pelo cinza terciário, não por `uppercase`.
+- **Três cinzas de verdade:** `tinta` (texto), `tinta-media` (apoio, 7,2:1) e
+  `tinta-fraca` (meta, `#626d68`, 4,7 a 5,4:1). Antes `fraca` e `media` eram a
+  mesma cor e a hierarquia vinha de tamanho.
 
 ## Forma
 

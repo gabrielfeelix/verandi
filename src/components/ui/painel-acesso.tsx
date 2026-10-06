@@ -71,7 +71,7 @@ export function CascaAcesso({
           <div className="relative z-[1] flex items-center gap-3">
             <span
               aria-hidden
-              className="flex size-9 items-center justify-center rounded-padrao bg-menta font-titulo text-[19px] font-bold text-escuro"
+              className="flex size-9 items-center justify-center rounded-padrao bg-menta font-titulo text-[18px] font-bold text-escuro"
             >
               V
             </span>
@@ -81,7 +81,7 @@ export function CascaAcesso({
           </div>
 
           <div className="relative z-[1] pt-6">
-            <p className="font-titulo text-[30px] leading-[1.16] font-semibold tracking-[-.025em] whitespace-pre-line text-pretty text-tinta-clara">
+            <p className="font-titulo text-[28px] leading-[1.16] font-semibold tracking-[-.025em] whitespace-pre-line text-pretty text-tinta-clara">
               {titulo}
             </p>
             <span aria-hidden className="my-4 block h-[3px] w-15 rounded-sm bg-menta" />
@@ -121,7 +121,7 @@ export function CascaAcesso({
           <div className="flex items-center gap-3 pb-6 md:hidden">
             <span
               aria-hidden
-              className="flex size-9 items-center justify-center rounded-padrao bg-escuro font-titulo text-[19px] font-bold text-menta"
+              className="flex size-9 items-center justify-center rounded-padrao bg-escuro font-titulo text-[18px] font-bold text-menta"
             >
               V
             </span>

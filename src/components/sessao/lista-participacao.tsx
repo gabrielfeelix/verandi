@@ -73,7 +73,7 @@ export function ListaParticipacao({
     <section className={`${cartao} px-2.5 pt-2 pb-3`}>
       <div className="flex items-center justify-between p-3">
         <h2 className="font-titulo text-[18px] font-semibold">{titulo}</h2>
-        <span className="text-[13px] text-tinta-media">
+        <span className="text-[13.5px] text-tinta-media">
           {podeRegistrar && comecou && pendentes > 0
             ? 'quem não for marcado conta como presente'
             : 'vaga fixa em cima, encaixes abaixo'}
@@ -135,7 +135,7 @@ export function ListaParticipacao({
                 {/* por que esta pessoa está aqui, a linha que separa quatro
                     nomes iguais em quatro situações diferentes */}
                 {p.detalhe ? (
-                  <span className="truncate text-[13px] text-tinta-media">{p.detalhe}</span>
+                  <span className="truncate text-[13.5px] text-tinta-media">{p.detalhe}</span>
                 ) : null}
               </span>
 
@@ -192,12 +192,12 @@ export function ListaParticipacao({
             <Icone nome="mais" />
           </span>
           <span className="flex flex-col">
-            <span className="text-[15px] font-medium text-marca">
+            <span className="text-[14.5px] font-medium text-marca">
               {livres > 0
                 ? `${livres} vaga${livres > 1 ? 's' : ''} livre${livres > 1 ? 's' : ''}, encaixar alguém`
                 : 'Sem vaga livre, encaixar assim mesmo'}
             </span>
-            <span className="text-[13px] text-tinta-media">
+            <span className="text-[13.5px] text-tinta-media">
               buscar {rotuloPessoa.toLowerCase()} que já existe ou cadastrar na hora
             </span>
           </span>
@@ -226,7 +226,7 @@ function Marca({
   return (
     <span
       title={titulo}
-      className={`rounded-minima px-1.5 py-[3px] text-[11.5px] font-semibold tracking-[.08em] uppercase ${cor}`}
+      className={`rounded-minima px-1.5 py-[3px] text-[12px] font-semibold ${cor}`}
     >
       {children}
     </span>
@@ -296,7 +296,7 @@ function Presenca({
         aria-haspopup="menu"
         title={provisorio ? 'Conta como presente ao concluir a chamada' : `Mudar o registro de ${primeiro}`}
         onClick={() => setAberto(!aberto)}
-        className={`flex h-11 min-w-[112px] cursor-pointer items-center justify-between gap-1.5 rounded-padrao border px-3 text-[14px] font-medium whitespace-nowrap transition-colors duration-150 disabled:opacity-60 ${tinta}`}
+        className={`flex h-11 min-w-[112px] cursor-pointer items-center justify-between gap-1.5 rounded-padrao border px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 disabled:opacity-60 ${tinta}`}
       >
         <span className="flex items-center gap-1.5">
           {status === 'presente' || provisorio ? <span aria-hidden>✓</span> : null}
@@ -314,7 +314,7 @@ function Presenca({
           role="menu"
           className="fixed inset-x-3 bottom-3 z-[41] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-2 shadow-elevado sm:absolute sm:inset-x-auto sm:top-[48px] sm:right-0 sm:bottom-auto sm:z-[25] sm:w-[240px] sm:p-1.5"
         >
-          <p className="px-3 pt-1.5 pb-1 text-[13px] text-tinta-media sm:hidden">{nome}</p>
+          <p className="px-3 pt-1.5 pb-1 text-[13.5px] text-tinta-media sm:hidden">{nome}</p>
           {motivos.map((m) => (
             <button
               key={m.valor}
@@ -329,7 +329,7 @@ function Presenca({
               }`}
             >
               <span className="text-[14.5px] font-medium">{m.rotulo}</span>
-              <span className="text-[12.5px] text-tinta-media">{m.explica}</span>
+              <span className="text-[12px] text-tinta-media">{m.explica}</span>
             </button>
           ))}
           {faltou ? (
@@ -337,7 +337,7 @@ function Presenca({
               type="button"
               role="menuitem"
               onClick={() => escolher(aoDesfazer)}
-              className="mt-0.5 cursor-pointer rounded-peca border-t border-linha-suave px-3 py-2.5 text-left text-[14px] text-tinta-media hover:bg-superficie-suave"
+              className="mt-0.5 cursor-pointer rounded-peca border-t border-linha-suave px-3 py-2.5 text-left text-[14.5px] text-tinta-media hover:bg-superficie-suave"
             >
               {comecou ? `Desfazer, ${primeiro} veio` : `Desfazer, ${primeiro} vem`}
             </button>

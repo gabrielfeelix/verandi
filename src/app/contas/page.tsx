@@ -56,12 +56,12 @@ export default async function Contas() {
                 >
                   <span
                     aria-hidden
-                    className="flex size-9.5 shrink-0 items-center justify-center rounded-padrao font-titulo text-[16px] font-bold"
+                    className="flex size-9.5 shrink-0 items-center justify-center rounded-padrao font-titulo text-[18px] font-bold"
                     style={{ background: fundo, color: frente }}
                   >
                     {sigla}
                   </span>
-                  <span className="min-w-0 flex-1 text-[15px] font-medium">
+                  <span className="min-w-0 flex-1 text-[14.5px] font-medium">
                     {c.nome}
                   </span>
                   <Etiqueta tinta={papel.tinta}>{papel.rotulo}</Etiqueta>
@@ -72,7 +72,7 @@ export default async function Contas() {
         })}
       </ul>
 
-      <p className="pt-4 text-[13px] leading-relaxed text-tinta-media">
+      <p className="pt-4 text-[13.5px] leading-relaxed text-tinta-media">
         A conta ativa fica visível em todas as telas depois. Operar na conta
         errada é o erro mais caro, e é silencioso.
       </p>

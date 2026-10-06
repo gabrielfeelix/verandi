@@ -99,7 +99,7 @@ export function PainelDeAvaliacao({
   return (
     <div className="flex flex-col gap-3.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-titulo text-[19px] font-semibold">
+        <h2 className="font-titulo text-[18px] font-semibold">
           Acompanhamento por foto
         </h2>
         <NovaAvaliacao

@@ -46,7 +46,7 @@ export function ProvedorDeAviso({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => { aviso.desfazer?.(); setAviso(null) }}
-              className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-tinta-clara/24 px-3 text-[13px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-tinta-clara/10"
+              className="min-h-9 shrink-0 cursor-pointer rounded-peca border border-tinta-clara/24 px-3 text-[13.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-tinta-clara/10"
             >
               Desfazer
             </button>

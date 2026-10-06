@@ -53,9 +53,16 @@
    * 6,56:1 no #F1F5F3 · 7,22:1 no branco
    */
   --color-tinta-media: #4d5a55;
-  /* 6,38:1 no #F1F5F3 · 7,02:1 no branco */
-  --color-tinta-apagada: #525b57;
-  --color-tinta-fraca: #525b57;
+  /*
+   * O terceiro nível, um passo abaixo do apoio. Era `#525b57`, praticamente a
+   * mesma cor da `tinta-media` (7,0 contra 7,2:1): três nomes e um cinza só,
+   * e a hierarquia tinha de vir de tamanho, peso e caixa alta. Com um degrau
+   * de verdade, a meta (hora, contagem, "criada em") recua sozinha.
+   *
+   * 4,73:1 no #EEF1EF · 4,89:1 no #F1F5F3 · 5,38:1 no branco
+   */
+  --color-tinta-apagada: #626d68;
+  --color-tinta-fraca: #626d68;
   /* só onde a WCAG isenta: controle desabilitado (1.4.3). Não use em texto. */
   --color-tinta-inativa: #9aa5a0;
   --color-tinta-clara: #eaf3f0;
@@ -182,7 +189,7 @@ body {
   background: var(--color-fundo);
   color: var(--color-tinta);
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 14.5px;
   line-height: 1.55;
   /*
    * `cv05` desambigua o `l` minúsculo do `I` maiúsculo, num sistema cheio de

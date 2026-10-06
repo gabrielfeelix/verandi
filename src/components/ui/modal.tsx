@@ -151,7 +151,7 @@ function Titulo({ glifo = '+', icone, tom = 'positivo', titulo, sub, perigo = fa
         {perigo ? '!' : icone ? <Icone nome={icone} tamanho={18} /> : glifo}
       </span>
       <div className="flex flex-col gap-1">
-        <h2 className="font-titulo text-[20px] font-semibold tracking-[-.02em]">
+        <h2 className="font-titulo text-[18px] font-semibold tracking-[-.02em]">
           {titulo}
         </h2>
         {sub ? <p className="text-[13.5px] text-tinta-apagada">{sub}</p> : null}

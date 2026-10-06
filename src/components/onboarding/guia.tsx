@@ -164,7 +164,7 @@ export function Guia({ passos, passoInicial }: { passos: Passo[]; passoInicial: 
             : { top: topo, left: esquerda, width: `min(92vw, ${LARGURA}px)` }
         }
       >
-        <p className="font-mono text-[12px] tracking-[.12em] text-tinta-fraca uppercase">
+        <p className="text-[12px] font-medium text-tinta-fraca">
           Passo {i + 1} de {passos.length}
         </p>
         <h2 className="pt-1.5 font-titulo text-[18px] leading-[1.2] font-semibold">

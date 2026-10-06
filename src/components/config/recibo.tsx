@@ -176,7 +176,7 @@ export function SecaoRecibo({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h3 className="text-[14.5px] font-medium">Assinatura</h3>
-              <p className="pt-[2px] text-[13px] leading-[1.5] text-tinta-media">
+              <p className="pt-[2px] text-[13.5px] leading-[1.5] text-tinta-media">
                 Aparece em cima da linha, no papel e no recibo enviado. Sem ela,
                 a linha sai em branco para assinar à mão.
               </p>
@@ -255,13 +255,13 @@ export function SecaoRecibo({
                 onChange={(e) => setArquivo(e.target.files?.[0]?.name ?? '')}
               />
             </label>
-            <span className="max-w-[220px] truncate text-[13px] text-tinta-media">
+            <span className="max-w-[220px] truncate text-[13.5px] text-tinta-media">
               {arquivo || 'Nenhuma imagem escolhida'}
             </span>
             <Botao tom="secundario" type="submit">
               {assinatura ? 'Trocar imagem' : 'Enviar imagem'}
             </Botao>
-            <span className="text-[12.5px] text-tinta-fraca">
+            <span className="text-[12px] text-tinta-fraca">
               PNG, JPEG ou WEBP, até 1 MB. Fundo branco fica melhor no papel.
             </span>
           </form>

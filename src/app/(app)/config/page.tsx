@@ -104,7 +104,7 @@ export default async function Config({
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <header>
-          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
             Configuração da conta
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">

@@ -81,7 +81,7 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
     <div className="relative hidden lg:block">
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 font-mono text-[13px] text-tinta-fraca"
+        className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[13.5px] text-tinta-fraca"
       >
         /
       </span>
@@ -101,7 +101,7 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
         aria-controls={idLista}
         aria-label={`Buscar ${rotuloPessoa.toLowerCase()}`}
         placeholder={`Buscar ${rotuloPessoa.toLowerCase()}`}
-        className="min-h-11 w-[240px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-8 text-[14px] placeholder:text-tinta-fraca"
+        className="min-h-11 w-[240px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-8 text-[14.5px] placeholder:text-tinta-fraca"
       />
 
       {aberto ? (
@@ -130,7 +130,7 @@ export function BuscaRapida({ rotuloPessoa }: { rotuloPessoa: string }) {
                   <Avatar nome={a.nome} />
                   <span className="flex min-w-0 flex-col leading-tight">
                     <span className="truncate text-[14.5px] font-medium">{a.nome}</span>
-                    <span className="text-[12.5px] text-tinta-fraca">{a.detalhe}</span>
+                    <span className="text-[12px] text-tinta-fraca">{a.detalhe}</span>
                   </span>
                 </button>
               </li>

@@ -110,7 +110,7 @@ export function ListaDeCobrancas({
 
   if (linhas.length === 0) {
     return procurando
-      ? <p className="px-1 py-6 text-center text-[14px] text-tinta-media">Procurando nas outras páginas</p>
+      ? <p className="px-1 py-6 text-center text-[14.5px] text-tinta-media">Procurando nas outras páginas</p>
       : <Vazio icone="dinheiro" titulo={vazio.titulo} texto={vazio.texto} />
   }
 
@@ -139,11 +139,11 @@ export function ListaDeCobrancas({
                 <span className="flex min-w-0 flex-col gap-1">
                   <Link
                     href={`/pessoas/${c.pessoaId}?aba=contratos`}
-                    className="truncate text-[15px] font-semibold text-tinta hover:underline"
+                    className="truncate text-[14.5px] font-semibold text-tinta hover:underline"
                   >
                     {c.pessoaNome}
                   </Link>
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-tinta-media">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-tinta-media">
                     <span className="rounded-minima bg-superficie-mais-suave px-1.5 py-0.5 font-medium text-tinta-media">
                       {c.planoNome || 'Sem plano'}
                     </span>
@@ -169,7 +169,7 @@ export function ListaDeCobrancas({
                   ) : null}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px] font-medium ${s.etiqueta}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium ${s.etiqueta}`}
                 >
                   <Icone nome={s.icone} tamanho={13} />
                   {ROTULO_SITUACAO[c.situacao]}
@@ -227,7 +227,7 @@ export function ListaDeCobrancas({
             </div>
 
             {c.motivoCancelamento ? (
-              <p className="mt-3 rounded-padrao bg-superficie-suave px-3 py-2 text-[12.5px] text-tinta-media">
+              <p className="mt-3 rounded-padrao bg-superficie-suave px-3 py-2 text-[12px] text-tinta-media">
                 Cancelada: {c.motivoCancelamento}
               </p>
             ) : null}
@@ -237,7 +237,7 @@ export function ListaDeCobrancas({
                 {c.pagamentos.map((p) => (
                   <li
                     key={p.id}
-                    className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-padrao px-3 py-2 text-[13px] ${
+                    className={`flex flex-wrap items-center gap-x-3 gap-y-2 rounded-padrao px-3 py-2 text-[13.5px] ${
                       p.estornado ? 'bg-superficie-suave' : 'bg-positivo-superficie'
                     }`}
                   >
@@ -257,7 +257,7 @@ export function ListaDeCobrancas({
                         {ROTULO_FORMA[p.forma]} · {dataCurta(p.recebidoEm)}
                       </span>
                       {p.estornado ? (
-                        <span className="text-[12.5px] text-tinta-media">
+                        <span className="text-[12px] text-tinta-media">
                           motivo: {p.motivoEstorno}
                         </span>
                       ) : null}
@@ -275,7 +275,7 @@ export function ListaDeCobrancas({
                         {p.recibo ? (
                           <Link
                             href={`/recibos/${p.recibo.id}`}
-                            className="inline-flex min-h-8 items-center gap-1.5 rounded-peca px-2 text-[12.5px] font-medium text-marca hover:bg-superficie"
+                            className="inline-flex min-h-8 items-center gap-1.5 rounded-peca px-2 text-[12px] font-medium text-marca hover:bg-superficie"
                           >
                             <Icone nome="recibo" tamanho={14} />
                             {p.recibo.descricao}
@@ -288,7 +288,7 @@ export function ListaDeCobrancas({
                               tipo: 'emitir', c, pagamentoId: p.id, valorCent: p.valorCent,
                             })}
                             disabled={pendente}
-                            className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-peca border border-positivo-linha bg-superficie px-2.5 text-[12.5px] font-medium text-marca hover:border-marca disabled:opacity-50"
+                            className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-peca border border-positivo-linha bg-superficie px-2.5 text-[12px] font-medium text-marca hover:border-marca disabled:opacity-50"
                           >
                             <Icone nome="recibo" tamanho={14} />
                             Emitir recibo
@@ -300,7 +300,7 @@ export function ListaDeCobrancas({
                             tipo: 'estornar', c, pagamentoId: p.id,
                             recibo: p.recibo && !p.recibo.cancelado ? p.recibo.descricao : null,
                           })}
-                          className="inline-flex min-h-8 cursor-pointer items-center rounded-peca px-2 text-[12.5px] text-tinta-media hover:bg-superficie hover:text-alerta"
+                          className="inline-flex min-h-8 cursor-pointer items-center rounded-peca px-2 text-[12px] text-tinta-media hover:bg-superficie hover:text-alerta"
                         >
                           Estornar
                         </button>
@@ -496,7 +496,7 @@ export function ListaDeCobrancas({
           aoConfirmar={() => agir(
             () => emitirRecibo(modo.pagamentoId), 'Recibo emitido')}
         >
-          <p className="text-[14px] leading-[1.55] text-tinta-media">
+          <p className="text-[14.5px] leading-[1.55] text-tinta-media">
             O recibo recebe o próximo número da série. Se sair errado, dá para
             corrigir ou cancelar, mas o número fica usado.
           </p>

@@ -25,7 +25,7 @@ export default async function Pendencias() {
       <div className="flex flex-col gap-4">
         <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
           <div>
-            <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+            <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
               Pendências
             </h1>
             <p className="pt-[3px] text-[14.5px] text-tinta-media">
@@ -38,14 +38,14 @@ export default async function Pendencias() {
           <div className="flex flex-wrap items-center gap-2.5">
             {/* o número que mostra progresso, e não só dívida */}
             {esvaziadas > 0 ? (
-              <span className="text-[13px] text-tinta-media">
+              <span className="text-[13.5px] text-tinta-media">
                 {esvaziadas} {esvaziadas === 1 ? 'resolvido' : 'resolvidos'} hoje
               </span>
             ) : null}
             <a
               href="/pendencias/exportar"
               download
-              className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
+              className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
             >
               Exportar
             </a>

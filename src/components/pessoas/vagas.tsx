@@ -111,22 +111,22 @@ export function Vagas({
               key={v.id}
               className="flex items-center gap-3 rounded-grande border border-linha-suave bg-superficie p-3"
             >
-              <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-media bg-escuro font-mono leading-none text-tinta-clara">
-                <span className="text-[11.5px] tracking-[.08em] uppercase opacity-70">
+              <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-media bg-escuro leading-none text-tinta-clara">
+                <span className="text-[12px] font-medium capitalize opacity-70">
                   {v.dia.slice(0, 3)}
                 </span>
-                <span className="pt-0.5 text-[14px] font-semibold">{v.hora}</span>
+                <span className="pt-0.5 text-[14.5px] font-semibold">{v.hora}</span>
               </span>
 
               <span className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
                 <span className="truncate text-[14.5px] font-medium">{v.servico}</span>
-                <span className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-tinta-media">
+                <span className="flex flex-wrap items-center gap-1.5 text-[12px] text-tinta-media">
                   {v.profissional ? (
                     <span className="rounded-peca bg-superficie-suave px-2 py-0.5">
                       {v.profissional}
                     </span>
                   ) : null}
-                  <span className="font-mono text-tinta-fraca">
+                  <span className="text-tinta-fraca">
                     desde {v.desde.slice(8)}/{v.desde.slice(5, 7)}/{v.desde.slice(2, 4)}
                   </span>
                 </span>
@@ -166,11 +166,11 @@ export function Vagas({
       <button
         type="button"
         onClick={() => setCriando(true)}
-        className="min-h-11 self-start rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
+        className="min-h-11 self-start rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
       >
         Criar {rotuloVaga.toLowerCase()}
       </button>
-      <p className="text-[13px] text-tinta-fraca">
+      <p className="text-[13.5px] text-tinta-fraca">
         Ocupa esse horário toda semana, por tempo indeterminado.
       </p>
       </>
@@ -292,7 +292,7 @@ function EscolhaDeHorario({
     <div className="flex flex-col gap-3">
       {escolhidas.map((id) => <input key={id} type="hidden" name="serie" value={id} />)}
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <p className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">Quais dias e horários?</p>
+        <p className="text-[12px] font-semibold text-tinta-fraca">Quais dias e horários?</p>
         <p className={`text-[13.5px] ${marcadas.length ? 'font-medium text-positivo' : 'text-tinta-media'}`} aria-live="polite">
           {marcadas.length === 0 ? 'Escolha um ou mais' : marcadas.length === 1 ? '1 escolhido' : `${marcadas.length} escolhidos`}
         </p>
@@ -310,7 +310,7 @@ function EscolhaDeHorario({
               aria-selected={ativo}
               aria-label={DIAS_LONGOS[d]}
               onClick={() => setDia(d)}
-              className={`relative flex min-h-10 min-w-[54px] shrink-0 cursor-pointer items-center justify-center rounded-padrao border px-3 text-[14px] transition-colors duration-150 ${
+              className={`relative flex min-h-10 min-w-[54px] shrink-0 cursor-pointer items-center justify-center rounded-padrao border px-3 text-[14.5px] transition-colors duration-150 ${
                 ativo
                   ? 'border-escuro bg-escuro font-medium text-tinta-clara'
                   : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -318,7 +318,7 @@ function EscolhaDeHorario({
             >
               {DIAS_CURTOS[d]}
               {nele > 0 ? (
-                <span aria-hidden className="absolute -top-1.5 -right-1.5 flex size-[18px] items-center justify-center rounded-full bg-marca text-[11px] font-semibold text-white ring-2 ring-superficie">
+                <span aria-hidden className="absolute -top-1.5 -right-1.5 flex size-[18px] items-center justify-center rounded-full bg-marca text-[12px] font-semibold text-white ring-2 ring-superficie">
                   {nele}
                 </span>
               ) : null}
@@ -351,7 +351,7 @@ function EscolhaDeHorario({
               }`}
             >
               <span className="flex w-full items-center justify-between gap-2">
-                <span className="font-mono text-[16px] font-medium">{s.hora}</span>
+                <span className="text-[16px] font-medium">{s.hora}</span>
                 {esta ? (
                   <span className="flex size-5 items-center justify-center rounded-full bg-marca text-white">
                     <Icone nome="check" tamanho={12} />
@@ -359,10 +359,10 @@ function EscolhaDeHorario({
                 ) : null}
               </span>
               {variasModalidades && s.servico ? (
-                <span className="w-full truncate text-[12.5px] text-tinta">{s.servico}</span>
+                <span className="w-full truncate text-[12px] text-tinta">{s.servico}</span>
               ) : null}
               {s.profissional ? (
-                <span className="w-full truncate text-[12.5px] text-tinta-media">
+                <span className="w-full truncate text-[12px] text-tinta-media">
                   {s.profissional.trim().split(/\s+/)[0]}
                 </span>
               ) : null}

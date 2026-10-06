@@ -129,7 +129,7 @@ export function DetalheDaConta({
           {/* a zona de perigo fica por último e separada, como no resto do produto */}
           <section className="flex flex-wrap items-center justify-between gap-3 rounded-cartao border border-alerta/30 bg-superficie p-4.5">
             <span className="flex max-w-[60ch] flex-col gap-1">
-              <span className="text-[15px] font-medium">
+              <span className="text-[14.5px] font-medium">
                 {conta.ativa ? 'Suspender empresa' : 'Reativar empresa'}
               </span>
               <span className="text-[13.5px] leading-[1.5] text-tinta-media">
@@ -156,7 +156,7 @@ export function DetalheDaConta({
         <>
           <section className={`overflow-hidden ${cartao}`}>
             {conta.pessoas.length === 0 ? (
-              <p className="px-4.5 py-6 text-[14px] text-tinta-media">Ninguém aceitou convite ainda.</p>
+              <p className="px-4.5 py-6 text-[14.5px] text-tinta-media">Ninguém aceitou convite ainda.</p>
             ) : null}
             <ul>
               {conta.pessoas.map((p) => (
@@ -164,7 +164,7 @@ export function DetalheDaConta({
                   className="flex flex-wrap items-center gap-3.5 border-b border-linha-fina px-4.5 py-3 last:border-b-0">
                   <Avatar nome={p.nome ?? p.email} tamanho={32} decorativo />
                   <span className="flex min-w-0 flex-1 flex-col leading-[1.35]">
-                    <span className="flex flex-wrap items-center gap-2 text-[15px] font-medium">
+                    <span className="flex flex-wrap items-center gap-2 text-[14.5px] font-medium">
                       <span className="truncate">{p.nome ?? p.email}</span>
                       <Etiqueta tinta={p.papel === 'dono' ? 'positivo' : 'neutro'}>
                         {NOME_PAPEL[p.papel] ?? p.papel}
@@ -172,7 +172,7 @@ export function DetalheDaConta({
                       {p.ativo ? null : <Etiqueta tinta="neutro">Removido</Etiqueta>}
                       {p.suspensa ? <Etiqueta tinta="alerta">Suspenso</Etiqueta> : null}
                     </span>
-                    <span className="truncate text-[12.5px] text-tinta-media">
+                    <span className="truncate text-[12px] text-tinta-media">
                       {p.nome ? `${p.email} · ` : ''}
                       {p.ultimoAcesso
                         ? `último acesso em ${new Date(p.ultimoAcesso).toLocaleDateString('pt-BR')}`
@@ -193,13 +193,13 @@ export function DetalheDaConta({
 
           {conta.convites.length ? (
             <section className="flex flex-col gap-2">
-              <h2 className="font-titulo text-[16px] font-semibold">Convites esperando resposta</h2>
+              <h2 className="font-titulo text-[18px] font-semibold">Convites esperando resposta</h2>
               <ul className={`overflow-hidden ${cartao}`}>
                 {conta.convites.map((c) => (
                   <li key={c.id}
-                    className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-4.5 py-3 text-[14px] last:border-b-0">
+                    className="flex flex-wrap items-center justify-between gap-3 border-b border-linha-fina px-4.5 py-3 text-[14.5px] last:border-b-0">
                     <span>{c.email} <span className="text-tinta-media">· {NOME_PAPEL[c.papel] ?? c.papel}</span></span>
-                    <span className="text-[13px] text-tinta-media">
+                    <span className="text-[13.5px] text-tinta-media">
                       vence em {new Date(c.expiraEm).toLocaleDateString('pt-BR')}
                     </span>
                   </li>
@@ -248,7 +248,7 @@ export function DetalheDaConta({
         {link ? (
           <div className="flex flex-col gap-2">
             <input readOnly value={link.url} aria-label="Link de senha"
-              className={`${entrada} font-mono text-[13px]`}
+              className={`${entrada} font-mono text-[13.5px]`}
               onFocus={(e) => e.currentTarget.select()} />
             <Botao tom="secundario" miudo className="self-start"
               onClick={() => {

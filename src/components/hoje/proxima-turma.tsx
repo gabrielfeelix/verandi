@@ -48,13 +48,13 @@ export function ProximaTurma({
       <div className="relative flex flex-wrap items-start justify-between gap-x-6.5 gap-y-4.5">
         <div className="flex min-w-0 flex-[1_1_330px] gap-5.5">
           <div className="flex flex-col gap-2">
-            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold tracking-[.1em] text-menta uppercase">
+            <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-menta">
               <span aria-hidden className="size-[7px] rounded-full bg-menta" />
               {/* "Próxima" concordaria com a palavra do cliente: "Próxima
                   atendimento". "A seguir" não tem gênero e diz o mesmo. */}
-              {rotulo.toLowerCase()} a seguir
+              {rotulo.charAt(0).toUpperCase() + rotulo.slice(1).toLowerCase()} a seguir
             </span>
-            <span className="font-titulo text-[40px] leading-none font-semibold tracking-[-.02em] tracking-[-.03em]">
+            <span className="font-titulo text-[40px] leading-none font-semibold tracking-[-.03em]">
               {sessao.hora}
             </span>
             <span className="text-[13.5px] text-tinta-escura-media">{faltam}</span>
@@ -65,12 +65,12 @@ export function ProximaTurma({
               <h2 className="font-titulo text-[23px] leading-tight font-semibold">
                 {sessao.servico}
               </h2>
-              <span className="rounded-peca bg-tinta-clara/12 px-2.5 py-[3px] font-mono text-[13px] text-[#CDE3DD]">
+              <span className="rounded-peca bg-tinta-clara/12 px-2.5 py-[3px] text-[13.5px] text-[#CDE3DD]">
                 {sessao.ocupacao.ocupadas}/{sessao.ocupacao.capacidade}
               </span>
             </div>
 
-            <div className="flex items-center gap-3 text-[14px] text-[#B7CBC5]">
+            <div className="flex items-center gap-3 text-[14.5px] text-[#B7CBC5]">
               {sessao.profissional ? (
                 <span className="inline-flex items-center gap-2">
                   <span
@@ -105,13 +105,13 @@ export function ProximaTurma({
                     >
                       {iniciaisDe(p.nome)}
                     </span>
-                    <span className="text-[14px] text-tinta-clara">
+                    <span className="text-[14.5px] text-tinta-clara">
                       {primeiroNome(p.nome)}
                     </span>
                     {p.tags.map((t) => (
                       <span
                         key={t}
-                        className="rounded-minima bg-[rgba(240,105,60,.18)] px-1.5 py-[2px] text-[11px] font-semibold tracking-[.08em] text-[#F5A88A] uppercase"
+                        className="rounded-minima bg-[rgba(240,105,60,.18)] px-1.5 py-[2px] text-[12px] font-semibold text-[#F5A88A]"
                       >
                         {t}
                       </span>
@@ -135,8 +135,8 @@ export function ProximaTurma({
             href={`/sessao/${sessao.id}`}
             className={
               podeRegistrar && comecou && aMarcar > 0
-                ? 'flex min-h-11 items-center justify-center rounded-padrao bg-menta px-4 text-[15px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px'
-                : 'flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[14px] hover:bg-tinta-clara/10'
+                ? 'flex min-h-11 items-center justify-center rounded-padrao bg-menta px-4 text-[14.5px] font-semibold text-sobre-menta transition-[background-color,transform] duration-150 hover:bg-menta-hover active:translate-y-px'
+                : 'flex min-h-11 items-center justify-center rounded-padrao border border-tinta-clara/22 px-4 text-[14.5px] hover:bg-tinta-clara/10'
             }
           >
             {!podeRegistrar
@@ -148,7 +148,7 @@ export function ProximaTurma({
 
           <Link
             href={`/sessao/${sessao.id}#encaixar`}
-            className="text-center text-[13px] text-tinta-escura-media hover:text-tinta-clara"
+            className="text-center text-[13.5px] text-tinta-escura-media hover:text-tinta-clara"
           >
             Encaixar {rotuloPessoa.toLowerCase()}
           </Link>

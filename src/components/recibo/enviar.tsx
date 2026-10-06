@@ -98,7 +98,7 @@ export function EnviarRecibo({
   }
 
   const classe = botao === 'linha'
-    ? 'cursor-pointer text-[12.5px] text-marca underline disabled:opacity-50'
+    ? 'cursor-pointer text-[12px] text-marca underline disabled:opacity-50'
     : 'min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave'
 
   return (
@@ -122,13 +122,13 @@ export function EnviarRecibo({
         >
           {emailDaFicha ? (
             <div className="flex flex-col gap-1">
-              <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+              <span className="text-[12px] font-semibold text-tinta-fraca">
                 Vai para
               </span>
               <span className="rounded-media border border-linha-suave bg-superficie-mais-suave px-3.5 py-2.5 text-[14.5px]">
                 {emailDaFicha}
               </span>
-              <span className="text-[12.5px] text-tinta-media">
+              <span className="text-[12px] text-tinta-media">
                 é o e-mail da ficha de {pagadorNome}. Para trocar, edite a ficha.
               </span>
             </div>
@@ -146,7 +146,7 @@ export function EnviarRecibo({
                 onChange={(e) => setDoPagador(e.target.value)}
                 placeholder="Exemplo: nome@email.com"
               />
-              <span className="pt-1 text-[12.5px] text-tinta-media">
+              <span className="pt-1 text-[12px] text-tinta-media">
                 A ficha está sem e-mail. Este endereço fica salvo nela, e os
                 próximos recibos já saem sozinhos.
               </span>
@@ -154,7 +154,7 @@ export function EnviarRecibo({
           )}
 
           <div className="flex flex-col gap-2 pt-1">
-            <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+            <span className="text-[12px] font-semibold text-tinta-fraca">
               Cópias
             </span>
 
@@ -197,12 +197,12 @@ export function EnviarRecibo({
                 type="button"
                 onClick={acrescentar}
                 disabled={!rascunho.trim() || copias.length >= MAXIMO_DE_COPIAS}
-                className="min-h-11 cursor-pointer rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] hover:bg-superficie-mais-suave disabled:opacity-40"
+                className="min-h-11 cursor-pointer rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] hover:bg-superficie-mais-suave disabled:opacity-40"
               >
                 Acrescentar
               </button>
             </div>
-            <span className="text-[12.5px] text-tinta-media">
+            <span className="text-[12px] text-tinta-media">
               Quem paga vê quem recebeu cópia. São até {MAXIMO_DE_COPIAS}.
             </span>
           </div>

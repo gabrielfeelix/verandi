@@ -103,7 +103,7 @@ export function BuscaDeCobranca({
         autoComplete="off"
       />
       {pendente ? (
-        <span className="absolute right-3 text-[12.5px] text-tinta-fraca">procurando</span>
+        <span className="absolute right-3 text-[12px] text-tinta-fraca">procurando</span>
       ) : null}
     </form>
   )

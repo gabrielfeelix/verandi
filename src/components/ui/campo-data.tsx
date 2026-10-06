@@ -131,7 +131,7 @@ export function CampoData({
           inputMode="numeric"
           placeholder="dd/mm/aaaa"
           aria-label="Data, no formato dia, mês e ano"
-          className="min-w-0 flex-1 bg-transparent py-3 text-[15px] outline-none placeholder:text-tinta-fraca"
+          className="min-w-0 flex-1 bg-transparent py-3 text-[14.5px] outline-none placeholder:text-tinta-fraca"
         />
         <button
           type="button"
@@ -192,7 +192,7 @@ export function CampoData({
                   aria-current={dia === hoje ? 'date' : undefined}
                   aria-pressed={dia === iso}
                   onClick={() => { definir(dia); setAberto(false) }}
-                  className={`flex h-9 cursor-pointer items-center justify-center rounded-padrao text-[14px] transition-colors duration-100 ${
+                  className={`flex h-9 cursor-pointer items-center justify-center rounded-padrao text-[14.5px] transition-colors duration-100 ${
                     dia === iso
                       ? 'bg-escuro font-semibold text-tinta-clara'
                       : dia === hoje

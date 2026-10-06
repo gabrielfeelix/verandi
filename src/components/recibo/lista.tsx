@@ -102,25 +102,25 @@ export function ListaDeRecibos({
           <span className="flex min-w-[210px] flex-1 flex-col">
             <Link
               href={`/recibos/${r.id}`}
-              className={`font-mono text-[14.5px] font-medium hover:underline ${
+              className={`text-[14.5px] font-medium hover:underline ${
                 r.status === 'cancelado' ? 'text-tinta-media line-through' : ''
               }`}
             >
               {descricaoDoRecibo(r)}
             </Link>
-            <span className="text-[13px] text-tinta-media">
+            <span className="text-[13.5px] text-tinta-media">
               {r.pessoaNome} · emitido em {dataCurta(r.emitidoEm.slice(0, 10))}
             </span>
           </span>
 
           {/* `tabular-nums` e largura mínima: coluna de dinheiro que dança
               horizontalmente não se soma de olho */}
-          <span className="min-w-[104px] text-right font-mono text-[14.5px] tabular-nums">
+          <span className="min-w-[104px] text-right text-[14.5px] tabular-nums">
             {emReais(r.valorCent)}
           </span>
 
           <span
-            className={`w-[92px] shrink-0 rounded-peca px-2.5 py-[5px] text-center text-[12.5px] font-medium ${TINTA[r.status]}`}
+            className={`w-[92px] shrink-0 rounded-peca px-2.5 py-[5px] text-center text-[12px] font-medium ${TINTA[r.status]}`}
           >
             {ROTULO[r.status]}
           </span>
@@ -172,14 +172,14 @@ export function ListaDeRecibos({
               />
             ) : null}
             {envios[r.id] ? (
-              <span className="text-[12.5px] text-tinta-media">
+              <span className="text-[12px] text-tinta-media">
                 enviado para {envios[r.id].para} em {envios[r.id].em}
               </span>
             ) : null}
           </span>
 
           {r.motivo ? (
-            <p className="w-full text-[12.5px] text-tinta-media">
+            <p className="w-full text-[12px] text-tinta-media">
               {motivoDoRecibo(r.status, r.motivo)}
             </p>
           ) : null}

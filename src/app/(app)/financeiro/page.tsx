@@ -179,7 +179,7 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
       <div>
-        <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+        <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
           Financeiro
         </h1>
         <p className="pt-[3px] text-[14.5px] text-tinta-media">
@@ -191,7 +191,7 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
       <a
         href="/financeiro/exportar"
         download
-        className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
+        className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
       >
         Exportar
       </a>
@@ -339,7 +339,7 @@ async function Fechamento({
       href={`/financeiro?aba=fechamento&de=${novoDe}&ate=${novoAte}`}
       // o mesmo chip da barra de período das listas, para as quatro seções
       // do Financeiro falarem a mesma língua
-      className={`inline-flex min-h-9 items-center rounded-full border px-3 text-[14px] ${
+      className={`inline-flex min-h-9 items-center rounded-full border px-3 text-[14.5px] ${
         de === novoDe && ate === novoAte
           ? 'border-escuro bg-escuro font-medium text-tinta-clara'
           : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
@@ -360,7 +360,7 @@ async function Fechamento({
         {periodo('Esta semana', somarDias(hoje, -6), hoje)}
         {periodo('Este mês', competenciaDe(hoje), hoje)}
         {periodo('Este ano', `${hoje.slice(0, 4)}-01-01`, hoje)}
-        <span className="text-[13px] text-tinta-fraca">
+        <span className="text-[13.5px] text-tinta-fraca">
           de {dataCurta(de)} a {dataCurta(ate)}
         </span>
         <a
@@ -427,19 +427,19 @@ async function Fechamento({
                 >
                   <Link
                     href={`/pessoas/${a.pessoaId}?aba=contratos`}
-                    className="flex-1 text-[14px] hover:underline"
+                    className="flex-1 text-[14.5px] hover:underline"
                   >
                     {a.pessoaNome}
                   </Link>
-                  <span className="text-[13px] text-tinta-media">
+                  <span className="text-[13.5px] text-tinta-media">
                     {a.cobrancas} {a.cobrancas === 1 ? 'cobrança' : 'cobranças'} ·{' '}
                     {a.diasDoMaisVelho} dias
                   </span>
-                  <span className="font-mono text-[14px]">{emReais(a.totalCent)}</span>
+                  <span className="text-[14.5px]">{emReais(a.totalCent)}</span>
                   {a.telefone ? (
                     <a
                       href={`tel:${a.telefone.replace(/\D/g, '')}`}
-                      className="text-[13px] text-marca underline"
+                      className="text-[13.5px] text-marca underline"
                     >
                       ligar
                     </a>
@@ -461,7 +461,7 @@ async function Fechamento({
             <Barras itens={porServico} />
             {porPlano.length > 1 ? (
               <>
-                <h3 className="pt-4 pb-2 text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                <h3 className="pt-4 pb-2 text-[12px] font-semibold text-tinta-fraca">
                   Por plano
                 </h3>
                 <Barras itens={porPlano} />
@@ -488,7 +488,7 @@ async function Fechamento({
                 valor={emReais(vinculo.totalCent)}
               />
             </dl>
-            <p className="pt-3 text-[12.5px] text-tinta-fraca">
+            <p className="pt-3 text-[12px] text-tinta-fraca">
               Mensalidades somam os contratos em vigor, sem os trancados.
             </p>
           </section>
@@ -511,7 +511,7 @@ async function Fechamento({
                     <span className="text-tinta-media">
                       {dataCurta(e.estornadoEm.slice(0, 10))} · {e.motivo}
                     </span>
-                    <span className="font-mono">{emReais(e.valorCent)}</span>
+                    <span className="">{emReais(e.valorCent)}</span>
                   </li>
                 ))}
               </ul>
@@ -520,7 +520,7 @@ async function Fechamento({
         </div>
       </div>
 
-      <p className="text-[13px] text-tinta-fraca">
+      <p className="text-[13.5px] text-tinta-fraca">
         Período de {competenciaPorExtenso(competenciaDe(de))}, de {dataCurta(de)} a{' '}
         {dataCurta(ate)}.
       </p>
@@ -531,11 +531,11 @@ async function Fechamento({
 function Numero({ titulo, valor, nota }: { titulo: string; valor: string; nota: string }) {
   return (
     <section className={`${cartao} flex flex-col gap-1 p-4`}>
-      <h2 className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+      <h2 className="text-[12px] font-semibold text-tinta-fraca">
         {titulo}
       </h2>
       <p className="font-titulo text-[26px] leading-none font-semibold">{valor}</p>
-      <p className="text-[13px] text-tinta-media">{nota}</p>
+      <p className="text-[13.5px] text-tinta-media">{nota}</p>
     </section>
   )
 }
@@ -544,7 +544,7 @@ function Linha({ termo, valor }: { termo: string; valor: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
       <dt className="text-tinta-media">{termo}</dt>
-      <dd className="shrink-0 font-mono">{valor}</dd>
+      <dd className="shrink-0">{valor}</dd>
     </div>
   )
 }
@@ -552,8 +552,8 @@ function Linha({ termo, valor }: { termo: string; valor: string }) {
 function Par({ termo, valor }: { termo: string; valor: string }) {
   return (
     <div className="flex flex-col">
-      <dt className="text-[12.5px] text-tinta-media">{termo}</dt>
-      <dd className="font-titulo text-[19px] font-semibold">{valor}</dd>
+      <dt className="text-[12px] text-tinta-media">{termo}</dt>
+      <dd className="font-titulo text-[18px] font-semibold">{valor}</dd>
     </div>
   )
 }
@@ -575,7 +575,7 @@ function Barras({ itens }: { itens: Array<{ nome: string; totalCent: number }> }
               style={{ width: `${Math.round((i.totalCent / maior) * 100)}%` }}
             />
           </span>
-          <span className="font-mono text-[13.5px]">{emReais(i.totalCent)}</span>
+          <span className="text-[13.5px]">{emReais(i.totalCent)}</span>
         </li>
       ))}
     </ul>

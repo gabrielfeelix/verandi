@@ -307,14 +307,14 @@ export function EditarPessoa({
                   momento em que a pessoa sabe se está anotando "prefere a maca do
                   fundo" ou "hérnia de disco". O padrão fecha, e é decisão. */}
               <fieldset className="flex flex-col gap-1.5 pt-2">
-                <legend className="pb-1.5 text-[12px] font-semibold tracking-[.08em] text-tinta-media uppercase">
+                <legend className="pb-1.5 text-[12px] font-semibold text-tinta-media">
                   Visível para
                 </legend>
                 {([
                   ['profissionais', 'Só quem atende'],
                   ['todos', 'Todo mundo da conta'],
                 ] as const).map(([v, texto]) => (
-                  <label key={v} className="flex items-center gap-2 text-[14px]">
+                  <label key={v} className="flex items-center gap-2 text-[14.5px]">
                     <input
                       type="radio" name="observacaoVisivel" value={v}
                       checked={visivel === v}
@@ -323,7 +323,7 @@ export function EditarPessoa({
                     {texto}
                   </label>
                 ))}
-                <p className="text-[12.5px] text-tinta-media">
+                <p className="text-[12px] text-tinta-media">
                   {visivel === 'profissionais'
                     ? 'A recepção não lê. É onde vai o que é de saúde.'
                     : 'Aparece para quem abrir esta ficha, inclusive a recepção.'}
@@ -332,7 +332,7 @@ export function EditarPessoa({
             </Campo>
           )}
 
-          <label className="flex items-center gap-2 text-[14px]">
+          <label className="flex items-center gap-2 text-[14.5px]">
             <input type="checkbox" name="ativo" defaultChecked={pessoa.ativo} />
             Ativa
           </label>

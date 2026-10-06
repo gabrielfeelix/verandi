@@ -27,7 +27,7 @@ export function SeletorDeEtiqueta({
         const o = opcoes.find((x) => x.tag === e.target.value)
         router.push(o ? o.href : limpar)
       }}
-      className={`min-h-9 cursor-pointer rounded-full border px-3 text-[14px] ${
+      className={`min-h-9 cursor-pointer rounded-full border px-3 text-[14.5px] ${
         atual
           ? 'border-escuro bg-escuro font-medium text-tinta-clara'
           : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'

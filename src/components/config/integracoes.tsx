@@ -81,7 +81,7 @@ export function SecaoIntegracoes({
         <div className="flex flex-wrap items-start justify-between gap-3 rounded-grande border border-linha-suave bg-superficie-suave p-4">
           <div className="flex min-w-0 flex-col gap-1">
             <span className="flex flex-wrap items-center gap-2">
-              <span className="text-[15px] font-medium">AutoFluxos</span>
+              <span className="text-[14.5px] font-medium">AutoFluxos</span>
               <Etiqueta tinta="positivo">Recomendado</Etiqueta>
               {ligado ? <Etiqueta tinta="info">Ativo</Etiqueta> : null}
             </span>
@@ -108,7 +108,7 @@ export function SecaoIntegracoes({
             </span>
             <input
               readOnly value={segredo} aria-label="Chave de API"
-              className={`${entrada} font-mono text-[13px]`}
+              className={`${entrada} font-mono text-[13.5px]`}
               onFocus={(e) => e.currentTarget.select()}
             />
             <div className="flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ export function SecaoIntegracoes({
               quando alguém desmarca e quando um horário é cancelado.
             </span>
             {aviso?.ativo ? (
-              <span className="truncate font-mono text-[12.5px] text-tinta-fraca">
+              <span className="truncate font-mono text-[12px] text-tinta-fraca">
                 {aviso.url}
               </span>
             ) : null}
@@ -178,7 +178,7 @@ export function SecaoIntegracoes({
             </span>
             <input
               readOnly value={segredoAviso} aria-label="Segredo de assinatura"
-              className={`${entrada} font-mono text-[13px]`}
+              className={`${entrada} font-mono text-[13.5px]`}
               onFocus={(e) => e.currentTarget.select()}
             />
             <Botao
@@ -212,7 +212,7 @@ export function SecaoIntegracoes({
             A agenda tem uma API para consultar horários com vaga, cadastrar,
             marcar e desmarcar.
           </span>
-          <span className="pt-0.5 font-mono text-[13px] text-tinta-fraca">
+          <span className="pt-0.5 font-mono text-[13.5px] text-tinta-fraca">
             {`${ENDERECO_PUBLICO}/api/v1`}
           </span>
           <a

@@ -45,7 +45,7 @@ export function Comparador({
   if (!par) {
     return (
       <section className={`${cartao} px-[18px] py-6`}>
-        <p className="text-[14px] text-tinta-media">
+        <p className="text-[14.5px] text-tinta-media">
           A comparação aparece a partir da segunda avaliação. Esta é a primeira,
           e já está guardada.
         </p>
@@ -156,7 +156,7 @@ function Lado({
   return (
     <div className="flex flex-col gap-3 bg-superficie px-[18px] py-4">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+        <span className="text-[12px] font-semibold text-tinta-fraca">
           {rotulo}
         </span>
         <Escolha

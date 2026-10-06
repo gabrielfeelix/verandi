@@ -308,7 +308,7 @@ export default async function Pessoa({
             pela busca do Hoje ou por Pendências quer desfazer o passo que deu,
             e a trilha só sabe levar para a lista */}
         <Voltar />
-        <span aria-hidden className="font-mono">/</span>
+        <span aria-hidden className="">/</span>
         {/* quem dá aula não tem a lista de pessoas: a trilha sobe para Hoje */}
         {operacional ? (
           <Link href="/pessoas" className="font-medium text-marca">
@@ -317,7 +317,7 @@ export default async function Pessoa({
         ) : (
           <Link href="/hoje" className="font-medium text-marca">Hoje</Link>
         )}
-        <span aria-hidden className="font-mono">/</span>
+        <span aria-hidden className="">/</span>
         <span className="text-tinta">{p.nome}</span>
       </nav>
 
@@ -355,7 +355,7 @@ export default async function Pessoa({
               {ficha.tags.map((t) => (
                 <span
                   key={t}
-                  className="rounded-minima bg-atencao-fundo px-2 py-[3px] text-[11.5px] font-semibold tracking-[.08em] text-atencao uppercase"
+                  className="rounded-minima bg-atencao-fundo px-2 py-[3px] text-[12px] font-semibold text-atencao"
                 >
                   {t}
                 </span>
@@ -368,7 +368,7 @@ export default async function Pessoa({
             <div className="flex flex-wrap gap-x-[22px] gap-y-2">
               {dados.map(([rotulo, valor, falta]) => (
                 <span key={rotulo} className="flex flex-col leading-[1.4]">
-                  <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">
+                  <span className="text-[12px] font-semibold text-tinta-fraca">
                     {rotulo}
                   </span>
                   <span className={`text-[14.5px] ${falta ? 'text-alerta' : ''}`}>
@@ -489,7 +489,7 @@ export default async function Pessoa({
                   <h2 className="font-titulo text-[18px] font-semibold">
                     {rotulos.vaga.plural}
                   </h2>
-                  <span className="text-[13px] text-tinta-fraca">
+                  <span className="text-[13.5px] text-tinta-fraca">
                     cada {rotulos.vaga.singular.toLowerCase()} tem vigência,
                     encerrar não apaga o passado
                   </span>
@@ -532,14 +532,14 @@ export default async function Pessoa({
                           href={`/sessao/${x.sessaoId}`}
                           className="flex items-center gap-3.5 rounded-media border border-linha-fina px-3 py-[11px] transition-colors duration-150 hover:bg-superficie-tenue"
                         >
-                          <span className="w-24 shrink-0 font-mono text-[13.5px] text-tinta-media">
+                          <span className="w-24 shrink-0 text-[13.5px] text-tinta-media">
                             {curta(x.data)} {x.hora}
                           </span>
                           <span aria-hidden className="h-[26px] w-[3px] shrink-0 rounded-sm bg-marca" />
-                          <span className="min-w-0 flex-1 truncate text-[15px] font-medium">
+                          <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium">
                             {x.servico}
                           </span>
-                          <span className="text-[13px] text-tinta-fraca">{ROTULO_ORIGEM[x.origem] ?? x.origem}</span>
+                          <span className="text-[13.5px] text-tinta-fraca">{ROTULO_ORIGEM[x.origem] ?? x.origem}</span>
                         </Link>
                       </li>
                     ))}
@@ -553,7 +553,7 @@ export default async function Pessoa({
             <section className={`${cartao} px-[18px] py-4`}>
               <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3">
                 <h2 className="font-titulo text-[18px] font-semibold">Histórico</h2>
-                <span className="text-[13px] text-tinta-fraca">
+                <span className="text-[13.5px] text-tinta-fraca">
                   {frequencia === null
                     ? 'Ainda sem presença registrada'
                     : `veio ${frequencia}% das vezes`}
@@ -609,7 +609,7 @@ export default async function Pessoa({
                         href={`/sessao/${x.sessaoId}`}
                         className="flex min-w-0 flex-1 items-center gap-3 pb-4"
                       >
-                        <span className="w-[74px] shrink-0 font-mono text-[13px] text-tinta-fraca">
+                        <span className="w-[74px] shrink-0 text-[13.5px] text-tinta-fraca">
                           {curta(x.data)}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-[14.5px]">
@@ -617,7 +617,7 @@ export default async function Pessoa({
                         </span>
                         {x.origem !== 'recorrente' ? (
                           <span
-                            className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[11.5px] font-semibold tracking-[.08em] uppercase ${
+                            className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[12px] font-semibold ${
                               PAR[TINTA_ORIGEM[x.origem as keyof typeof TINTA_ORIGEM] ?? 'neutro']
                             }`}
                           >
@@ -625,7 +625,7 @@ export default async function Pessoa({
                           </span>
                         ) : null}
                         <span
-                          className={`shrink-0 rounded-peca px-2.5 py-1 text-[12.5px] font-medium ${
+                          className={`shrink-0 rounded-peca px-2.5 py-1 text-[12px] font-medium ${
                             PAR[TINTA_PRESENCA[x.status as keyof typeof TINTA_PRESENCA] ?? 'neutro']
                           }`}
                         >
@@ -662,7 +662,7 @@ export default async function Pessoa({
           contratos: operacional ? (
             <div className="flex flex-col gap-3.5">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="font-titulo text-[19px] font-semibold">
+                <h2 className="font-titulo text-[18px] font-semibold">
                   Contratos
                 </h2>
                 <NovaMatricula
@@ -790,11 +790,11 @@ export default async function Pessoa({
               <div className="flex items-center gap-2 pb-2.5">
                 <span
                   aria-hidden
-                  className="flex size-5 items-center justify-center rounded-minima bg-atencao-fundo font-mono text-[12px] text-atencao"
+                  className="flex size-5 items-center justify-center rounded-minima bg-atencao-fundo text-[12px] text-atencao"
                 >
                   !
                 </span>
-                <span className="text-[12px] font-semibold tracking-[.1em] text-atencao uppercase">
+                <span className="text-[12px] font-semibold text-atencao">
                   Atenção na aula
                 </span>
                 {p.observacaoVisivel === 'profissionais' ? (
@@ -803,7 +803,7 @@ export default async function Pessoa({
                   </span>
                 ) : null}
               </div>
-              <p className="text-[14px] leading-[1.55] text-[#414A47]">{p.observacao}</p>
+              <p className="text-[14.5px] leading-[1.55] text-[#414A47]">{p.observacao}</p>
             </section>
           ) : null}
 
@@ -838,7 +838,7 @@ export default async function Pessoa({
               * que está, marcado, com o caminho para consertar.
               */}
             <p
-              className={`pb-3 font-mono text-[15px] ${
+              className={`pb-3 text-[14.5px] ${
                 p.telefone && telefoneCompleto ? '' : 'text-alerta'
               }`}
             >
@@ -857,7 +857,7 @@ export default async function Pessoa({
                 <CopiarTelefone telefone={p.telefone} />
               </div>
             ) : p.telefone ? (
-              <p className="rounded-media bg-alerta-superficie px-3 py-2.5 text-[13px] leading-[1.5] text-alerta">
+              <p className="rounded-media bg-alerta-superficie px-3 py-2.5 text-[13.5px] leading-[1.5] text-alerta">
                 {/* o defeito é dito por quem sabe qual é: número curto, DDD que
                     não existe e celular sem o 9 são três problemas diferentes,
                     e "falta o DDD" só acertava o primeiro */}
@@ -866,7 +866,7 @@ export default async function Pessoa({
                 número completo.
               </p>
             ) : (
-              <p className="text-[13px] leading-[1.5] text-tinta-fraca">
+              <p className="text-[13.5px] leading-[1.5] text-tinta-fraca">
                 Sem telefone não dá para avisar de cancelamento nem cobrar
                 reposição, é o campo que mais falta e mais custa.
               </p>
@@ -912,7 +912,7 @@ export default async function Pessoa({
               * ele nasce. Quem atende não carrega os contratos, e lê a
               * modalidade, que só existe com contrato ativo.
               */}
-            <p className="pb-3 text-[14px] leading-[1.5] text-tinta-media">
+            <p className="pb-3 text-[14.5px] leading-[1.5] text-tinta-media">
               {p.vencimentoPlano
                 // com o ano: "até 03/02" de um plano que vence em 2028 se lia
                 // como fevereiro que vem, e o cliente achava que estava errado

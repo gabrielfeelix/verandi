@@ -38,7 +38,7 @@ export function CartaoLicenca({
 
   return (
     <section className="rounded-grande border border-licenca-fundo bg-licenca-fundo/40 px-4 py-4">
-      <p className="text-[12px] font-semibold tracking-[.1em] text-licenca uppercase">De licença</p>
+      <p className="text-[12px] font-semibold text-licenca">De licença</p>
       <p className="pt-1.5 text-[14.5px] leading-[1.5]">
         Desde {curta(inicio)}.{' '}
         {voltaPrevista ? `Volta prevista em ${curta(voltaPrevista)}.` : 'Sem data de volta.'}
@@ -55,14 +55,14 @@ export function CartaoLicenca({
               avisar({ texto: `${primeiro} voltou da licença.` })
               router.refresh()
             })}
-            className="min-h-10 cursor-pointer rounded-padrao bg-escuro px-3.5 text-[14px] font-medium text-tinta-clara hover:bg-escuro-hover disabled:opacity-60"
+            className="min-h-10 cursor-pointer rounded-padrao bg-escuro px-3.5 text-[14.5px] font-medium text-tinta-clara hover:bg-escuro-hover disabled:opacity-60"
           >
             Voltou
           </button>
           <button
             type="button"
             onClick={() => setAberto(true)}
-            className="min-h-10 cursor-pointer rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] hover:bg-superficie-mais-suave"
+            className="min-h-10 cursor-pointer rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] hover:bg-superficie-mais-suave"
           >
             {voltaPrevista ? 'Mudar a volta' : 'Definir volta'}
           </button>

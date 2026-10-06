@@ -249,8 +249,8 @@ export function ModalEncaixe({
                 >
                   <Avatar nome={c.nome} tamanho={32} decorativo />
                   <span className="flex min-w-0 flex-col">
-                    <span className="text-[15px] font-medium">{c.nome}</span>
-                    <span className="text-[12.5px] text-tinta-media">{c.detalhe}</span>
+                    <span className="text-[14.5px] font-medium">{c.nome}</span>
+                    <span className="text-[12px] text-tinta-media">{c.detalhe}</span>
                   </span>
                   {escolhido?.id === c.id ? (
                     <span className="ml-auto text-marca"><Icone nome="check" tamanho={18} /></span>
@@ -265,7 +265,7 @@ export function ModalEncaixe({
       {escolhido ? (
         <div className="flex flex-col gap-2 rounded-media border border-linha-suave bg-superficie-suave p-3">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[14px]">
+            <p className="text-[14.5px]">
               Entra como <strong className="font-semibold">{nomeDaOrigem}</strong>
               <span className="text-tinta-media">, {porQue}</span>
             </p>
@@ -375,7 +375,7 @@ export function ModalEncaixe({
               Aplicar
             </Botao>
           </div>
-          <p className="text-[12.5px] leading-relaxed text-tinta-media">
+          <p className="text-[12px] leading-relaxed text-tinta-media">
             Muda só este horário. A grade fixa das outras semanas continua igual.
           </p>
         </form>

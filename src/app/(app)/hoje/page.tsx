@@ -199,10 +199,10 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         {!proxima && sessoes.length > 0 ? (
           <section className={`flex flex-wrap items-center gap-x-5.5 gap-y-3.5 ${cartao} px-5 py-4.5`}>
             <div className="flex flex-col gap-[3px]">
-              <span className="text-[12px] font-semibold tracking-[.12em] text-tinta-media uppercase">
+              <span className="text-[12px] font-semibold text-tinta-media">
                 {ehHoje ? 'Dia encerrado' : 'Dia fechado'}
               </span>
-              <span className="font-titulo text-[20px] font-semibold tracking-[-.01em]">
+              <span className="font-titulo text-[18px] font-semibold tracking-[-.01em]">
                 {dataLonga(dia, fuso)}
               </span>
             </div>
@@ -216,13 +216,13 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                 <span className={`font-titulo text-[24px] leading-none font-semibold ${r.cor}`}>
                   {r.n}
                 </span>
-                <span className="text-[12.5px] text-tinta-media">{r.rotulo}</span>
+                <span className="text-[12px] text-tinta-media">{r.rotulo}</span>
               </div>
             ))}
             {!ehHoje ? (
               <Link
                 href={link(hoje)}
-                className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
+                className="ml-auto rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14.5px] hover:bg-[#EDF3F0]"
               >
                 Voltar para hoje
               </Link>
@@ -236,14 +236,14 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       <section key="agenda" className="flex flex-col items-center gap-2.5 rounded-cartao border border-dashed border-linha-tracejada bg-superficie px-6 py-8.5 text-center">
         <span
           aria-hidden
-          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave font-mono text-[18px] text-tinta-media"
+          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave text-[18px] text-tinta-media"
         >
           ◷
         </span>
         <span className="font-titulo text-[18px] font-semibold">
           Nada marcado neste dia
         </span>
-        <span className="max-w-[340px] text-[14px] leading-relaxed text-tinta-media">
+        <span className="max-w-[340px] text-[14.5px] leading-relaxed text-tinta-media">
           Pode ser domingo, feriado ou dia fechado na configuração de
           funcionamento.
         </span>
@@ -251,7 +251,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           {podeVerTodos ? (
             <Link
               href="/semana"
-              className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14px] hover:bg-[#EDF3F0]"
+              className="rounded-padrao border border-linha bg-superficie-suave px-4 py-2.5 text-[14.5px] hover:bg-[#EDF3F0]"
             >
               Ver a semana
             </Link>
@@ -259,7 +259,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           {!ehHoje ? (
             <Link
               href={link(hoje)}
-              className="rounded-padrao bg-escuro px-4 py-2.5 text-[14px] font-medium text-tinta-clara hover:bg-escuro-hover"
+              className="rounded-padrao bg-escuro px-4 py-2.5 text-[14.5px] font-medium text-tinta-clara hover:bg-escuro-hover"
             >
               Voltar para hoje
             </Link>
@@ -270,7 +270,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       <section key="agenda" className={`flex flex-col ${cartao} px-2 pt-1.5 pb-2.5`}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-3 pt-3 pb-2">
           <h2 className="font-titulo text-[18px] font-semibold">Agenda do dia</h2>
-          <span className="text-[13px] text-tinta-media">
+          <span className="text-[13.5px] text-tinta-media">
             {profFiltro
               ? `${daAgenda.length} de ${sessoes.length} ${rotulos.sessao.plural.toLowerCase()}`
               : `${vivas.length} ${rotulos.sessao.plural.toLowerCase()} · ${pendentes} ${pendentes === 1 ? 'chamada pendente' : 'chamadas pendentes'}`}
@@ -351,7 +351,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         key="pendencias"
         titulo="Pendências"
         acao={
-          <Link href="/pendencias" className="text-[13px] font-medium text-marca">
+          <Link href="/pendencias" className="text-[13.5px] font-medium text-marca">
             Ver tudo
           </Link>
         }
@@ -366,19 +366,19 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               className="flex items-center gap-3 rounded-media bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
             >
               <span
-                className={`flex size-7.5 items-center justify-center rounded-peca text-[14px] font-semibold ${TINTA_PENDENCIA[g.tipo] ?? 'bg-neutro-fundo text-neutro'}`}
+                className={`flex size-7.5 items-center justify-center rounded-peca text-[14.5px] font-semibold ${TINTA_PENDENCIA[g.tipo] ?? 'bg-neutro-fundo text-neutro'}`}
               >
                 {g.itens.length}
               </span>
               <span className="flex min-w-0 flex-col leading-tight">
-                <span className="text-[14px] font-medium">{g.titulo}</span>
-                <span className="truncate text-[12.5px] text-tinta-media">
+                <span className="text-[14.5px] font-medium">{g.titulo}</span>
+                <span className="truncate text-[12px] text-tinta-media">
                   {g.tipo === 'licenca' && g.itens[0]
                     ? `${g.itens[0].titulo} · ${g.itens[0].etiqueta?.texto ?? ''}`
                     : g.itens[0]?.detalhe ?? g.sub}
                 </span>
               </span>
-              <span aria-hidden className="ml-auto font-mono text-[14px] text-[#A9B3AE]">
+              <span aria-hidden className="ml-auto text-[14.5px] text-[#A9B3AE]">
                 ›
               </span>
             </Link>
@@ -406,7 +406,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         key="caixa"
         titulo="Caixa do mês"
         acao={
-          <Link href="/financeiro" className="text-[13px] font-medium text-marca">
+          <Link href="/financeiro" className="text-[13.5px] font-medium text-marca">
             Abrir
           </Link>
         }
@@ -432,7 +432,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                   : `${variou >= 0 ? '+' : ''}${variou}% ante o mesmo trecho`}
               </span>
             </span>
-            <span className="shrink-0 font-mono text-[15px] font-semibold text-positivo tabular-nums">
+            <span className="shrink-0 text-[14.5px] font-semibold text-positivo tabular-nums">
               {emReais(caixa.recebidoCent)}
             </span>
           </Link>
@@ -445,7 +445,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               <span className="text-[13.5px] font-medium">Ainda vence</span>
               <span className="text-[12px] text-tinta-media">neste mês</span>
             </span>
-            <span className="shrink-0 font-mono text-[15px] font-semibold tabular-nums">
+            <span className="shrink-0 text-[14.5px] font-semibold tabular-nums">
               {emReais(caixa.aVencerCent)}
             </span>
           </Link>
@@ -463,7 +463,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               </span>
             </span>
             <span
-              className={`shrink-0 font-mono text-[15px] font-semibold tabular-nums ${caixa.atrasadas ? 'text-alerta' : ''}`}
+              className={`shrink-0 text-[14.5px] font-semibold tabular-nums ${caixa.atrasadas ? 'text-alerta' : ''}`}
             >
               {emReais(caixa.atrasadoCent)}
             </span>
@@ -480,7 +480,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       <div className="flex flex-col gap-4.5">
         <header className="flex flex-wrap items-center justify-between gap-5">
           <div>
-            <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+            <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
               {ehHoje
                 ? (
                   <Saudacao
@@ -565,7 +565,7 @@ function FiltroDaAgenda({
     <Link
       href={href}
       aria-current={ligado ? 'true' : undefined}
-      className={`inline-flex min-h-9 items-center gap-1 rounded-peca border px-2.5 text-[13px] ${
+      className={`inline-flex min-h-9 items-center gap-1 rounded-peca border px-2.5 text-[13.5px] ${
         ligado
           ? 'border-marca bg-positivo-superficie font-medium text-marca'
           : vazio

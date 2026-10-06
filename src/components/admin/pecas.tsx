@@ -14,7 +14,7 @@ export function CabecalhoAdmin({
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
       <div className="min-w-0">
-        <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+        <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
           {titulo}
         </h1>
         <p className="pt-[3px] text-[14.5px] text-tinta-media">{sub}</p>
@@ -59,10 +59,10 @@ export function ListaDoLog({
             key={e.id}
             className="flex flex-wrap items-center gap-x-3.5 gap-y-1 border-b border-linha-fina px-4.5 py-3 last:border-b-0"
           >
-            <span className="w-[124px] shrink-0 font-mono text-[12.5px] whitespace-nowrap text-tinta-media">
+            <span className="w-[124px] shrink-0 font-mono text-[12px] whitespace-nowrap text-tinta-media">
               {QUANDO.format(new Date(e.em))}
             </span>
-            <span className="min-w-0 flex-1 basis-[240px] text-[14px] leading-[1.45]">
+            <span className="min-w-0 flex-1 basis-[240px] text-[14.5px] leading-[1.45]">
               <span className="font-medium">{e.quem}</span>{' '}
               <span className="text-tinta-media">{e.oQue}</span>
             </span>
@@ -99,10 +99,10 @@ export function Numero({
       <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase">
         {rotulo}
       </span>
-      <span className={`font-titulo text-[32px] leading-none font-semibold tracking-[-.02em] ${alerta && valor > 0 ? 'text-alerta' : ''}`}>
+      <span className={`font-titulo text-[28px] leading-none font-semibold tracking-[-.02em] ${alerta && valor > 0 ? 'text-alerta' : ''}`}>
         {valor}
       </span>
-      {nota ? <span className="text-[13px] text-tinta-media">{nota}</span> : null}
+      {nota ? <span className="text-[13.5px] text-tinta-media">{nota}</span> : null}
     </>
   )
   const classe = `flex flex-col gap-2 p-4.5 ${cartao}`

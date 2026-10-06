@@ -14,7 +14,7 @@ export default function Enviado() {
     <PainelAcesso tela="enviado">
       {/* O painel de arte já diz "Olha na caixa de entrada". Repetir aqui fazia
           a tela falar duas vezes a mesma frase, com dois tamanhos de fonte. */}
-      <h1 className="font-titulo text-[27px] font-semibold tracking-[-.02em]">
+      <h1 className="font-titulo text-[28px] font-semibold tracking-[-.02em]">
         Link a caminho
       </h1>
       <p className="pt-2 pb-1 text-[14.5px] leading-relaxed text-tinta-media">
@@ -29,7 +29,7 @@ export default function Enviado() {
       <div className="flex flex-col gap-2 pt-6">
         <Link
           href="/entrar"
-          className="flex min-h-13 w-full items-center justify-center rounded-media bg-tinta text-[15px] font-semibold text-branco hover:bg-tinta-hover"
+          className="flex min-h-13 w-full items-center justify-center rounded-media bg-tinta text-[14.5px] font-semibold text-branco hover:bg-tinta-hover"
         >
           Voltar para entrar
         </Link>

@@ -166,7 +166,7 @@ export function EditorSerie({
                     dica="opcional, é como a recepção chama este horário no telefone"
                   >
                     <input id="codigo" name="codigo" maxLength={12}
-                      placeholder="001" className={`${entrada} w-28 font-mono`} />
+                      placeholder="001" className={`${entrada} w-28`} />
                   </Campo>
                 ) : null}
               </div>
@@ -213,7 +213,7 @@ export function EditorSerie({
               </div>
 
               {catalogo.funcionamento.length > 0 ? (
-                <p className="text-[13px] text-tinta-fraca">
+                <p className="text-[13.5px] text-tinta-fraca">
                   Funcionamento:{' '}
                   {catalogo.funcionamento
                     .map((f) => `${DIAS[f.diaSemana]} ${f.abre}–${f.fecha}`)

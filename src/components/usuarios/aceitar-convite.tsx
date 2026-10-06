@@ -74,7 +74,7 @@ export function AceitarConvite({
             id="c-nome" name="nome" required maxLength={80} defaultValue={nome}
             autoFocus={!nome} autoComplete="name"
             placeholder="Exemplo: Ana Paula Souza"
-            className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[15px] focus:border-marca focus:bg-superficie"
+            className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14.5px] focus:border-marca focus:bg-superficie"
           />
         </Campo>
       ) : null}
@@ -83,7 +83,7 @@ export function AceitarConvite({
         <input
           id="c-senha" name="senha" type="password" required minLength={8}
           autoFocus={nome === null || !!nome} autoComplete="new-password"
-          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[15px] focus:border-marca focus:bg-superficie"
+          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14.5px] focus:border-marca focus:bg-superficie"
         />
       </Campo>
 
@@ -91,7 +91,7 @@ export function AceitarConvite({
         <input
           id="c-repete" name="repete" type="password" required minLength={8}
           autoComplete="new-password"
-          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[15px] focus:border-marca focus:bg-superficie"
+          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14.5px] focus:border-marca focus:bg-superficie"
         />
       </Campo>
 
@@ -99,7 +99,7 @@ export function AceitarConvite({
 
       <Botao
         type="submit" disabled={pendente}
-        className="mt-1 min-h-13 w-full rounded-media text-[15px] font-semibold"
+        className="mt-1 min-h-13 w-full rounded-media text-[14.5px] font-semibold"
       >
         Entrar na conta
       </Botao>

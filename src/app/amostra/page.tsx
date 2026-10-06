@@ -48,12 +48,12 @@ function Conteudo() {
     <main className="mx-auto flex max-w-4xl flex-col gap-6 p-6">
       <header className="flex flex-col gap-1">
         <Rotulo>Design system</Rotulo>
-        <h1 className="font-titulo text-[30px] font-semibold tracking-[-.02em]">
+        <h1 className="font-titulo text-[28px] font-semibold tracking-[-.02em]">
           Primitivos da Verandi
         </h1>
         <p className="text-tinta-media">
           As peças burras, em todas as variações. O contrato está em
-          {' '}<code className="font-mono">docs/DESIGN.md</code>.
+          {' '}<code className="">docs/DESIGN.md</code>.
         </p>
       </header>
 
@@ -73,11 +73,11 @@ function Conteudo() {
         <div className="mt-3 flex flex-wrap items-center gap-3 rounded-media bg-escuro p-3">
           <Botao tom="claro">Entrar</Botao>
           <Botao tom="contorno-claro">Sair da conta</Botao>
-          <span className="text-[12.5px] text-tinta-escura-media">
+          <span className="text-[12px] text-tinta-escura-media">
             os dois tons que existem para o painel escuro
           </span>
         </div>
-        <p className="mt-3 text-[12.5px] text-tinta-media">
+        <p className="mt-3 text-[12px] text-tinta-media">
           Altura mínima de 44px, menos no miúdo, a tela de Sessão é usada em pé,
           com a mão ocupada.
         </p>
@@ -85,14 +85,14 @@ function Conteudo() {
 
       <Cartao titulo="Tipografia">
         <div className="flex flex-col gap-2">
-          <p className="font-titulo text-[30px] font-semibold tracking-[-.02em]">
+          <p className="font-titulo text-[28px] font-semibold tracking-[-.02em]">
             Bricolage Grotesque 30
           </p>
-          <p className="font-titulo text-[19px] font-semibold">Bricolage 19</p>
-          <p className="text-[15px] font-medium">DM Sans 14 forte</p>
-          <p className="text-[14px]">DM Sans 13 padrão</p>
+          <p className="font-titulo text-[18px] font-semibold">Bricolage 19</p>
+          <p className="text-[14.5px] font-medium">DM Sans 14 forte</p>
+          <p className="text-[14.5px]">DM Sans 13 padrão</p>
           <p className="text-[13.5px] text-tinta-media">DM Sans 12.5 de apoio</p>
-          <p className="font-mono text-[14px]">DM Mono 07:00 · 4/4 · id 1042</p>
+          <p className="text-[14.5px]">DM Mono 07:00 · 4/4 · id 1042</p>
           <Rotulo>Rótulo em versalete</Rotulo>
         </div>
       </Cartao>
@@ -105,7 +105,7 @@ function Conteudo() {
             </span>
           ))}
         </div>
-        <p className="mt-3 text-[12.5px] text-tinta-media">
+        <p className="mt-3 text-[12px] text-tinta-media">
           A cor nunca informa sozinha: sempre acompanha texto ou glifo.
         </p>
       </Cartao>
@@ -123,7 +123,7 @@ function Conteudo() {
           <Ocupacao usadas={3} capacidade={4} />
           <Ocupacao usadas={4} capacidade={4} />
           <Ocupacao usadas={5} capacidade={4} />
-          <span className="text-[12.5px] text-tinta-media">
+          <span className="text-[12px] text-tinta-media">
             passar da capacidade fica laranja e continua aceitando encaixe
           </span>
         </div>
@@ -141,7 +141,7 @@ function Conteudo() {
             </span>
           ))}
         </div>
-        <p className="mt-3 text-[12.5px] text-tinta-media">
+        <p className="mt-3 text-[12px] text-tinta-media">
           Um traço só, `currentColor`, sem biblioteca externa e sem emoji.
         </p>
       </Cartao>
@@ -169,7 +169,7 @@ function Conteudo() {
             { id: 'sem', rotulo: 'Sem vaga fixa', contagem: 2 },
           ]}
         />
-        <p className="mt-3 text-[12.5px] text-tinta-media">
+        <p className="mt-3 text-[12px] text-tinta-media">
           O ativo não clareia no hover, clarear faz parecer que desligou.
         </p>
       </Cartao>
@@ -229,7 +229,7 @@ function Conteudo() {
           <Avatar nome="Larissa Cruz" tamanho={40} />
           <Avatar nome="Thalya Ribeiro" tamanho={40} anel="#0E7C6B" />
           <Avatar nome="Carol Nunes" tamanho={40} anel="#F0693C" />
-          <span className="text-[12.5px] text-tinta-media">
+          <span className="text-[12px] text-tinta-media">
             cor por hash do nome: a mesma pessoa, a mesma cor, em toda tela
           </span>
         </div>
@@ -308,8 +308,8 @@ function Conteudo() {
             <li key={nome} className="flex items-center gap-3">
               {/* o nome está escrito ao lado: o avatar é decoração */}
               <Avatar nome={nome} decorativo />
-              <span className="text-[14px]">{nome}</span>
-              <span className="ml-auto text-[12.5px] text-tinta-media">{desde}</span>
+              <span className="text-[14.5px]">{nome}</span>
+              <span className="ml-auto text-[12px] text-tinta-media">{desde}</span>
             </li>
           ))}
         </ul>

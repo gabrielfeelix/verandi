@@ -40,7 +40,7 @@ export function Matriz({
         <h2 className="font-titulo text-[18px] font-semibold">
           {avaliacoes.length === 1 ? 'A avaliação' : `As ${avaliacoes.length} avaliações`}
         </h2>
-        <span className="text-[13px] text-tinta-fraca">
+        <span className="text-[13.5px] text-tinta-fraca">
           {posicoes.length} posições · clique na foto para ampliar
         </span>
       </header>
@@ -52,9 +52,9 @@ export function Matriz({
             gridTemplateColumns: `160px repeat(${avaliacoes.length}, 96px) 120px`,
           }}
         >
-          <span className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase">Posição</span>
+          <span className="text-[12px] font-semibold text-tinta-fraca">Posição</span>
           {avaliacoes.map((a) => (
-            <span key={a.id} className="text-[12px] font-semibold tracking-[.1em] text-tinta-fraca uppercase font-mono">
+            <span key={a.id} className="text-[12px] font-semibold text-tinta-fraca">
               {dataCurta(a.data)}
             </span>
           ))}

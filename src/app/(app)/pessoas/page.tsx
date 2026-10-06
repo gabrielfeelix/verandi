@@ -109,7 +109,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
             {rotulos.pessoa.plural}
           </h1>
           {/* três números, não um: "28 cadastrados" sozinho esconde que três
@@ -132,7 +132,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <a
             href={exportar}
             download
-            className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14px] font-medium hover:bg-superficie-mais-suave"
+            className="inline-flex min-h-11 items-center rounded-padrao border border-linha bg-superficie px-3.5 text-[14.5px] font-medium hover:bg-superficie-mais-suave"
           >
             Exportar
           </a>
@@ -184,7 +184,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
             .map((c) => (
               <span
                 key={c}
-                className="text-[12px] font-semibold tracking-[.1em] text-tinta-media uppercase"
+                className="text-[12px] font-semibold text-tinta-media"
               >
                 {c}
               </span>
@@ -213,7 +213,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                     <span className="flex min-w-0 items-center gap-2.5">
                       <span
                         aria-hidden
-                        className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[13px] leading-none font-semibold tracking-[-.02em]"
+                        className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[13.5px] leading-none font-semibold tracking-[-.02em]"
                         style={{ background: fundo, color: frente, opacity: p.ativo ? 1 : 0.55 }}
                       >
                         {iniciaisDe(p.nome)}
@@ -222,17 +222,17 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         {/* quebra em vez de espremer: no celular o selo descia
                             por cima do nome e cortava ele em "Helena Mo..." */}
                         <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="max-w-full truncate text-[15px] font-medium">{p.nome}</span>
+                          <span className="max-w-full truncate text-[14.5px] font-medium">{p.nome}</span>
                           {p.tags.map((x) => (
                             <span
                               key={x}
-                              className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[11.5px] font-semibold tracking-[.08em] uppercase ${TINTA.atencao}`}
+                              className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[12px] font-semibold ${TINTA.atencao}`}
                             >
                               {x}
                             </span>
                           ))}
                         </span>
-                        <span className="truncate text-[12.5px] text-tinta-media">
+                        <span className="truncate text-[12px] text-tinta-media">
                           {p.identificadorExterno
                             ? `Ficha nº ${p.identificadorExterno}`
                             : ''}
@@ -242,7 +242,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
 
                     <span
                       title={fone ? undefined : 'Sem telefone cadastrado'}
-                      className={`font-mono text-[13.5px] ${
+                      className={`text-[13.5px] ${
                         fone ? 'text-tinta-media' : 'text-alerta'
                       }`}
                     >
@@ -251,7 +251,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                     </span>
 
                     <span
-                      className={`hidden text-[14px] md:block ${
+                      className={`hidden text-[14.5px] md:block ${
                         p.horarioFixo ? 'text-tinta-media' : 'text-tinta-fraca'
                       }`}
                     >
@@ -265,12 +265,12 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                       ) : 'Sem registro'}
                     </span>
 
-                    <span className="hidden text-[14px] text-tinta-media md:block">
+                    <span className="hidden text-[14.5px] text-tinta-media md:block">
                       {quando(p.ultimaPresenca)}
                     </span>
 
                     <span
-                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[12.5px] font-medium ${TINTA[situacao.tinta]}`}
+                      className={`inline-flex items-center gap-1.5 justify-self-start rounded-peca px-2.5 py-[5px] text-[12px] font-medium ${TINTA[situacao.tinta]}`}
                     >
                       <span aria-hidden className="size-1.5 rounded-full bg-current" />
                       {situacao.rotulo}
@@ -302,7 +302,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
 /** O número dentro do chip: mesma linha, peso menor, nunca disputa o rótulo. */
 function Contador({ ativo, children }: { ativo: boolean; children: React.ReactNode }) {
   return (
-    <span className={`font-mono text-[12.5px] ${ativo ? 'opacity-70' : 'text-tinta-fraca'}`}>
+    <span className={`text-[12px] ${ativo ? 'opacity-70' : 'text-tinta-fraca'}`}>
       {children}
     </span>
   )

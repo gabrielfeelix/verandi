@@ -38,7 +38,7 @@ export function ReposicoesAbertas({
     <>
       <div className="flex items-center justify-between pb-3">
         <h2 className="font-titulo text-[18px] font-semibold">Reposições em aberto</h2>
-        <span className="flex size-6 items-center justify-center rounded-peca bg-atencao-fundo text-[13px] font-semibold text-atencao">
+        <span className="flex size-6 items-center justify-center rounded-peca bg-atencao-fundo text-[13.5px] font-semibold text-atencao">
           {visiveis.length}
         </span>
       </div>
@@ -60,7 +60,7 @@ export function ReposicoesAbertas({
                   em vez de espremerem o nome da aula até "Pilat..." */}
               <span className="flex min-w-0 flex-[1_1_200px] flex-col leading-[1.35]">
                 <span className="truncate text-[14.5px] font-medium">{c.titulo}</span>
-                <span className="text-[12.5px] text-tinta-fraca">{c.sub}</span>
+                <span className="text-[12px] text-tinta-fraca">{c.sub}</span>
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 <Link

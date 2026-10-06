@@ -71,7 +71,7 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
             }`}
           >
             {/* o número é o tamanho do problema: 30px, não 14 */}
-            <span className="font-titulo text-[30px] leading-none font-bold tracking-[-.03em]">
+            <span className="font-titulo text-[28px] leading-none font-bold tracking-[-.03em]">
               {g.itens.length}
             </span>
             <span aria-hidden className="w-px self-stretch bg-current opacity-[.22]" />
@@ -79,7 +79,7 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
               <h2 className="font-titulo text-[18px] font-semibold tracking-[-.01em]">
                 {g.titulo}
               </h2>
-              <span className="text-[12.5px] opacity-75">{g.sub}</span>
+              <span className="text-[12px] opacity-75">{g.sub}</span>
             </span>
           </div>
 
@@ -97,22 +97,22 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
                   {p.tipo === 'chamada_nao_feita' ? (
                     <span
                       aria-hidden
-                      className="flex size-8.5 shrink-0 items-center justify-center rounded-padrao bg-superficie-mais-suave font-mono text-[14px] text-tinta-media"
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-padrao bg-superficie-mais-suave text-[14.5px] text-tinta-media"
                     >
                       ◷
                     </span>
                   ) : (
                     <span
                       aria-hidden
-                      className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[13px] leading-none font-semibold tracking-[-.02em]"
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[13.5px] leading-none font-semibold tracking-[-.02em]"
                       style={{ background: fundo, color: frente }}
                     >
                       {iniciaisDe(p.titulo)}
                     </span>
                   )}
                   <div className="flex min-w-40 flex-1 flex-col leading-[1.35]">
-                    <span className="text-[15px] font-medium">{p.titulo}</span>
-                    <span className="text-[13px] text-tinta-media">{p.detalhe}</span>
+                    <span className="text-[14.5px] font-medium">{p.titulo}</span>
+                    <span className="text-[13.5px] text-tinta-media">{p.detalhe}</span>
                   </div>
                   {i ? <Etiqueta tinta={i.tinta}>{i.texto}</Etiqueta> : null}
                   {p.licenca ? (

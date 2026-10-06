@@ -39,7 +39,7 @@ export default async function Grade() {
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
             Grade fixa
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
@@ -69,10 +69,10 @@ export default async function Grade() {
 
       {/* A confusão mais provável do sistema inteiro mora aqui, e por isso ela
           é dita antes de qualquer edição, não depois. */}
-      <p className="flex items-start gap-2.5 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[14px] leading-relaxed text-[#2F6659]">
+      <p className="flex items-start gap-2.5 rounded-media border border-positivo-linha bg-positivo-superficie px-3.5 py-3 text-[14.5px] leading-relaxed text-[#2F6659]">
         <span
           aria-hidden
-          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-positivo-linha font-mono text-[12px]"
+          className="flex size-5 shrink-0 items-center justify-center rounded-full bg-positivo-linha text-[12px]"
         >
           i
         </span>
@@ -102,8 +102,8 @@ export default async function Grade() {
             className={`overflow-hidden ${cartao}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
-              <h2 className="text-[14px] font-medium">{g.nome}</h2>
-              <span className="text-[13px] text-tinta-media">
+              <h2 className="text-[14.5px] font-medium">{g.nome}</h2>
+              <span className="text-[13.5px] text-tinta-media">
                 {g.linhas.length} {(g.linhas.length === 1
                   ? rotulos.serie.singular
                   : rotulos.serie.plural).toLowerCase()}
@@ -128,10 +128,10 @@ export default async function Grade() {
       {encerradas.length > 0 ? (
         <section className={`overflow-hidden ${cartao}`}>
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-linha-fina bg-superficie-tenue px-4.5 py-3">
-            <h2 className="text-[14px] font-medium">
+            <h2 className="text-[14.5px] font-medium">
               {rotulos.serie.plural} que terminaram
             </h2>
-            <span className="text-[13px] text-tinta-media">
+            <span className="text-[13.5px] text-tinta-media">
               continuam existindo no histórico
             </span>
           </div>

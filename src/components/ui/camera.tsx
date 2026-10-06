@@ -166,7 +166,7 @@ export function Camera({
 
         {erro ? (
           <div className="absolute inset-0 flex items-center justify-center p-6">
-            <p className="max-w-[340px] text-center text-[14px] leading-relaxed text-tinta-clara">{erro}</p>
+            <p className="max-w-[340px] text-center text-[14.5px] leading-relaxed text-tinta-clara">{erro}</p>
           </div>
         ) : null}
 
@@ -189,7 +189,7 @@ export function Camera({
               type="button"
               onClick={() => setComTempo((v) => !v)}
               aria-pressed={comTempo}
-              className={`flex h-9 min-w-[64px] cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-[13px] font-medium backdrop-blur transition-colors ${
+              className={`flex h-9 min-w-[64px] cursor-pointer items-center justify-center gap-1.5 rounded-full px-3 text-[13.5px] font-medium backdrop-blur transition-colors ${
                 comTempo ? 'bg-white text-escuro' : 'bg-white/15 text-white hover:bg-white/25'
               }`}
             >
@@ -218,7 +218,7 @@ export function Camera({
             <select
               value={emUso}
               onChange={(e) => escolherCamera(e.target.value)}
-              className="min-h-10 min-w-0 max-w-[260px] cursor-pointer truncate rounded-padrao border border-linha bg-superficie px-3 text-[14px] text-tinta"
+              className="min-h-10 min-w-0 max-w-[260px] cursor-pointer truncate rounded-padrao border border-linha bg-superficie px-3 text-[14.5px] text-tinta"
             >
               {cameras.map((c, i) => (
                 <option key={c.deviceId} value={c.deviceId}>
@@ -233,14 +233,14 @@ export function Camera({
             <button
               type="button"
               onClick={() => setTirada(null)}
-              className="min-h-10 cursor-pointer rounded-padrao border border-linha bg-superficie px-4 text-[14px] text-tinta-media hover:bg-superficie-mais-suave"
+              className="min-h-10 cursor-pointer rounded-padrao border border-linha bg-superficie px-4 text-[14.5px] text-tinta-media hover:bg-superficie-mais-suave"
             >
               Tirar outra
             </button>
             <button
               type="button"
               onClick={usar}
-              className="flex min-h-10 cursor-pointer items-center gap-2 rounded-padrao bg-escuro px-4 text-[14px] font-medium text-tinta-clara hover:bg-escuro/90"
+              className="flex min-h-10 cursor-pointer items-center gap-2 rounded-padrao bg-escuro px-4 text-[14.5px] font-medium text-tinta-clara hover:bg-escuro/90"
             >
               <Icone nome="check" tamanho={16} />
               Usar esta foto
@@ -250,7 +250,7 @@ export function Camera({
           <button
             type="button"
             onClick={() => { parar(); aoFechar() }}
-            className="min-h-10 cursor-pointer rounded-padrao border border-linha bg-superficie px-4 text-[14px] text-tinta-media hover:bg-superficie-mais-suave"
+            className="min-h-10 cursor-pointer rounded-padrao border border-linha bg-superficie px-4 text-[14.5px] text-tinta-media hover:bg-superficie-mais-suave"
           >
             Voltar a escolher arquivo
           </button>

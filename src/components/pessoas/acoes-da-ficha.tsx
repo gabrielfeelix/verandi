@@ -57,7 +57,7 @@ export function MarcarInativa({
           })
         }}
       >
-        <p className="text-[14px] leading-[1.55] text-tinta-media">
+        <p className="text-[14.5px] leading-[1.55] text-tinta-media">
           {ativo
             ? `Sai da lista padrão de ${rotuloPessoa.toLowerCase()} e das escolhas de horário novo. ` +
               'Nada é apagado: presenças, faltas e reposições continuam no histórico.'
@@ -165,7 +165,7 @@ export function AtenderPedidoDeExclusao({
             { titulo: 'A contagem de cada horário', meta: 'continua batendo' },
           ]}
         />
-        <p className="text-[14px] leading-[1.55] text-tinta-media">
+        <p className="text-[14.5px] leading-[1.55] text-tinta-media">
           A linha continua existindo sem nada que identifique alguém, porque
           apagar de vez levaria junto a presença de todo mundo que estava na
           mesma aula. Fica registrado quem atendeu ao pedido e quando.

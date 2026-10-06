@@ -70,7 +70,7 @@ export function PainelContas({
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[30px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
             Empresas
           </h1>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
@@ -87,14 +87,14 @@ export function PainelContas({
           <form className="relative flex items-center" action="/admin/empresas">
             <span
               aria-hidden
-              className="pointer-events-none absolute left-3.5 font-mono text-[14px] text-tinta-fraca"
+              className="pointer-events-none absolute left-3.5 font-mono text-[14.5px] text-tinta-fraca"
             >
               ⌕
             </span>
             <input
               id="q" name="q" defaultValue={busca} aria-label="Buscar empresa"
               placeholder="Nome ou identificador"
-              className="min-h-11 min-w-[228px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[14px] placeholder:text-tinta-fraca"
+              className="min-h-11 min-w-[228px] rounded-padrao border border-linha bg-superficie pr-3.5 pl-9 text-[14.5px] placeholder:text-tinta-fraca"
             />
             <button type="submit" className="sr-only focus:not-sr-only focus:ml-2">
               Buscar
@@ -163,7 +163,7 @@ export function PainelContas({
               Convite do dono ({convite.para}), copie agora
             </span>
             <input readOnly value={convite.url} aria-label="Link do convite"
-              className={`${entrada} font-mono text-[13px]`}
+              className={`${entrada} font-mono text-[13.5px]`}
               onFocus={(e) => e.currentTarget.select()} />
             <div className="flex gap-2">
               <Botao tom="secundario" miudo
@@ -194,7 +194,7 @@ export function PainelContas({
         </div>
 
         {contas.length === 0 ? (
-          <p className="px-4.5 py-6 text-[14px] text-tinta-media">
+          <p className="px-4.5 py-6 text-[14.5px] text-tinta-media">
             {busca
               ? `Nenhuma empresa com "${busca}".`
               : 'Nenhuma empresa cliente ainda.'}
@@ -212,13 +212,13 @@ export function PainelContas({
                 <span className="flex min-w-0 items-center gap-3">
                   <span
                     aria-hidden
-                    className="flex size-9 shrink-0 items-center justify-center rounded-padrao font-titulo text-[15px] font-bold"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-padrao font-titulo text-[14.5px] font-bold"
                     style={{ background: fundo, color: frente }}
                   >
                     {c.nome.trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase()}
                   </span>
                   <span className="flex min-w-0 flex-col leading-[1.35]">
-                    <span className="flex items-center gap-2 truncate text-[15px] font-medium">
+                    <span className="flex items-center gap-2 truncate text-[14.5px] font-medium">
                       <Link
                         href={`/admin/empresas/${c.id}`}
                         className="truncate underline decoration-transparent underline-offset-2 hover:decoration-tinta"
@@ -227,14 +227,14 @@ export function PainelContas({
                       </Link>
                       {!c.ativa ? <Etiqueta tinta="alerta">Suspensa</Etiqueta> : null}
                     </span>
-                    <span className="truncate text-[12.5px] text-tinta-media">
+                    <span className="truncate text-[12px] text-tinta-media">
                       <span className="font-mono">{c.slug}</span>
                       {' · criada em '}{mesCurto(c.criadaEm.slice(0, 10))}
                     </span>
                   </span>
                 </span>
 
-                <span className="font-mono text-[14px] text-tinta-media">
+                <span className="font-mono text-[14.5px] text-tinta-media">
                   {c.sessoesSemana}
                 </span>
 
@@ -250,7 +250,7 @@ export function PainelContas({
                 </span>
 
                 <span
-                  className={`text-[13px] ${
+                  className={`text-[13.5px] ${
                     c.ultimoAcesso ? 'text-tinta-media' : 'font-medium text-alerta'
                   }`}
                 >
@@ -301,7 +301,7 @@ export function PainelContas({
       {/* Entrar na conta de um cliente é o acesso mais forte do sistema, e a
           tela diz isso, depois da lista, onde ele fecha a leitura em vez de
           atrasá-la todo dia. */}
-      <p className="flex items-start gap-2.5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[14px] leading-relaxed text-[#7A5E1E]">
+      <p className="flex items-start gap-2.5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[14.5px] leading-relaxed text-[#7A5E1E]">
         <span
           aria-hidden
           className="flex size-5 shrink-0 items-center justify-center rounded-full bg-atencao-fundo font-mono text-[12px]"
