@@ -213,7 +213,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                     <span className="flex min-w-0 items-center gap-2.5">
                       <span
                         aria-hidden
-                        className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[12.5px] font-semibold"
+                        className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[13px] leading-none font-semibold tracking-[-.02em]"
                         style={{ background: fundo, color: frente, opacity: p.ativo ? 1 : 0.55 }}
                       >
                         {iniciaisDe(p.nome)}

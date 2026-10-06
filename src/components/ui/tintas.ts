@@ -96,3 +96,16 @@ export const CORES_PROFISSIONAL = [
   { nome: 'Azul', valor: '#4A5C8C' },
   { nome: 'Violeta', valor: '#5B4C7C' },
 ] as const
+
+/**
+ * O tamanho da letra das iniciais, a partir do círculo **útil**: o diâmetro
+ * menos o anel ou a borda que come a beirada.
+ *
+ * Cada avatar tinha o seu número escrito à mão, e os pequenos passavam de 0,45
+ * do círculo: "MW" encostava no contorno, e na pilha da agenda o anel do
+ * vizinho cortava a segunda letra. 0,38 deixa folga até para as duas letras
+ * mais largas, e o piso de 8,5px é o menor que ainda se lê.
+ */
+export function fonteDasIniciais(diametroUtil: number): number {
+  return Math.max(8.5, Math.round(diametroUtil * 0.38 * 2) / 2)
+}

@@ -46,7 +46,7 @@ test('a 4YU cria conta e recebe o convite do dono', async ({ page }) => {
   expect(vinculo!.papel).toBe('dono')
 })
 
-test('entrar como suporte mostra a faixa que não some, e registra', async ({ page }) => {
+test('entrar como suporte deixa o sair à mão, e registra', async ({ page }) => {
   const s = await comoSuporte()
   // nome único: o banco não é limpo entre execuções, e nome repetido torna o
   // seletor ambíguo na segunda rodada
@@ -63,11 +63,11 @@ test('entrar como suporte mostra a faixa que não some, e registra', async ({ pa
     .getByRole('button', { name: 'Entrar', exact: true })
     .click()
 
-  await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sair do suporte' })).toBeVisible()
 
-  // a faixa acompanha em qualquer tela
+  // o sair acompanha em qualquer tela
   await page.goto('/pessoas')
-  await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sair do suporte' })).toBeVisible()
 
   await expect.poll(async () => {
     const { data } = await admin.from('acesso_suporte')
@@ -87,7 +87,7 @@ test('sair do suporte encerra o registro e devolve a conta', async ({ page }) =>
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
     .click()
-  await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sair do suporte' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Sair do suporte' }).click()
 
@@ -115,10 +115,10 @@ test('sair do suporte não tira quem é da 4YU', async ({ page }) => {
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
     .click()
-  await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sair do suporte' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Sair do suporte' }).click()
-  await expect(page.getByText(/como suporte da 4YU/)).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Sair do suporte' })).toBeHidden()
 
   // o vínculo da conta interna é o que faz ser da 4YU: continua de pé
   await page.goto('/admin/empresas')
@@ -182,7 +182,7 @@ test('o log de acesso da 4YU mostra o que ficou em aberto', async ({ page }) => 
     .filter({ hasText: nome })
     .getByRole('button', { name: 'Entrar', exact: true })
     .click()
-  await expect(page.getByText(/como suporte da 4YU/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sair do suporte' })).toBeVisible()
 
   // o log tem página própria na administração, com o e-mail de quem entrou
   await page.goto('/admin/log')

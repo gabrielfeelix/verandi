@@ -92,7 +92,7 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
                   key={`${p.tipo}-${p.referenciaId}`}
                   className="flex flex-wrap items-center gap-3.5 border-b border-linha-fina px-4.5 py-3 last:border-b-0 hover:bg-superficie-tenue"
                 >
-                  {/* chamada não feita é sobre um horário, não sobre alguém —
+                  {/* chamada não feita é sobre um horário, não sobre alguém,
                       avatar com as iniciais de "Pilates solo" seria enfeite */}
                   {p.tipo === 'chamada_nao_feita' ? (
                     <span
@@ -104,7 +104,7 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
                   ) : (
                     <span
                       aria-hidden
-                      className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[12.5px] font-semibold"
+                      className="flex size-8.5 shrink-0 items-center justify-center rounded-full text-[13px] leading-none font-semibold tracking-[-.02em]"
                       style={{ background: fundo, color: frente }}
                     >
                       {iniciaisDe(p.titulo)}

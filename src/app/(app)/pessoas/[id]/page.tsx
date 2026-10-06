@@ -340,7 +340,7 @@ export default async function Pessoa({
           ) : (
             <span
               aria-hidden
-              className="flex size-16 shrink-0 items-center justify-center rounded-full text-[20px] font-semibold"
+              className="flex size-16 shrink-0 items-center justify-center rounded-full text-[24px] leading-none font-semibold tracking-[-.02em]"
               style={{ background: fundo, color: frente, opacity: p.ativo ? 1 : 0.55 }}
             >
               {iniciaisDe(p.nome)}

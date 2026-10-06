@@ -39,8 +39,8 @@ protege só as telas.** Cada ação em `src/server/admin/acoes.ts` confere
 `ehSuporte` de novo, porque ação de servidor é endereço público.
 
 No estúdio, o item "Contas (4YU)" saiu do menu. O admin que cai na conta interna
-pelo `(app)` vai direto para `/admin`. Dentro de conta de cliente a faixa âmbar
-continua, e "Sair do suporte" volta para `/admin/empresas`.
+pelo `(app)` vai direto para `/admin`. Dentro de conta de cliente não há faixa:
+o "Sair" do pé do rail encerra o acesso e volta para `/admin/empresas`.
 
 ## Decisões, e por quê
 

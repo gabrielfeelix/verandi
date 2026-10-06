@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import type { SessaoResumo } from '@/server/agenda/consultas'
-import { PARES_AVATAR } from '@/components/ui/tintas'
+import { PARES_AVATAR, fonteDasIniciais } from '@/components/ui/tintas'
 import { cartao } from '@/components/ui/pecas'
 
 /**
@@ -39,11 +39,12 @@ export function AvatarProf({
     <span
       title={nome}
       aria-hidden
-      className="flex shrink-0 items-center justify-center rounded-full font-semibold"
+      className="flex shrink-0 items-center justify-center rounded-full leading-none font-semibold tracking-[-.02em]"
       style={{
         width: tamanho,
         height: tamanho,
-        fontSize: tamanho <= 24 ? 9.5 : 11,
+        // o anel de 1,5px entra no círculo e come a folga das letras
+        fontSize: fonteDasIniciais(tamanho - 3),
         background: fundo,
         color: frente,
         boxShadow: `inset 0 0 0 1.5px ${cor ?? frente}`,
@@ -63,17 +64,18 @@ export function PilhaPessoas({
 }) {
   return (
     /* o `pr` compensa o `marginRight` negativo do último avatar: sem ele a
-       pilha fica 9px mais estreita que o conteúdo e o primeiro rosto aparece
-       cortado pela coluna ao lado */
-    <span className="flex items-center pr-[9px]" style={{ opacity: apagado ? 0.55 : 1 }}>
+       pilha fica 6px mais estreita que o conteúdo e o primeiro rosto aparece
+       cortado pela coluna ao lado. Seis e não nove: com nove o rosto de cima
+       cobria a segunda inicial do de baixo */
+    <span className="flex items-center pr-[6px]" style={{ opacity: apagado ? 0.55 : 1 }}>
       {pessoas.slice(0, 5).map((p, i) => {
         const [fundo, frente] = paresDe(p.nome)
         return (
           <span
             key={`${p.nome}-${i}`}
             title={p.nome}
-            className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie text-[11.5px] font-semibold"
-            style={{ background: fundo, color: frente, marginRight: -9 }}
+            className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie leading-none font-semibold tracking-[-.02em]"
+            style={{ background: fundo, color: frente, marginRight: -6, fontSize: fonteDasIniciais(23) }}
           >
             <span aria-hidden>{iniciaisDe(p.nome)}</span>
             <span className="sr-only">{p.nome}</span>
@@ -81,7 +83,7 @@ export function PilhaPessoas({
         )
       })}
       {pessoas.length > 5 ? (
-        <span className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie bg-superficie-mais-suave text-[11.5px] font-semibold text-tinta-media">
+        <span className="flex size-[27px] items-center justify-center rounded-full border-2 border-superficie bg-superficie-mais-suave text-[10px] leading-none font-semibold tracking-[-.02em] text-tinta-media">
           +{pessoas.length - 5}
         </span>
       ) : null}

@@ -54,7 +54,7 @@ export function ProximaTurma({
                   atendimento". "A seguir" não tem gênero e diz o mesmo. */}
               {rotulo.toLowerCase()} a seguir
             </span>
-            <span className="font-titulo text-[40px] leading-none font-semibold tracking-[-.03em]">
+            <span className="font-titulo text-[40px] leading-none font-semibold tracking-[-.02em] tracking-[-.03em]">
               {sessao.hora}
             </span>
             <span className="text-[13.5px] text-tinta-escura-media">{faltam}</span>
@@ -75,7 +75,7 @@ export function ProximaTurma({
                 <span className="inline-flex items-center gap-2">
                   <span
                     aria-hidden
-                    className="flex size-6 items-center justify-center rounded-full bg-[#22463C] text-[11px] font-semibold text-menta shadow-[inset_0_0_0_1.5px_#2AC3A3]"
+                    className="flex size-6 items-center justify-center rounded-full bg-[#22463C] text-[8.5px] leading-none font-semibold tracking-[-.02em] text-menta shadow-[inset_0_0_0_1.5px_#2AC3A3]"
                   >
                     {iniciaisDe(sessao.profissional)}
                   </span>
@@ -100,7 +100,7 @@ export function ProximaTurma({
                   >
                     <span
                       aria-hidden
-                      className="flex size-6 items-center justify-center rounded-full text-[11.5px] font-semibold"
+                      className="flex size-6 items-center justify-center rounded-full text-[9px] leading-none font-semibold tracking-[-.02em]"
                       style={{ background: fundo, color: frente }}
                     >
                       {iniciaisDe(p.nome)}

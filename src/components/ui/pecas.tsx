@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import { TINTA, TINTA_CHAPADA, PARES_AVATAR, type Tinta } from './tintas'
+import { TINTA, TINTA_CHAPADA, PARES_AVATAR, fonteDasIniciais, type Tinta } from './tintas'
 import { Icone, type NomeIcone } from './icones'
 
 /**
@@ -402,13 +402,13 @@ export function Avatar({
   decorativo?: boolean
 }) {
   const [fundo, frente] = paresDe(nome)
-  const fonte = tamanho === 24 ? 10 : tamanho === 32 ? 12 : tamanho === 40 ? 12.5 : 17
+  const fonte = fonteDasIniciais(tamanho)
 
   const rosto = (
     <span
       title={nome}
       aria-hidden={decorativo || undefined}
-      className="inline-flex shrink-0 items-center justify-center rounded-full bg-cover bg-center font-semibold"
+      className="inline-flex shrink-0 items-center justify-center rounded-full bg-cover bg-center leading-none font-semibold tracking-[-.02em]"
       style={{
         width: tamanho,
         height: tamanho,

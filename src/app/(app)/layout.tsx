@@ -11,7 +11,7 @@ import { aindaNeutro } from '@/core/vocabulario/predefinicoes'
 import { Guia } from '@/components/onboarding/guia'
 import { BoasVindas } from '@/components/onboarding/boas-vindas'
 import { Sair } from '@/components/ui/sair'
-import { FaixaSuporte } from '@/components/ui/faixa-suporte'
+import { SairDoSuporte } from '@/components/ui/sair-do-suporte'
 import { Rail, BarraInferior, type ItemRail } from '@/components/ui/rail'
 import { RodapeLegal } from '@/components/ui/rodape-legal'
 import { ProvedorDeTroca } from '@/components/ui/troca'
@@ -30,7 +30,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
    * A conta interna não é estúdio: é onde mora o vínculo que faz alguém ser
    * admin. Abrir Agenda ou Financeiro nela mostrava um estúdio vazio que não é
    * de ninguém, então quem cai nela vai para a administração. Dentro de conta
-   * de cliente o suporte fica, com a faixa, e volta pelo "Sair do suporte".
+   * de cliente o suporte fica, e o "Sair" do rail encerra o acesso.
    */
   if (conta.papel === 'suporte' && conta.interna) redirect('/admin')
   const db = await clienteServidor()
@@ -154,13 +154,12 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   // e o resto fica no "Mais"
   const principais = ['/hoje', '/semana', '/pessoas', '/pendencias']
 
+  // dentro de conta de cliente, o "Sair" do suporte encerra o acesso em vez de
+  // deslogar; a conta interna já foi mandada para /admin lá em cima
+  const suporte = conta.papel === 'suporte'
+
   return (
     <div className="min-h-dvh">
-      {/* A faixa fica acima de tudo e não some enquanto o suporte estiver dentro
-          de conta de cliente. Na conta da própria 4YU não há o que avisar. */}
-      {conta.papel === 'suporte' && !conta.interna
-        ? <FaixaSuporte conta={conta.nome} /> : null}
-
       <div className="flex min-h-dvh">
         {/*
           * `data-imprimir="fora"` num invólucro `contents`, que não existe para
@@ -178,7 +177,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           pessoa={eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'}
           papel={PAPEL[conta.papel] ?? conta.papel}
           podeTrocar={contas.length > 1}
-          sair={<Sair />}
+          sair={suporte ? <SairDoSuporte /> : <Sair />}
         />
         </div>
 
@@ -220,6 +219,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           pessoa={eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'}
           papel={PAPEL[conta.papel] ?? conta.papel}
           podeTrocar={contas.length > 1}
+          sair={suporte ? <SairDoSuporte claro /> : undefined}
         />
       </div>
 

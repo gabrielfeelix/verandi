@@ -93,17 +93,29 @@ export function Rail({
   // a preferência é do dispositivo, não da conta: mesma pessoa, telas diferentes
   const aberto = useSyncExternalStore(assinarRail, lerRail, () => true)
 
+  const largura = aberto ? 212 : 74
+
   return (
-    // o `aside` inteiro fica preso no topo com a altura da tela: rola a página,
-    // e o trilho não se mexe. Antes ele acompanhava a altura da página com o
-    // miolo `sticky`, mas o `relative` do miolo ganhava do `sticky`, e o menu
-    // subia junto com o conteúdo
-    // a largura muda sem transição de propósito: animar `width` de um container
-    // que re-renderiza a cada navegação trava a animação no meio do caminho
+    <>
+    {/*
+      * O trilho é `fixed`, preso às quatro bordas da janela por `inset-y-0`, e
+      * um espaçador da mesma largura reserva o lugar dele no fluxo.
+      *
+      * Antes ele era `sticky` com `h-dvh` dentro do flex: o ponto de grude
+      * dependia do que vinha acima (a faixa de suporte), a altura mudava com a
+      * barra do navegador, e a troca de tela, que encolhe o conteúdo enquanto
+      * o esqueleto aparece, levava o trilho junto. `fixed` não depende de
+      * nenhum desses: a janela é a única referência.
+      */}
+    <div aria-hidden style={{ width: largura }} className="hidden shrink-0 md:block" />
+    {/* a largura muda sem transição de propósito: animar `width` de um container
+        que re-renderiza a cada navegação trava a animação no meio do caminho */}
     <aside
-      style={{ width: aberto ? 212 : 74 }}
-      className="ruido-escuro sticky top-0 hidden h-dvh shrink-0 self-start overflow-hidden bg-escuro md:block"
+      style={{ width: largura }}
+      className="fixed inset-y-0 left-0 z-30 hidden md:block"
     >
+      {/* o ruído impõe `position: relative`, que brigaria com o `fixed` */}
+      <div className="ruido-escuro h-full overflow-hidden bg-escuro">
       <div className="relative z-[1] flex h-full flex-col gap-5 px-3 py-4">
       <div className="flex items-center gap-3 pl-1">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[19px] font-bold text-escuro">
@@ -192,7 +204,7 @@ export function Rail({
         >
           <span
             aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F4A40] text-[12.5px] font-semibold text-[#E6F4EF]"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F4A40] text-[13.5px] leading-none font-semibold tracking-[-.02em] text-[#E6F4EF]"
           >
             {iniciais(pessoa)}
           </span>
@@ -217,7 +229,9 @@ export function Rail({
         {aberto ? null : <div className="flex justify-center">{sair}</div>}
         </div>
       </div>
+      </div>
     </aside>
+    </>
   )
 }
 
@@ -231,7 +245,7 @@ const ABA = 'relative flex min-h-13 flex-1 flex-col items-center justify-center 
  * "o resto se alcança pelas telas" não era verdade para nenhum deles.
  */
 export function BarraInferior({
-  itens, principais, pessoa, papel, podeTrocar,
+  itens, principais, pessoa, papel, podeTrocar, sair: sairOutro,
 }: {
   itens: ItemRail[]
   /** os `href` que ficam à vista; o resto vai para o "Mais" */
@@ -239,6 +253,8 @@ export function BarraInferior({
   pessoa: string
   papel: string
   podeTrocar: boolean
+  /** troca o "Sair" comum, como o do suporte, que encerra o acesso */
+  sair?: React.ReactNode
 }) {
   const pathname = usePathname()
   const [aberto, setAberto] = useState(false)
@@ -342,7 +358,7 @@ export function BarraInferior({
           <div className={`flex items-center gap-3 px-3 pt-3 ${resto.length ? 'mt-2 border-t border-linha-fina' : ''}`}>
             <span
               aria-hidden
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-positivo-superficie text-[12.5px] font-semibold text-marca"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-positivo-superficie text-[13.5px] leading-none font-semibold tracking-[-.02em] text-marca"
             >
               {iniciais(pessoa)}
             </span>
@@ -360,15 +376,17 @@ export function BarraInferior({
                 ) : null}
               </span>
             </span>
-            <form action={sair}>
-              <button
-                type="submit"
-                className="flex min-h-11 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14px] text-tinta-media"
-              >
-                <Icone nome="sair" tamanho={16} />
-                Sair
-              </button>
-            </form>
+            {sairOutro ?? (
+              <form action={sair}>
+                <button
+                  type="submit"
+                  className="flex min-h-11 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14px] text-tinta-media"
+                >
+                  <Icone nome="sair" tamanho={16} />
+                  Sair
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </dialog>

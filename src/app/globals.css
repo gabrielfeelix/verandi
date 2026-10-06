@@ -5,7 +5,7 @@
  *
  * Cor com nome de cor é cor que ninguém troca depois: `--color-marca`, não
  * `--color-verde-escuro`. Os valores vêm de `Design system Verandi-att/
- * DESIGN-SYSTEM.md`, que é a fonte de verdade — onde a tela divergir dele, é a
+ * DESIGN-SYSTEM.md`, que é a fonte de verdade, onde a tela divergir dele, é a
  * tela que muda.
  */
 @theme {
@@ -26,7 +26,7 @@
    *
    * O protótipo desce até `#8B9691` no texto de apoio, e ali ele falha: sobre
    * branco dá 3,06:1, contra o mínimo de 4,5:1 da WCAG AA. Não é detalhe de
-   * purista. Esse tom carrega hora, contagem, "criada em", "sem telefone" —
+   * purista. Esse tom carrega hora, contagem, "criada em", "sem telefone",
    * exatamente o que alguém procura de relance, em monitor barato, com sol na
    * tela, num sistema que se usa em pé.
    *
@@ -45,7 +45,7 @@
   /*
    * O texto de apoio escureceu, e o motivo é de leitura e não de norma.
    *
-   * `#5D6B66` dava 4,78:1 sobre `#F1F5F3` — passa na AA e cansa: a maior parte
+   * `#5D6B66` dava 4,78:1 sobre `#F1F5F3`, passa na AA e cansa: a maior parte
    * do produto é texto de apoio em DM Sans, que é geométrica e afina no
    * pequeno. Passar dos 4,8 para perto de 7 é a diferença entre "está dentro
    * da regra" e "dá para ler o dia inteiro no balcão".
@@ -76,17 +76,17 @@
   --color-menta-hover: #38d6b4;
 
   /*
-   * Laranja de contagem. Só badge e legenda "acima da capacidade" — nunca
+   * Laranja de contagem. Só badge e legenda "acima da capacidade", nunca
    * texto, o contraste não fecha. Texto laranja usa `--color-alerta`.
    */
   --color-destaque: #f0693c;
 
-  /* ---- tintas com significado — sempre acompanhadas de texto ou glifo ---- */
+  /* ---- tintas com significado, sempre acompanhadas de texto ou glifo ---- */
   /*
    * As três tintas abaixo foram escurecidas contra o próprio fundo delas.
    *
    * A etiqueta é texto de 11px dentro de um chip claro, e o par do protótipo
-   * dava 4,42:1 (positivo), 3,93:1 (alerta) e 4,13:1 (atenção) — os três abaixo
+   * dava 4,42:1 (positivo), 3,93:1 (alerta) e 4,13:1 (atenção), os três abaixo
    * do mínimo. É onde se lê "falta", "presente" e "reposição", que é o dado
    * inteiro de uma linha da chamada. Há teste medindo cada par.
    *
@@ -162,7 +162,7 @@
 /*
  * O protótipo põe `user-select: none` e `caret-color: transparent` no body para
  * a demonstração não parecer editável. No produto isso quebra copiar telefone,
- * copiar nome e leitor de tela — por isso não está aqui, e não deve voltar.
+ * copiar nome e leitor de tela, por isso não está aqui, e não deve voltar.
  */
 /*
  * A base do texto.
@@ -185,7 +185,7 @@ body {
   font-size: 15px;
   line-height: 1.55;
   /*
-   * `cv05` desambigua o `l` minúsculo do `I` maiúsculo — num sistema cheio de
+   * `cv05` desambigua o `l` minúsculo do `I` maiúsculo, num sistema cheio de
    * nome próprio e código de plano, é a confusão que mais aparece. `tnum` dá
    * largura igual a todo algarismo, para a coluna de dinheiro não dançar de
    * linha em linha.
@@ -201,7 +201,7 @@ body {
  *
  * Abaixo de 13px a entrelinha de 1,55 fecha e as linhas grudam, porque o
  * espaço entre elas encolhe junto com a fonte. Estas classes são as que
- * carregam rótulo, contagem, dica e nota de rodapé — o texto que se lê de
+ * carregam rótulo, contagem, dica e nota de rodapé, o texto que se lê de
  * relance, que é justamente o que não pode exigir esforço.
  */
 .text-\[11px\],
@@ -219,7 +219,7 @@ body {
 /*
  * O cursor de mão em tudo que se clica.
  *
- * O Tailwind v4 mudou o padrão de `<button>` para `cursor: default` — o botão
+ * O Tailwind v4 mudou o padrão de `<button>` para `cursor: default`, o botão
  * passa a parecer texto, e a tela inteira perde a sensação de que responde.
  * Resolver isso classe por classe é garantir que o próximo botão nasça errado;
  * a regra mora aqui, uma vez.
@@ -244,7 +244,7 @@ button:disabled {
  * Campo de formulário é a exceção: ele já desenha o próprio foco, com a borda
  * verde do design system.
  *
- * O contorno por cima seria uma caixa dentro da caixa — e num campo composto
+ * O contorno por cima seria uma caixa dentro da caixa, e num campo composto
  * como "senha · mostrar" ele cerca só o `<input>`, deixando o botão de fora,
  * como se metade do campo estivesse focada. Some o contorno; quem marca o foco
  * é a moldura inteira, e o halo abaixo garante que continue visível.
@@ -264,13 +264,13 @@ select:focus-visible {
  * O campo de formulário, com os três estados no mesmo lugar.
  *
  * Vazio é **branco com borda visível**; preenchido é que afunda para o cinza.
- * Escrito ao contrário — que é como estava a tela de entrar — o campo vazio vira
+ * Escrito ao contrário, que é como estava a tela de entrar, o campo vazio vira
  * um retângulo cinza de borda invisível, com cara de desabilitado, e o
  * formulário inteiro parece inacabado.
  *
  * O `[placeholder]` na regra do preenchido não é decoração: `:placeholder-shown`
  * só casa em campo que tem `placeholder`, então sem a guarda um campo sem
- * placeholder casaria com `:not(:placeholder-shown)` **sempre** — e nasceria
+ * placeholder casaria com `:not(:placeholder-shown)` **sempre**, e nasceria
  * cinza, que é exatamente o defeito que esta regra existe para não repetir.
  */
 @utility campo {
@@ -310,7 +310,7 @@ select:focus-visible {
   }
 }
 
-/* A moldura de campo composto — o que tem botão dentro, como "senha · mostrar". */
+/* A moldura de campo composto, o que tem botão dentro, como "senha · mostrar". */
 @utility campo-caixa {
   display: flex;
   align-items: center;
@@ -327,7 +327,7 @@ select:focus-visible {
 }
 
 /*
- * Ruído de fundo — a assinatura visual do sistema. Fica atrás de tudo e não
+ * Ruído de fundo, a assinatura visual do sistema. Fica atrás de tudo e não
  * intercepta clique; sem isso as áreas grandes de cor chapada parecem uma
  * maquete, não um produto.
  */
@@ -442,7 +442,7 @@ select:focus-visible {
 /*
  * Impressão: a grade da semana pregada na parede da recepção.
  *
- * O que sai do papel é tudo que não é a grade — trilho, filtros, botões. Não é
+ * O que sai do papel é tudo que não é a grade, trilho, filtros, botões. Não é
  * economia de tinta: uma folha com a barra de navegação impressa é uma folha
  * que a pessoa precisa dobrar antes de pendurar. `[data-imprimir="fora"]`
  * marca o que fica na tela e some no papel.
@@ -494,8 +494,8 @@ select:focus-visible {
    *
    * Antes a altura era livre: cada via ocupava o que precisasse, as duas
    * somavam mais que uma A4 e a segunda ia para a página 2. Quem imprime
-   * recebia duas folhas com um recibo em cada, e a linha de corte no meio —
-   * que existe justamente para separar as duas vias de uma folha — ficava
+   * recebia duas folhas com um recibo em cada, e a linha de corte no meio,
+   * que existe justamente para separar as duas vias de uma folha, ficava
    * sobrando no pé da primeira.
    *
    * 273mm é a A4 menos as margens de 12mm do `@page`. Com `flex: 1`, as duas
