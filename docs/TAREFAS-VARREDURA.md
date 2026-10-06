@@ -39,9 +39,17 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
 - [x] **Aulas por professor** (mantida no Financeiro: é a base do pagamento da equipe e só o dono vê): questionar se mora no Financeiro. Proposta:
   sair do Financeiro para a Agenda ou Equipe (é relatório de aulas dadas;
   valor só para dono).
-- [ ] **Hoje, Agenda, Pendências, Alunos, Configuração, Entrar, convite,
-  onboarding**: mesma régua (nomenclatura formal, botão com cara de botão,
-  sem pastel em botão, sem card repetido, sem dica óbvia).
+- [x] **Hoje** (902449c): "Abrir aula" sólido e "Encaixar aluno" contornado,
+  aula futura sem selo, filtro de professor em chips rolável, sem contagem
+  por período, caixa sem dica.
+- [x] **Agenda** (0f7e788): local em menu suspenso (`ui/suspenso.tsx`), "Dia"
+  no lugar de "Dia por recurso", grade fixa sem aviso, sem dicas, "Quem
+  ocupa" no menu da linha.
+- [x] **Pendências** (2f289cd): cabeçalho branco com número sólido (tokens
+  `solido-atencao`, `solido-neutro`), subtítulos formais, "Sem nº da ficha".
+- [ ] **Alunos, Configuração, Entrar, convite, onboarding**: mesma régua
+  (nomenclatura formal, botão com cara de botão, sem pastel em botão, sem
+  card repetido, sem dica óbvia).
 - [ ] **Aula e Aluno** (as melhores hoje) também sobem de nível.
 
 ## Linguagem visual
