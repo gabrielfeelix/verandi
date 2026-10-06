@@ -98,7 +98,7 @@ export function SecaoFuncionamento({
         Funcionamento e feriados
       </h2>
       <p className="pt-1.5 pb-4 text-[14.5px] text-tinta-media">
-        Dias e horários em que o negócio abre; datas fechadas.
+        Dias e horários de atendimento e datas fechadas.
       </p>
 
       <div className="flex flex-col gap-[7px]">
@@ -118,7 +118,7 @@ export function SecaoFuncionamento({
                   d.abre ? 'text-tinta-media' : 'text-tinta-fraca'
                 }`}
               >
-                {d.abre ? `${d.abre} até ${d.fecha}` : 'não abre'}
+                {d.abre ? `${d.abre} às ${d.fecha}` : 'Sem atendimento'}
               </span>
 
               <span

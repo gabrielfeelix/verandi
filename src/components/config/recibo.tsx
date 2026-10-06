@@ -88,7 +88,7 @@ export function SecaoRecibo({
   return (
     <PainelConfig
       titulo="Recibo"
-      sub="quem emite, e a série da numeração"
+      sub="Dados de quem emite e série da numeração"
       acao={
         <Botao onClick={salvar} disabled={!sujo || pendente}>
           {pendente ? 'Salvando' : 'Salvar'}
@@ -125,7 +125,7 @@ export function SecaoRecibo({
           <Campo
             rotulo="CNPJ ou CPF"
             htmlFor="em-doc"
-            dica="Só os números. Sai impresso no recibo."
+            dica="Somente números"
             obrigatorio
           >
             <input
@@ -155,7 +155,7 @@ export function SecaoRecibo({
           <Campo
             rotulo="Série"
             htmlFor="em-serie"
-            dica="a letra antes do número"
+            dica="Letra antes do número"
           >
             <input
               id="em-serie" className={`${entrada} w-20`} maxLength={4}
@@ -177,8 +177,7 @@ export function SecaoRecibo({
             <div>
               <h3 className="text-[14.5px] font-medium">Assinatura</h3>
               <p className="pt-[2px] text-[13.5px] leading-[1.5] text-tinta-media">
-                Aparece em cima da linha, no papel e no recibo enviado. Sem ela,
-                a linha sai em branco para assinar à mão.
+                Exibida acima da linha de assinatura do recibo.
               </p>
             </div>
             {assinatura ? (
@@ -210,7 +209,7 @@ export function SecaoRecibo({
             <Campo
               rotulo="Quem assina"
               htmlFor="em-assina-nome"
-              dica="vazio usa a razão social"
+              dica="Em branco, usa a razão social"
             >
               <input
                 id="em-assina-nome" className={entrada} maxLength={120}
@@ -262,16 +261,14 @@ export function SecaoRecibo({
               {assinatura ? 'Trocar imagem' : 'Enviar imagem'}
             </Botao>
             <span className="text-[12px] text-tinta-fraca">
-              PNG, JPEG ou WEBP, até 1 MB. Fundo branco fica melhor no papel.
+              PNG, JPEG ou WEBP, até 1 MB, de preferência com fundo branco.
             </span>
           </form>
         </div>
 
         <Nota tom="neutro">
-          Os dados acima entram em cada recibo no momento em que ele é emitido.
-          Alterar depois não muda os recibos já emitidos. A imagem da
-          assinatura é a exceção: a segunda via sai sempre com a assinatura
-          atual.
+          Alterações valem para os próximos recibos. A segunda via sai com a
+          assinatura atual.
         </Nota>
 
         {erro ? <Nota tom="alerta">{erro}</Nota> : null}

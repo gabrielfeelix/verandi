@@ -90,7 +90,6 @@ export function SecaoEquipe({
   return (
     <PainelConfig
       titulo={rotuloPlural}
-      sub="Existe sem usuário: um nome na grade não precisa de acesso ao sistema"
       acao={
         <Botao miudo onClick={() => setAberto('novo')}>
           Cadastrar {rotuloProfissional.toLowerCase()}
@@ -121,12 +120,12 @@ export function SecaoEquipe({
                   <span>{p.email ?? 'Sem e-mail cadastrado'}</span>
                   <span className="text-[12px] text-tinta-media">
                     {p.servicoIds.length === 0
-                      ? 'atende qualquer serviço'
+                      ? 'Atende todos os serviços'
                       : `atende ${p.servicoIds
                           .map((id) => nomeDoServico.get(id))
                           .filter(Boolean)
                           .join(', ')}`}
-                    {p.emUso > 0 ? ` · ${p.emUso} na grade` : ''}
+                    {p.emUso > 0 ? ` · ${p.emUso} ${p.emUso === 1 ? 'horário' : 'horários'} na grade` : ''}
                   </span>
                 </span>
               }
@@ -138,7 +137,7 @@ export function SecaoEquipe({
                     : 'bg-neutro-fundo text-tinta-media'
                 }`}
               >
-                {p.temLogin ? 'Tem login' : 'Sem usuário'}
+                {p.temLogin ? 'Com acesso' : 'Sem acesso'}
               </span>
               <span className="flex gap-1.5">
                 <BotaoLinha onClick={() => setAberto(p.id)}>Editar</BotaoLinha>

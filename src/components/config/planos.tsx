@@ -119,9 +119,8 @@ export function SecaoPlanos({
       {servicos.length > 0 ? (
         <div className="flex flex-col gap-3 px-5 py-4">
           <Nota tom="neutro">
-            Um plano, dois preços. Quem já tem plano em vigor de outra
-            modalidade paga a tabela de cliente; quem chega só para esta paga a
-            cheia. O sistema escolhe no ato da matrícula e mostra qual usou.
+            O preço de cliente vale para quem já tem plano ativo em outra
+            modalidade. A matrícula aplica o preço certo.
           </Nota>
 
           <div className="flex flex-wrap items-center gap-2">

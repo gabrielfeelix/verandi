@@ -21,7 +21,7 @@ type Item = {
  * A seção que carrega a promessa do produto: é aqui que a Verandi deixa de ser
  * genérica e vira "o sistema do estúdio".
  *
- * Mostra o efeito **antes de salvar** — a pessoa escreve como o negócio dela
+ * Mostra o efeito **antes de salvar**, a pessoa escreve como o negócio dela
  * chama quem é atendido e vê, ali, onde isso vai aparecer. Sem a prévia, é um
  * formulário de sete campos que ninguém entende para que serve.
  */
@@ -48,8 +48,7 @@ export function SecaoVocabulario({ itens }: { itens: Item[] }) {
     <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[18px] font-semibold">Vocabulário</h2>
       <p className="pt-1.5 pb-4 text-[14.5px] text-tinta-media">
-        Escolha os nomes que combinam com o seu negócio. Nada é reescrito nos
-        dados: muda só o texto que aparece nas telas.
+        Os nomes usados nas telas. Os dados não mudam.
       </p>
 
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(190px,1fr))]">

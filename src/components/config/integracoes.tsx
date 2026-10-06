@@ -75,7 +75,7 @@ export function SecaoIntegracoes({
   return (
     <PainelConfig
       titulo="Integrações"
-      sub="Outros sistemas que falam com esta agenda"
+      sub="Sistemas conectados a esta agenda"
     >
       <div className="flex flex-col gap-3.5 px-5 py-4">
         <div className="flex flex-wrap items-start justify-between gap-3 rounded-grande border border-linha-suave bg-superficie-suave p-4">
@@ -86,9 +86,8 @@ export function SecaoIntegracoes({
               {ligado ? <Etiqueta tinta="info">Ativo</Etiqueta> : null}
             </span>
             <span className="text-[13.5px] leading-relaxed text-tinta-media">
-              O atendimento automático responde no WhatsApp e marca direto aqui. Ele oferece só
-              horário com vaga, e nunca abre turma nem passa da lotação: isso
-              continua sendo decisão de quem está no balcão.
+              Atendimento automático no WhatsApp, com agendamento direto nesta
+              agenda. Oferece apenas horários com vaga.
             </span>
           </div>
           <Botao miudo onClick={() => setCriando(true)}>

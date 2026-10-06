@@ -26,7 +26,7 @@ const TINTA_PAPEL: Record<string, 'positivo' | 'info' | 'atencao' | 'neutro'> = 
 /**
  * Quem tem acesso, com que papel.
  *
- * O convite **sai por e-mail**, e o link aparece logo abaixo como plano B — não
+ * O convite **sai por e-mail**, e o link aparece logo abaixo como plano B, não
  * como uma segunda opção a escolher. Quem confia no e-mail nem olha para o
  * link; quem trabalha no WhatsApp copia e segue. Duas ações lado a lado
  * pedindo uma escolha é que confundiria.
@@ -46,7 +46,7 @@ export function SecaoUsuarios({
   const [convidando, setConvidando] = useState(false)
   /*
    * `enviado` só existe para o convite. O link de redefinir senha ainda não sai
-   * por e-mail — dizer "o e-mail não saiu" ali seria inventar uma falha que não
+   * por e-mail, dizer "o e-mail não saiu" ali seria inventar uma falha que não
    * houve, num painel em que a pessoa confia para saber o que aconteceu.
    */
   const [link, setLink] = useState<
@@ -79,7 +79,6 @@ export function SecaoUsuarios({
     <div className="flex flex-col gap-3.5">
       <PainelConfig
         titulo="Usuários"
-        sub="Remover usuário nunca apaga o que ele registrou"
         acao={<Botao miudo onClick={() => setConvidando(true)}>Convidar</Botao>}
       >
         <div className="flex flex-col">
@@ -182,7 +181,7 @@ export function SecaoUsuarios({
                   <span>{u.email}</span>
                   <span className="text-[12px] text-tinta-media">
                     {u.ultimoAcesso
-                      ? `último acesso ${new Date(u.ultimoAcesso).toLocaleDateString('pt-BR')}`
+                      ? `Último acesso em ${new Date(u.ultimoAcesso).toLocaleDateString('pt-BR')}`
                       : 'nunca acessou'}
                   </span>
                 </span>
@@ -197,7 +196,7 @@ export function SecaoUsuarios({
                   *
                   * Um `<select>` de papel mais dois botões por usuário fazem
                   * cada linha ter noventa pixels e a lista de nove pessoas
-                  * ocupar uma tela inteira — e nenhuma dessas três ações é
+                  * ocupar uma tela inteira, e nenhuma dessas três ações é
                   * feita mais de uma vez por pessoa na vida da conta.
                   */}
                 {u.usuarioId === meuId ? (
@@ -237,11 +236,6 @@ export function SecaoUsuarios({
             </LinhaConfig>
           ))}
 
-          <p className="px-5 py-3.5 text-[13.5px] text-tinta-media">
-            Remover não apaga nada do que a pessoa registrou: a presença marcada
-            por ela continua marcada por ela. Se for profissional, o nome segue
-            na grade, o que acaba é o acesso.
-          </p>
         </div>
       </PainelConfig>
 
@@ -257,7 +251,7 @@ export function SecaoUsuarios({
               detalhe={
                 /*
                  * O que aconteceu com o e-mail vem antes do prazo: se ele
-                 * voltou, saber que "expira em 7 dias" não ajuda ninguém — a
+                 * voltou, saber que "expira em 7 dias" não ajuda ninguém, a
                  * pessoa nunca vai receber. `entrega` nula é silêncio, não
                  * sucesso, e por isso não vira texto nenhum.
                  */

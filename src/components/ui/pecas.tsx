@@ -371,7 +371,8 @@ function paresDe(nome: string): readonly [string, string] {
 }
 
 function iniciaisDe(nome: string): string {
-  const partes = nome.trim().split(/\s+/)
+  // "Edu (dono)" dava "E(": só conta palavra que começa com letra
+  const partes = nome.trim().split(/\s+/).filter((w) => /^\p{L}/u.test(w))
   const primeira = partes[0]?.[0] ?? '?'
   const segunda = partes[1]?.[0] ?? ''
   return (primeira + segunda).toUpperCase()
