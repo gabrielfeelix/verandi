@@ -379,10 +379,10 @@ export type Database = {
           endereco_emitente: string | null
           fuso: string
           horarios_sugeridos: string[]
-          minutos_minimos_cancelamento: number
           id: string
           interna: boolean
           intervalo_min: number
+          minutos_minimos_cancelamento: number
           nome: string
           prazo_reposicao_dias: number
           razao_social: string | null
@@ -404,10 +404,10 @@ export type Database = {
           endereco_emitente?: string | null
           fuso?: string
           horarios_sugeridos?: string[]
-          minutos_minimos_cancelamento?: number
           id?: string
           interna?: boolean
           intervalo_min?: number
+          minutos_minimos_cancelamento?: number
           nome: string
           prazo_reposicao_dias?: number
           razao_social?: string | null
@@ -429,10 +429,10 @@ export type Database = {
           endereco_emitente?: string | null
           fuso?: string
           horarios_sugeridos?: string[]
-          minutos_minimos_cancelamento?: number
           id?: string
           interna?: boolean
           intervalo_min?: number
+          minutos_minimos_cancelamento?: number
           nome?: string
           prazo_reposicao_dias?: number
           razao_social?: string | null
@@ -821,6 +821,67 @@ export type Database = {
             columns: ["conta_id"]
             isOneToOne: false
             referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      licenca: {
+        Row: {
+          conta_id: string
+          criado_em: string
+          criado_por_usuario_id: string | null
+          encerrada_em: string | null
+          encerrada_por: string | null
+          id: string
+          inicio: string
+          pessoa_id: string
+          volta_prevista: string | null
+          voltou_sem_reagendar_em: string | null
+        }
+        Insert: {
+          conta_id: string
+          criado_em?: string
+          criado_por_usuario_id?: string | null
+          encerrada_em?: string | null
+          encerrada_por?: string | null
+          id?: string
+          inicio?: string
+          pessoa_id: string
+          volta_prevista?: string | null
+          voltou_sem_reagendar_em?: string | null
+        }
+        Update: {
+          conta_id?: string
+          criado_em?: string
+          criado_por_usuario_id?: string | null
+          encerrada_em?: string | null
+          encerrada_por?: string | null
+          id?: string
+          inicio?: string
+          pessoa_id?: string
+          volta_prevista?: string | null
+          voltou_sem_reagendar_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenca_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "conta"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "licenca_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "licenca_pessoa_id_fkey"
+            columns: ["pessoa_id"]
+            isOneToOne: false
+            referencedRelation: "pessoa_resumo"
             referencedColumns: ["id"]
           },
         ]
@@ -1392,9 +1453,9 @@ export type Database = {
           codigo: string
           conta_id: string
           criado_em: string
+          dias_permitidos: number[] | null
           frequencia_semanal: number | null
           horario_livre: boolean
-          dias_permitidos: number[] | null
           id: string
           nome: string
           parcelas: number
@@ -1410,9 +1471,9 @@ export type Database = {
           codigo: string
           conta_id: string
           criado_em?: string
+          dias_permitidos?: number[] | null
           frequencia_semanal?: number | null
           horario_livre?: boolean
-          dias_permitidos?: number[] | null
           id?: string
           nome: string
           parcelas?: number
@@ -1428,9 +1489,9 @@ export type Database = {
           codigo?: string
           conta_id?: string
           criado_em?: string
+          dias_permitidos?: number[] | null
           frequencia_semanal?: number | null
           horario_livre?: boolean
-          dias_permitidos?: number[] | null
           id?: string
           nome?: string
           parcelas?: number

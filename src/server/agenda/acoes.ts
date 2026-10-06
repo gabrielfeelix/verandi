@@ -11,7 +11,8 @@ import type { OrigemParticipacao } from './consultas'
 import { semAcento } from '../pessoas/consultas'
 import { CANDIDATOS_EM_MEMORIA } from '@/core/pessoas/busca'
 import { horariosLivres } from './disponibilidade'
-import { hojeEm } from './fuso'
+import { hojeEm, localDe } from './fuso'
+import { abrirLicenca, desfazerLicencaSemAula, encerrarLicenca } from '../licencas/licencas'
 import { somarDias } from '@/core/agenda/datas'
 
 /** De qual lado do balcão veio o registro. Serve auditoria, não permissão. */
@@ -45,16 +46,18 @@ function atualizarTela(sessaoId: string) {
  * pior que exigir um toque a mais.
  */
 export async function marcarTodosPresentes(sessaoId: string): Promise<{ marcadas: number }> {
-  const { db, carimbo } = await quemRegistra()
+  const { db, conta, carimbo } = await quemRegistra()
 
   const { data, error } = await db
     .from('participacao')
     .update({ status: 'presente', ...carimbo })
     .eq('sessao_id', sessaoId)
     .in('status', ['esperada', 'confirmada'])
-    .select('id')
+    .select('id, pessoa_id')
 
   if (error) throw error
+  // presença é volta: quem estava de licença e veio, saiu da licença
+  await encerrarLicenca(db, conta.contaId, (data ?? []).map((p) => p.pessoa_id), 'presenca')
   atualizarTela(sessaoId)
   return { marcadas: data?.length ?? 0 }
 }
@@ -62,6 +65,8 @@ export async function marcarTodosPresentes(sessaoId: string): Promise<{ marcadas
 export async function mudarStatus(
   participacaoId: string,
   status: StatusParticipacao,
+  /** só com `licenca`: a data combinada de volta, se alguém disse */
+  voltaPrevista?: string | null,
 ): Promise<void> {
   const { db, conta, carimbo } = await quemRegistra()
 
@@ -69,11 +74,29 @@ export async function mudarStatus(
     .from('participacao')
     .update({ status, ...carimbo })
     .eq('id', participacaoId)
-    .select('sessao_id')
+    .select('sessao_id, pessoa_id, sessao:sessao_id(inicio)')
     .maybeSingle()
 
   if (error) throw error
   if (!data) return
+
+  /*
+   * A licença da aula abre o acompanhamento, e a presença fecha. Falta não
+   * fecha: quem está afastada e não veio continua afastada, e a falta é só o
+   * registro errado de uma licença que ninguém corrigiu.
+   */
+  if (status === 'licenca') {
+    await abrirLicenca(db, conta.contaId, data.pessoa_id, {
+      inicio: localDe(data.sessao?.inicio ?? new Date().toISOString(), conta.fuso).data,
+      voltaPrevista: voltaPrevista ?? null,
+      usuarioId: carimbo.registrado_por_usuario_id,
+    })
+    revalidatePath('/pendencias')
+  } else if (status === 'presente') {
+    await encerrarLicenca(db, conta.contaId, [data.pessoa_id], 'presenca')
+  } else if (status === 'esperada' || status === 'confirmada') {
+    await desfazerLicencaSemAula(db, conta.contaId, data.pessoa_id)
+  }
   atualizarTela(data.sessao_id)
 
   /*

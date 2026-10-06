@@ -3,6 +3,7 @@ import { hojeEm, instante, localDe } from '../agenda/fuso'
 import { estadoDaChamada } from '@/core/agenda/chamada'
 import { statusComCredito, type StatusParticipacao } from '@/core/agenda/ocupacao'
 import { dataCurta } from '@/core/agenda/datas'
+import { licencasAbertas } from '../licencas/licencas'
 
 /**
  * O inbox de quem opera: o que exige ação humana hoje.
@@ -15,6 +16,7 @@ import { dataCurta } from '@/core/agenda/datas'
 export type TipoPendencia =
   | 'chamada_nao_feita'
   | 'reposicao_aberta'
+  | 'licenca'
   | 'reserva_esperando'
   | 'cadastro_incompleto'
 
@@ -26,6 +28,10 @@ export type Pendencia = {
   /** há quantos dias isto está em aberto — crédito velho lê diferente */
   diasEmAberto: number | null
   href: string
+  /** a etiqueta da direita quando "há N dias" não é a informação certa */
+  etiqueta?: { texto: string; tinta: 'neutro' | 'atencao' | 'alerta' | 'licenca' }
+  /** só licença: o que as ações "Voltou" e "Prorrogar" precisam */
+  licenca?: { id: string; pessoaId: string; voltaPrevista: string | null }
 }
 
 export type GrupoPendencia = {
@@ -80,11 +86,12 @@ export async function listarPendencias(
   const prazo = conta.data?.prazo_reposicao_dias ?? 60
   const creditoAvisada = conta.data?.credito_falta_avisada ?? true
 
-  const [chamadas, reposicoes, reservas, cadastros] = await Promise.all([
+  const [chamadas, reposicoes, reservas, cadastros, licencas] = await Promise.all([
     chamadasNaoFeitas(db, contaId, fuso, agora),
     reposicoesAbertas(db, contaId, prazo, creditoAvisada),
     reservasEsperando(db, contaId, agora),
     cadastrosIncompletos(db, contaId, hoje),
+    licencasEmAcompanhamento(db, contaId, hoje),
   ])
 
   const grupos: GrupoPendencia[] = [
@@ -99,6 +106,12 @@ export async function listarPendencias(
       titulo: 'Reposições em aberto',
       sub: 'crédito de falta ou de dia fechado que ninguém usou',
       itens: reposicoes.filter(vale),
+    },
+    {
+      tipo: 'licenca',
+      titulo: 'Licenças',
+      sub: 'afastados com horário guardado; na data de volta, alguém entra em contato',
+      itens: licencas,
     },
     {
       tipo: 'reserva_esperando',
@@ -289,4 +302,66 @@ export async function esvaziadasHoje(
     .gte('dispensado_em', instante(hoje, '00:00', fuso))
     .lte('dispensado_em', instante(hoje, '23:59', fuso))
   return count ?? 0
+}
+
+/*
+ * Licença aberta, da mais urgente para a mais tranquila.
+ *
+ * Não passa pelo "Dispensar": licença não se dispensa, se encerra ("Voltou")
+ * ou se prorroga. A ordem é a do telefone: primeiro quem disse que voltou e
+ * não reagendou, depois quem já passou da data, quem volta hoje, quem volta
+ * nos próximos dias, e por último quem não tem data.
+ */
+async function licencasEmAcompanhamento(
+  db: Db, contaId: string, hoje: string,
+): Promise<Pendencia[]> {
+  const abertas = await licencasAbertas(db, contaId)
+  const peso = (l: (typeof abertas)[number]) =>
+    l.voltouSemReagendarEm ? 0
+      : !l.voltaPrevista ? 4
+      : l.voltaPrevista < hoje ? 1
+      : l.voltaPrevista === hoje ? 2
+      : 3
+  return abertas
+    .sort((a, b) => peso(a) - peso(b)
+      || (a.voltaPrevista ?? '9').localeCompare(b.voltaPrevista ?? '9')
+      || a.pessoaNome.localeCompare(b.pessoaNome, 'pt-BR'))
+    .map((l) => {
+      const desde = `em licença desde ${diaMes(l.inicio)}`
+      let etiqueta: Pendencia['etiqueta']
+      let detalhe = desde
+      if (l.voltouSemReagendarEm) {
+        etiqueta = { texto: 'voltou, sem reagendar', tinta: 'alerta' }
+        detalhe = `avisou pelo WhatsApp que voltou e não quis reagendar; ${desde}`
+      } else if (!l.voltaPrevista) {
+        etiqueta = { texto: 'sem data de volta', tinta: 'neutro' }
+      } else if (l.voltaPrevista < hoje) {
+        const n = diasEntre(l.voltaPrevista, hoje)
+        etiqueta = { texto: `volta passou há ${n} ${n === 1 ? 'dia' : 'dias'}`, tinta: 'alerta' }
+        detalhe = `${desde}, volta prevista ${diaMes(l.voltaPrevista)}`
+      } else if (l.voltaPrevista === hoje) {
+        etiqueta = { texto: 'volta hoje', tinta: 'atencao' }
+      } else {
+        etiqueta = { texto: `volta ${diaMes(l.voltaPrevista)}`, tinta: 'licenca' }
+      }
+      return {
+        tipo: 'licenca' as const,
+        referenciaId: l.id,
+        titulo: l.pessoaNome,
+        detalhe,
+        diasEmAberto: null,
+        href: `/pessoas/${l.pessoaId}`,
+        etiqueta,
+        licenca: { id: l.id, pessoaId: l.pessoaId, voltaPrevista: l.voltaPrevista },
+      }
+    })
+}
+
+function diasEntre(de: string, ate: string) {
+  return Math.round((Date.parse(`${ate}T12:00:00Z`) - Date.parse(`${de}T12:00:00Z`)) / DIA)
+}
+
+/** "12/10": na linha da licença o ano só ocupa lugar */
+function diaMes(iso: string) {
+  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
 }

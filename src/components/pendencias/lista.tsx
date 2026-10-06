@@ -8,6 +8,8 @@ import { paresDe, iniciaisDe } from '@/components/hoje/pecas'
 import { Modal } from '@/components/ui/modal'
 import { useAviso } from '@/components/ui/desfazer'
 import { dispensarPendencia } from '@/server/pendencias/acoes'
+import { marcarVolta, mudarVolta } from '@/server/licencas/acoes'
+import { ModalVolta } from '@/components/licenca/modal-volta'
 import type { GrupoPendencia, Pendencia } from '@/server/pendencias/consultas'
 import { ACAO_GRUPO, TINTA_GRUPO } from './tintas'
 
@@ -29,14 +31,20 @@ function idade(dias: number | null) {
   return { texto: `há ${dias} dias`, tinta: 'alerta' as const }
 }
 
-export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
+export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[] }) {
   const [dispensando, setDispensando] = useState<Pendencia | null>(null)
   const [abertos, setAbertos] = useState<string[]>([])
   const [motivo, setMotivo] = useState(MOTIVOS[0])
+  const [prorrogando, setProrrogando] = useState<Pendencia | null>(null)
+  // "Voltou" tira a linha na hora; o servidor confirma por trás
+  const [voltaram, setVoltaram] = useState<string[]>([])
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
   const avisar = useAviso()
 
+  const grupos = recebidos
+    .map((g) => ({ ...g, itens: g.itens.filter((p) => !voltaram.includes(p.referenciaId)) }))
+    .filter((g) => g.itens.length > 0)
   const total = grupos.reduce((n, g) => n + g.itens.length, 0)
 
   if (total === 0) {
@@ -77,7 +85,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
 
           <ul>
             {(abertos.includes(g.tipo) ? g.itens : g.itens.slice(0, MOSTRA)).map((p) => {
-              const i = idade(p.diasEmAberto)
+              const i = p.etiqueta ?? idade(p.diasEmAberto)
               const [fundo, frente] = paresDe(p.titulo)
               return (
                 <li
@@ -107,6 +115,33 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
                     <span className="text-[13px] text-tinta-media">{p.detalhe}</span>
                   </div>
                   {i ? <Etiqueta tinta={i.tinta}>{i.texto}</Etiqueta> : null}
+                  {p.licenca ? (
+                  <span className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      disabled={pendente}
+                      onClick={() => {
+                        const alvo = p
+                        setVoltaram((v) => [...v, alvo.referenciaId])
+                        iniciar(async () => {
+                          await marcarVolta(alvo.licenca!.pessoaId)
+                          avisar({ texto: `${alvo.titulo}: licença encerrada` })
+                          router.refresh()
+                        })
+                      }}
+                      className="inline-flex min-h-10 items-center rounded-padrao bg-escuro px-3.5 text-[13.5px] font-medium whitespace-nowrap text-tinta-clara hover:bg-escuro-hover"
+                    >
+                      Voltou
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProrrogando(p)}
+                      className="min-h-10 rounded-padrao border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-suave hover:text-tinta"
+                    >
+                      {p.licenca.voltaPrevista ? 'Prorrogar' : 'Definir volta'}
+                    </button>
+                  </span>
+                  ) : (
                   <span className="flex items-center gap-1.5">
                     <Link
                       href={p.href}
@@ -122,6 +157,7 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
                       Dispensar
                     </button>
                   </span>
+                  )}
                 </li>
               )
             })}
@@ -141,6 +177,26 @@ export function ListaPendencias({ grupos }: { grupos: GrupoPendencia[] }) {
           ) : null}
         </section>
       ))}
+
+      {prorrogando?.licenca ? (
+        <ModalVolta
+          aberto
+          nome={prorrogando.titulo}
+          valorInicial={prorrogando.licenca.voltaPrevista ?? ''}
+          pulavel={false}
+          pendente={pendente}
+          aoFechar={() => setProrrogando(null)}
+          aoSalvar={(data) => {
+            const alvo = prorrogando
+            iniciar(async () => {
+              await mudarVolta(alvo.licenca!.id, data)
+              setProrrogando(null)
+              avisar({ texto: data ? `${alvo.titulo}: nova data de volta` : `${alvo.titulo}: sem data de volta` })
+              router.refresh()
+            })
+          }}
+        />
+      ) : null}
 
       <Modal
         aberto={dispensando !== null}

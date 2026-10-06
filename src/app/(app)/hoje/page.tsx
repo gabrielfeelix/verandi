@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { clienteServidor, exigirConta } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { sessoesDoIntervalo, type SessaoResumo } from '@/server/agenda/consultas'
-import { listarPendencias } from '@/server/pendencias/consultas'
+import { listarPendencias, type GrupoPendencia } from '@/server/pendencias/consultas'
 import { somarDias } from '@/core/agenda/datas'
 import { agoraMs, hojeEm, horaEm, quantoFalta } from '@/server/agenda/fuso'
 import { BuscaRapida } from '@/components/hoje/busca-rapida'
@@ -48,7 +48,16 @@ const TINTA_PENDENCIA: Record<string, string> = {
   reposicao_aberta: 'bg-atencao-fundo text-atencao',
   reserva_esperando: 'bg-info-fundo text-info',
   cadastro_incompleto: 'bg-neutro-fundo text-neutro',
+  licenca: 'bg-licenca-fundo text-licenca',
 }
+
+/*
+ * A licença que pede ligação hoje sobe para o topo do cartão. É o lembrete que
+ * o estúdio pediu: a data de volta chega e o nome aparece na primeira tela do
+ * dia, sem depender de alguém lembrar de abrir Pendências.
+ */
+const pedeLigacao = (g: GrupoPendencia) =>
+  g.tipo === 'licenca' && g.itens.some((p) => p.etiqueta?.tinta === 'alerta' || p.etiqueta?.tinta === 'atencao')
 
 function saudacao(hora: number) {
   return hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
@@ -445,7 +454,9 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
         }
       >
         <div className="flex flex-col gap-2">
-          {grupos.filter((g) => g.itens.length > 0).slice(0, 4).map((g) => (
+          {grupos.filter((g) => g.itens.length > 0)
+            .sort((a, b) => Number(pedeLigacao(b)) - Number(pedeLigacao(a)))
+            .slice(0, 5).map((g) => (
             <Link
               key={g.tipo}
               href="/pendencias"
@@ -459,7 +470,9 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               <span className="flex min-w-0 flex-col leading-tight">
                 <span className="text-[14px] font-medium">{g.titulo}</span>
                 <span className="truncate text-[12.5px] text-tinta-media">
-                  {g.itens[0]?.detalhe ?? g.sub}
+                  {g.tipo === 'licenca' && g.itens[0]
+                    ? `${g.itens[0].titulo} · ${g.itens[0].etiqueta?.texto ?? ''}`
+                    : g.itens[0]?.detalhe ?? g.sub}
                 </span>
               </span>
               <span aria-hidden className="ml-auto font-mono text-[14px] text-[#A9B3AE]">

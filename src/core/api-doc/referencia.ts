@@ -315,4 +315,28 @@ export const ROTAS: Rota[] = [
   "jaEstavaAssim": false
 }`,
   },
+  {
+    id: 'voltou-de-licenca',
+    metodo: 'POST',
+    caminho: '/licencas',
+    titulo: 'Avisar que voltou de licença',
+    resumo:
+      'A pessoa diz no WhatsApp que voltou. Com reagendou true (ela marcou aula na conversa) a licença fecha. Com reagendou false a licença continua aberta e sobe para o topo de Pendências, para alguém do estúdio ligar.',
+    atencao:
+      'Quem não tem licença aberta recebe 200 com tinhaLicenca false, e não erro: a pessoa diz que voltou mesmo quando ninguém registrou a saída. A ficha (GET /pessoas/{pessoaId}) traz licenca com inicio e voltaPrevista, ou null.',
+    corpo: [
+      { nome: 'pessoaId', tipo: 'id', obrigatorio: true, descricao: 'quem voltou' },
+      { nome: 'reagendou', tipo: 'booleano', obrigatorio: true, descricao: 'true se marcou aula na conversa; false se não quis marcar agora' },
+    ],
+    exemplo: `curl -X POST ${BASE}/licencas \\
+  -H "Authorization: Bearer vr_sua_chave_aqui" \\
+  -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: conversa-8f21c" \\
+  -d '{ "pessoaId": "77c0...", "reagendou": false }'`,
+    resposta: `{
+  "pessoaId": "77c0...",
+  "tinhaLicenca": true,
+  "licencaAberta": true
+}`,
+  },
 ]

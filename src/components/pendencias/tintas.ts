@@ -11,6 +11,7 @@
 export const TINTA_GRUPO: Record<string, string> = {
   chamada_nao_feita: 'bg-alerta-fundo text-alerta',
   reposicao_aberta: 'bg-atencao-fundo text-atencao',
+  licenca: 'bg-licenca-fundo text-licenca',
   reserva_esperando: 'bg-info-fundo text-info',
   cadastro_incompleto: 'bg-neutro-fundo text-tinta-media',
 }
@@ -19,6 +20,7 @@ export const TINTA_GRUPO: Record<string, string> = {
 export const PONTO_GRUPO: Record<string, string> = {
   chamada_nao_feita: 'bg-alerta',
   reposicao_aberta: 'bg-atencao',
+  licenca: 'bg-licenca',
   reserva_esperando: 'bg-info',
   cadastro_incompleto: 'bg-tinta-fraca',
 }
@@ -34,6 +36,7 @@ export const PONTO_GRUPO: Record<string, string> = {
 export const ACAO_GRUPO: Record<string, string> = {
   chamada_nao_feita: 'Marcar chamada',
   reposicao_aberta: 'Agendar reposição',
+  licenca: 'Voltou',
   reserva_esperando: 'Encaixar',
   cadastro_incompleto: 'Completar',
 }

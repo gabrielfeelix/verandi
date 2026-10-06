@@ -1,3 +1,4 @@
+import { licencaDaPessoa } from '@/server/licencas/licencas'
 import { NextResponse, type NextRequest } from 'next/server'
 import { fichaDaPessoa } from '@/server/pessoas/consultas'
 import { situacaoDe } from '@/core/pessoas/situacao'
@@ -63,6 +64,7 @@ export const GET = comChave<{ id: string }>(async (
       ?.minutos_minimos_cancelamento ?? 0
 
   const agora = new Date()
+  const licenca = await licencaDaPessoa(ctx.db, ctx.contaId, ficha.pessoa.id)
 
   const s = situacaoDe({
     ativo: ficha.pessoa.ativo,
@@ -77,6 +79,8 @@ export const GET = comChave<{ id: string }>(async (
     ativa: ficha.pessoa.ativo,
     situacao: s.rotulo,
     ultimaPresenca: ficha.pessoa.ultimaPresenca,
+    /* "voltei de licença": o bot sabe se há licença aberta antes de perguntar */
+    licenca: licenca ? { inicio: licenca.inicio, voltaPrevista: licenca.voltaPrevista } : null,
 
     /* os horários fixos dela: é o que responde "eu venho terça e quinta" */
     horariosFixos: ficha.vagas.map((v) => ({

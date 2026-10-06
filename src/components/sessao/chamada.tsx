@@ -7,6 +7,8 @@ import {
 import type { ParticipacaoDetalhe } from '@/server/agenda/consultas'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { marcarTodosPresentes, mudarStatus } from '@/server/agenda/acoes'
+import { definirVolta } from '@/server/licencas/acoes'
+import { ModalVolta } from '@/components/licenca/modal-volta'
 import { useAviso } from '@/components/ui/desfazer'
 import { cartao } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
@@ -98,6 +100,8 @@ export function ProvedorChamada({
     if (window.location.hash === '#encaixar') setEncaixe(true)
   }, [])
   const [cancelarAberto, setCancelar] = useState(false)
+  // quem acabou de entrar em licença: o modal pergunta a data de volta
+  const [voltaDe, setVoltaDe] = useState<{ pessoaId: string; nome: string } | null>(null)
 
   const [lista, aplicar] = useOptimistic(
     participacoes,
@@ -129,6 +133,7 @@ export function ProvedorChamada({
       const status: StatusParticipacao = p.status === pedido ? 'esperada' : pedido
       aplicar({ id: p.id, status })
       await mudarStatus(p.id, status)
+      if (status === 'licenca') setVoltaDe({ pessoaId: p.pessoaId, nome: p.nome })
       // desfazer, não confirmar: o registro acontece e volta atrás num toque
       avisar({
         texto: `${p.nome}: ${O_QUE_FICOU[status] ?? 'registro alterado'}.`,
@@ -155,7 +160,28 @@ export function ProvedorChamada({
     fecharCancelar: () => setCancelar(false),
   }
 
-  return <Contexto.Provider value={valor}>{children}</Contexto.Provider>
+  return (
+    <Contexto.Provider value={valor}>
+      {children}
+      {voltaDe ? (
+        <ModalVolta
+          aberto
+          nome={voltaDe.nome}
+          aoFechar={() => setVoltaDe(null)}
+          pendente={pendente}
+          aoSalvar={(data) => {
+            const quem = voltaDe
+            setVoltaDe(null)
+            if (!data) return
+            iniciar(async () => {
+              await definirVolta(quem.pessoaId, data)
+              avisar({ texto: `${quem.nome}: volta prevista registrada.` })
+            })
+          }}
+        />
+      ) : null}
+    </Contexto.Provider>
+  )
 }
 
 /** O rótulo do estado, derivado da lista viva: nunca de coluna no banco. */
