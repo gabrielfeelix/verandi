@@ -1,5 +1,8 @@
 # Passagem de bastão
 
+> **Rodada de 06/out/2026 (licença acompanhada, filtros de Alunos, busca de
+> vaga, conta 4YU TESTE):** [HANDOFF-06-OUT-LICENCA-E-TESTE.md](HANDOFF-06-OUT-LICENCA-E-TESTE.md).
+
 > **Banco compartilhado, leitura obrigatória:** antes de qualquer mudança em
 > Supabase, migration, Auth, RLS, Storage, extensão ou Data API, leia
 > [BANCO-COMPARTILHADO.md](BANCO-COMPARTILHADO.md). Verandi usa `app_verandi`;
