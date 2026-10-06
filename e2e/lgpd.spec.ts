@@ -50,7 +50,8 @@ test('atender pedido de exclusão apaga quem a pessoa é e mantém o que acontec
   await entrar(page, email)
   await page.goto(`/pessoas/${pessoa.id}`)
 
-  await page.getByRole('button', { name: 'Atender pedido de exclusão' }).click()
+  await page.getByRole('button', { name: 'Editar dados' }).click()
+  await page.getByRole('button', { name: 'Excluir dados' }).click()
 
   // sem escrever o nome, o primário nem fica clicável: aqui não há desfazer
   await expect(page.getByText('O que sai')).toBeVisible()
@@ -164,7 +165,7 @@ test('observação da ficha escrita para quem atende não chega à recepção', 
   // quem escreveu continua lendo, e a faixa diz que aquilo é restrito
   await page.reload()
   await expect(page.getByText('hérnia de disco, sem carga axial')).toBeVisible()
-  await expect(page.getByText('só quem atende')).toBeVisible()
+  await expect(page.getByText('Atenção na aula')).toBeVisible()
 
   // a recepção abre a mesma ficha e não encontra o texto
   const outra = await browser.newContext()

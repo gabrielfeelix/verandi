@@ -8,6 +8,7 @@ import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Icone } from '@/components/ui/icones'
 import { Campo, Nota } from '@/components/ui/pecas'
 import { CampoData } from '@/components/ui/campo-data'
+import { Menu } from '@/components/ui/menu'
 import { useAviso } from '@/components/ui/desfazer'
 import { criarVaga, encerrarVaga } from '@/server/pessoas/acoes'
 import { erroLegivel } from '@/core/erro-legivel'
@@ -112,9 +113,7 @@ export function Vagas({
     <div className="flex flex-col gap-3">
       {ativas.length === 0 ? (
         <p className="text-[13.5px] text-tinta-media">
-          Sem {rotuloSerie.toLowerCase()}. Quem só vem de vez em quando é
-          normal: {rotuloVaga.toLowerCase()} existe para quem ocupa o mesmo
-          horário toda semana.
+          Sem {rotuloSerie.toLowerCase()}.
         </p>
       ) : (
         /* cartão, não linha de tabela: o que se procura aqui é "que horário
@@ -126,11 +125,12 @@ export function Vagas({
               key={v.id}
               className="flex items-center gap-3 rounded-grande border border-linha-suave bg-superficie p-3"
             >
-              <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-media bg-escuro leading-none text-tinta-clara">
+              {/* largura folgada: em 48px o "07:00" encostava na borda */}
+              <span className="flex h-13 w-16 shrink-0 flex-col items-center justify-center gap-1 rounded-media bg-escuro leading-none text-tinta-clara">
                 <span className="text-[12px] font-medium capitalize opacity-70">
                   {v.dia.slice(0, 3)}
                 </span>
-                <span className="pt-0.5 text-[14.5px] font-semibold">{v.hora}</span>
+                <span className="text-[14.5px] font-semibold tabular-nums">{v.hora}</span>
               </span>
 
               <span className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
@@ -148,15 +148,14 @@ export function Vagas({
               </span>
 
               {podeEditar ? (
-              <button
-                type="button"
-                disabled={pendente}
-                aria-label={`Encerrar ${v.rotulo}`}
-                className="min-h-9 shrink-0 cursor-pointer rounded-peca px-3 text-[13.5px] text-tinta-media hover:bg-alerta-superficie hover:text-alerta"
-                onClick={() => setEncerrando({ id: v.id, rotulo: v.rotulo })}
-              >
-                Encerrar
-              </button>
+              <Menu
+                titulo={`Opções de ${v.rotulo}`}
+                itens={[{
+                  rotulo: `Encerrar ${rotuloVaga.toLowerCase()}`,
+                  perigo: true,
+                  aoEscolher: () => { if (!pendente) setEncerrando({ id: v.id, rotulo: v.rotulo }) },
+                }]}
+              />
               ) : null}
             </li>
           ))}
@@ -185,9 +184,6 @@ export function Vagas({
       >
         Criar {rotuloVaga.toLowerCase()}
       </button>
-      <p className="text-[13.5px] text-tinta-fraca">
-        Ocupa esse horário toda semana, por tempo indeterminado.
-      </p>
       </>
       ) : null}
 

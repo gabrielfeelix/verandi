@@ -60,6 +60,8 @@ export async function editarPessoa(id: string, campos: {
   profissao?: string | null
   telefoneResidencial?: string | null
   telefoneComercial?: string | null
+  /** as condições da ficha (gestante, lesão...): a lista inteira, substitui a atual */
+  condicoes?: string[]
 }): Promise<void> {
   const conta = await exigirConta()
   const db = await clienteServidor()
@@ -153,6 +155,21 @@ export async function editarPessoa(id: string, campos: {
       throw new Error('Já existe uma ficha nesta conta com esse CPF.')
     }
     throw error
+  }
+
+  if (campos.condicoes !== undefined) {
+    const condicoes = [...new Set(
+      campos.condicoes.map((c) => c.trim().toLowerCase().slice(0, 40)).filter(Boolean),
+    )].slice(0, 12)
+    const apagar = await db.from('pessoa_tag').delete()
+      .eq('pessoa_id', id).eq('conta_id', conta.contaId)
+    if (apagar.error) throw apagar.error
+    if (condicoes.length) {
+      const inserir = await db.from('pessoa_tag').insert(
+        condicoes.map((tag) => ({ pessoa_id: id, conta_id: conta.contaId, tag })),
+      )
+      if (inserir.error) throw inserir.error
+    }
   }
 
   revalidatePath(`/pessoas/${id}`)

@@ -16,10 +16,10 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
 
 ## Telas
 
-- [ ] **Chamada** (`/sessao/[id]`): botões sólidos, Presente / Falta /
+- [x] **Chamada** (1f86ff8) (`/sessao/[id]`): botões sólidos, Presente / Falta /
   Falta justificada / Licença, origem legível, "Trocar professor" como botão,
   cancelar no "⋮". Falta vermelho de verdade, justificada azul (tokens `reg-*`).
-- [ ] **Ficha do aluno**
+- [x] **Ficha do aluno**
   - "Marcar aula" e "Editar dados" lado a lado, não empilhados e esticados.
   - Condições (lesão, idoso, gestante): editar dentro de "Editar dados". Hoje
     ninguém acha onde se coloca.

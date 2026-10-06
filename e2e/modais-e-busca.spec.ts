@@ -93,7 +93,8 @@ test('encerrar matrícula pergunta em modal, não no confirm do navegador', asyn
   page.on('dialog', () => { throw new Error('usou o confirm() do navegador') })
 
   await page.goto(`/pessoas/${c.pessoaId}`)
-  await page.getByRole('button', { name: 'Encerrar' }).first().click()
+  await page.getByRole('button', { name: /^Opções de/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Encerrar/ }).click()
 
   const modal = page.locator('dialog[open]')
   await expect(modal.getByRole('heading')).toContainText('Encerrar')

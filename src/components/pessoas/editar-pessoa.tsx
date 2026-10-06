@@ -43,7 +43,12 @@ type Pessoa = {
   profissao: string | null
   telefoneResidencial: string | null
   telefoneComercial: string | null
+  /** gestante, lesão, idoso...: aparecem junto do nome na ficha e na chamada */
+  condicoes: string[]
 }
+
+/** as condições que mais aparecem; qualquer outra se escreve no campo */
+const CONDICOES_COMUNS = ['gestante', 'idoso', 'lesão', 'pós-operatório']
 
 /*
  * Os campos que abrem no grupo, e não na cara de quem cadastra.
@@ -123,12 +128,26 @@ export function EditarPessoa({
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const [visivel, setVisivel] = useState(pessoa.observacaoVisivel)
+  const [condicoes, setCondicoes] = useState<string[]>(pessoa.condicoes)
+  const [outraCondicao, setOutraCondicao] = useState('')
   const router = useRouter()
   const avisar = useAviso()
 
   function fechar() {
     setAberto(false)
     setErro(null)
+    setCondicoes(pessoa.condicoes)
+    setOutraCondicao('')
+  }
+
+  function alternar(c: string) {
+    setCondicoes((atual) => atual.includes(c) ? atual.filter((x) => x !== c) : [...atual, c])
+  }
+
+  function incluirOutra() {
+    const c = outraCondicao.trim().toLowerCase()
+    if (c && !condicoes.includes(c)) setCondicoes([...condicoes, c])
+    setOutraCondicao('')
   }
 
   const valor: Record<string, string> = {
@@ -217,6 +236,9 @@ export function EditarPessoa({
                 profissao: String(f.get('profissao') ?? ''),
                 telefoneResidencial: String(f.get('telefoneResidencial') ?? ''),
                 telefoneComercial: String(f.get('telefoneComercial') ?? ''),
+                condicoes: outraCondicao.trim()
+                  ? [...condicoes, outraCondicao.trim()]
+                  : condicoes,
               })
               // a foto vai por fora do pacote de campos: é arquivo, e sobe
               // para o Storage, não para a linha da tabela
@@ -266,6 +288,43 @@ export function EditarPessoa({
               </div>
             ))}
           </div>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="pb-1.5 text-[13.5px] font-medium">Condições</legend>
+            <div className="flex flex-wrap gap-2">
+              {[...new Set([...CONDICOES_COMUNS, ...condicoes])].map((c) => {
+                const marcada = condicoes.includes(c)
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={marcada}
+                    onClick={() => alternar(c)}
+                    className={`inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border px-3.5 text-[13.5px] font-medium transition-colors duration-150 ${
+                      marcada
+                        ? 'border-escuro bg-escuro text-tinta-clara'
+                        : 'border-linha bg-superficie text-tinta hover:bg-superficie-mais-suave'
+                    }`}
+                  >
+                    {marcada ? <span aria-hidden>✓</span> : null}
+                    {c}
+                  </button>
+                )
+              })}
+            </div>
+            <input
+              aria-label="Outra condição"
+              value={outraCondicao}
+              onChange={(e) => setOutraCondicao(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); incluirOutra() }
+              }}
+              onBlur={incluirOutra}
+              maxLength={40}
+              placeholder="Exemplo: hipertensão (Enter para incluir)"
+              className={`${entrada} w-full`}
+            />
+          </fieldset>
 
           {/*
             * Vinte campos abertos empurram nome e telefone, que é o que a

@@ -4,6 +4,7 @@ import { Icone } from '@/components/ui/icones'
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
+import { Menu } from '@/components/ui/menu'
 import { Modal } from '@/components/ui/modal'
 import { Campo, ListaImpacto, entrada } from '@/components/ui/pecas'
 import { anonimizarPessoa, editarPessoa } from '@/server/pessoas/acoes'
@@ -30,15 +31,16 @@ export function MarcarInativa({
 
   return (
     <>
-      {/* ação rara, em texto discreto: ao lado de Marcar aula e Editar, com o
-          mesmo peso, ela competia com o que se faz todo dia */}
-      <button
-        type="button"
-        onClick={() => setAberto(true)}
-        className="min-h-9 cursor-pointer px-2 text-[13.5px] text-tinta-media underline-offset-2 hover:text-tinta hover:underline"
-      >
-        {ativo ? 'Inativar' : 'Reativar'}
-      </button>
+      {/* ação rara: mora no "⋮" do cabeçalho, ao lado de Editar e Marcar
+          aula, para não competir com o que se faz todo dia */}
+      <Menu
+        titulo="Outras ações"
+        itens={[{
+          rotulo: ativo ? 'Inativar cadastro' : 'Reativar cadastro',
+          perigo: ativo,
+          aoEscolher: () => setAberto(true),
+        }]}
+      />
 
       <Modal
         aberto={aberto}

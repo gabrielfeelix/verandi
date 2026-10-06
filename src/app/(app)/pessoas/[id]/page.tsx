@@ -41,9 +41,13 @@ import {
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 
+const POR_RECORRENCIA: Record<string, string> = {
+  mensal: ' por mês', trimestral: ' por trimestre', semestral: ' por semestre', anual: ' por ano',
+}
+
 const ROTULO_STATUS: Record<string, string> = {
   esperada: 'Sem registro',
-  confirmada: 'Confirmou',
+  confirmada: 'Confirmada',
   presente: 'Presente',
   falta: 'Falta',
   falta_avisada: 'Falta justificada',
@@ -76,7 +80,7 @@ const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'contratos', 'avaliaca
 
 /** a origem como o banco grava, e como a recepção fala */
 const ROTULO_ORIGEM: Record<string, string> = {
-  recorrente: 'Turma fixa',
+  recorrente: 'Horário fixo',
   avulso: 'Avulso',
   reposicao: 'Reposição',
   encaixe: 'Encaixe',
@@ -174,6 +178,21 @@ export default async function Pessoa({
    */
   const modalidades = await modalidadesDaPessoa(db, conta.contaId, id)
   const temContrato = operacional ? contratosEmVigor > 0 : modalidades.length > 0
+  // o cartão Plano: nome, valor e vencimento; quem atende lê só o nome
+  const vigentes: Array<{ id: string; nome: string; detalhe: string | null }> = operacional
+    ? contratos.filter((c) => c.status !== 'encerrado').map((c) => ({
+        id: c.id,
+        nome: c.planoNome,
+        detalhe: [
+          `${emReais(c.precoAplicadoCent)}${POR_RECORRENCIA[c.recorrencia] ?? ''}`,
+          c.diaVencimento ? `vence todo dia ${c.diaVencimento}` : null,
+          c.saldo
+            ? `${c.saldo.restantes} ${c.saldo.restantes === 1 ? 'sessão restante' : 'sessões restantes'}`
+            : null,
+          c.status === 'pausado' ? 'pausado' : null,
+        ].filter(Boolean).join(' · '),
+      }))
+    : modalidades.map((m) => ({ id: m, nome: m, detalhe: null }))
   const licenca = await licencaDaPessoa(db, conta.contaId, id)
 
   // "desde" é o mais antigo entre cadastro, primeiro contrato e primeira aula:
@@ -397,54 +416,46 @@ export default async function Pessoa({
 
         {/* quem dá aula consulta a ficha, mas cadastro e vaga são da recepção */}
         {operacional ? (
-        <div className="flex min-w-[200px] flex-[1_1_200px] flex-col gap-2.5">
-          {/*
-            Uma ação principal e uma secundária, do mesmo tamanho; o raro em
-            texto embaixo. Eram quatro botões iguais em grade, e "Excluir dados"
-            pesava o mesmo que marcar uma aula.
-          */}
-          <div className="flex flex-col gap-2">
-            {/* marcar uma aula é o que se faz todo dia no balcão; criar o
-                horário fixo mora na aba Agenda, junto das vagas */}
-            <MarcarAula
-              pessoaId={p.id}
-              nome={p.nome}
-              servicos={catalogoServicos ?? []}
-              servicoInicial={servicosDela.length === 1 ? servicosDela[0].id : null}
-              faltas={faltasParaRepor}
-              rotuloSessao={rotulos.sessao.singular}
-              className="flex min-h-11 w-full cursor-pointer items-center justify-center rounded-media bg-escuro px-4 text-[14.5px] font-semibold text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
-            >
-              Marcar {rotulos.sessao.singular.toLowerCase()}
-            </MarcarAula>
-            <EditarPessoa
-              className="w-full"
-              podeExcluir={!p.anonimizadaEm && (conta.papel === 'dono' || conta.papel === 'suporte')}
-              pessoa={{
-                id: p.id,
-                nome: p.nome,
-                telefone: p.telefone,
-                email: p.email,
-                identificadorExterno: p.identificadorExterno,
-                nascimento: p.nascimento,
-                vencimentoPlano: p.vencimentoPlano,
-                ...p.cadastrais,
-                observacao: p.observacao,
-                observacaoVisivel: p.observacaoVisivel,
-                observacaoRestrita: p.observacaoRestrita,
-                fotoUrl: p.fotoUrl,
-                ativo: p.ativo,
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          {/* lado a lado, cada um do tamanho do texto: empilhados e na
+              largura da coluna pareciam faixas, não botões. Editar é
+              secundário, marcar aula é o principal, o raro mora no "⋮" */}
+          <EditarPessoa
+            podeExcluir={!p.anonimizadaEm && (conta.papel === 'dono' || conta.papel === 'suporte')}
+            pessoa={{
+              id: p.id,
+              nome: p.nome,
+              telefone: p.telefone,
+              email: p.email,
+              identificadorExterno: p.identificadorExterno,
+              nascimento: p.nascimento,
+              vencimentoPlano: p.vencimentoPlano,
+              ...p.cadastrais,
+              observacao: p.observacao,
+              observacaoVisivel: p.observacaoVisivel,
+              observacaoRestrita: p.observacaoRestrita,
+              fotoUrl: p.fotoUrl,
+              ativo: p.ativo,
+              condicoes: ficha.tags,
               }}
-            />
-            <div className="flex flex-wrap justify-center gap-x-2">
-              <MarcarInativa
-                pessoaId={p.id}
-                nome={p.nome}
-                ativo={p.ativo}
-                rotuloPessoa={rotulos.pessoa.plural}
-              />
-            </div>
-          </div>
+          />
+          <MarcarAula
+            pessoaId={p.id}
+            nome={p.nome}
+            servicos={catalogoServicos ?? []}
+            servicoInicial={servicosDela.length === 1 ? servicosDela[0].id : null}
+            faltas={faltasParaRepor}
+            rotuloSessao={rotulos.sessao.singular}
+            className="flex min-h-11 cursor-pointer items-center justify-center rounded-media bg-escuro px-4 text-[14.5px] font-semibold whitespace-nowrap text-tinta-clara transition-colors duration-150 hover:bg-escuro-hover"
+          >
+            Marcar {rotulos.sessao.singular.toLowerCase()}
+          </MarcarAula>
+          <MarcarInativa
+            pessoaId={p.id}
+            nome={p.nome}
+            ativo={p.ativo}
+            rotuloPessoa={rotulos.pessoa.plural}
+          />
         </div>
         ) : null}
       </article>
@@ -502,10 +513,6 @@ export default async function Pessoa({
                   <h2 className="font-titulo text-[18px] font-semibold">
                     {rotulos.vaga.plural}
                   </h2>
-                  <span className="text-[13.5px] text-tinta-fraca">
-                    cada {rotulos.vaga.singular.toLowerCase()} tem vigência,
-                    encerrar não apaga o passado
-                  </span>
                 </div>
                 <Vagas
                   pessoaId={p.id}
@@ -812,11 +819,6 @@ export default async function Pessoa({
                 <span className="text-[12px] font-semibold text-atencao">
                   Atenção na aula
                 </span>
-                {p.observacaoVisivel === 'profissionais' ? (
-                  <span className="ml-auto rounded-peca bg-atencao-fundo px-2 py-0.5 text-[12px] text-atencao">
-                    só quem atende
-                  </span>
-                ) : null}
               </div>
               <p className="text-[14.5px] leading-[1.55] text-[#414A47]">{p.observacao}</p>
             </section>
@@ -865,9 +867,9 @@ export default async function Pessoa({
                   href={`https://wa.me/55${p.telefone.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex flex-1 items-center justify-center rounded-padrao border border-positivo-linha bg-positivo-superficie px-3 py-2.5 text-[13.5px] font-medium text-marca transition-colors duration-150 hover:bg-positivo-fundo"
+                  className="flex min-h-10 flex-1 items-center justify-center rounded-media border border-linha bg-superficie px-3 text-[13.5px] font-medium text-tinta transition-colors duration-150 hover:bg-superficie-mais-suave"
                 >
-                  Mandar mensagem
+                  Enviar WhatsApp
                 </a>
                 <CopiarTelefone telefone={p.telefone} />
               </div>
@@ -910,56 +912,42 @@ export default async function Pessoa({
               )}
             </div>
             {/*
-              * Este cartão é anterior ao contrato, e o texto dele ficou para
-              * trás: dizia que "valor e cobrança são de outro sistema" numa
-              * tela que hoje tem os dois, uma aba ao lado. Quem lesse isso
-              * concluía que o financeiro não existia aqui.
-              *
-              * A data continua servindo para o que sempre serviu: até quando a
-              * agenda materializa. O que mudou é que ela deixou de ser a única
-              * coisa que a ficha sabe sobre plano, e por isso aponta para onde
-              * a resposta inteira está.
+              * O que o plano é, não onde ele está. "O contrato em vigor tem o
+              * valor e as parcelas" mandava a pessoa procurar a resposta numa
+              * aba ao lado; o cartão agora diz plano, valor e vencimento. Quem
+              * atende não vê dinheiro: lê só o nome do plano.
               */}
-            {/*
-              * Sem contrato e sem data, "Plano sem data de término" com um
-              * botão "Registrar renovação" embaixo lia como plano vitalício
-              * que se renova. Não há plano: o cartão diz isso e leva para onde
-              * ele nasce. Quem atende não carrega os contratos, e lê a
-              * modalidade, que só existe com contrato ativo.
-              */}
-            <p className="pb-3 text-[14.5px] leading-[1.5] text-tinta-media">
-              {p.vencimentoPlano
-                // com o ano: "até 03/02" de um plano que vence em 2028 se lia
-                // como fevereiro que vem, e o cliente achava que estava errado
-                ? `O plano vale até ${p.vencimentoPlano.split('-').reverse().join('/')}. `
-                : ''}
-              {!temContrato ? (
-                <>
-                  Sem contrato em vigor.
-                  {operacional ? (
-                    <>
-                      {' '}
-                      <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
-                        Criar contrato
-                      </Link>
-                    </>
-                  ) : null}
-                </>
-              ) : operacional ? (
-                <>
-                  <Link href={`/pessoas/${id}?aba=contratos`} className="text-marca underline">
-                    {contratosEmVigor === 1
-                      ? 'O contrato em vigor'
-                      : `${contratosEmVigor} contratos em vigor`}
+            {vigentes.length ? (
+              <ul className="flex flex-col gap-2.5 pb-3">
+                {vigentes.map((c) => (
+                  <li key={c.id} className="flex flex-col gap-0.5">
+                    <span className="text-[14.5px] font-medium">{c.nome}</span>
+                    {c.detalhe ? (
+                      <span className="text-[13.5px] text-tinta-media">{c.detalhe}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="pb-3 text-[14.5px] text-tinta-media">Sem contrato em vigor.</p>
+            )}
+            {p.vencimentoPlano ? (
+              <p className="pb-3 text-[13.5px] text-tinta-media">
+                Válido até {p.vencimentoPlano.split('-').reverse().join('/')}
+              </p>
+            ) : null}
+            {operacional ? (
+              <div className="flex flex-wrap gap-2">
+                {!temContrato ? (
+                  <Link
+                    href={`/pessoas/${id}?aba=contratos`}
+                    className="flex min-h-10 flex-1 items-center justify-center rounded-media border border-linha bg-superficie px-3 text-[13.5px] font-medium hover:bg-superficie-mais-suave"
+                  >
+                    Criar contrato
                   </Link>
-                  {contratosEmVigor === 1
-                    ? ' tem o valor e as parcelas.'
-                    : ' têm o valor e as parcelas.'}
-                </>
-              ) : (
-                'Com contrato em vigor.'
-              )}
-            </p>
+                ) : null}
+              </div>
+            ) : null}
             {p.vencimentoPlano || temContrato ? (
               <RegistrarRenovacao pessoaId={p.id} vencimento={p.vencimentoPlano} />
             ) : null}
