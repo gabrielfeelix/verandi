@@ -12,7 +12,7 @@ import { admin, contaDeTeste, SENHA } from './apoio'
 
 test('a tela é pública e não manda ninguém para o login', async ({ page }) => {
   await page.goto('/esqueci')
-  await expect(page.getByRole('heading', { name: 'Vamos criar outra' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Redefinir senha' })).toBeVisible()
   expect(page.url()).toContain('/esqueci')
 })
 

@@ -15,11 +15,11 @@ export default function Esqueci() {
   return (
     <PainelAcesso tela="esqueci">
       <h1 className="font-titulo text-[28px] font-semibold tracking-[-.02em]">
-        Vamos criar outra
+        Redefinir senha
       </h1>
       <p className="pt-2 pb-6 text-[14.5px] leading-relaxed text-tinta-media">
-        Diga o e-mail que você usa para entrar. Mandamos um link para criar uma
-        senha nova.
+        Informe o e-mail de acesso. Enviaremos um link para criar uma nova
+        senha.
       </p>
 
       <form action={acao} className="flex flex-col gap-3">

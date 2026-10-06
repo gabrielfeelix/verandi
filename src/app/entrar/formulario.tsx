@@ -41,10 +41,10 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
   return (
     <PainelAcesso tela="entrar">
       <h1 className="font-titulo text-[28px] font-semibold tracking-[-.02em]">
-        Que bom te ver
+        Acesse sua conta
       </h1>
       <p className="pt-2 pb-6 text-[14.5px] leading-relaxed text-tinta-media">
-        Entre com o e-mail que recebeu o convite do estúdio.
+        Use o e-mail em que recebeu o convite.
       </p>
 
       <form
@@ -82,7 +82,7 @@ export function FormularioDeEntrada({ emailInicial }: { emailInicial?: string })
               onClick={() => setVerSenha((v) => !v)}
               className="min-h-9 cursor-pointer rounded-peca px-2 text-[13.5px] font-medium text-marca hover:text-marca-forte"
             >
-              {verSenha ? 'ocultar' : 'mostrar'}
+              {verSenha ? 'Ocultar' : 'Mostrar'}
             </button>
           </div>
         </div>
