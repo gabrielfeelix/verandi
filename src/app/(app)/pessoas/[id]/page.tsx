@@ -95,6 +95,20 @@ function curta(data: string) {
 }
 
 /** "Qua, 07/10": a data sozinha obrigava a contar no calendário que dia era */
+/** O histórico agrupado por mês, na ordem em que já vem (mais recente primeiro). */
+function porMes<T extends { data: string }>(itens: T[]) {
+  const meses = new Map<string, T[]>()
+  for (const x of itens) {
+    const mes = x.data.slice(0, 7)
+    meses.set(mes, [...(meses.get(mes) ?? []), x])
+  }
+  return [...meses.entries()]
+}
+
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho',
+  'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+const nomeDoMes = (mes: string) => `${MESES[Number(mes.slice(5, 7)) - 1]} de ${mes.slice(0, 4)}`
+
 function comDia(data: string) {
   const d = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][new Date(`${data}T12:00:00Z`).getUTCDay()]
   return `${d}, ${curta(data)}`
@@ -648,8 +662,20 @@ export default async function Pessoa({
                   texto="As presenças e faltas aparecem aqui conforme forem registradas."
                 />
               ) : (
+                // o histórico inteiro, por mês: o corte nas 60 últimas escondia
+                // o ano passado de quem vem duas vezes por semana
+                <div className="flex flex-col gap-2">
+                {porMes(ficha.historico).map(([mes, itens]) => (
+                <section key={mes} className="flex flex-col">
+                <h3 className="flex flex-wrap items-baseline justify-between gap-2 border-b border-linha-suave pb-1.5 mb-3 text-[13.5px]">
+                  <span className="font-semibold">{nomeDoMes(mes)}</span>
+                  <span className="text-[12px] text-tinta-fraca">
+                    {itens.length} {itens.length === 1 ? 'aula' : 'aulas'}
+                    {' · '}{itens.filter((x) => x.status === 'presente').length} presenças
+                  </span>
+                </h3>
                 <ul className="flex flex-col">
-                  {ficha.historico.slice(0, 60).map((x) => (
+                  {itens.map((x) => (
                     <li key={x.id} className="flex gap-3.5">
                       {/* a linha do tempo à esquerda: o ponto diz o quê, a linha
                           diz que houve outro antes */}
@@ -692,6 +718,9 @@ export default async function Pessoa({
                     </li>
                   ))}
                 </ul>
+                </section>
+                ))}
+                </div>
               )}
             </section>
           ),
