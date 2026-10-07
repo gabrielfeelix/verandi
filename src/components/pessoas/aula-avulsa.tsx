@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/modal'
 import { buscarCandidatos } from '@/server/agenda/acoes'
 import { Botao } from '@/components/ui/botao'
-import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { Avatar, Campo, Nota, entrada } from '@/components/ui/pecas'
 import { marcarAulaAvulsa, profissionaisParaAvulsa } from '@/server/agenda/avulsa'
 import { emCentavos } from '@/core/planos/plano'
 
@@ -89,7 +89,10 @@ export function FormAulaAvulsa({
         <Campo rotulo="Aluno" htmlFor="av-aluno" dica="Opcional. Mais alunos entram depois pela tela da aula.">
           {aluno ? (
             <span className="flex min-h-11 items-center justify-between gap-2 rounded-padrao border border-linha bg-superficie px-3 text-[14.5px]">
-              {aluno.nome}
+              <span className="flex min-w-0 items-center gap-2.5">
+                <Avatar nome={aluno.nome} tamanho={24} decorativo />
+                <span className="truncate font-medium">{aluno.nome}</span>
+              </span>
               <button type="button" onClick={() => { setAluno(null); setTermo('') }}
                 className="cursor-pointer text-[13.5px] text-tinta-media hover:text-tinta">Trocar</button>
             </span>
@@ -102,9 +105,13 @@ export function FormAulaAvulsa({
                   {achados.slice(0, 8).map((x) => (
                     <li key={x.id}>
                       <button type="button" onClick={() => { setAluno({ id: x.id, nome: x.nome }); setAchados([]) }}
-                        className="flex w-full cursor-pointer flex-col px-3 py-2 text-left hover:bg-superficie-suave">
-                        <span className="text-[14.5px]">{x.nome}</span>
-                        {x.detalhe ? <span className="text-[12px] text-tinta-media">{x.detalhe}</span> : null}
+                        className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left hover:bg-superficie-suave">
+                        {/* o mesmo desenho do Encaixar aluno e da busca do Hoje */}
+                        <Avatar nome={x.nome} tamanho={32} decorativo />
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate text-[14.5px] font-medium">{x.nome}</span>
+                          {x.detalhe ? <span className="text-[12px] text-tinta-media">{x.detalhe}</span> : null}
+                        </span>
                       </button>
                     </li>
                   ))}
