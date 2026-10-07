@@ -51,6 +51,7 @@ export async function profissionaisParaAvulsa(): Promise<
 }
 
 export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
+  let desfazer = async () => {}
   try {
     const conta = await exigirConta()
     if (conta.papel !== 'dono' && conta.papel !== 'recepcao' && conta.papel !== 'suporte') {
@@ -66,13 +67,23 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
     if (!(lugares >= 1 && lugares <= 100)) return { ok: false, erro: 'Os lugares vão de 1 a 100.' }
 
     const db = await clienteServidor()
+    // o que já foi gravado, para não deixar aula vazia nem cobrança sem aula
+    // quando um passo do meio falha
+    let sessaoCriada: string | null = null
+    let contratoCriado: string | null = null
+    desfazer = async () => {
+      if (sessaoCriada) await db.from('sessao').delete().eq('id', sessaoCriada)
+      if (contratoCriado) await db.from('contrato').delete().eq('id', contratoCriado)
+    }
 
     let servicoId = e.servicoId
     if (!servicoId) {
       const nome = (e.novoServico ?? '').trim()
       if (nome.length < 2) return { ok: false, erro: 'Escolha a modalidade ou escreva o nome da nova.' }
       const { data: existente } = await db.from('servico').select('id')
-        .eq('conta_id', conta.contaId).ilike('nome', nome).maybeSingle()
+        // sem curinga: "Pilates%" escrito à mão não pode casar com "Pilates solo"
+        .eq('conta_id', conta.contaId).ilike('nome', nome.replace(/[\\%_]/g, '\\$&'))
+        .limit(1).maybeSingle()
       if (existente) {
         servicoId = existente.id
       } else {
@@ -82,11 +93,6 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
         if (error) throw error
         servicoId = criado.id
       }
-    }
-
-    let contratoId: string | null = null
-    if (e.pessoaId && e.valorCent > 0) {
-      contratoId = await contratoAvulso(db, conta.contaId, e.pessoaId, servicoId!, e.data, e.valorCent)
     }
 
     const { data: sessao, error: erroSessao } = await db.from('sessao').insert({
@@ -101,19 +107,39 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
       status: 'prevista',
     }).select('id').single()
     if (erroSessao) throw erroSessao
+    sessaoCriada = sessao.id
 
-    // pelo mesmo caminho de todo encaixe: o evento para o bot e a ligação com o
-    // contrato com saldo (o avulso que acabou de nascer) saem de lá
+    let contratoId: string | null = null
+    if (e.pessoaId && e.valorCent > 0) {
+      contratoId = await contratoAvulso(db, conta.contaId, e.pessoaId, servicoId!, e.data, e.valorCent)
+      contratoCriado = contratoId
+    }
+
+    // pelo mesmo caminho de todo encaixe, que solta o evento para o bot. O
+    // contrato vai junto: sem ele a aula paga cairia no pacote mais antigo da
+    // pessoa, e o avulso ficaria cobrado e sem aula
     const r = e.pessoaId
-      ? await encaixar({ sessaoId: sessao.id, pessoaId: e.pessoaId, origem: 'avulso' })
+      ? await encaixar({
+          sessaoId: sessao.id, pessoaId: e.pessoaId, origem: 'avulso',
+          contratoId: contratoId ?? undefined,
+        })
       : { ok: true as const }
     if (!r.ok) {
-      await db.from('sessao').delete().eq('id', sessao.id)
-      if (contratoId) await db.from('contrato').delete().eq('id', contratoId)
+      await desfazer()
       return { ok: false, erro: 'Não foi possível marcar a pessoa nesta aula.' }
     }
 
-    if (contratoId) await materializarCobrancas(db, conta.contaId, hojeEm(conta.fuso), contratoId)
+    // daqui em diante a aula existe e o bot já sabe dela: não se desfaz mais
+    sessaoCriada = null
+    contratoCriado = null
+    if (contratoId) {
+      try {
+        await materializarCobrancas(db, conta.contaId, hojeEm(conta.fuso), contratoId)
+      } catch (erro) {
+        console.error('aula avulsa, cobrança', erro)
+        return { ok: false, erro: 'A aula foi marcada, mas a cobrança não foi criada. Lance em Cobranças.' }
+      }
+    }
 
     if (e.pessoaId) revalidatePath(`/pessoas/${e.pessoaId}`)
     revalidatePath('/semana')
@@ -121,6 +147,7 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
     return { ok: true, sessaoId: sessao.id }
   } catch (erro) {
     console.error('aula avulsa', erro)
+    await desfazer().catch((x) => console.error('aula avulsa, desfazer', x))
     return { ok: false, erro: 'Não foi possível criar a aula avulsa. Tente de novo.' }
   }
 }

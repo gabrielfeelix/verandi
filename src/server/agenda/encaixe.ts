@@ -38,6 +38,13 @@ export type PedidoDeEncaixe = {
   confirmarAcima?: boolean
   /** quem está no balcão marca além do limite semanal do plano livre. O bot nunca */
   passarDoLimite?: boolean
+  /**
+   * O contrato que paga esta aula, quando quem marca já sabe: a aula avulsa
+   * cobrada nasce com o contrato dela, e não pode cair no pacote mais antigo nem
+   * contar no limite semanal de um plano livre. Só vale contrato ativo desta
+   * pessoa nesta conta.
+   */
+  contratoId?: string
 }
 
 export type ResultadoEncaixe =
@@ -100,7 +107,14 @@ export async function encaixarNaSessao(
    */
   const fuso = padrao?.fuso ?? 'America/Sao_Paulo'
   let contratoId: string | null = null
-  if (entrada.origem !== 'reposicao') {
+  if (entrada.contratoId) {
+    const { data: dela, error: erroContrato } = await db.from('contrato').select('id')
+      .eq('id', entrada.contratoId).eq('conta_id', contaId)
+      .eq('pessoa_id', entrada.pessoaId).eq('status', 'ativo').maybeSingle()
+    if (erroContrato) throw erroContrato
+    if (!dela) throw new Error('contrato de outra pessoa, de outra conta ou encerrado')
+    contratoId = dela.id
+  } else if (entrada.origem !== 'reposicao') {
     const livre = await contratoLivre(db, contaId, entrada.pessoaId, sessao.servico_id,
       dataLocal(sessao.inicio, fuso))
     if (livre) {
