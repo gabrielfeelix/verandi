@@ -132,3 +132,44 @@ test('encaixe pago numa aula avulsa não conta no limite do plano livre', async 
     .eq('sessao_id', quarta).eq('pessoa_id', pessoa!.id)
   expect(parts).toEqual([{ contrato: { plano: { recorrencia: 'avulsa' }, preco_aplicado_cent: 8000 } }])
 })
+
+test('aula paga que foi cancelada devolve o crédito para a próxima', async ({ page }) => {
+  const { contaId, marca } = await contaDeTeste('Estúdio da aula cancelada')
+  const { email } = await usuarioDe(contaId, 'dono', marca)
+  const { data: pessoa } = await admin.from('pessoa')
+    .insert({ conta_id: contaId, nome: `Vera ${marca}`, ativo: true })
+    .select('id').single<{ id: string }>()
+  const { data: servico } = await admin.from('servico')
+    .insert({ conta_id: contaId, nome: 'Fisioterapia' })
+    .select('id').single<{ id: string }>()
+  const { data: plano } = await admin.from('plano').insert({
+    conta_id: contaId, servico_id: servico!.id, codigo: 'AV1', nome: 'Aula avulsa',
+    recorrencia: 'avulsa', preco_vinculado_cent: 9000, preco_avulso_cent: 9000,
+  }).select('id').single<{ id: string }>()
+  const { data: avulso } = await admin.from('contrato').insert({
+    conta_id: contaId, pessoa_id: pessoa!.id, plano_id: plano!.id,
+    inicio: '2026-12-01', fim: '2026-12-01', preco_aplicado_cent: 9000,
+  }).select('id').single<{ id: string }>()
+  const sessao = async (inicio: string, status = 'prevista') => (await admin.from('sessao').insert({
+    conta_id: contaId, servico_id: servico!.id, inicio, duracao_min: 60, capacidade: 2, status,
+  }).select('id').single<{ id: string }>()).data!.id
+  const caiu = await sessao('2026-12-01T13:00:00Z', 'cancelada')
+  await admin.from('participacao').insert({
+    conta_id: contaId, sessao_id: caiu, pessoa_id: pessoa!.id,
+    origem: 'avulso', status: 'esperada', contrato_id: avulso!.id,
+  })
+  const nova = await sessao('2026-12-08T13:00:00Z')
+
+  await entrar(page, email)
+  await page.goto(`/sessao/${nova}`)
+  await page.getByRole('button', { name: /Encaixar/ }).click()
+  const modal = page.getByRole('dialog')
+  await modal.getByPlaceholder('Buscar por nome').fill('Vera')
+  await modal.getByRole('button', { name: /Vera/ }).click()
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
+  await expect(modal).toHaveCount(0)
+
+  const { data: parts } = await admin.from('participacao')
+    .select('contrato_id').eq('sessao_id', nova).eq('pessoa_id', pessoa!.id)
+  expect(parts).toEqual([{ contrato_id: avulso!.id }])
+})

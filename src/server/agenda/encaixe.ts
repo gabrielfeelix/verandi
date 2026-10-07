@@ -179,7 +179,7 @@ async function contratoComSaldo(
   db: Db, contaId: string, pessoaId: string, servicoId: string,
 ): Promise<string | null> {
   const { data, error } = await db.from('contrato')
-    .select('id, inicio, sessoes_contratadas, plano!inner(servico_id, recorrencia), participacao(status)')
+    .select('id, inicio, sessoes_contratadas, plano!inner(servico_id, recorrencia), participacao(status, sessao(status))')
     .eq('conta_id', contaId).eq('pessoa_id', pessoaId).eq('status', 'ativo')
     .eq('plano.servico_id', servicoId)
     .in('plano.recorrencia', ['pacote', 'avulsa'])
@@ -188,7 +188,10 @@ async function contratoComSaldo(
   const OCUPAM = new Set(['presente', 'falta', 'falta_avisada', 'esperada', 'confirmada'])
   for (const c of data ?? []) {
     const total = c.sessoes_contratadas ?? (c.plano.recorrencia === 'avulsa' ? 1 : 0)
-    const ocupadas = (c.participacao ?? []).filter((x) => OCUPAM.has(x.status)).length
+    // aula cancelada devolve o saldo: a participação dela continua "esperada",
+    // e contar isso deixava o pacote (ou a avulsa paga) gasto sem aula nenhuma
+    const ocupadas = (c.participacao ?? [])
+      .filter((x) => OCUPAM.has(x.status) && x.sessao?.status !== 'cancelada').length
     if (ocupadas < total) return c.id
   }
   return null
