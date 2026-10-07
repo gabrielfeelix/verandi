@@ -14,6 +14,7 @@ import { horariosLivres } from './disponibilidade'
 import { hojeEm, localDe } from './fuso'
 import { abrirLicenca, desfazerLicencaSemAula, encerrarLicenca } from '../licencas/licencas'
 import { somarDias } from '@/core/agenda/datas'
+import { devolverASessao, soltarDaSessao } from './soltar'
 
 /** De qual lado do balcão veio o registro. Serve auditoria, não permissão. */
 async function quemRegistra() {
@@ -156,6 +157,7 @@ export async function cancelarSessao(sessaoId: string, motivo: string): Promise<
     .update({ status: 'cancelada', motivo_cancelamento: motivo })
     .eq('id', sessaoId)
   if (error) throw error
+  await soltarDaSessao(db, conta.contaId, [sessaoId])
   atualizarTela(sessaoId)
 
   // é o evento que mais justifica a Fase 4 existir: a aula caiu, e são seis
@@ -164,12 +166,13 @@ export async function cancelarSessao(sessaoId: string, motivo: string): Promise<
 }
 
 export async function reabrirSessao(sessaoId: string): Promise<void> {
-  const { db } = await quemRegistra()
+  const { db, conta } = await quemRegistra()
   const { error } = await db
     .from('sessao')
     .update({ status: 'prevista', motivo_cancelamento: null })
     .eq('id', sessaoId)
   if (error) throw error
+  await devolverASessao(db, conta.contaId, sessaoId)
   atualizarTela(sessaoId)
 }
 

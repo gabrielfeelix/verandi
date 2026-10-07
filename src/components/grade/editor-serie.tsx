@@ -19,7 +19,7 @@ const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 /**
  * Criar horário fixo, em modal, como o protótipo desenha.
  *
- * Montar 70 horários na mão é o pior momento do cliente com o produto — por
+ * Montar 70 horários na mão é o pior momento do cliente com o produto: por
  * isso escolher vários dias de uma vez é o caminho principal deste formulário,
  * não uma opção escondida.
  */
@@ -42,11 +42,12 @@ export function EditorSerie({
    * O que foi pedido, guardado.
    *
    * React reseta os campos do formulário depois que a action termina, então
-   * reler o `FormData` no "criar mesmo assim" leria um formulário vazio — e o
+   * reler o `FormData` no "criar mesmo assim" leria um formulário vazio, e o
    * segundo clique não criaria nada, sem dizer por quê.
    */
   const [pedido, setPedido] = useState<NovaSerie | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  const [servicoId, setServicoId] = useState(catalogo.servicos[0]?.id ?? '')
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
 
@@ -98,6 +99,8 @@ export function EditorSerie({
   }
 
   const semServico = catalogo.servicos.length === 0
+  // duração e lugares nascem do serviço escolhido, que é o que o catálogo promete
+  const servico = catalogo.servicos.find((x) => x.id === servicoId)
 
   return (
     <>
@@ -147,34 +150,11 @@ export function EditorSerie({
                 </div>
               </fieldset>
 
-              <div className="flex flex-wrap items-start gap-3">
-                <Campo rotulo="Começa às" htmlFor="horaInicio" obrigatorio>
-                  <input id="horaInicio" name="horaInicio" type="time" required
-                    className={`${entrada} w-32`} />
-                </Campo>
-                <Campo rotulo="Duração (min)" htmlFor="duracaoMin">
-                  <CampoNumero id="duracaoMin" nome="duracaoMin" min={1} max={600} sufixo="min" valorInicial={60} required />
-                </Campo>
-                <Campo rotulo="Capacidade" htmlFor="capacidade">
-                  <CampoNumero id="capacidade" nome="capacidade" min={1} max={999} valorInicial={1} required />
-                </Campo>
-                {/* o número identifica um horário, e criar três dias de uma vez
-                    cria três: aí ele não teria a quem pertencer */}
-                {dias.length === 1 ? (
-                  <Campo
-                    rotulo="Número" htmlFor="codigo"
-                    dica="opcional, é como a recepção chama este horário no telefone"
-                  >
-                    <input id="codigo" name="codigo" maxLength={12}
-                      placeholder="001" className={`${entrada} w-28`} />
-                  </Campo>
-                ) : null}
-              </div>
-
               <Campo rotulo={rotulos.servico.singular} htmlFor="servicoId">
                 <Escolha
                   id="servicoId" nome="servicoId"
-                  valorInicial={catalogo.servicos[0]?.id ?? ''}
+                  valorInicial={servicoId}
+                  aoTrocar={setServicoId}
                   opcoes={catalogo.servicos.map((x) => ({
                     valor: x.id,
                     rotulo: x.nome,
@@ -182,6 +162,30 @@ export function EditorSerie({
                   }))}
                 />
               </Campo>
+              <div className="flex flex-wrap items-start gap-3">
+                <Campo rotulo="Começa às" htmlFor="horaInicio" obrigatorio>
+                  <input id="horaInicio" name="horaInicio" type="time" required
+                    className={`${entrada} w-32`} />
+                </Campo>
+                <Campo rotulo="Duração" htmlFor="duracaoMin">
+                  <CampoNumero key={`d-${servicoId}`} id="duracaoMin" nome="duracaoMin" min={1} max={600} sufixo="min" valorInicial={servico?.duracaoMin ?? 60} required />
+                </Campo>
+                <Campo rotulo="Capacidade" htmlFor="capacidade">
+                  <CampoNumero key={`c-${servicoId}`} id="capacidade" nome="capacidade" min={1} max={999} valorInicial={servico?.capacidadePadrao ?? 1} required />
+                </Campo>
+                {/* o número identifica um horário, e criar três dias de uma vez
+                    cria três: aí ele não teria a quem pertencer */}
+                {dias.length === 1 ? (
+                  <Campo
+                    rotulo="Número" htmlFor="codigo"
+                    dica="Opcional, é como a recepção chama este horário no telefone"
+                  >
+                    <input id="codigo" name="codigo" maxLength={12}
+                      placeholder="Exemplo: 001" className={`${entrada} w-36`} />
+                  </Campo>
+                ) : null}
+              </div>
+
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <Campo rotulo={rotulos.profissional.singular} htmlFor="profissionalId">
@@ -190,7 +194,9 @@ export function EditorSerie({
                     placeholder={`Sem ${rotulos.profissional.singular.toLowerCase()}`}
                     opcoes={[
                       { valor: '', rotulo: `Sem ${rotulos.profissional.singular.toLowerCase()}` },
-                      ...catalogo.profissionais.map((x) => ({ valor: x.id, rotulo: x.nome })),
+                      ...catalogo.profissionais.map((x) => ({
+                        valor: x.id, rotulo: x.nome, avatar: { nome: x.nome, cor: x.cor },
+                      })),
                     ]}
                   />
                 </Campo>

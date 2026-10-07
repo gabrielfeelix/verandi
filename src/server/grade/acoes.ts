@@ -9,6 +9,8 @@ import {
 import { diaDaSemanaDe, DIAS_INTEIROS } from '@/core/agenda/datas'
 import { hojeEm, localDe } from '../agenda/fuso'
 import { registrar } from '../log'
+import { avisar } from '../webhook/eventos'
+import { soltarDaSessao } from '../agenda/soltar'
 import type { Atualizacao } from '../banco'
 
 /**
@@ -315,7 +317,7 @@ export async function editarSerie(serieId: string, mudanca: MudancaSerie): Promi
     }
   }
 
-  await cancelarOrfas(db, orfas, 'Horário mudou na grade')
+  await cancelarOrfas(db, conta.contaId, orfas, 'Horário mudou na grade')
 
   await registrar(db, {
     contaId: conta.contaId, entidade: 'serie', entidadeId: serieId, acao: 'editou',
@@ -328,13 +330,17 @@ export async function editarSerie(serieId: string, mudanca: MudancaSerie): Promi
 }
 
 async function cancelarOrfas(
-  db: Awaited<ReturnType<typeof clienteServidor>>, ids: string[], motivo: string,
+  db: Awaited<ReturnType<typeof clienteServidor>>, contaId: string, ids: string[], motivo: string,
 ): Promise<void> {
   if (!ids.length) return
   const { error } = await db.from('sessao')
     .update({ status: 'cancelada', motivo_cancelamento: motivo })
     .in('id', ids)
   if (error) throw error
+  // o horário fixo segue no lugar novo (ou terminou com a vaga); quem marcou
+  // aquela aula em particular fica com a reposição
+  await soltarDaSessao(db, contaId, ids, { soAvulsos: true })
+  for (const id of ids) await avisar(db, contaId, 'sessao.cancelada', { sessaoId: id })
 }
 
 /**
@@ -396,6 +402,17 @@ export async function encerrarSerie(
   const { error } = await db.from('serie').update({ vigencia_fim: fim }).eq('id', serieId)
   if (error) throw error
 
+  /*
+   * A vaga fixa termina junto com o horário. Aberta, ela seguia dizendo na
+   * ficha e em Alunos que a pessoa tem lugar numa turma que não existe mais.
+   */
+  const { error: erroVagas } = await db.from('vaga')
+    .update({ fim })
+    .eq('conta_id', conta.contaId).eq('serie_id', serieId)
+    .lte('inicio', fim) // a que começaria depois do fim nunca vale, e o check recusa
+    .or(`fim.is.null,fim.gt.${fim}`)
+  if (erroVagas) throw erroVagas
+
   // o que já foi materializado depois da data de fim sai da grade
   const futuras = await sessoesFuturas(db, serieId)
   const orfas = sessoesOrfas(
@@ -403,7 +420,7 @@ export async function encerrarSerie(
     (s) => localDe(s.inicio, conta.fuso).data <= fim,
     new Date(),
   )
-  await cancelarOrfas(db, orfas, 'Horário encerrado na grade')
+  await cancelarOrfas(db, conta.contaId, orfas, 'Horário encerrado na grade')
 
   await registrar(db, {
     contaId: conta.contaId, entidade: 'serie', entidadeId: serieId, acao: 'encerrou',

@@ -5,6 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { hojeEm, instante } from '../agenda/fuso'
 import { avisar } from '../webhook/eventos'
+import { soltarDaSessao } from '../agenda/soltar'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
 import { BALDE_FOTO } from './equipe'
 import { BALDE_ASSINATURA } from './consultas'
@@ -431,17 +432,7 @@ export async function salvarDataFechada(e: {
     sessoesCanceladas = alvo?.length ?? 0
 
     if (sessoesCanceladas > 0) {
-      // só quem ainda não tinha registro: presença, falta ou licença já
-      // escritas naquele dia são fato, e fato não se reescreve por decreto
-      const { data: soltas, error: erroPart } = await db.from('participacao')
-        .update({ status: 'cancelada' })
-        .eq('conta_id', conta.contaId)
-        .in('sessao_id', alvo!.map((s) => s.id))
-        .in('status', ['esperada', 'confirmada'])
-        .select('id')
-        
-      if (erroPart) throw erroPart
-      reposicoesAbertas = soltas?.length ?? 0
+      reposicoesAbertas = await soltarDaSessao(db, conta.contaId, alvo!.map((s) => s.id))
 
       // o mesmo aviso do cancelamento de uma aula: o bot avisa quem ia
       for (const s of alvo!) {

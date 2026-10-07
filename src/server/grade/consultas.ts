@@ -123,7 +123,7 @@ export type CatalogoGrade = {
      */
     aceitaExperimental: boolean
   }[]
-  profissionais: { id: string; nome: string }[]
+  profissionais: { id: string; nome: string; cor: string | null }[]
   locais: { id: string; nome: string }[]
   funcionamento: { diaSemana: number; abre: string; fecha: string }[]
 }
@@ -133,7 +133,7 @@ export async function catalogoDaGrade(db: Db, contaId: string): Promise<Catalogo
     db.from('servico').select('id, nome, duracao_min, capacidade_padrao, aceita_experimental')
       .eq('conta_id', contaId).eq('ativo', true).order('nome')
       ,
-    db.from('profissional').select('id, nome')
+    db.from('profissional').select('id, nome, cor')
       .eq('conta_id', contaId).eq('ativo', true).order('nome')
       ,
     db.from('local').select('id, nome')

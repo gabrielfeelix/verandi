@@ -328,6 +328,11 @@ test('encerrar pergunta quantos ocupam, e não apaga o passado', async ({ page }
       .select('status').in('id', c.sessoes.map((s) => s.id))
     return data?.map((s) => s.status)
   }).toEqual(['cancelada', 'cancelada'])
+
+  // o horário fixo termina junto: não sobra lugar numa turma que acabou
+  const { data: vaga } = await admin.from('vaga')
+    .select('fim').eq('serie_id', c.serieId).eq('pessoa_id', pessoas[0].id).single()
+  expect(vaga!.fim).not.toBeNull()
 })
 
 test('mexer na grade registra quem fez', async ({ page }) => {

@@ -290,11 +290,11 @@ export function LinhaDaGrade({
             </Campo>
             <Campo
               rotulo="Número" htmlFor={`t-${serie.id}`}
-              dica="opcional, e único na conta"
+              dica="Opcional, e único na conta"
             >
               <input
                 id={`t-${serie.id}`} name="codigo" maxLength={12}
-                defaultValue={serie.codigo ?? ''} placeholder="001"
+                defaultValue={serie.codigo ?? ''} placeholder="Exemplo: 001"
                 className={`${entrada} w-full`}
               />
             </Campo>
@@ -320,7 +320,7 @@ export function LinhaDaGrade({
                 valorInicial={serie.profissionalId ?? ''}
                 opcoes={[
                   { valor: '', rotulo: `Sem ${rotulos.profissional.singular.toLowerCase()}` },
-                  ...catalogo.profissionais.map((p) => ({ valor: p.id, rotulo: p.nome })),
+                  ...catalogo.profissionais.map((p) => ({ valor: p.id, rotulo: p.nome, avatar: { nome: p.nome, cor: p.cor } })),
                 ]}
               />
             </Campo>
@@ -435,7 +435,7 @@ export function LinhaDaGrade({
             })
           }}
         >
-          <Campo rotulo="Encerrar a partir de" htmlFor={`f-${serie.id}`}>
+          <Campo rotulo="Último dia" htmlFor={`f-${serie.id}`} dica="A aula deste dia ainda acontece">
             <CampoData id={`f-${serie.id}`} nome="fim" valorInicial={hoje} limpavel={false} />
           </Campo>
 
@@ -447,8 +447,9 @@ export function LinhaDaGrade({
               {(vagasNoCaminho === 1
                 ? rotulos.pessoa.singular
                 : rotulos.pessoa.plural).toLowerCase()}{' '}
-              {vagasNoCaminho === 1 ? 'ocupa' : 'ocupam'} este horário. Encerrar
-              tira o horário da grade daqui para frente.
+              {vagasNoCaminho === 1 ? 'ocupa' : 'ocupam'} este horário. O horário
+              fixo termina no mesmo dia, e quem marcou uma aula depois dele fica
+              com reposição em aberto.
             </Nota>
           ) : null}
 
