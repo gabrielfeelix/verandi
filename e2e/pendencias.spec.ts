@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { admin, contaDeTeste, criarPessoas, entrar, usuarioDe } from './apoio'
+import { admin, contaDeTeste, criarPessoas, entrar, escolher, usuarioDe } from './apoio'
 
 const atras = (d: number) => new Date(Date.now() - d * 864e5).toISOString()
 
@@ -26,7 +26,8 @@ test('a chamada não feita aparece e leva direto para a sessão', async ({ page 
   await entrar(page, c.email)
   await page.goto('/pendencias')
 
-  await expect(page.getByRole('heading', { name: 'Chamadas não feitas' })).toBeVisible()
+  // o filtro do tipo mostra quantos há, sem abrir nada
+  await expect(page.getByRole('button', { name: /Chamadas não feitas/ })).toBeVisible()
   // o botão diz o que vai fazer, não "Resolver"
   await page.getByRole('link', { name: 'Marcar chamada' }).first().click()
   await expect(page).toHaveURL(new RegExp(`/sessao/${c.sessaoId}`))
@@ -57,7 +58,7 @@ test('dispensar pede motivo e some da lista', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Dispensar' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
-  await page.getByLabel('Motivo').selectOption('Não se aplica')
+  await escolher(page, 'Motivo', 'Não se aplica')
   await page.getByRole('button', { name: 'Dispensar', exact: true }).last().click()
 
   await expect(page.getByText('Nenhuma pendência no momento.')).toBeVisible()

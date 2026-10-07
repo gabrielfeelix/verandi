@@ -44,3 +44,29 @@ export const ACAO_GRUPO: Record<string, string> = {
   // parado se resolve falando com a pessoa: a ficha tem o WhatsApp e o Marcar aula
   pacote_parado: 'Abrir ficha',
 }
+
+/** A mesma cor do grupo, para o ponto da coluna Tipo e do filtro. */
+export const PONTO_GRUPO: Record<string, string> = {
+  chamada_nao_feita: 'var(--color-reg-falta)',
+  reposicao_aberta: 'var(--color-solido-atencao)',
+  licenca: 'var(--color-reg-licenca)',
+  reserva_esperando: 'var(--color-reg-justificada)',
+  cadastro_incompleto: 'var(--color-solido-neutro)',
+  horario_sem_contrato: 'var(--color-reg-falta)',
+  pacote_esgotado: 'var(--color-reg-falta)',
+  pacote_acabando: 'var(--color-solido-atencao)',
+  pacote_parado: 'var(--color-solido-neutro)',
+}
+
+/** O nome curto do tipo, na coluna da tabela: o título do grupo é longo demais. */
+export const ROTULO_TIPO: Record<string, string> = {
+  chamada_nao_feita: 'Chamada',
+  reposicao_aberta: 'Reposição',
+  licenca: 'Licença',
+  reserva_esperando: 'Reserva',
+  cadastro_incompleto: 'Cadastro',
+  horario_sem_contrato: 'Sem contrato',
+  pacote_esgotado: 'Pacote esgotado',
+  pacote_acabando: 'Pacote acabando',
+  pacote_parado: 'Aulas a fazer',
+}

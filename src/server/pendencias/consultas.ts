@@ -63,8 +63,14 @@ const MOTIVO_DO_CREDITO: Partial<Record<StatusParticipacao, string>> = {
   cancelada: 'Horário cancelado pelo estúdio',
 }
 
-function diasDesde(iso: string): number {
-  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / DIA))
+/**
+ * Dias de calendário no fuso da conta, e não horas corridas: a aula de ontem às
+ * 19h, olhada hoje às 11h, aparecia como "hoje".
+ */
+function diasDesde(iso: string, fuso: string): number {
+  const de = Date.parse(`${localDe(iso, fuso).data}T12:00:00Z`)
+  const ate = Date.parse(`${hojeEm(fuso)}T12:00:00Z`)
+  return Math.max(0, Math.round((ate - de) / DIA))
 }
 
 export async function listarPendencias(
@@ -94,8 +100,8 @@ export async function listarPendencias(
 
   const [chamadas, reposicoes, reservas, cadastros, licencas, semContrato, pacotes] = await Promise.all([
     chamadasNaoFeitas(db, contaId, fuso, agora),
-    reposicoesAbertas(db, contaId, prazo, creditoAvisada),
-    reservasEsperando(db, contaId, agora),
+    reposicoesAbertas(db, contaId, prazo, creditoAvisada, fuso),
+    reservasEsperando(db, contaId, agora, fuso),
     cadastrosIncompletos(db, contaId, hoje),
     licencasEmAcompanhamento(db, contaId, hoje),
     horariosSemContrato(db, contaId, hoje),
@@ -199,7 +205,7 @@ async function chamadasNaoFeitas(
           s.profissional?.nome,
           `${s.participacao.length} ${s.participacao.length === 1 ? 'pessoa' : 'pessoas'}`,
         ].filter(Boolean).join(' · '),
-        diasEmAberto: diasDesde(s.inicio),
+        diasEmAberto: diasDesde(s.inicio, fuso),
         href: `/sessao/${s.id}`,
       }
     })
@@ -219,7 +225,7 @@ async function chamadasNaoFeitas(
  * decidir, o lugar era dela.
  */
 async function reposicoesAbertas(
-  db: Db, contaId: string, prazoDias: number, creditoAvisada: boolean,
+  db: Db, contaId: string, prazoDias: number, creditoAvisada: boolean, fuso: string,
 ): Promise<Pendencia[]> {
   const limite = new Date(Date.now() - prazoDias * DIA).toISOString()
 
@@ -261,14 +267,14 @@ async function reposicoesAbertas(
         dataCurta(p.sessao!.inicio.slice(0, 10))} · ${p.sessao!.servico?.nome ?? ''}${
         (porPessoa.get(p.pessoa?.id ?? '') ?? 0) > 1
           ? ` · ${porPessoa.get(p.pessoa!.id)} reposições em aberto` : ''}`,
-      diasEmAberto: diasDesde(p.sessao!.inicio),
+      diasEmAberto: diasDesde(p.sessao!.inicio, fuso),
       href: p.pessoa ? `/pessoas/${p.pessoa.id}` : '/pessoas',
     }))
 }
 
 /** Quem pediu horário cheio e está esperando vaga. */
 async function reservasEsperando(
-  db: Db, contaId: string, agora: string,
+  db: Db, contaId: string, agora: string, fuso: string,
 ): Promise<Pendencia[]> {
   const { data, error } = await db
     .from('participacao')
@@ -287,7 +293,7 @@ async function reservasEsperando(
       titulo: p.pessoa?.nome ?? 'Sem nome',
       detalhe: `Aguarda vaga em ${p.sessao!.servico?.nome ?? 'um horário'} de ${
         dataCurta(p.sessao!.inicio.slice(0, 10))}`,
-      diasEmAberto: diasDesde(p.registrado_em),
+      diasEmAberto: diasDesde(p.registrado_em, fuso),
       href: `/sessao/${p.sessao!.id}`,
     }))
 }
