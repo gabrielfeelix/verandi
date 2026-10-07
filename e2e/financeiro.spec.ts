@@ -111,7 +111,7 @@ test('receber é dois cliques, e o que falta vem preenchido', async ({ page }) =
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=a_vencer')
 
-  await expect(page.getByText('Em aberto').first()).toBeVisible()
+  await expect(page.getByText('Em aberto').filter({ visible: true }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Receber' }).first().click()
 
   // o valor já vem com o que falta, e a data com hoje: o segundo clique fecha
@@ -120,7 +120,7 @@ test('receber é dois cliques, e o que falta vem preenchido', async ({ page }) =
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await page.goto('/financeiro?aba=pagas')
-  await expect(page.getByText('Pago', { exact: true })).toBeVisible()
+  await expect(page.getByText('Pago', { exact: true }).filter({ visible: true }).first()).toBeVisible()
   await expect(page.getByText(/Pix · \d\d\/\d\d\/\d\d/).first()).toBeVisible()
 })
 
@@ -136,8 +136,8 @@ test('o pagamento pela metade fica parcial, e as duas datas ficam', async ({ pag
   await page.getByRole('button', { name: 'Registrar', exact: true }).click()
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
-  await expect(page.getByText('Pago em parte')).toBeVisible()
-  await expect(page.getByText('falta R$ 435,00')).toBeVisible()
+  await expect(page.getByText('Pago em parte').filter({ visible: true }).first()).toBeVisible()
+  await expect(page.getByText('falta R$ 435,00').filter({ visible: true }).first()).toBeVisible()
 
   // e o segundo recebimento já vem preenchido com o que falta
   await page.getByRole('button', { name: 'Receber' }).first().click()
@@ -157,10 +157,10 @@ test('a tela abre pelo que está em atraso, com os dias e o telefone', async ({ 
    * contrato e o mês que vem, e todos os vencidos entram aqui: é o
    * comportamento certo, e é por isso que o teste olha o primeiro.
    */
-  await expect(page.getByText(/Em atraso há 40 dias/)).toBeVisible()
+  await expect(page.getByText(/Em atraso há 40 dias/).filter({ visible: true }).first()).toBeVisible()
   await page.getByRole('button', { name: /Mais sobre a cobrança/ }).first().click()
   await expect(page.getByRole('menuitem', { name: 'Enviar mensagem' })).toBeVisible()
-  await expect(page.getByText(/cobranças? em atraso/)).toBeVisible()
+  await expect(page.getByText(/cobranças? em atraso/).filter({ visible: true }).first()).toBeVisible()
 })
 
 test('estornar risca o pagamento e devolve a cobrança para o aberto', async ({ page }) => {
@@ -182,7 +182,7 @@ test('estornar risca o pagamento e devolve a cobrança para o aberto', async ({ 
 
   await page.goto('/financeiro?aba=a_vencer')
   await expect(page.getByText(/estornad.*digitado em dobro/i).first()).toBeVisible()
-  await expect(page.getByText('Em aberto').first()).toBeVisible()
+  await expect(page.getByText('Em aberto').filter({ visible: true }).first()).toBeVisible()
 
   // a linha continua no banco: o fechamento de ontem não muda de valor sozinho
   const { data } = await admin.from('pagamento')
@@ -206,7 +206,7 @@ test('cancelar pede motivo, e a cobrança continua listada com ele', async ({ pa
   await expect(page.locator('dialog[open]')).toHaveCount(0)
 
   await page.goto('/financeiro?aba=canceladas')
-  await expect(page.getByText('cortesia combinada com a dona')).toBeVisible()
+  await expect(page.getByText('cortesia combinada com a dona').filter({ visible: true }).first()).toBeVisible()
 })
 
 test('o fechamento soma o dia por forma de pagamento', async ({ page }) => {
@@ -222,17 +222,17 @@ test('o fechamento soma o dia por forma de pagamento', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=fechamento')
 
-  await expect(page.getByText('Entrou no período')).toBeVisible()
+  await expect(page.getByText('Entrou no período').filter({ visible: true }).first()).toBeVisible()
   await expect(page.getByText('R$ 735,00').first()).toBeVisible()
   await expect(page.getByRole('listitem').filter({ hasText: 'Pix' })).toContainText('R$ 500,00')
   await expect(page.getByRole('listitem').filter({ hasText: 'Dinheiro' })).toContainText('R$ 235,00')
-  await expect(page.getByText('Contratos em vigor')).toBeVisible()
+  await expect(page.getByText('Contratos em vigor').filter({ visible: true }).first()).toBeVisible()
 
   // os quatro números do topo são os do documento do cliente: faturado,
   // estornos, clientes ativos e novos no período
-  await expect(page.getByText('Estornos no período')).toBeVisible()
-  await expect(page.getByText('Clientes ativos')).toBeVisible()
-  await expect(page.getByText('Novos no período')).toBeVisible()
+  await expect(page.getByText('Estornos no período').filter({ visible: true }).first()).toBeVisible()
+  await expect(page.getByText('Clientes ativos').filter({ visible: true }).first()).toBeVisible()
+  await expect(page.getByText('Novos no período').filter({ visible: true }).first()).toBeVisible()
   // e as quatro janelas que ele pede: dia, semana, mês e ano
   await expect(page.getByRole('link', { name: 'Este ano' })).toBeVisible()
 })
