@@ -165,8 +165,10 @@ export async function sessoesDoIntervalo(
   de: string,
   ate: string,
   filtro: { profissionalId?: string; servicoId?: string; localId?: string } = {},
+  /** quem já tem a conta em mãos poupa uma ida ao banco */
+  fusoConhecido?: string,
 ): Promise<SessaoResumo[]> {
-  const fuso = await fusoDa(db, contaId)
+  const fuso = fusoConhecido ?? await fusoDa(db, contaId)
   await materializarJanela(db, contaId, de, ate, fuso)
 
   let q = db

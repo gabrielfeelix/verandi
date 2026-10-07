@@ -68,40 +68,45 @@ export async function materializarJanela(
    * que é aquele erro que fala de tudo menos do problema. Quebrar a linha
    * dentro das aspas mantém o literal.
    */
-  const { data: series, error: erroSeries } = await db
-    .from('serie')
-    .select(`id, servico_id, profissional_id, local_id, dia_semana, hora_inicio,
-             duracao_min, capacidade, vigencia_inicio, vigencia_fim, ativo`)
-    .eq('conta_id', contaId).eq('ativo', true)
+  // as cinco leituras não dependem uma da outra: juntas, a visita à semana
+  // já materializada (o caso comum) custa uma ida ao banco em vez de cinco
+  const [
+    { data: series, error: erroSeries },
+    { data: excecoesBrutas },
+    { data: vagasBrutas },
+    { data: licencasBrutas, error: erroLicencas },
+    { data: existentes },
+  ] = await Promise.all([
+    db.from('serie')
+      .select(`id, servico_id, profissional_id, local_id, dia_semana, hora_inicio,
+               duracao_min, capacidade, vigencia_inicio, vigencia_fim, ativo`)
+      .eq('conta_id', contaId).eq('ativo', true),
+    /*
+     * `.returns<>()` aqui **não** é resquício de antes dos tipos gerados: ele diz
+     * o que o gerador não tem como saber. `excecao_calendario.tipo` é `text` com
+     * `check (tipo in ('feriado','fechado'))`, e checagem de texto não vira união
+     * em TypeScript. "Só marcar" é o feriado em que o estúdio trabalha: a aula
+     * nasce normal, por isso só `cancelar_avisar` bloqueia.
+     */
+    db.from('excecao_calendario').select('data, tipo')
+      .eq('conta_id', contaId).gte('data', de).lte('data', ate)
+      .eq('acao', 'cancelar_avisar')
+      .returns<Excecao[]>(),
+    db.from('vaga').select('serie_id, pessoa_id, inicio, fim').eq('conta_id', contaId),
+    // quem está de licença: a aula gerada no período já nasce em `licenca`, e
+    // o lugar fica livre para encaixe desde o primeiro minuto
+    db.from('licenca').select('pessoa_id, inicio, volta_prevista')
+      .eq('conta_id', contaId).is('encerrada_em', null),
+    db.from('sessao').select('serie_id, inicio')
+      .eq('conta_id', contaId)
+      .gte('inicio', instante(de, '00:00', fuso))
+      .lte('inicio', instante(ate, '23:59', fuso)),
+  ])
   if (erroSeries) throw erroSeries
-  if (!series?.length) return { criadas: 0, participacoesCriadas: 0 }
-
-  /*
-   * `.returns<>()` aqui **não** é resquício de antes dos tipos gerados: ele diz
-   * o que o gerador não tem como saber. `excecao_calendario.tipo` é `text` com
-   * `check (tipo in ('feriado','fechado'))`, e checagem de texto não vira união
-   * em TypeScript: o arquivo gerado diz `string`. Quem sabe que são dois
-   * valores é a migration, e a união mora em `core/agenda/tipos.ts`.
-   */
-  const { data: excecoesBrutas } = await db
-    .from('excecao_calendario').select('data, tipo')
-    .eq('conta_id', contaId).gte('data', de).lte('data', ate)
-    // "só marcar" é o feriado em que o estúdio trabalha: a aula nasce normal
-    .eq('acao', 'cancelar_avisar')
-    .returns<Excecao[]>()
-  const excecoes = excecoesBrutas ?? []
-
-  const { data: vagasBrutas } = await db
-    .from('vaga').select('serie_id, pessoa_id, inicio, fim').eq('conta_id', contaId)
-    
-  const vagas = vagasBrutas ?? []
-
-  // quem está de licença: a aula gerada no período já nasce em `licenca`, e o
-  // lugar fica livre para encaixe desde o primeiro minuto
-  const { data: licencasBrutas, error: erroLicencas } = await db
-    .from('licenca').select('pessoa_id, inicio, volta_prevista')
-    .eq('conta_id', contaId).is('encerrada_em', null)
   if (erroLicencas) throw erroLicencas
+  if (!series?.length) return { criadas: 0, participacoesCriadas: 0 }
+  const excecoes = excecoesBrutas ?? []
+  const vagas = vagasBrutas ?? []
   const licencas = new Map<string, JanelaDeLicenca>(
     (licencasBrutas ?? []).map((l) => [l.pessoa_id, { inicio: l.inicio, voltaPrevista: l.volta_prevista }]),
   )
@@ -114,13 +119,6 @@ export async function materializarJanela(
    * Comparar como texto acharia que nada existe e escreveria tudo de novo em
    * toda visita, que é exatamente o defeito que esta consulta veio tirar.
    */
-  const { data: existentes } = await db
-    .from('sessao').select('serie_id, inicio')
-    .eq('conta_id', contaId)
-    .gte('inicio', instante(de, '00:00', fuso))
-    .lte('inicio', instante(ate, '23:59', fuso))
-    
-
   const jaExiste = new Set(
     (existentes ?? [])
       .filter((s) => s.serie_id !== null)

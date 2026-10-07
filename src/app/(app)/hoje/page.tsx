@@ -64,30 +64,39 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
   const dia = diaParam ?? hoje
   const ehHoje = dia === hoje
 
-  const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
-
-  const { data: { user } } = await db.auth.getUser()
-  const { data: eu } = await db
-    .from('profissional').select('id, nome')
-    .eq('conta_id', conta.contaId)
-    .eq('usuario_id', user?.id ?? '')
-    .maybeSingle()
-
   const podeVerTodos = conta.papel !== 'profissional'
-  const notificacoes = podeVerTodos
-    ? await notificacoesDaConta(db, conta.contaId, conta.fuso)
-    : []
+
+  /*
+   * Tudo de uma vez, e só as sessões esperam por "quem sou eu" (o filtro do
+   * professor). Em fila, eram oito idas ao banco a cada troca de dia.
+   */
+  const euP = (async () => {
+    const { data: { user } } = await db.auth.getUser()
+    const { data } = await db
+      .from('profissional').select('id, nome')
+      .eq('conta_id', conta.contaId)
+      .eq('usuario_id', user?.id ?? '')
+      .maybeSingle()
+    return data
+  })()
   // quem não dá aula não tem "minha agenda": abria nela vendo a de todos, com
   // a aba errada acesa. Sem cadastro de profissional, é sempre "Todos"
-  const verTodos = podeVerTodos && (todos === '1' || !eu)
-  const filtro = !verTodos && eu ? { profissionalId: eu.id } : {}
+  const verTodosP = euP.then((eu) => podeVerTodos && (todos === '1' || !eu))
+  const sessoesP = Promise.all([euP, verTodosP]).then(([eu, verTodos]) =>
+    sessoesDoIntervalo(db, conta.contaId, dia, dia,
+      !verTodos && eu ? { profissionalId: eu.id } : {}, fuso))
 
-  const sessoes = await sessoesDoIntervalo(db, conta.contaId, dia, dia, filtro)
-
-  // as pendências só existem para quem opera; o profissional não dispensa nada
-  const grupos = podeVerTodos
-    ? await listarPendencias(db, conta.contaId, conta.fuso)
-    : []
+  const [vocabulario, eu, verTodos, notificacoes, sessoes, grupos, caixa] = await Promise.all([
+    carregarVocabulario(db, conta.contaId),
+    euP,
+    verTodosP,
+    podeVerTodos ? notificacoesDaConta(db, conta.contaId, conta.fuso) : Promise.resolve([]),
+    sessoesP,
+    // as pendências só existem para quem opera; o profissional não dispensa nada
+    podeVerTodos ? listarPendencias(db, conta.contaId, conta.fuso) : Promise.resolve([]),
+    podeVerTodos ? caixaDoMes(db, conta.contaId, hoje) : Promise.resolve(null),
+  ])
+  const rotulos = resolverRotulos(vocabulario)
 
   const agora = agoraMs()
   const passou = (s: SessaoResumo) =>
@@ -157,7 +166,6 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
    * arrumar os blocos; ninguém arrumava, e o painel de arrumar era mais uma
    * coisa a entender na tela que mais se abre.
    */
-  const caixa = podeVerTodos ? await caixaDoMes(db, conta.contaId, hoje) : null
   const variou = caixa ? variacao(caixa.recebidoCent, caixa.recebidoAntesCent) : null
 
   /*

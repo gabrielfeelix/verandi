@@ -66,26 +66,11 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const p = await searchParams
   const conta = await exigirPapel(OPERA, 'Agenda')
   const db = await clienteServidor()
-  // as modalidades do botão "Aula avulsa" (a Agenda já é só de quem opera)
-  const { data: servicosAvulsa } = await db.from('servico').select('id, nome')
-    .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-
   const fuso = conta.fuso
   const hoje = hojeEm(fuso)
   const segunda = segundaDe(p.de ?? hoje)
   const dias = Array.from({ length: 7 }, (_, i) => somarDias(segunda, i))
   const sabado = dias[6]
-
-  const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
-
-  const [{ data: profissionais }, { data: locais }] = await Promise.all([
-    db.from('profissional').select('id, nome, cor')
-      .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-      ,
-    db.from('local').select('id, nome')
-      .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-      ,
-  ])
 
   const ehDia = p.modo === 'dia'
   // no modo dia a janela é de um dia só; na semana, os sete
@@ -93,10 +78,39 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const de = ehDia ? diaFoco : segunda
   const ate = ehDia ? diaFoco : sabado
 
-  const todas = await sessoesDoIntervalo(db, conta.contaId, de, ate, {
-    ...(p.profissional ? { profissionalId: p.profissional } : {}),
-    ...(p.local ? { localId: p.local } : {}),
-  })
+  /*
+   * Tudo de uma vez. Uma leitura depois da outra eram sete idas ao banco em
+   * fila a cada clique em "próxima semana", e é esse clique que precisa ser
+   * instantâneo.
+   */
+  const [
+    { data: servicosAvulsa },
+    vocabulario,
+    { data: profissionais },
+    { data: locais },
+    todas,
+    { data: aberturas },
+    { data: excecoes },
+  ] = await Promise.all([
+    // as modalidades do botão "Aula avulsa" (a Agenda já é só de quem opera)
+    db.from('servico').select('id, nome')
+      .eq('conta_id', conta.contaId).eq('ativo', true).order('nome'),
+    carregarVocabulario(db, conta.contaId),
+    db.from('profissional').select('id, nome, cor')
+      .eq('conta_id', conta.contaId).eq('ativo', true).order('nome'),
+    db.from('local').select('id, nome')
+      .eq('conta_id', conta.contaId).eq('ativo', true).order('nome'),
+    sessoesDoIntervalo(db, conta.contaId, de, ate, {
+      ...(p.profissional ? { profissionalId: p.profissional } : {}),
+      ...(p.local ? { localId: p.local } : {}),
+    }, fuso),
+    // dia sem linha em `funcionamento` é dia fechado: é o que separa o sábado
+    // vazio do sábado que a casa não abre
+    db.from('funcionamento').select('dia_semana').eq('conta_id', conta.contaId),
+    db.from('excecao_calendario').select('data, descricao, tipo')
+      .eq('conta_id', conta.contaId).gte('data', de).lte('data', ate),
+  ])
+  const rotulos = resolverRotulos(vocabulario)
 
   /*
    * "Só com vaga" é o "tem horário quinta?" do balcão, respondido na própria
@@ -109,20 +123,10 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     ? todas.filter((s) => s.status !== 'cancelada' && s.ocupacao.livres > 0 && s.inicio > agora)
     : todas
 
-  // dia sem linha em `funcionamento` é dia fechado: é o que separa o sábado
-  // vazio do sábado que a casa não abre
-  const { data: aberturas } = await db
-    .from('funcionamento').select('dia_semana').eq('conta_id', conta.contaId)
-    
   const abertos = new Set((aberturas ?? []).map((a) => a.dia_semana))
   const fechados = new Set(
     abertos.size === 0 ? [] : [0, 1, 2, 3, 4, 5, 6].filter((d) => !abertos.has(d)),
   )
-
-  const { data: excecoes } = await db
-    .from('excecao_calendario').select('data, descricao, tipo')
-    .eq('conta_id', conta.contaId).gte('data', de).lte('data', ate)
-    
 
   const feriados = Object.fromEntries(
     (excecoes ?? []).map((e) => [e.data, e.descricao ?? e.tipo]),

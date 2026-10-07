@@ -60,6 +60,8 @@ export function NavegadorPeriodo({
     <div className="flex items-center overflow-hidden rounded-padrao border border-linha bg-superficie">
       <Link
         href={antes.href}
+        // o período vizinho chega pronto: o clique só troca a tela
+        prefetch
         aria-label={antes.rotulo}
         onClick={aoClicar(antes.href)}
         className="flex min-h-11 items-center px-3 text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave"
@@ -77,6 +79,7 @@ export function NavegadorPeriodo({
 
       <Link
         href={depois.href}
+        prefetch
         aria-label={depois.rotulo}
         onClick={aoClicar(depois.href)}
         className="flex min-h-11 items-center px-3 text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave"
