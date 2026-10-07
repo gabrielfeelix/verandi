@@ -9,6 +9,7 @@ import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { marcarAulaAvulsa, profissionaisParaAvulsa } from '@/server/agenda/avulsa'
 import { Escolha } from '@/components/ui/escolha'
 import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
+import { CampoData } from '@/components/ui/campo-data'
 import { emCentavos } from '@/core/planos/plano'
 
 type Servico = { id: string; nome: string }
@@ -147,9 +148,9 @@ export function FormAulaAvulsa({
         </Campo>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(10rem,1.5fr)_1fr_1fr_1fr]">
         <Campo rotulo="Dia" htmlFor="av-data" obrigatorio>
-          <input id="av-data" type="date" value={data} onChange={(e) => setData(e.target.value)} className={entrada} />
+          <CampoData id="av-data" nome="data" valorInicial={data} aoTrocar={setData} limpavel={false} />
         </Campo>
         <Campo rotulo="Hora" htmlFor="av-hora" obrigatorio>
           <input id="av-hora" type="time" value={hora} onChange={(e) => setHora(e.target.value)} className={entrada} />
