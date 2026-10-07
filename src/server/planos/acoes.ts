@@ -141,6 +141,36 @@ export async function editarPlano(
     const conta = await exigirDono()
     const db = await clienteServidor()
 
+    /*
+     * O contrato copia o preço, mas lê do plano a forma de cobrar: recorrência
+     * e parcelas fazem as cobranças previstas, horário livre e aulas por semana
+     * fazem o limite da semana e as aulas a fazer, e a modalidade diz onde o
+     * saldo do pacote vale. Mudar isso num plano vendido
+     * reescreveria o combinado com quem já pagou. Preço, nome, código e dias
+     * continuam editáveis.
+     */
+    const { data: atual, error: erroAtual } = await db.from('plano')
+      .select('servico_id, recorrencia, parcelas, frequencia_semanal, horario_livre')
+      .eq('id', id).eq('conta_id', conta.contaId).single()
+    if (erroAtual) throw erroAtual
+    const novo = paraLinha(entrada)
+    const mudouForma = atual.servico_id !== novo.servico_id
+      || atual.recorrencia !== novo.recorrencia
+      || atual.parcelas !== novo.parcelas
+      || (atual.frequencia_semanal ?? null) !== (novo.frequencia_semanal ?? null)
+      || atual.horario_livre !== novo.horario_livre
+    if (mudouForma) {
+      const { count, error: erroVendidos } = await db.from('contrato')
+        .select('id', { count: 'exact', head: true })
+        .eq('conta_id', conta.contaId).eq('plano_id', id).neq('status', 'encerrado')
+      if (erroVendidos) throw erroVendidos
+      if ((count ?? 0) > 0) {
+        throw new Error(
+          `Este plano tem ${count} ${count === 1 ? 'contrato' : 'contratos'} em vigor, e a forma de cobrar vale para eles também. Para vender de outro jeito, crie um plano novo e tire este de uso.`,
+        )
+      }
+    }
+
     await comCodigoLegivel(db, conta.contaId, entrada.codigo, id, async () => {
       const { error } = await db.from('plano')
         .update(paraLinha(entrada)).eq('id', id).eq('conta_id', conta.contaId)

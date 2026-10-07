@@ -9,6 +9,8 @@ export type PlanoLinha = PlanoBase & {
   servicoNome: string
   categoria: string | null
   ativo: boolean
+  /** contratos ativos ou pausados: a forma de cobrar deles vem daqui */
+  contratosEmVigor: number
 }
 
 /**
@@ -34,7 +36,14 @@ export async function listarPlanos(db: Db, contaId: string): Promise<PlanoLinha[
 
   if (error) throw error
 
+  const { data: vendidos, error: erroVendidos } = await db.from('contrato')
+    .select('plano_id').eq('conta_id', contaId).neq('status', 'encerrado')
+  if (erroVendidos) throw erroVendidos
+  const emVigor = new Map<string, number>()
+  for (const c of vendidos ?? []) emVigor.set(c.plano_id, (emVigor.get(c.plano_id) ?? 0) + 1)
+
   return (data ?? []).map((p) => ({
+    contratosEmVigor: emVigor.get(p.id) ?? 0,
     id: p.id,
     codigo: p.codigo,
     nome: p.nome,

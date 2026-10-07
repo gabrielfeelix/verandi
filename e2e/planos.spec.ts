@@ -122,13 +122,48 @@ test('tirar de uso mantém o plano no catálogo, e o filtro o encontra', async (
   await page.getByRole('menuitem', { name: 'Tirar de uso' }).click()
   await expect(page.getByText('Desativado')).toBeVisible()
 
-  await page.getByLabel('Só os que saíram de uso').check()
+  await page.getByRole('button', { name: 'Fora de uso', exact: true }).click()
   await expect(page.getByText('Aula avulsa')).toBeVisible()
 
   // desativar não apaga: o plano continua nomeando o que já foi vendido
   const { data } = await admin.from('plano')
     .select('ativo').eq('conta_id', contaId).single()
   expect(data!.ativo).toBe(false)
+})
+
+test('plano vendido não muda a forma de cobrar, e o preço continua editável', async ({ page }) => {
+  const { contaId, marca } = await contaDeTeste('Estúdio do plano vendido')
+  const { email } = await usuarioDe(contaId, 'dono', marca)
+  const { data: s } = await admin.from('servico')
+    .insert({ conta_id: contaId, nome: 'Pilates aparelho' }).select().single()
+  const { data: plano } = await admin.from('plano').insert({
+    conta_id: contaId, servico_id: s!.id, codigo: '020', nome: 'Mensal 2x',
+    recorrencia: 'mensal', frequencia_semanal: 2,
+    preco_vinculado_cent: 30000, preco_avulso_cent: 30000,
+  }).select().single()
+  const { data: pessoa } = await admin.from('pessoa')
+    .insert({ conta_id: contaId, nome: 'Helena Moraes' }).select().single()
+  await admin.from('contrato').insert({
+    conta_id: contaId, pessoa_id: pessoa!.id, plano_id: plano!.id,
+    inicio: '2026-01-01', preco_aplicado_cent: 30000,
+  })
+
+  await entrar(page, email)
+  await page.goto('/config?s=planos')
+  // a seção de planos vem depois da de serviços: o último Editar é o do plano
+  await page.getByRole('button', { name: 'Editar' }).last().click()
+
+  const modal = page.getByRole('dialog')
+  await expect(modal.getByText('Um contrato em vigor usa este plano')).toBeVisible()
+  await expect(modal.getByRole('combobox', { name: 'Como cobra' })).toHaveCount(0)
+
+  await modal.getByLabel('Preço cheio').fill('320,00')
+  await modal.getByRole('button', { name: 'Salvar' }).click()
+  await expect.poll(async () => {
+    const { data } = await admin.from('plano')
+      .select('recorrencia, frequencia_semanal, preco_avulso_cent').eq('id', plano!.id).single()
+    return data
+  }).toEqual({ recorrencia: 'mensal', frequencia_semanal: 2, preco_avulso_cent: 32000 })
 })
 
 test('a recepção não alcança a tabela de preços', async ({ page }) => {

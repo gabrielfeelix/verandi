@@ -138,15 +138,9 @@ export function SecaoPlanos({
                 {s.nome}
               </Chip>
             ))}
-            <label className="flex cursor-pointer items-center gap-2 pl-1 text-[13.5px] text-tinta-media">
-              <input
-                type="checkbox"
-                checked={soInativos}
-                onChange={(e) => setSoInativos(e.target.checked)}
-                className="size-4 cursor-pointer"
-              />
-              Só os que saíram de uso
-            </label>
+            <Chip ativo={soInativos} onClick={() => setSoInativos((v) => !v)}>
+              Fora de uso
+            </Chip>
           </div>
         </div>
       ) : null}
@@ -217,6 +211,10 @@ export function SecaoPlanos({
         </div>
       ))}
 
+      {erro && !edicao ? (
+        <div className="px-5 pb-4"><Nota tom="alerta">{erro}</Nota></div>
+      ) : null}
+
       {edicao ? (
         <FormularioDePlano
           plano={emEdicao}
@@ -259,6 +257,8 @@ function FormularioDePlano({
   const [livre, setLivre] = useState(plano?.horarioLivre ?? false)
   const [dias, setDias] = useState<number[]>(plano?.diasPermitidos ?? TODOS_OS_DIAS)
   const [precoRuim, setPrecoRuim] = useState<string | null>(null)
+  // plano vendido: a forma de cobrar vale para quem já comprou, e não muda aqui
+  const travado = plano !== null && plano.contratosEmVigor > 0
 
   return (
     <ModalFormulario
@@ -316,14 +316,44 @@ function FormularioDePlano({
         </Campo>
       </div>
 
-      <Campo rotulo={rotuloServico.singular} htmlFor="pl-servico" obrigatorio>
-        <Escolha
-          id="pl-servico" nome="servicoId"
-          valorInicial={plano?.servicoId ?? servicos[0]?.id ?? ''}
-          opcoes={servicos.map((s) => ({ valor: s.id, rotulo: s.nome }))}
-        />
-      </Campo>
+      {travado ? (
+        <Campo rotulo={rotuloServico.singular} htmlFor="pl-servico">
+          <p id="pl-servico" className="rounded-media border border-linha-fina bg-superficie-suave px-3.5 py-3 text-[14.5px] text-tinta-media">
+            {plano.servicoNome}
+          </p>
+          <input type="hidden" name="servicoId" value={plano.servicoId} />
+        </Campo>
+      ) : (
+        <Campo rotulo={rotuloServico.singular} htmlFor="pl-servico" obrigatorio>
+          <Escolha
+            id="pl-servico" nome="servicoId"
+            valorInicial={plano?.servicoId ?? servicos[0]?.id ?? ''}
+            opcoes={servicos.map((s) => ({ valor: s.id, rotulo: s.nome }))}
+          />
+        </Campo>
+      )}
 
+      {travado ? (
+        <>
+          <Campo rotulo="Como cobra" htmlFor="pl-rec">
+            <p id="pl-rec" className="rounded-media border border-linha-fina bg-superficie-suave px-3.5 py-3 text-[14.5px] text-tinta-media">
+              {plano.recorrencia === 'pacote'
+                ? RECORRENCIAS.find((r) => r.valor === 'pacote')?.rotulo
+                : comoCobra(plano)}
+            </p>
+          </Campo>
+          <input type="hidden" name="frequenciaSemanal" value={plano.frequenciaSemanal ?? ''} />
+          <input type="hidden" name="parcelas" value={plano.parcelas} />
+          <Nota tom="neutro">
+            {plano.contratosEmVigor === 1
+              ? 'Um contrato em vigor usa este plano'
+              : `${plano.contratosEmVigor} contratos em vigor usam este plano`}
+            , e a modalidade e a forma de cobrar valem para eles também. O
+            preço novo vale só para as próximas vendas. Para vender de outro
+            jeito, crie um plano novo e tire este de uso.
+          </Nota>
+        </>
+      ) : (
       <Campo rotulo="Como cobra" htmlFor="pl-rec" obrigatorio>
         <Escolha
           id="pl-rec" nome="recorrencia"
@@ -332,8 +362,9 @@ function FormularioDePlano({
           opcoes={RECORRENCIAS.map((r) => ({ valor: r.valor, rotulo: r.rotulo }))}
         />
       </Campo>
+      )}
 
-      {seRepete(recorrencia) ? (
+      {seRepete(recorrencia) && !travado ? (
         <fieldset className="flex flex-col gap-2">
           <legend className="pb-1.5 text-[12px] font-semibold text-tinta-fraca">
             Como a pessoa escolhe o horário
@@ -409,11 +440,11 @@ function FormularioDePlano({
       ) : null}
 
       <div className="flex flex-wrap items-start gap-3">
-        {seRepete(recorrencia) ? (
+        {seRepete(recorrencia) && !travado ? (
           <>
             <Campo
               rotulo={livre ? 'Aulas por semana' : 'Horários por semana'} htmlFor="pl-freq"
-              dica={livre ? 'o máximo que pode marcar em cada semana' : 'quantos lugares fixos a matrícula vai ocupar'}
+              dica={livre ? 'O máximo que pode marcar em cada semana' : 'Quantos lugares fixos a matrícula vai ocupar'}
             >
               <span className="block w-32">
                 <CampoNumero
@@ -445,7 +476,7 @@ function FormularioDePlano({
             </Campo>
             <Campo
               rotulo="Validade" htmlFor="pl-val"
-              dica="em meses, a partir da compra"
+              dica="Em meses, a partir da compra"
             >
               <span className="block w-32">
                 <CampoNumero
@@ -461,7 +492,7 @@ function FormularioDePlano({
       <div className="grid gap-3 sm:grid-cols-2">
         <Campo
           rotulo="Preço de cliente" htmlFor="pl-pv"
-          dica="de quem já tem plano em vigor de outra modalidade"
+          dica="De quem já tem plano em vigor de outra modalidade"
         >
           <CampoDinheiro
             id="pl-pv" nome="precoVinculado" required
@@ -470,7 +501,7 @@ function FormularioDePlano({
         </Campo>
         <Campo
           rotulo="Preço cheio" htmlFor="pl-pa"
-          dica="repita o mesmo valor quando o plano tem preço único"
+          dica="Repita o mesmo valor quando o plano tem preço único"
         >
           <CampoDinheiro
             id="pl-pa" nome="precoAvulso" required
