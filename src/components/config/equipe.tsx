@@ -8,7 +8,7 @@ import { Modal, ModalFormulario } from '@/components/ui/modal'
 import {
   Avatar, Campo, Chip, ListaImpacto, Nota, Rotulo, entrada,
 } from '@/components/ui/pecas'
-import { BotaoLinha, LinhaConfig, PainelConfig } from './casca'
+import { BotaoLinha, CampoAtivo, LinhaConfig, PainelConfig } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { CORES_PROFISSIONAL } from '@/components/ui/tintas'
 import { salvarProfissional, removerFoto } from '@/server/config/acoes'
@@ -77,7 +77,7 @@ export function SecaoEquipe({
     p.servicoIds.forEach((id) => f.append('servicos', id))
     comErro(
       async () => { await salvarProfissional(f) },
-      `${p.nome} desativado, o histórico continua com o nome dele`,
+      `Cadastro de ${p.nome} desativado, o histórico mantém o nome`,
       aoFim,
     )
   }
@@ -188,7 +188,7 @@ export function SecaoEquipe({
               },
               {
                 titulo: `${rotuloSeries} na grade`,
-                meta: `${aDesativar.emUso}, ficam sem quem atenda`,
+                meta: `${aDesativar.emUso}, mantêm o nome até a troca`,
               },
               {
                 titulo: `${rotuloSessoes} que já estão na agenda`,
@@ -329,10 +329,7 @@ function Formulario({
         />
       </Campo>
 
-      <label className="flex items-center gap-2 text-[13.5px]">
-        <input type="checkbox" name="ativo" defaultChecked={profissional?.ativo ?? true} />
-        Ativo
-      </label>
+      <CampoAtivo inicial={profissional?.ativo ?? true} />
 
       <Nota tom="atencao">
         Desativar tira das escolhas novas e mantém no passado: a sessão de ontem

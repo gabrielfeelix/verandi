@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import { cartao } from '@/components/ui/pecas'
+import { Interruptor } from '@/components/ui/interruptor'
 
 /**
  * A casca das seções de configuração, com as medidas do protótipo.
@@ -159,6 +160,21 @@ export function FaixaFormulario({ children }: { children: ReactNode }) {
   return (
     <div className="border-b border-linha-fina bg-superficie-suave px-5 py-4">
       {children}
+    </div>
+  )
+}
+
+/**
+ * O "Ativo" do cadastro, na alavanca da casa em vez do checkbox do sistema.
+ * O valor viaja num campo escondido, e quem salva continua lendo o `FormData`.
+ */
+export function CampoAtivo({ inicial }: { inicial: boolean }) {
+  const [ligado, setLigado] = useState(inicial)
+  return (
+    <div className="flex items-center gap-2.5">
+      <input type="hidden" name="ativo" value={ligado ? 'on' : ''} />
+      <Interruptor ligado={ligado} aoMudar={setLigado} rotulo="Ativo"
+        textoLigado="Ativo" textoDesligado="Fora de uso" />
     </div>
   )
 }

@@ -185,7 +185,7 @@ test('desativar profissional pede confirmação e não tira o login', async ({ p
   await page.getByRole('menuitem', { name: 'Desativar' }).click()
   await expect(page.getByText('Desativar profissional?')).toBeVisible()
   await expect(page.getByText('Marina sai das escolhas novas')).toBeVisible()
-  await expect(page.getByText('1, ficam sem quem atenda')).toBeVisible()
+  await expect(page.getByText('1, mantêm o nome até a troca')).toBeVisible()
 
   await page.getByRole('button', { name: 'Desativar', exact: true }).click()
 

@@ -6,7 +6,7 @@ import { Botao, BotaoIcone } from '@/components/ui/botao'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Campo, ListaImpacto, Nota, entrada } from '@/components/ui/pecas'
 import {
-  BotaoLinha, Dado, Estado, LinhaConfig, PainelConfig, Recolhivel,
+  BotaoLinha, CampoAtivo, Dado, Estado, LinhaConfig, PainelConfig, Recolhivel,
 } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
 import { salvarServico, salvarLocal } from '@/server/config/acoes'
@@ -14,22 +14,7 @@ import type { Rotulo } from '@/core/vocabulario/padrao'
 import type { ServicoLinha, LocalLinha } from '@/server/config/consultas'
 import { erroLegivel } from '@/core/erro-legivel'
 import { CampoNumero } from '@/components/ui/campo-numero'
-import { Interruptor } from '@/components/ui/interruptor'
 
-/**
- * O "Ativo" do cadastro, na alavanca da casa em vez do checkbox do sistema.
- * O valor viaja num campo escondido, e quem salva continua lendo o `FormData`.
- */
-function CampoAtivo({ inicial }: { inicial: boolean }) {
-  const [ligado, setLigado] = useState(inicial)
-  return (
-    <div className="flex items-center gap-2.5">
-      <input type="hidden" name="ativo" value={ligado ? 'on' : ''} />
-      <Interruptor ligado={ligado} aoMudar={setLigado} rotulo="Ativo"
-        textoLigado="Ativo" textoDesligado="Fora de uso" />
-    </div>
-  )
-}
 
 /**
  * Serviços e locais.
