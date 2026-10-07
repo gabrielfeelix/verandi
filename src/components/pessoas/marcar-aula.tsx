@@ -279,7 +279,7 @@ export function MarcarAula({
                 : 'Nada com essa busca. Tente só o dia ou só a hora.'}
             </Nota>
           ) : (
-            <div className="flex max-h-[46vh] flex-col gap-3 overflow-y-auto pb-1">
+            <div className="flex shrink-0 flex-col gap-3 pb-1">
               {[...porDia.entries()].map(([data, itens]) => (
                 <section key={data} className="flex flex-col gap-1.5">
                   <h3 className="text-[12px] font-semibold text-tinta-media">
