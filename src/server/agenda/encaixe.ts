@@ -123,6 +123,8 @@ export async function encaixarNaSessao(
           return { ok: false, motivo: 'limite_da_semana', limite: livre.limite, plano: livre.plano }
         }
       }
+    } else {
+      contratoId = await contratoComSaldo(db, contaId, entrada.pessoaId, sessao.servico_id)
     }
   }
 
@@ -148,6 +150,34 @@ export async function encaixarNaSessao(
   })
 
   return { ok: true, participacaoId: criada.id }
+}
+
+/**
+ * O pacote (ou aula avulsa) desta pessoa, nesta modalidade, que ainda tem
+ * saldo, do mais antigo para o mais novo.
+ *
+ * Sem esta ligação a aula marcada não gastava o pacote: o saldo da ficha e o
+ * aviso "aulas a fazer" ficavam parados para sempre. Conta as aulas já
+ * marcadas à frente junto das usadas, senão três aulas agendadas de uma vez
+ * cairiam todas no mesmo pacote de uma aula só.
+ */
+async function contratoComSaldo(
+  db: Db, contaId: string, pessoaId: string, servicoId: string,
+): Promise<string | null> {
+  const { data, error } = await db.from('contrato')
+    .select('id, inicio, sessoes_contratadas, plano!inner(servico_id, recorrencia), participacao(status)')
+    .eq('conta_id', contaId).eq('pessoa_id', pessoaId).eq('status', 'ativo')
+    .eq('plano.servico_id', servicoId)
+    .in('plano.recorrencia', ['pacote', 'avulsa'])
+    .order('inicio', { ascending: true })
+  if (error) throw error
+  const OCUPAM = new Set(['presente', 'falta', 'falta_avisada', 'esperada', 'confirmada'])
+  for (const c of data ?? []) {
+    const total = c.sessoes_contratadas ?? (c.plano.recorrencia === 'avulsa' ? 1 : 0)
+    const ocupadas = (c.participacao ?? []).filter((x) => OCUPAM.has(x.status)).length
+    if (ocupadas < total) return c.id
+  }
+  return null
 }
 
 /**

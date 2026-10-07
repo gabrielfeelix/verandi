@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import type { TipoPendencia } from './consultas'
+import { SEM_DISPENSAR } from '@/core/pendencias'
 
 /**
  * Dispensar é um fato, não um estado.
@@ -22,8 +23,8 @@ export async function dispensarPendencia(entrada: {
   }
 
   // aula dada sem cobrança se resolve com contrato ou encerrando o horário
-  if (entrada.tipo === 'horario_sem_contrato') {
-    throw new Error('horário sem contrato se resolve criando o contrato ou encerrando o horário')
+  if (SEM_DISPENSAR.has(entrada.tipo)) {
+    throw new Error('esta pendência se resolve na ficha: criando o contrato, renovando ou agendando')
   }
 
   const motivo = entrada.motivo.trim()

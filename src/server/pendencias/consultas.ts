@@ -4,6 +4,8 @@ import { estadoDaChamada } from '@/core/agenda/chamada'
 import { statusComCredito, type StatusParticipacao } from '@/core/agenda/ocupacao'
 import { dataCurta } from '@/core/agenda/datas'
 import { licencasAbertas } from '../licencas/licencas'
+import { pacotesDaConta } from '../contratos/pacotes'
+import { fraseDoSaldo } from '@/core/contratos/pacote'
 
 /**
  * O inbox de quem opera: o que exige ação humana hoje.
@@ -20,6 +22,9 @@ export type TipoPendencia =
   | 'reserva_esperando'
   | 'cadastro_incompleto'
   | 'horario_sem_contrato'
+  | 'pacote_esgotado'
+  | 'pacote_acabando'
+  | 'pacote_parado'
 
 export type Pendencia = {
   tipo: TipoPendencia
@@ -87,13 +92,14 @@ export async function listarPendencias(
   const prazo = conta.data?.prazo_reposicao_dias ?? 60
   const creditoAvisada = conta.data?.credito_falta_avisada ?? true
 
-  const [chamadas, reposicoes, reservas, cadastros, licencas, semContrato] = await Promise.all([
+  const [chamadas, reposicoes, reservas, cadastros, licencas, semContrato, pacotes] = await Promise.all([
     chamadasNaoFeitas(db, contaId, fuso, agora),
     reposicoesAbertas(db, contaId, prazo, creditoAvisada),
     reservasEsperando(db, contaId, agora),
     cadastrosIncompletos(db, contaId, hoje),
     licencasEmAcompanhamento(db, contaId, hoje),
     horariosSemContrato(db, contaId, hoje),
+    pacotesPendentes(db, contaId, fuso),
   ])
 
   const grupos: GrupoPendencia[] = [
@@ -128,6 +134,24 @@ export async function listarPendencias(
       titulo: 'Horário fixo sem contrato',
       sub: 'Horário fixo em modalidade sem contrato ativo',
       itens: semContrato,
+    },
+    {
+      tipo: 'pacote_esgotado',
+      titulo: 'Pacotes esgotados',
+      sub: 'Todas as aulas do pacote usadas, sem renovação',
+      itens: pacotes.filter((p) => p.tipo === 'pacote_esgotado'),
+    },
+    {
+      tipo: 'pacote_acabando',
+      titulo: 'Pacotes acabando',
+      sub: 'Restam poucas aulas no pacote',
+      itens: pacotes.filter((p) => p.tipo === 'pacote_acabando'),
+    },
+    {
+      tipo: 'pacote_parado',
+      titulo: 'Aulas a fazer',
+      sub: 'Pacote ou aula avulsa com saldo e nada agendado',
+      itens: pacotes.filter((p) => p.tipo === 'pacote_parado'),
     },
     {
       tipo: 'cadastro_incompleto',
@@ -219,14 +243,22 @@ async function reposicoesAbertas(
     
   const jaReposta = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
 
-  return faltas
-    .filter((p) => !jaReposta.has(p.id))
+  const abertas = faltas.filter((p) => !jaReposta.has(p.id))
+  // quantas cada pessoa tem para repor: a linha diz a falta, o total diz a dívida
+  const porPessoa = new Map<string, number>()
+  for (const p of abertas) {
+    if (p.pessoa) porPessoa.set(p.pessoa.id, (porPessoa.get(p.pessoa.id) ?? 0) + 1)
+  }
+
+  return abertas
     .map((p) => ({
       tipo: 'reposicao_aberta' as const,
       referenciaId: p.id,
       titulo: p.pessoa?.nome ?? 'Sem nome',
       detalhe: `${MOTIVO_DO_CREDITO[p.status] ?? 'Horário perdido'} em ${
-        dataCurta(p.sessao!.inicio.slice(0, 10))} · ${p.sessao!.servico?.nome ?? ''}`,
+        dataCurta(p.sessao!.inicio.slice(0, 10))} · ${p.sessao!.servico?.nome ?? ''}${
+        (porPessoa.get(p.pessoa?.id ?? '') ?? 0) > 1
+          ? ` · ${porPessoa.get(p.pessoa!.id)} reposições em aberto` : ''}`,
       diasEmAberto: diasDesde(p.sessao!.inicio),
       href: p.pessoa ? `/pessoas/${p.pessoa.id}` : '/pessoas',
     }))
@@ -338,6 +370,39 @@ async function horariosSemContrato(
       detalhe: faltam.join(' e '),
       diasEmAberto: null,
       href: `/pessoas/${p.id}?aba=contratos`,
+    })
+  }
+  return itens.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
+}
+
+/**
+ * Pacote de aulas que pede ação: esgotado, acabando ou parado.
+ *
+ * A regra mora em `estadoDoPacote` (core), a mesma da ficha e de Alunos.
+ */
+async function pacotesPendentes(
+  db: Db, contaId: string, fuso: string,
+): Promise<Pendencia[]> {
+  // falha aqui não derruba Pendências: os outros grupos continuam
+  const pacotes = await pacotesDaConta(db, contaId, fuso)
+    .catch((e) => { console.error('pacotes em Pendências', e); return [] })
+  const itens: Pendencia[] = []
+  for (const p of pacotes) {
+    if (!p.aviso) continue
+    itens.push({
+      tipo: `pacote_${p.aviso}`,
+      referenciaId: p.pessoaId,
+      titulo: p.pessoaNome,
+      detalhe: p.aviso === 'parado'
+        ? `${p.servico}: ${fraseDoSaldo(p)} · ${p.usadas ? `sem uso há ${p.diasSemUsar} dias` : 'nenhuma usada'}`
+        : `${p.servico}: ${fraseDoSaldo(p)}`,
+      diasEmAberto: null,
+      href: `/pessoas/${p.pessoaId}?aba=${p.aviso === 'parado' ? 'agenda' : 'contratos'}`,
+      etiqueta: p.aviso === 'parado'
+        ? { texto: p.restantes === 1 ? '1 aula a fazer' : `${p.restantes} aulas a fazer`, tinta: 'neutro' }
+        : p.aviso === 'esgotado'
+          ? { texto: 'sem saldo', tinta: 'alerta' }
+          : { texto: p.restantes === 1 ? 'resta 1' : `restam ${p.restantes}`, tinta: 'atencao' },
     })
   }
   return itens.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))

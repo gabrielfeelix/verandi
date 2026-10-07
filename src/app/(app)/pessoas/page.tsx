@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
+import { pacotesDaConta } from '@/server/contratos/pacotes'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import {
   contarPessoas, listarPessoas, POR_PAGINA, type FiltroPessoa,
@@ -54,6 +55,30 @@ const SITUACAO_NA_TELA: Record<string, string> = {
   'plano vencendo': 'Plano vencendo',
   faltando: 'Faltas recentes',
   ativa: 'Em dia',
+  'pacote esgotado': 'Pacote esgotado',
+  'pacote acabando': 'Pacote acabando',
+  'pacote parado': 'Aulas a fazer',
+}
+
+/**
+ * O pacote de aulas entra na situação só nesta tela.
+ *
+ * `situacaoDe` também responde a API do bot, que não conhece esses valores.
+ * Esgotado e acabando passam na frente de "Em dia" e "Plano vencendo" (é a
+ * mesma conversa, a renovação); aulas a fazer só na frente de "Em dia".
+ */
+function comPacote(
+  s: ReturnType<typeof situacaoDe>, aviso: 'esgotado' | 'acabando' | 'parado' | undefined,
+): { rotulo: string; tinta: ReturnType<typeof situacaoDe>['tinta'] } {
+  if (!aviso) return s
+  if (aviso === 'esgotado' && (s.rotulo === 'ativa' || s.rotulo === 'plano vencendo')) {
+    return { rotulo: 'pacote esgotado', tinta: 'alerta' }
+  }
+  if (aviso === 'acabando' && (s.rotulo === 'ativa' || s.rotulo === 'plano vencendo')) {
+    return { rotulo: 'pacote acabando', tinta: 'atencao' }
+  }
+  if (aviso === 'parado' && s.rotulo === 'ativa') return { rotulo: 'pacote parado', tinta: 'neutro' }
+  return s
 }
 
 /** Etiqueta da conta com a primeira letra maiúscula: "lesão" e "Idoso" lado a lado parecia descuido. */
@@ -92,6 +117,18 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
         .is('encerrada_em', null).in('pessoa_id', pessoas.map((x) => x.id))
     : { data: [] }
   const emLicenca = new Set((licencas ?? []).map((l) => l.pessoa_id))
+
+  // o aviso do pacote de aulas, o mesmo de Pendências; quem tem dois pacotes
+  // com aviso mostra o mais urgente
+  const URGENCIA = { esgotado: 3, acabando: 2, parado: 1 } as const
+  const avisoDoPacote = new Map<string, keyof typeof URGENCIA>()
+  // falha aqui não derruba a lista: o aviso é extra, a lista é o essencial
+  const pacotes = await pacotesDaConta(db, conta.contaId, conta.fuso)
+    .catch((e) => { console.error('pacotes em Alunos', e); return [] })
+  for (const k of pacotes) {
+    const atual = avisoDoPacote.get(k.pessoaId)
+    if (k.aviso && (!atual || URGENCIA[k.aviso] > URGENCIA[atual])) avisoDoPacote.set(k.pessoaId, k.aviso)
+  }
 
   const cadastrados = contagem.ativos + contagem.inativos
   const semFiltro = filtros.length === 0 && !tag
@@ -221,7 +258,10 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           <tbody>
             {pessoas.map((p) => {
               const [fundo, frente] = paresDe(p.nome)
-              const situacao = situacaoDe({ ...p, deLicenca: emLicenca.has(p.id) })
+              const situacao = comPacote(
+                situacaoDe({ ...p, deLicenca: emLicenca.has(p.id) }),
+                avisoDoPacote.get(p.id),
+              )
               const fone = telefoneMascarado(p.telefone)
 
               return (

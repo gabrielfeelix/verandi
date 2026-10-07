@@ -19,6 +19,9 @@ export const TINTA_GRUPO: Record<string, string> = {
   reserva_esperando: 'bg-reg-justificada text-white',
   cadastro_incompleto: 'bg-solido-neutro text-white',
   horario_sem_contrato: 'bg-reg-falta text-white',
+  pacote_esgotado: 'bg-reg-falta text-white',
+  pacote_acabando: 'bg-solido-atencao text-white',
+  pacote_parado: 'bg-solido-neutro text-white',
 }
 
 /*
@@ -36,4 +39,8 @@ export const ACAO_GRUPO: Record<string, string> = {
   reserva_esperando: 'Encaixar',
   cadastro_incompleto: 'Completar',
   horario_sem_contrato: 'Criar contrato',
+  pacote_esgotado: 'Renovar pacote',
+  pacote_acabando: 'Renovar pacote',
+  // parado se resolve falando com a pessoa: a ficha tem o WhatsApp e o Marcar aula
+  pacote_parado: 'Abrir ficha',
 }

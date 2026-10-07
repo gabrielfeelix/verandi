@@ -11,6 +11,7 @@ import { dispensarPendencia } from '@/server/pendencias/acoes'
 import { marcarVolta, mudarVolta } from '@/server/licencas/acoes'
 import { ModalVolta } from '@/components/licenca/modal-volta'
 import type { GrupoPendencia, Pendencia } from '@/server/pendencias/consultas'
+import { SEM_DISPENSAR } from '@/core/pendencias'
 import { ACAO_GRUPO, TINTA_GRUPO } from './tintas'
 
 const MOSTRA = 3
@@ -144,8 +145,8 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
                     >
                       {ACAO_GRUPO[p.tipo] ?? 'Resolver'}
                     </Link>
-                    {/* horário sem contrato não se esconde: resolve-se */}
-                    {p.tipo === 'horario_sem_contrato' ? null : (
+                    {/* horário sem contrato e pacote não se escondem: resolvem-se */}
+                    {SEM_DISPENSAR.has(p.tipo) ? null : (
                       <button
                         type="button"
                         onClick={() => setDispensando(p)}

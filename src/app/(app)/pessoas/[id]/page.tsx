@@ -1,4 +1,6 @@
 import { Icone } from '@/components/ui/icones'
+import { pacotesDaConta } from '@/server/contratos/pacotes'
+import { fraseDoSaldo } from '@/core/contratos/pacote'
 import { inicioDaPessoa } from '@/core/pessoas/inicio'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -202,14 +204,17 @@ export default async function Pessoa({
         detalhe: [
           `${emReais(c.precoAplicadoCent)}${POR_RECORRENCIA[c.recorrencia] ?? ''}`,
           c.diaVencimento ? `vence todo dia ${c.diaVencimento}` : null,
-          c.saldo
-            ? `${c.saldo.restantes} ${c.saldo.restantes === 1 ? 'sessão restante' : 'sessões restantes'}`
-            : null,
+          // o saldo do pacote tem bloco próprio logo abaixo, com a barra
           c.status === 'pausado' ? 'pausado' : null,
         ].filter(Boolean).join(' · '),
       }))
     : modalidades.map((m) => ({ id: m, nome: m, detalhe: null }))
   const licenca = await licencaDaPessoa(db, conta.contaId, id)
+  // saldo de pacote é da operação, como o contrato de onde ele vem
+  const pacotes = operacional
+    ? await pacotesDaConta(db, conta.contaId, conta.fuso, id)
+        .catch((e) => { console.error('pacotes na ficha', e); return [] })
+    : []
 
   // "desde" é o mais antigo entre cadastro, primeiro contrato e primeira aula:
   // quem foi importado tem o cadastro do dia da importação
@@ -958,6 +963,34 @@ export default async function Pessoa({
             ) : (
               <p className="pb-3 text-[14.5px] text-tinta-media">Sem contrato em vigor.</p>
             )}
+            {pacotes.map((k) => (
+              <div key={k.servico} className="mb-3 flex flex-col gap-1.5 rounded-media border border-linha-fina bg-superficie-suave px-3 py-2.5">
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-[13.5px] font-medium">Pacote de {k.servico}</span>
+                  {k.aviso ? (
+                    <span className={`rounded-minima px-2 py-[3px] text-[12px] font-medium ${
+                      k.aviso === 'esgotado' ? 'bg-alerta-fundo text-alerta'
+                        : k.aviso === 'acabando' ? 'bg-atencao-fundo text-atencao'
+                          : 'bg-neutro-fundo text-tinta-media'
+                    }`}>
+                      {k.aviso === 'esgotado' ? 'Esgotado'
+                        : k.aviso === 'acabando' ? 'Acabando'
+                          : k.restantes === 1 ? '1 aula a fazer' : `${k.restantes} aulas a fazer`}
+                    </span>
+                  ) : null}
+                </span>
+                <span aria-hidden className="h-1.5 overflow-hidden rounded-full bg-linha-suave">
+                  <span
+                    className={`block h-full rounded-full ${
+                      k.aviso === 'esgotado' ? 'bg-reg-falta'
+                        : k.aviso === 'acabando' ? 'bg-solido-atencao' : 'bg-marca'
+                    }`}
+                    style={{ width: `${Math.min(100, (k.usadas / k.contratadas) * 100)}%` }}
+                  />
+                </span>
+                <span className="text-[12px] text-tinta-media">{fraseDoSaldo(k)}</span>
+              </div>
+            ))}
             {p.vencimentoPlano ? (
               <p className="pb-3 text-[13.5px] text-tinta-media">
                 Válido até {p.vencimentoPlano.split('-').reverse().join('/')}
