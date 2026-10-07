@@ -43,15 +43,17 @@ export function FaixaDeNumeros({
   if (compacta) {
     return (
       <div className="flex flex-col gap-1.5">
-        <dl className="flex flex-wrap gap-y-3">
+        {/* no celular, uma linha de colunas iguais: em fila com divisória, o
+            terceiro número quebrava sozinho com a borda solta na frente */}
+        <dl className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:gap-0 sm:gap-y-3">
           {itens.map((n) => (
             <div
               key={n.rotulo}
               title={n.nota}
-              className="flex flex-col gap-1 border-linha-suave pr-6 not-first:border-l not-first:pl-6"
+              className="flex min-w-0 flex-col gap-1 border-linha-suave sm:pr-6 sm:not-first:border-l sm:not-first:pl-6"
             >
-              <dt className="text-[12px] font-medium text-tinta-media">{n.rotulo}</dt>
-              <dd className={`font-titulo text-[18px] leading-none font-semibold tabular-nums ${TINTA[n.tom ?? 'neutro']}`}>
+              <dt className="truncate text-[12px] font-medium text-tinta-media">{n.rotulo}</dt>
+              <dd className={`font-titulo text-[14.5px] leading-none font-semibold tabular-nums sm:text-[18px] ${TINTA[n.tom ?? 'neutro']}`}>
                 {n.valor}
               </dd>
             </div>

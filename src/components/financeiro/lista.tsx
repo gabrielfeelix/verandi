@@ -142,15 +142,15 @@ export function ListaDeCobrancas({
         * desde quando) se lê melhor em coluna. Receber fica à vista; o resto
         * mora no "⋮" da linha. A primeira coluna fica presa ao rolar de lado.
         */}
-      <Tabela largura={880}>
+      <Tabela largura={880} soNoDesktop>
           <Cabecalho>
               <Th fixa>{naFicha ? 'Plano' : 'Aluno'}</Th>
-              <Th>Referência</Th>
-              <Th>Vencimento</Th>
-              <Th className="text-right">Valor</Th>
-              <Th>Situação</Th>
-              <Th>Recebimento</Th>
-              <Th className="text-right"><span className="sr-only">Ações</span></Th>
+              <Th className="max-md:hidden">Referência</Th>
+              <Th className="max-md:hidden">Vencimento</Th>
+              <Th className="text-right max-md:hidden">Valor</Th>
+              <Th className="max-md:hidden">Situação</Th>
+              <Th className="max-md:hidden">Recebimento</Th>
+              <Th className="text-right max-md:hidden"><span className="sr-only">Ações</span></Th>
           </Cabecalho>
           <tbody>
             {linhas.map((c) => {
@@ -197,7 +197,7 @@ export function ListaDeCobrancas({
               return (
                 <tr key={c.id} className={LINHA}>
                   <td className={CELULA_FIXA}>
-                    <span className="flex min-w-[200px] items-center gap-3">
+                    <span className="flex min-w-[200px] items-start gap-3 md:items-center">
                       {naFicha ? null : <Avatar nome={c.pessoaNome} tamanho={32} decorativo />}
                       <span className="flex min-w-0 flex-col gap-0.5">
                         {naFicha ? (
@@ -213,22 +213,51 @@ export function ListaDeCobrancas({
                             <span className="truncate text-[12px] text-tinta-media">{c.planoNome || 'Sem plano'}</span>
                           </>
                         )}
+                        {/* no celular as colunas secundárias somem, e o que
+                            decide a cobrança desce para cá: valor, situação, vencimento */}
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 md:hidden">
+                          <span className="text-[14.5px] font-semibold tabular-nums">
+                            {emReais(falta > 0 && c.valorPagoCent > 0 ? falta : c.valorCent)}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium whitespace-nowrap ${s.etiqueta}`}>
+                            {ROTULO_SITUACAO[c.situacao]}
+                            {c.situacao === 'atrasada' ? ` há ${c.diasDeAtraso}d` : ''}
+                          </span>
+                          <span className="text-[12px] text-tinta-media tabular-nums">
+                            vence {dataCurta(c.vencimento)}
+                          </span>
+                        </span>
+                        <span className="flex items-center gap-1.5 pt-1.5 md:hidden">
+                          {recebivel ? (
+                            <Miudo primario onClick={() => setModo({ tipo: 'receber', c })}>
+                              Receber
+                            </Miudo>
+                          ) : null}
+                          {c.situacao === 'cancelada' ? (
+                            <Miudo onClick={() => agir(() => reabrirCobranca(c.id), 'Cobrança reaberta')}>
+                              Reabrir
+                            </Miudo>
+                          ) : null}
+                          {itens.length ? (
+                            <Menu titulo={`Mais sobre a cobrança de ${c.pessoaNome}`} itens={itens} />
+                          ) : <span className="inline-block w-[34px]" />}
+                        </span>
                       </span>
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap text-tinta-media capitalize">
+                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap text-tinta-media capitalize max-md:hidden">
                     {competenciaCurta(c.competencia)}
                   </td>
-                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap tabular-nums">
+                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap tabular-nums max-md:hidden">
                     {dataCurta(c.vencimento)}
                   </td>
-                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                  <td className="px-4 py-3 text-right whitespace-nowrap max-md:hidden">
                     <span className="block text-[14.5px] font-semibold tabular-nums">{emReais(c.valorCent)}</span>
                     {c.valorPagoCent > 0 && falta > 0 ? (
                       <span className="block text-[12px] text-tinta-media tabular-nums">falta {emReais(falta)}</span>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 max-md:hidden">
                     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium whitespace-nowrap ${s.etiqueta}`}>
                       <Icone nome={s.icone} tamanho={13} />
                       {ROTULO_SITUACAO[c.situacao]}
@@ -242,7 +271,7 @@ export function ListaDeCobrancas({
                       </span>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap">
+                  <td className="px-4 py-3 text-[13.5px] whitespace-nowrap max-md:hidden">
                     {ultimo ? (
                       <span className="flex flex-col">
                         <span className="tabular-nums">{emReais(c.valorPagoCent)}</span>
@@ -273,7 +302,7 @@ export function ListaDeCobrancas({
                       <span className="text-tinta-fraca">Nenhum</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 max-md:hidden">
                     <span className="flex items-center justify-end gap-1.5">
                       {recebivel ? (
                         <Miudo primario onClick={() => setModo({ tipo: 'receber', c })}>
