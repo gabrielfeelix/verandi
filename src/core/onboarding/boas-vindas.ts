@@ -62,7 +62,6 @@ const CADEADO = {
 export function boasVindas(papel: Papel, r: Rotulos): Cartao[] {
   const pessoas = r.pessoa.plural.toLowerCase()
   const sessao = r.sessao.singular.toLowerCase()
-  const sessoes = r.sessao.plural.toLowerCase()
   const serie = r.serie.singular.toLowerCase()
 
   const comum: Cartao[] = [
@@ -70,23 +69,23 @@ export function boasVindas(papel: Papel, r: Rotulos): Cartao[] {
     // tela que não abre
     papel === 'profissional'
       ? {
-          titulo: 'O seu dia em uma tela.',
-          texto: `As suas ${sessoes} aparecem prontas quando você abre: o horário, a sala e quem vem.`,
+          titulo: 'Seu dia em uma tela.',
+          texto: `A agenda do dia, com horário, sala e ${pessoas}.`,
           arte: QUADRO,
         }
       : {
           titulo: 'A semana inteira em uma tela.',
-          texto: `A Verandi guarda quem vem, quando vem e com quem. As ${sessoes} nascem da grade, e o dia aparece pronto quando você abre.`,
+          texto: `Agenda, ${pessoas}, presença e cobrança no mesmo lugar, geradas a partir da grade fixa.`,
           arte: QUADRO,
         },
     {
-      titulo: 'A chamada é o coração.',
-      texto: `Marcar quem veio, quem faltou e quem avisou leva dois toques na tela da ${sessao}. É dessa marcação que sai a reposição, a vaga livre e a pendência.`,
+      titulo: 'Registro de presença.',
+      texto: `Presença, falta, falta justificada e licença em poucos toques na tela de ${sessao}. O registro gera reposições, vagas livres e pendências.`,
       arte: PORTA,
     },
     {
-      titulo: 'Falta justificada vira crédito.',
-      texto: `Quem avisa que não vem devolve o lugar e ganha uma reposição, com prazo. Ninguém precisa lembrar disso de cabeça, nem anotar em papel.`,
+      titulo: 'Falta justificada gera crédito.',
+      texto: `A falta avisada libera o lugar e gera um crédito de reposição com prazo, controlado pelo sistema.`,
       arte: CHAVE,
     },
   ]
@@ -95,8 +94,8 @@ export function boasVindas(papel: Papel, r: Rotulos): Cartao[] {
     return [
       ...comum,
       {
-        titulo: 'O sistema fala como você fala.',
-        texto: `As palavras são suas: ${pessoas}, ${serie}, o que fizer sentido no seu negócio. Você escolhe agora e ajusta quando quiser.`,
+        titulo: 'Vocabulário do seu negócio.',
+        texto: `Defina as palavras usadas nas telas, como ${pessoas} e ${serie}. É possível ajustar depois em Configuração.`,
         arte: CADEADO,
       },
     ]
@@ -105,8 +104,8 @@ export function boasVindas(papel: Papel, r: Rotulos): Cartao[] {
   return [
     ...comum,
     {
-      titulo: 'Nada do que você registra se perde.',
-      texto: `Toda marcação fica com o seu nome e com a data. Corrigir depois é normal, e o que já aconteceu continua contando como aconteceu.`,
+      titulo: 'Histórico preservado.',
+      texto: `Cada registro guarda autor e data. Correções ficam no histórico.`,
       arte: CADEADO,
     },
   ]

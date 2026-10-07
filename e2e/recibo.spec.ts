@@ -64,7 +64,8 @@ test('emitir nasce da linha do pagamento, e a folha sai com o valor por extenso'
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
 
-  await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Emitir recibo/ }).click()
 
   await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   // o número aparece na própria linha, e vira link para a folha
@@ -87,7 +88,8 @@ test('sem os dados de quem emite, a emissão para antes de gastar número', asyn
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
 
-  await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Emitir recibo/ }).click()
 
   await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByText(/Preencha quem emite o recibo em Configuração/))
@@ -104,7 +106,8 @@ test('o mesmo pagamento não vira dois recibos', async ({ page }) => {
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
 
-  await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Emitir recibo/ }).click()
 
   await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
@@ -118,7 +121,8 @@ test('corrigir mantém o número e guarda a versão anterior', async ({ page }) 
   const c = await cenario('Estúdio da correção')
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
-  await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Emitir recibo/ }).click()
   await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
@@ -142,7 +146,8 @@ test('cancelar pede motivo, e o número continua ocupado', async ({ page }) => {
   const c = await cenario('Estúdio do cancelamento de recibo')
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
-  await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Emitir recibo/ }).click()
   await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
@@ -167,11 +172,13 @@ test('estornar o pagamento cancela o recibo dele junto', async ({ page }) => {
   const c = await cenario('Estúdio do estorno com recibo')
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
-  await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Emitir recibo/ }).click()
   await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
-  await page.getByRole('button', { name: 'estornar' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Estornar/ }).click()
   await page.getByLabel('Motivo').fill('cheque devolvido')
   await expect(page.getByText('O recibo A-000001 será cancelado')).toBeVisible()
   await page.locator('dialog[open]').getByRole('button', { name: 'Estornar', exact: true }).click()
@@ -186,13 +193,15 @@ test('o fechamento conta os recibos do período', async ({ page }) => {
   const c = await cenario('Estúdio do relatório de recibo')
   await entrar(page, c.email)
   await page.goto('/financeiro?aba=pagas')
-  await page.getByRole('button', { name: 'emitir recibo' }).click()
+  await page.getByRole('button', { name: /^Mais sobre a cobrança/ }).first().click()
+  await page.getByRole('menuitem', { name: /^Emitir recibo/ }).click()
   await page.locator('dialog[open]').getByRole('button', { name: 'Emitir', exact: true }).click()
   await expect(page.getByRole('link', { name: /A-000001/ })).toBeVisible()
 
   await page.goto('/financeiro?aba=fechamento')
   await expect(page.getByText('Recibos emitidos')).toBeVisible()
-  await expect(page.getByText(/R\$ 735,00 em papel, nenhum cancelado/)).toBeVisible()
+  // o resumo do Fechamento mostra a contagem e o valor emitido
+  await expect(page.getByText('R$ 735,00', { exact: true }).first()).toBeVisible()
 })
 
 test('salvar só o CNPJ é recusado, e o campo da razão social não finge estar cheio', async ({ page }) => {
@@ -206,7 +215,7 @@ test('salvar só o CNPJ é recusado, e o campo da razão social não finge estar
    * O placeholder era o nome da conta, e um campo vazio mostrando exatamente o
    * texto que a pessoa ia digitar parece um campo preenchido. Aconteceu em
    * produção: o dono digitou CNPJ e telefone, salvou, e a razão social ficou
-   * nula — com a tela de Recibos avisando, sem ninguém entender por quê.
+   * nula, com a tela de Recibos avisando, sem ninguém entender por quê.
    */
   await expect(page.getByLabel('Razão social')).toHaveValue('')
   await expect(page.getByLabel('Razão social')).not.toHaveAttribute('placeholder', /./)

@@ -11,13 +11,13 @@ const PAPEL: Record<string, string> = {
 
 const RECUSA: Record<string, string> = {
   expirado: 'Este convite passou do prazo. Peça um novo para quem te convidou.',
-  ja_aceito: 'Este convite já foi usado. É só entrar com o seu e-mail e senha.',
-  revogado: 'Este convite foi cancelado. Fale com quem te convidou.',
-  inexistente: 'Não encontramos este convite. Confira se o link veio inteiro.',
+  ja_aceito: 'Este convite já foi utilizado. Acesse com seu e-mail e senha.',
+  revogado: 'Este convite foi cancelado. Solicite um novo convite ao responsável pela conta.',
+  inexistente: 'Convite não encontrado. Confira se o link está completo.',
 }
 
 /**
- * A porta de entrada de quem foi convidado — e de quem esqueceu a senha.
+ * A porta de entrada de quem foi convidado, e de quem esqueceu a senha.
  *
  * Rota pública: quem abre ainda não é ninguém no sistema, e o token é a
  * credencial. Nada aqui aceita identificador vindo do navegador.
@@ -33,13 +33,13 @@ export default async function Convite({
   return (
     <PainelAcesso tela="convite">
       <h1 className="font-titulo text-[25px] leading-tight font-semibold tracking-[-.02em]">
-        {r.ok ? 'Você foi convidada' : 'Este link não vale mais'}
+        {r.ok ? 'Convite de acesso' : 'Link indisponível'}
       </h1>
 
       {r.ok ? (
         <>
           <p className="pt-2 pb-4 text-[14.5px] leading-relaxed text-tinta-media">
-            Você entra em <strong className="text-tinta">{r.contaNome}</strong>{' '}
+            Acesso a <strong className="text-tinta">{r.contaNome}</strong>{' '}
             com o e-mail <strong className="text-tinta">{r.email}</strong>.
           </p>
 
@@ -54,8 +54,8 @@ export default async function Convite({
             </p>
           ) : (
             <p className="mb-5 rounded-media border border-atencao-fundo bg-[#FDF8EE] px-3.5 py-3 text-[13.5px] leading-relaxed text-atencao">
-              Este link é para redefinir a sua senha. O acesso que você já tinha
-              continua o mesmo.
+              Link para redefinir a senha. As permissões de acesso continuam as
+              mesmas.
             </p>
           )}
           <AceitarConvite

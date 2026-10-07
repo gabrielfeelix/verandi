@@ -98,7 +98,8 @@ export function EnviarRecibo({
   }
 
   const classe = botao === 'linha'
-    ? 'cursor-pointer text-[12px] text-marca underline disabled:opacity-50'
+    // botão com cara de botão: o link sublinhado na tabela parecia texto
+    ? 'inline-flex min-h-8 cursor-pointer items-center rounded-peca border border-linha bg-superficie px-2.5 text-[13.5px] font-medium whitespace-nowrap hover:bg-superficie-mais-suave disabled:opacity-50'
     : 'min-h-9 cursor-pointer rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave'
 
   return (

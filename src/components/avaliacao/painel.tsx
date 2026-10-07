@@ -115,6 +115,7 @@ export function PainelDeAvaliacao({
       {dados.avaliacoes.length === 0 ? (
         <Vazio
           icone="pessoas"
+          desenho="fotos"
           titulo="Nenhuma avaliação ainda"
           texto="Registre a primeira avaliação. A comparação aparece a partir da segunda."
         />

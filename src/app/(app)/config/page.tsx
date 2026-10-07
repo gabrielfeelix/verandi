@@ -105,10 +105,6 @@ export default async function Config({
           <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
             Configuração da conta
           </h1>
-          <p className="pt-[3px] text-[14.5px] text-tinta-media">
-            Modalidades, equipe, horários, preços e as palavras que aparecem nas
-            telas.
-          </p>
         </header>
 
         <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">

@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
+import { Menu } from '@/components/ui/menu'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import { BotaoLinha, Estado, LinhaConfig, PainelConfig } from './casca'
@@ -119,9 +120,8 @@ export function SecaoPlanos({
       {servicos.length > 0 ? (
         <div className="flex flex-col gap-3 px-5 py-4">
           <Nota tom="neutro">
-            Um plano, dois preços. Quem já tem plano em vigor de outra
-            modalidade paga a tabela de cliente; quem chega só para esta paga a
-            cheia. O sistema escolhe no ato da matrícula e mostra qual usou.
+            O preço de cliente vale para quem já tem plano ativo em outra
+            modalidade. A matrícula aplica o preço certo.
           </Nota>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -184,16 +184,33 @@ export function SecaoPlanos({
               <BotaoLinha onClick={() => { setErro(null); setEdicao(p) }}>
                 Editar
               </BotaoLinha>
-              <BotaoLinha
-                tom={p.ativo ? 'perigo' : 'marca'}
-                disabled={pendente}
-                onClick={() => salvar(
-                  () => alternarPlano(p.id, !p.ativo),
-                  p.ativo ? 'Plano fora de uso' : 'Plano de volta ao catálogo',
-                )}
-              >
-                {p.ativo ? 'Tirar de uso' : 'Voltar ao uso'}
-              </BotaoLinha>
+              {/* tirar de uso é raro e mexe no catálogo: mora no "⋮". Voltar
+                  ao uso é o que se quer de um plano parado, e fica à vista */}
+              {p.ativo ? (
+                <Menu
+                  titulo={`Outras ações do plano ${p.nome}`}
+                  itens={[{
+                    rotulo: 'Tirar de uso',
+                    icone: 'proibido',
+                    perigo: true,
+                    aoEscolher: () => salvar(
+                      () => alternarPlano(p.id, false),
+                      'Plano fora de uso',
+                    ),
+                  }]}
+                />
+              ) : (
+                <BotaoLinha
+                  tom="marca"
+                  disabled={pendente}
+                  onClick={() => salvar(
+                    () => alternarPlano(p.id, true),
+                    'Plano de volta ao catálogo',
+                  )}
+                >
+                  Voltar ao uso
+                </BotaoLinha>
+              )}
             </LinhaConfig>
           ))}
         </div>

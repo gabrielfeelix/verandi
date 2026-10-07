@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { TINTA, TINTA_CHAPADA, PARES_AVATAR, fonteDasIniciais, type Tinta } from './tintas'
 import { Icone, type NomeIcone } from './icones'
+import { Ilustracao, type Desenho } from './ilustracoes'
 
 /**
  * As peças burras do design system. Nenhuma decide nada do domínio, quem sabe
@@ -224,29 +225,40 @@ export function Nota({
   )
 }
 
+/** O desenho do vazio segue o assunto que o ícone já dizia. */
+const DESENHO_DO_ICONE: Partial<Record<NomeIcone, Desenho>> = {
+  hoje: 'dia',
+  semana: 'semana',
+  grade: 'grade',
+  pessoas: 'pessoas',
+  dinheiro: 'dinheiro',
+  lista: 'lista',
+  check: 'tudo-certo',
+  aviso: 'erro',
+}
+
 /**
- * Estado vazio: ícone, o que aconteceu, e **uma** ação.
+ * Estado vazio: desenho do assunto, o que aconteceu, e **uma** ação.
  *
  * Dia sem aula é informação, não falha. "Nada marcado" e não "não foi possível
  * carregar", a segunda frase manda a pessoa procurar um problema que não
  * existe.
  */
 export function Vazio({
-  icone = 'hoje', titulo, texto, acao,
+  icone = 'hoje', desenho, titulo, texto, acao,
 }: {
   icone?: NomeIcone
+  /** quando o assunto não bate com o ícone (avaliação por foto, por exemplo) */
+  desenho?: Desenho
   titulo: string
   texto?: string
   acao?: ReactNode
 }) {
   return (
     <div className="flex flex-col items-center gap-2.5 px-4 py-10 text-center">
-      <span
-        aria-hidden
-        className="flex size-10 items-center justify-center rounded-full bg-superficie-mais-suave text-tinta-fraca"
-      >
-        <Icone nome={icone} />
-      </span>
+      <div aria-hidden className="pb-2">
+        <Ilustracao desenho={desenho ?? DESENHO_DO_ICONE[icone] ?? 'lista'} />
+      </div>
       <h3 className="font-titulo text-[18px] font-semibold">{titulo}</h3>
       {texto ? (
         <p className="max-w-[42ch] text-[13.5px] leading-[1.55] text-tinta-apagada text-pretty">
@@ -371,7 +383,8 @@ function paresDe(nome: string): readonly [string, string] {
 }
 
 function iniciaisDe(nome: string): string {
-  const partes = nome.trim().split(/\s+/)
+  // "Edu (dono)" dava "E(": só conta palavra que começa com letra
+  const partes = nome.trim().split(/\s+/).filter((w) => /^\p{L}/u.test(w))
   const primeira = partes[0]?.[0] ?? '?'
   const segunda = partes[1]?.[0] ?? ''
   return (primeira + segunda).toUpperCase()

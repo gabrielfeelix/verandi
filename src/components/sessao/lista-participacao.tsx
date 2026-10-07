@@ -85,7 +85,7 @@ export function ListaParticipacao({
           return (
             <li
               key={p.id}
-              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] rounded-grande border p-3 sm:gap-x-3.5 ${
+              className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] rounded-grande border p-3 transition-colors duration-200 sm:gap-x-3.5 ${
                 decidido
                   ? 'border-linha-suave bg-superficie-tenue'
                   : 'border-linha-fina bg-superficie'
@@ -239,6 +239,9 @@ function Presenca({
   aoDesfazer: () => void
 }) {
   const [aberto, setAberto] = useState(false)
+  // o rótulo só estala depois de um toque: no carregamento a lista inteira
+  // pulando de uma vez é ruído, não resposta
+  const [tocou, setTocou] = useState(false)
   const caixa = useRef<HTMLDivElement>(null)
   const faltou = NAO_VEIO.has(status)
   const semMarca = status === 'esperada' || status === 'confirmada'
@@ -264,6 +267,7 @@ function Presenca({
 
   function escolher(fn: () => void) {
     setAberto(false)
+    setTocou(true)
     fn()
   }
 
@@ -286,7 +290,11 @@ function Presenca({
         onClick={() => setAberto(!aberto)}
         className={`flex h-11 min-w-[124px] max-sm:w-full cursor-pointer items-center justify-between gap-1.5 rounded-padrao border px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 disabled:opacity-60 ${tinta}`}
       >
-        <span className="flex items-center gap-1.5">
+        <span
+          key={status}
+          className="flex items-center gap-1.5"
+          style={tocou ? { animation: 'vd-marca .32s var(--ease-sobe) both' } : undefined}
+        >
           {status === 'presente' || provisorio ? <span aria-hidden>✓</span> : null}
           {rotulo}
         </span>
@@ -297,10 +305,10 @@ function Presenca({
         <>
         {/* no celular o menu sobe como folha no rodapé: aberto no meio da
             lista, ele caía atrás da barra da chamada */}
-        <div aria-hidden className="fixed inset-0 z-[40] bg-black/25 sm:hidden" />
+        <div aria-hidden className="fixed inset-0 z-[40] bg-black/25 animate-[vd-esmaece_.2s_ease_both] sm:hidden" />
         <div
           role="menu"
-          className="fixed inset-x-3 bottom-3 z-[41] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-2 shadow-elevado sm:absolute sm:inset-x-auto sm:top-[48px] sm:right-0 sm:bottom-auto sm:z-[25] sm:w-[240px] sm:p-1.5"
+          className="fixed inset-x-3 bottom-3 z-[41] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-2 shadow-elevado sm:absolute sm:inset-x-auto sm:top-[48px] sm:right-0 sm:bottom-auto sm:z-[25] sm:w-[240px] sm:p-1.5 sm:origin-top-right animate-[vd-folha_.26s_var(--ease-sobe)_both] sm:animate-[vd-pop_.18s_ease_both]"
         >
           <p className="px-3 pt-1.5 pb-1 text-[13.5px] text-tinta-media sm:hidden">{nome}</p>
           {motivos.map((m) => (

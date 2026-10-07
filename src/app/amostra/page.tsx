@@ -11,6 +11,7 @@ import {
   Avatar, Campo, Cartao, Chip, Esqueleto, Etiqueta, Nota, Ocupacao, Paginacao,
   Rotulo, Vazio, entrada,
 } from '@/components/ui/pecas'
+import { Ilustracao, type Desenho } from '@/components/ui/ilustracoes'
 import { TINTA, type Tinta } from '@/components/ui/tintas'
 
 /**
@@ -20,6 +21,10 @@ import { TINTA, type Tinta } from '@/components/ui/tintas'
  * alvo de toque sem abrir seis telas de produto. Toda peça nova aparece aqui,
  * em todas as variações, antes de ser usada.
  */
+const DESENHOS: Desenho[] = [
+  'dia', 'semana', 'grade', 'pessoas', 'dinheiro', 'lista', 'tudo-certo', 'erro', 'fotos',
+]
+
 const TINTAS: Tinta[] = ['positivo', 'atencao', 'alerta', 'info', 'licenca', 'neutro']
 
 const ICONES: NomeIcone[] = [
@@ -250,6 +255,17 @@ function Conteudo() {
           texto="Dia sem aula é informação, não falha, por isso a tela não fala em erro nem manda tentar de novo."
           acao={<Botao tom="secundario">Ver a semana</Botao>}
         />
+      </Cartao>
+
+      <Cartao titulo="Ilustrações dos vazios">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {DESENHOS.map((d) => (
+            <figure key={d} className="flex flex-col items-center gap-2 rounded-media border border-dashed border-linha py-4">
+              <Ilustracao desenho={d} />
+              <figcaption className="text-[12px] text-tinta-fraca">{d}</figcaption>
+            </figure>
+          ))}
+        </div>
       </Cartao>
 
       <Cartao titulo="Paginação">

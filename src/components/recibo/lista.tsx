@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import { Menu } from '@/components/ui/menu'
 import { EnviarRecibo } from './enviar'
 import { ModalFormulario } from '@/components/ui/modal'
-import { Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
+import { Avatar, Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
+import { CELULA, CELULA_FIXA, Cabecalho, LINHA, Tabela, Th } from '@/components/ui/tabela'
 import { useAviso } from '@/components/ui/desfazer'
 import { cancelarRecibo, corrigirRecibo } from '@/server/recibo/acoes'
 import type { ReciboLinha } from '@/server/recibo/consultas'
@@ -73,6 +74,7 @@ export function ListaDeRecibos({
     return (
       <Vazio
         icone="lista"
+        desenho="dinheiro"
         titulo="Nenhum recibo ainda"
         texto="Para emitir, abra o menu de uma cobrança paga em Cobranças e escolha Emitir recibo."
       />
@@ -82,109 +84,121 @@ export function ListaDeRecibos({
   return (
     <div className="flex flex-col gap-2">
       {/*
-        * Cada linha tem as mesmas colunas, tenha ela três ações ou nenhuma.
-        *
-        * Antes, corrigir e cancelar só existiam no recibo válido e ficavam
-        * soltos ao lado do valor: a lista com um cancelado no meio saía com
-        * número, valor e etiqueta em posições diferentes a cada linha, e o
-        * olho perde a coluna que ele estava seguindo. Agora as ações do fim
-        * moram no menu, como no Financeiro, e o que varia é o conteúdo do
-        * menu, não a largura de nada.
+        * Tabela, como Cobranças: número, pessoa, valor e situação em coluna
+        * fixa, tenha a linha três ações ou nenhuma. Corrigir e cancelar moram
+        * no "⋮"; enviar fica à vista, porque mandar o comprovante é o que se
+        * faz com um recibo tanto quanto imprimi-lo.
         */}
-      {linhas.map((r) => (
-        <div
-          key={r.id}
-          className={`flex flex-wrap items-center gap-x-4 gap-y-2 rounded-media border bg-superficie px-3.5 py-3 ${
-            r.status === 'cancelado'
-              ? 'border-alerta-linha' : 'border-linha-suave'
-          }`}
-        >
-          <span className="flex min-w-[210px] flex-1 flex-col">
-            <Link
-              href={`/recibos/${r.id}`}
-              className={`text-[14.5px] font-medium hover:underline ${
-                r.status === 'cancelado' ? 'text-tinta-media line-through' : ''
-              }`}
-            >
-              {descricaoDoRecibo(r)}
-            </Link>
-            <span className="text-[13.5px] text-tinta-media">
-              {r.pessoaNome} · emitido em {dataCurta(r.emitidoEm.slice(0, 10))}
-            </span>
-          </span>
+      <Tabela largura={900} rotulo="Recibos">
+        <Cabecalho>
+          <Th fixa>Recibo</Th>
+          <Th>Emitido em</Th>
+          <Th className="text-right">Valor</Th>
+          <Th>Situação</Th>
+          <Th>Envio</Th>
+          <Th className="text-right"><span className="sr-only">Ações</span></Th>
+        </Cabecalho>
+        <tbody>
+          {linhas.map((r) => (
+            <tr key={r.id} className={LINHA}>
+              <td className={CELULA_FIXA}>
+                <span className="flex min-w-[220px] items-center gap-3">
+                  <Avatar nome={r.pessoaNome} tamanho={32} decorativo />
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <Link
+                      href={`/recibos/${r.id}`}
+                      className={`truncate text-[14.5px] font-medium hover:text-marca ${
+                        r.status === 'cancelado' ? 'text-tinta-media line-through' : ''
+                      }`}
+                    >
+                      {descricaoDoRecibo(r)}
+                    </Link>
+                    <span className="truncate text-[13.5px] text-tinta-media">{r.pessoaNome}</span>
+                    {r.motivo ? (
+                      <span className="max-w-[320px] text-[12px] whitespace-normal text-tinta-media">
+                        {motivoDoRecibo(r.status, r.motivo)}
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+              </td>
 
-          {/* `tabular-nums` e largura mínima: coluna de dinheiro que dança
-              horizontalmente não se soma de olho */}
-          <span className="min-w-[104px] text-right text-[14.5px] tabular-nums">
-            {emReais(r.valorCent)}
-          </span>
+              <td className={`${CELULA} text-[13.5px] whitespace-nowrap text-tinta-media`}>
+                {dataCurta(r.emitidoEm.slice(0, 10))}
+              </td>
 
-          <span
-            className={`w-[92px] shrink-0 rounded-peca px-2.5 py-[5px] text-center text-[12px] font-medium ${TINTA[r.status]}`}
-          >
-            {ROTULO[r.status]}
-          </span>
+              {/* coluna de dinheiro que dança não se soma de olho */}
+              <td className={`${CELULA} text-right text-[14.5px] whitespace-nowrap tabular-nums`}>
+                {emReais(r.valorCent)}
+              </td>
 
-          <span className="flex w-[168px] shrink-0 justify-end gap-2">
-            <Link
-              href={`/recibos/${r.id}`}
-              className="inline-flex min-h-9 items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta-media hover:bg-superficie-mais-suave"
-            >
-              Ver e imprimir
-            </Link>
-            {r.status === 'valido' ? (
-              <Menu
-                titulo={`Mais sobre o recibo ${descricaoDoRecibo(r)}`}
-                itens={[
-                  {
-                    rotulo: 'Corrigir o texto',
-                    icone: 'lapis',
-                    aoEscolher: () => setModo({ tipo: 'corrigir', r }),
-                  },
-                  {
-                    rotulo: 'Cancelar o recibo',
-                    icone: 'proibido',
-                    perigo: true,
-                    aoEscolher: () => setModo({ tipo: 'cancelar', r }),
-                  },
-                ]}
-              />
-            ) : (
-              // o vazio ocupa o mesmo espaço do menu, senão a linha do
-              // cancelado encolhe e o "Ver e imprimir" dela sai do prumo
-              <span aria-hidden className="w-9" />
-            )}
-          </span>
+              <td className={CELULA}>
+                <span
+                  className={`inline-block rounded-peca px-2.5 py-[5px] text-[12px] font-medium whitespace-nowrap ${TINTA[r.status]}`}
+                >
+                  {ROTULO[r.status]}
+                </span>
+              </td>
 
-          {/* enviar fica na linha, e não no menu: mandar o comprovante é o que
-              se faz com um recibo tanto quanto imprimi-lo */}
-          <span className="flex w-full flex-wrap items-center gap-x-3 gap-y-1">
-            {/* recibo cancelado ou substituído não vale como comprovante:
-                mandar por e-mail seria mandar um papel que diz "CANCELADO" */}
-            {r.status === 'valido' ? (
-              <EnviarRecibo
-                reciboId={r.id}
-                numero={descricaoDoRecibo(r)}
-                pagadorNome={r.pessoaNome}
-                emailDaFicha={r.pessoaId ? emails[r.pessoaId] ?? null : null}
-                botao="linha"
-                jaEnviado={envios[r.id] ?? null}
-              />
-            ) : null}
-            {envios[r.id] ? (
-              <span className="text-[12px] text-tinta-media">
-                enviado para {envios[r.id].para} em {envios[r.id].em}
-              </span>
-            ) : null}
-          </span>
+              <td className={CELULA}>
+                <span className="flex flex-col items-start gap-1">
+                  {/* recibo cancelado ou substituído não vale como comprovante:
+                      mandar por e-mail seria mandar um papel que diz "CANCELADO" */}
+                  {r.status === 'valido' ? (
+                    <EnviarRecibo
+                      reciboId={r.id}
+                      numero={descricaoDoRecibo(r)}
+                      pagadorNome={r.pessoaNome}
+                      emailDaFicha={r.pessoaId ? emails[r.pessoaId] ?? null : null}
+                      botao="linha"
+                      jaEnviado={envios[r.id] ?? null}
+                    />
+                  ) : null}
+                  {envios[r.id] ? (
+                    <span className="text-[12px] whitespace-nowrap text-tinta-media">
+                      Enviado para {envios[r.id].para} em {envios[r.id].em}
+                    </span>
+                  ) : r.status === 'valido' ? null : (
+                    <span className="text-[13.5px] text-tinta-fraca">Não se aplica</span>
+                  )}
+                </span>
+              </td>
 
-          {r.motivo ? (
-            <p className="w-full text-[12px] text-tinta-media">
-              {motivoDoRecibo(r.status, r.motivo)}
-            </p>
-          ) : null}
-        </div>
-      ))}
+              <td className={CELULA}>
+                <span className="flex justify-end gap-2">
+                  <Link
+                    href={`/recibos/${r.id}`}
+                    className="inline-flex min-h-9 items-center rounded-peca border border-linha bg-superficie px-3 text-[13.5px] font-medium whitespace-nowrap hover:bg-superficie-mais-suave"
+                  >
+                    Ver e imprimir
+                  </Link>
+                  {r.status === 'valido' ? (
+                    <Menu
+                      titulo={`Mais sobre o recibo ${descricaoDoRecibo(r)}`}
+                      itens={[
+                        {
+                          rotulo: 'Corrigir o texto',
+                          icone: 'lapis',
+                          aoEscolher: () => setModo({ tipo: 'corrigir', r }),
+                        },
+                        {
+                          rotulo: 'Cancelar o recibo',
+                          icone: 'proibido',
+                          perigo: true,
+                          aoEscolher: () => setModo({ tipo: 'cancelar', r }),
+                        },
+                      ]}
+                    />
+                  ) : (
+                    // o vazio ocupa o lugar do menu: "Ver e imprimir" fica no prumo
+                    <span aria-hidden className="w-9" />
+                  )}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Tabela>
 
       {/* o botão de fechar não pode se chamar "Cancelar" numa tela cuja ação é
           cancelar: os dois ficavam lado a lado dizendo a mesma palavra para

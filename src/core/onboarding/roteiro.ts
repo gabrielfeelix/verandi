@@ -44,10 +44,9 @@ export type Passo = {
  * inevitável, a frase muda, e há teste guardando isto.
  */
 export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
-  const pessoa = r.pessoa.singular.toLowerCase()
+  const pessoas = r.pessoa.plural.toLowerCase()
   const servico = r.servico.singular.toLowerCase()
   const series = r.serie.plural.toLowerCase()
-  const sessoes = r.sessao.plural.toLowerCase()
   const sessao = r.sessao.singular.toLowerCase()
   const vaga = r.vaga.singular.toLowerCase()
 
@@ -58,14 +57,14 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
       alvo: 'tela',
       titulo: 'Esta é a sua tela de trabalho',
       texto: papel === 'profissional'
-        ? `Aqui fica o seu dia: quem vem, a que horas e em que sala. São dois passos, e dá para parar quando quiser.`
-        : `Aqui fica o dia: quem vem, a que horas e com quem. Vou levar você por cada parte do sistema, e dá para parar quando quiser.`,
+        ? `Aqui fica a sua agenda do dia, com horário, sala e ${pessoas}. São dois passos, e o roteiro pode ser encerrado a qualquer momento.`
+        : `Aqui fica a agenda do dia, com horário, sala e ${pessoas}. Este roteiro apresenta cada parte do sistema e pode ser encerrado a qualquer momento.`,
     },
     {
       href: '/hoje',
       alvo: 'hoje-proxima',
-      titulo: 'O que vem agora fica em destaque',
-      texto: `Abrindo, você marca quem veio, quem faltou e quem avisou. É dessa marcação que sai todo o resto: reposição, vaga livre e pendência.`,
+      titulo: 'Próximo horário em destaque',
+      texto: `Na tela de ${sessao}, registre presença, falta, falta justificada ou licença. Esse registro gera reposições, vagas livres e pendências.`,
     },
   ]
 
@@ -74,8 +73,8 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     {
       href: '/hoje',
       alvo: 'rail-hoje',
-      titulo: 'Este é o menu, e ele muda por pessoa',
-      texto: `Cada item leva a uma tela. "Hoje" é onde você está: o dia inteiro, em ordem de horário.`,
+      titulo: 'Menu principal',
+      texto: `Os itens variam conforme o perfil de acesso. "Hoje" mostra o dia inteiro, em ordem de horário.`,
     },
   ]
 
@@ -83,14 +82,14 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     {
       href: '/hoje',
       alvo: 'rail-semana',
-      titulo: 'A semana inteira, de uma vez',
-      texto: `Quando a pergunta é "como está a quinta", é aqui. Dá para ver por dia, e por sala ou por quem atende.`,
+      titulo: 'Agenda da semana',
+      texto: `Visão da semana inteira. Também é possível ver um dia por local ou por profissional.`,
     },
     {
       href: '/semana',
       alvo: 'tela',
       titulo: 'A grade da semana',
-      texto: `Tudo aqui nasce sozinho do que você monta na grade fixa, ${sessoes} inclusive. Nada é digitado dia a dia.`,
+      texto: `A agenda é gerada a partir da grade fixa, sem cadastro dia a dia.`,
     },
   ]
 
@@ -98,14 +97,14 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     {
       href: '/semana',
       alvo: 'rail-pendencias',
-      titulo: 'O que ficou esperando decisão',
-      texto: `Falta a repor, gente sem horário, aviso fora de hora. O número em laranja é quanta coisa está esperando você.`,
+      titulo: 'Itens que pedem decisão',
+      texto: `Chamadas não registradas, reposições em aberto, licenças e cadastros incompletos. O número do menu indica quantos itens aguardam.`,
     },
     {
       href: '/pendencias',
       alvo: 'pendencias-lista',
-      titulo: 'Nada some sozinho daqui',
-      texto: `Cada linha tem a saída ao lado: agendar a reposição, encaixar, ou dispensar dizendo por quê. Nada fica cobrando você fora desta tela.`,
+      titulo: 'Cada item tem uma ação',
+      texto: `Agende a reposição, faça o encaixe ou dispense o item informando o motivo.`,
     },
   ]
 
@@ -113,14 +112,14 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     {
       href: '/pendencias',
       alvo: 'rail-pessoas',
-      titulo: 'Quem você atende',
-      texto: `A lista inteira, com busca por nome ou telefone, e os filtros de quem está sumindo e de quem você não consegue avisar. ${r.pessoa.plural}, no seu vocabulário.`,
+      titulo: `Cadastro de ${r.pessoa.plural.toLowerCase()}`,
+      texto: `Busca por nome, telefone ou nº da ficha, com filtros de faltas recentes, licença, plano a renovar e cadastro sem telefone.`,
     },
     {
       href: '/pessoas',
       alvo: 'pessoas-novo',
-      titulo: 'Cadastrar leva dez segundos',
-      texto: `Só o nome já basta. Na ficha de cada ${pessoa} se cria ${vaga} num horário, e é isso que reserva o lugar toda semana.`,
+      titulo: 'Cadastro rápido',
+      texto: `Apenas o nome é obrigatório. Na ficha, ${vaga} em um horário reserva o lugar toda semana.`,
     },
   ]
 
@@ -128,8 +127,8 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     {
       href: '/semana',
       alvo: 'agenda-vaga',
-      titulo: 'Quando perguntam "tem horário?"',
-      texto: `Ligue "Só com vaga": a agenda mostra só onde ainda cabe alguém. Para marcar, abra a ficha da pessoa e toque em Marcar ${sessao}.`,
+      titulo: 'Consultar horários com vaga',
+      texto: `O filtro "Só com vaga" mostra apenas horários disponíveis. Para agendar, abra a ficha e use Marcar ${sessao}.`,
     },
   ]
 
@@ -138,8 +137,8 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     {
       href: '/grade',
       alvo: 'grade-criar',
-      titulo: 'A grade fixa é o esqueleto',
-      texto: `Na aba Grade fixa da Agenda mora o que se repete toda semana, ${series}. Escolha os dias, a hora e quem atende, e ${sessoes} passam a nascer sozinhas.`,
+      titulo: 'Grade fixa',
+      texto: `O que se repete toda semana: ${series}. Defina dia, hora e profissional, e a agenda é gerada automaticamente.`,
     },
   ]
 
@@ -147,14 +146,14 @@ export function roteiroDe(papel: Papel, r: Rotulos): Passo[] {
     {
       href: '/grade',
       alvo: 'rail-config',
-      titulo: 'A configuração é o que torna isto seu',
-      texto: `Aqui ficam o que você oferece, quem atende, onde acontece e as palavras que aparecem nas telas.`,
+      titulo: 'Configuração da conta',
+      texto: `Serviços, equipe, locais, funcionamento e os nomes usados nas telas.`,
     },
     {
       href: '/config',
       alvo: 'config-servicos',
-      titulo: 'Comece pelo que você oferece',
-      texto: `Cadastre pelo menos isto: ${servico}, quem atende e onde acontece. Sem os três não há o que colocar na agenda.`,
+      titulo: 'Primeiro passo',
+      texto: `Cadastre ${servico}, profissional e local antes de montar a agenda.`,
     },
   ]
 

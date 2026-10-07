@@ -47,15 +47,25 @@ Complementa `docs/HANDOFF-VARREDURA-UX.md`. Marque `[x]` com o commit.
   ocupa" no menu da linha.
 - [x] **Pendências** (2f289cd): cabeçalho branco com número sólido (tokens
   `solido-atencao`, `solido-neutro`), subtítulos formais, "Sem nº da ficha".
-- [ ] **Alunos, Configuração, Entrar, convite, onboarding**: mesma régua
-  (nomenclatura formal, botão com cara de botão, sem pastel em botão, sem
-  card repetido, sem dica óbvia).
-- [ ] **Aula e Aluno** (as melhores hoje) também sobem de nível.
+- [x] **Alunos** (f73d88a, já na `main`): situação formal só na tela (a API
+  do bot continua com o valor antigo), "Horário fixo", "Sem telefone".
+- [x] **Configuração** (50a9343): subtítulos-explicação fora, notas numa
+  frase, "Com acesso / Sem acesso", iniciais sem parêntese.
+- [x] **Entrar, convite, senha, onboarding** (ec105a3): tom formal, sem
+  gênero presumido, roteiro com o vocabulário de registro.
+- [x] **Aula e Aluno** (2c948c7): vagas em frase, faixa de semanas nas cores
+  `reg-*`, "% de presença", data com dia da semana, etiqueta só na exceção.
 
 ## Linguagem visual
 
-- [ ] Paleta: revisar tokens em `src/app/globals.css` para menos terroso,
-  pastel só em etiqueta não clicável.
-- [ ] Tabelas e botões no padrão do AutoFluxos.
-- [ ] Ilustração em estados vazios e onboarding.
-- [ ] Motion leve em troca de estado (marcar presença, abrir menu, toast).
+- [x] Paleta (cfc2d1e): alerta, atenção, info e licença limpos; avatares
+  sem marrom, oliva e mostarda.
+- [x] Tabelas (776bb8e): `ui/tabela.tsx`; Alunos e Recibos em tabela real.
+- [x] Ilustração nos estados vazios (8022ea1): `ui/ilustracoes.tsx`, galeria
+  na `/amostra`. Onboarding continua com as artes de `public/acesso/`.
+- [x] Motion leve (014bade): registro da chamada, folha do celular, menus.
+- [x] Menores (d70dea1): Tirar de uso e Desativar no "⋮", eixo do Dia no
+  cabeçalho, "vagas ocupadas" na grade fixa.
+- [ ] Topo de Recibos no celular: quatro cartões e cinco chips antes da
+  tabela. Mesmo remédio da Cobranças (`FaixaDeNumeros compacta`,
+  `BarraDePeriodo menu`).

@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/icones'
 import { inicioDaPessoa } from '@/core/pessoas/inicio'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -91,6 +92,21 @@ function curta(data: string) {
   return `${data.slice(8)}/${data.slice(5, 7)}`
 }
 
+/** "Qua, 07/10": a data sozinha obrigava a contar no calendário que dia era */
+function comDia(data: string) {
+  const d = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][new Date(`${data}T12:00:00Z`).getUTCDay()]
+  return `${d}, ${curta(data)}`
+}
+
+/** As mesmas cores sólidas do registro na chamada (tokens `reg-*`). */
+const COR_SEMANA = {
+  presente: 'var(--color-reg-presente)',
+  falta: 'var(--color-reg-falta)',
+  justificada: 'var(--color-reg-justificada)',
+  licenca: 'var(--color-reg-licenca)',
+  nada: 'var(--color-superficie-mais-suave)',
+}
+
 function mesAno(iso: string) {
   const m = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
              'jul', 'ago', 'set', 'out', 'nov', 'dez']
@@ -121,8 +137,8 @@ function semanasDe(historico: Ficha['historico'], hoje: string) {
     // a semana ganha a cor do pior que aconteceu nela: uma falta no meio de
     // três presenças é exatamente o que se quer enxergar
     // semana só de licença tem cor própria: cinza dizia "nada marcado"
-    const cor = faltou ? '#FBE4D9' : avisou ? '#F6E7C9' : veio ? '#0E7C6B'
-      : licenca ? '#E9E6F3' : '#EFF3F1'
+    const cor = faltou ? COR_SEMANA.falta : avisou ? COR_SEMANA.justificada
+      : veio ? COR_SEMANA.presente : licenca ? COR_SEMANA.licenca : COR_SEMANA.nada
     const dica = naSemana.length === 0
       ? 'nada marcado'
       : `${naSemana.length} ${naSemana.length === 1 ? 'registro' : 'registros'}`
@@ -553,14 +569,24 @@ export default async function Pessoa({
                           href={`/sessao/${x.sessaoId}`}
                           className="flex items-center gap-3.5 rounded-media border border-linha-fina px-3 py-[11px] transition-colors duration-150 hover:bg-superficie-tenue"
                         >
-                          <span className="w-24 shrink-0 text-[13.5px] text-tinta-media">
-                            {curta(x.data)} {x.hora}
+                          <span className="flex w-[104px] shrink-0 flex-col">
+                            <span className="text-[13.5px] font-medium">{comDia(x.data)}</span>
+                            <span className="text-[12px] text-tinta-fraca">{x.hora}</span>
                           </span>
-                          <span aria-hidden className="h-[26px] w-[3px] shrink-0 rounded-sm bg-marca" />
                           <span className="min-w-0 flex-1 truncate text-[14.5px] font-medium">
                             {x.servico}
                           </span>
-                          <span className="text-[13.5px] text-tinta-fraca">{ROTULO_ORIGEM[x.origem] ?? x.origem}</span>
+                          {/* horário fixo é a regra; só a exceção ganha etiqueta */}
+                          {x.origem !== 'recorrente' ? (
+                            <span
+                              className={`shrink-0 rounded-minima px-1.5 py-[3px] text-[12px] font-semibold ${
+                                PAR[TINTA_ORIGEM[x.origem as keyof typeof TINTA_ORIGEM] ?? 'neutro']
+                              }`}
+                            >
+                              {ROTULO_ORIGEM[x.origem] ?? x.origem}
+                            </span>
+                          ) : null}
+                          <Icone nome="depois" tamanho={14} className="shrink-0 text-tinta-fraca" />
                         </Link>
                       </li>
                     ))}
@@ -577,7 +603,7 @@ export default async function Pessoa({
                 <span className="text-[13.5px] text-tinta-fraca">
                   {frequencia === null
                     ? 'Ainda sem presença registrada'
-                    : `veio ${frequencia}% das vezes`}
+                    : `${frequencia}% de presença`}
                 </span>
               </div>
 
@@ -594,7 +620,7 @@ export default async function Pessoa({
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-x-3.5 gap-y-1 pt-0.5">
-                  {[['#0E7C6B', 'Presente'], ['#F6E7C9', 'Falta justificada'], ['#FBE4D9', 'Falta'], ['#E9E6F3', 'Licença']].map(
+                  {[[COR_SEMANA.presente, 'Presente'], [COR_SEMANA.falta, 'Falta'], [COR_SEMANA.justificada, 'Falta justificada'], [COR_SEMANA.licenca, 'Licença']].map(
                     ([cor, rotulo]) => (
                       <span key={rotulo} className="inline-flex items-center gap-1.5 text-[12px] text-tinta-fraca">
                         <span aria-hidden className="size-2 rounded-[3px]" style={{ background: cor }} />
@@ -608,6 +634,7 @@ export default async function Pessoa({
               {ficha.historico.length === 0 ? (
                 <Vazio
                   icone="hoje"
+                  desenho="lista"
                   titulo="Ainda não há histórico"
                   texto="As presenças e faltas aparecem aqui conforme forem registradas."
                 />
@@ -630,8 +657,8 @@ export default async function Pessoa({
                         href={`/sessao/${x.sessaoId}`}
                         className="flex min-w-0 flex-1 items-center gap-3 pb-4"
                       >
-                        <span className="w-[74px] shrink-0 text-[13.5px] text-tinta-fraca">
-                          {curta(x.data)}
+                        <span className="w-[84px] shrink-0 text-[13.5px] text-tinta-fraca">
+                          {comDia(x.data)}
                         </span>
                         <span className="min-w-0 flex-1 truncate text-[14.5px]">
                           {x.servico}

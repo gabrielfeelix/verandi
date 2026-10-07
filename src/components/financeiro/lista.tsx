@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Menu, type ItemMenu } from '@/components/ui/menu'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Avatar, Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
+import { CELULA_FIXA, Cabecalho, LINHA, Tabela, Th } from '@/components/ui/tabela'
 import { Icone, type NomeIcone } from '@/components/ui/icones'
 import { CampoData } from '@/components/ui/campo-data'
 import { Escolha } from '@/components/ui/escolha'
@@ -127,10 +128,8 @@ export function ListaDeCobrancas({
         * desde quando) se lê melhor em coluna. Receber fica à vista; o resto
         * mora no "⋮" da linha. A primeira coluna fica presa ao rolar de lado.
         */}
-      <div className="overflow-x-auto rounded-grande border border-linha bg-superficie">
-        <table className="w-full min-w-[880px] border-collapse text-left">
-          <thead>
-            <tr className="border-b border-linha bg-superficie-tenue">
+      <Tabela largura={880}>
+          <Cabecalho>
               <Th fixa>{naFicha ? 'Plano' : 'Aluno'}</Th>
               <Th>Referência</Th>
               <Th>Vencimento</Th>
@@ -138,8 +137,7 @@ export function ListaDeCobrancas({
               <Th>Situação</Th>
               <Th>Recebimento</Th>
               <Th className="text-right"><span className="sr-only">Ações</span></Th>
-            </tr>
-          </thead>
+          </Cabecalho>
           <tbody>
             {linhas.map((c) => {
               const falta = Math.max(0, c.valorCent - c.valorPagoCent)
@@ -181,8 +179,8 @@ export function ListaDeCobrancas({
                 }] : []),
               ]
               return (
-                <tr key={c.id} className="group border-b border-linha-suave last:border-b-0 hover:bg-superficie-tenue">
-                  <td className="sticky left-0 z-[1] bg-superficie px-4 py-3 group-hover:bg-superficie-tenue">
+                <tr key={c.id} className={LINHA}>
+                  <td className={CELULA_FIXA}>
                     <span className="flex min-w-[200px] items-center gap-3">
                       {naFicha ? null : <Avatar nome={c.pessoaNome} tamanho={32} decorativo />}
                       <span className="flex min-w-0 flex-col gap-0.5">
@@ -280,8 +278,7 @@ export function ListaDeCobrancas({
               )
             })}
           </tbody>
-        </table>
-      </div>
+      </Tabela>
 
       {modo?.tipo === 'receber' ? (
         <ModalFormulario
@@ -500,20 +497,5 @@ function Miudo({
     >
       {children}
     </button>
-  )
-}
-
-function Th({ children, className = '', fixa = false }: {
-  children?: React.ReactNode; className?: string; fixa?: boolean
-}) {
-  return (
-    <th
-      scope="col"
-      className={`px-4 py-3 text-[12px] font-semibold whitespace-nowrap text-tinta-fraca ${
-        fixa ? 'sticky left-0 z-[2] bg-superficie-tenue' : ''
-      } ${className}`}
-    >
-      {children}
-    </th>
   )
 }

@@ -86,8 +86,7 @@ export function SecaoPadroes({
     <section className={`${cartao} px-5 py-4.5`}>
       <h2 className="font-titulo text-[18px] font-semibold">Padrões</h2>
       <p className="pt-1.5 pb-4 text-[14.5px] text-tinta-media">
-        O que já vem preenchido quando você cria algo novo. Sempre dá para mudar
-        na hora.
+        Valores preenchidos ao criar um cadastro novo.
       </p>
 
       <div className="flex flex-col gap-2.5">

@@ -206,6 +206,23 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             }}
           />
 
+          {/* no Dia, o eixo das colunas mora aqui, no lugar do imprimir: na
+              faixa de filtros ele quebrava para a linha de baixo em 1440 */}
+          {ehDia ? (
+            <Abas
+              rotuloDoGrupo="O que fica nas colunas"
+              ativo={porLocal ? 'local' : 'profissional'}
+              itens={[
+                { id: 'local', rotulo: 'Por local', href: q({ eixo: 'local' }) },
+                {
+                  id: 'profissional',
+                  rotulo: `Por ${rotulos.profissional.singular.toLowerCase()}`,
+                  href: q({ eixo: 'profissional' }),
+                },
+              ]}
+            />
+          ) : null}
+
           {/* imprimir a semana é coisa de balcão, não de telefone */}
           {!ehDia ? <span className="hidden md:contents"><BotaoImprimir /></span> : null}
         </div>
@@ -256,22 +273,6 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           </>
         ) : null}
 
-        {ehDia ? (
-          <span className="md:ml-auto">
-            <Abas
-              rotuloDoGrupo="O que fica nas colunas"
-              ativo={porLocal ? 'local' : 'profissional'}
-              itens={[
-                { id: 'local', rotulo: 'Por local', href: q({ eixo: 'local' }) },
-                {
-                  id: 'profissional',
-                  rotulo: `Por ${rotulos.profissional.singular.toLowerCase()}`,
-                  href: q({ eixo: 'profissional' }),
-                },
-              ]}
-            />
-          </span>
-        ) : null}
       </div>
 
       {ehDia ? (
@@ -353,6 +354,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               <div className="rounded-grande border border-dashed border-linha-tracejada">
                 <Vazio
                   icone="semana"
+                  desenho="dia"
                   titulo={soComVaga ? 'Nenhum horário com vaga neste dia' : 'Nada marcado neste dia'}
                   texto={soComVaga ? 'Escolha outro dia acima.' : undefined}
                 />

@@ -395,6 +395,7 @@ export function BarraInferior({
 }
 
 function iniciais(nome: string) {
-  const partes = nome.trim().split(/\s+/)
+  // "Edu (dono)" dava "E(": só conta palavra que começa com letra
+  const partes = nome.trim().split(/\s+/).filter((w) => /^\p{L}/u.test(w))
   return ((partes[0]?.[0] ?? '?') + (partes[1]?.[0] ?? '')).toUpperCase()
 }

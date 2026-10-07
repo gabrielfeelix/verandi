@@ -169,7 +169,8 @@ test('desativar profissional pede confirmação e não tira o login', async ({ p
   await entrar(page, c.email)
   await page.goto('/config?s=equipe')
 
-  await page.getByRole('button', { name: 'Desativar Marina' }).click()
+  await page.getByRole('button', { name: 'Outras ações de Marina' }).click()
+  await page.getByRole('menuitem', { name: 'Desativar' }).click()
   await expect(page.getByText('Desativar profissional?')).toBeVisible()
   await expect(page.getByText('Marina sai das escolhas novas')).toBeVisible()
   await expect(page.getByText('1, ficam sem quem atenda')).toBeVisible()
@@ -193,7 +194,7 @@ test('funcionamento fecha um dia pelo modal do dia', async ({ page }) => {
   await page.goto('/config?s=funcionamento')
 
   // a lista mostra o horário, não os campos: quem edita abre um dia por vez
-  await expect(page.getByText('08:00 até 12:00')).toBeVisible()
+  await expect(page.getByText('08:00 às 12:00')).toBeVisible()
 
   await page.getByRole('button', { name: 'Editar horário de domingo' }).click()
   await page.getByRole('button', { name: 'Fechado' }).click()
@@ -374,7 +375,7 @@ test('profissional sem login é normal, nome na grade não precisa de acesso', a
   await entrar(page, c.email)
   await page.goto('/config?s=equipe')
 
-  await expect(page.getByText('Sem usuário', { exact: true })).toBeVisible()
+  await expect(page.getByText('Sem acesso', { exact: true })).toBeVisible()
 })
 
 test('a foto some do balde quando é removida, não só da coluna', async ({ page }) => {

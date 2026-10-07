@@ -68,7 +68,7 @@ export function Menu({ titulo, itens }: { titulo: string; itens: ItemMenu[] }) {
           id={id}
           role="menu"
           aria-label={titulo}
-          className="absolute top-[38px] right-0 z-[25] flex w-[216px] flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado"
+          className="absolute top-[38px] right-0 z-[25] flex w-[216px] flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado origin-top-right"
           style={{ animation: 'vd-pop .18s ease both' }}
         >
           {itens.map((i) => (

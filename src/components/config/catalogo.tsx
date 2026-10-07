@@ -79,7 +79,6 @@ export function SecaoServicos({
   return (
     <PainelConfig
       titulo={rotulo.plural}
-      sub="Desativar não quebra histórico: sai das escolhas novas, continua no passado"
       acao={
         <Botao miudo onClick={() => setEdicao('novo')}>
           Cadastrar {rotulo.singular.toLowerCase()}
@@ -100,7 +99,7 @@ export function SecaoServicos({
           detalhe={
             <>
               {s.duracaoMin} min
-              {s.emUso > 0 ? ` · ${s.emUso} na grade` : ''}
+              {s.emUso > 0 ? ` · ${s.emUso} ${s.emUso === 1 ? 'horário' : 'horários'} na grade` : ''}
             </>
           }
         >
@@ -122,7 +121,7 @@ export function SecaoServicos({
               key={s.id}
               apagado
               nome={s.nome}
-              detalhe={`${s.duracaoMin} min${s.emUso > 0 ? ` · ${s.emUso} na grade` : ''}`}
+              detalhe={`${s.duracaoMin} min${s.emUso > 0 ? ` · ${s.emUso} ${s.emUso === 1 ? 'horário' : 'horários'} na grade` : ''}`}
             >
               <Dado>Capacidade {s.capacidadePadrao}</Dado>
               <Estado ativo={false} />
@@ -245,7 +244,6 @@ export function SecaoLocais({
   return (
     <PainelConfig
       titulo={rotulo.plural}
-      sub="Sala, cadeira, consultório, domicílio. A capacidade é o limite físico, avisa, não bloqueia"
     >
       {locais.length === 0 ? (
         <p className="px-5 py-6 text-[14.5px] text-tinta-media">
@@ -271,7 +269,7 @@ export function SecaoLocais({
             >
               {l.nome}
               <span className="text-[12px] font-normal text-tinta-fraca">
-                {l.emUso > 0 ? `${l.emUso} na grade` : 'Sem uso'}
+                {l.emUso > 0 ? `${l.emUso} ${l.emUso === 1 ? 'horário' : 'horários'}` : 'Sem uso'}
               </span>
               {l.capacidade ? (
                 <span className="text-[12px] font-normal text-tinta-fraca">

@@ -36,7 +36,7 @@ test('mostra ocupação, origem e quem está sem telefone', async ({ page }) => 
   await entrar(page, c.email)
   await page.goto(`/sessao/${c.sessaoId}`)
 
-  await expect(page.getByText('3/4 vagas', { exact: true })).toBeVisible()
+  await expect(page.getByText('3 de 4 vagas ocupadas', { exact: true })).toBeVisible()
   await expect(page.getByText('Chamada pendente').first()).toBeVisible()
   await expect(page.getByText('gestante')).toBeVisible()
   // nenhuma das três tem telefone no cenário

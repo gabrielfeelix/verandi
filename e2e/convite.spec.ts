@@ -48,7 +48,7 @@ test('quem recebe o link define senha e entra na conta com o papel do convite', 
 
   await page.context().clearCookies()
   await page.goto(link)
-  await expect(page.getByText('Você foi convidada')).toBeVisible()
+  await expect(page.getByText('Convite de acesso')).toBeVisible()
 
   // o nome que o dono escreveu vem preenchido, e quem aceita pode corrigir
   await expect(page.getByLabel('Seu nome')).toHaveValue('Sofia Andrade')
@@ -90,7 +90,7 @@ test('o mesmo link não vale duas vezes', async ({ page }) => {
   await page.waitForURL(/\/entrar/)
 
   await page.goto(link)
-  await expect(page.getByText('já foi usado')).toBeVisible()
+  await expect(page.getByText('já foi utilizado')).toBeVisible()
 })
 
 test('convite revogado deixa de valer na hora', async ({ page }) => {
@@ -111,7 +111,7 @@ test('convite revogado deixa de valer na hora', async ({ page }) => {
 
 test('link inventado não diz se o e-mail existe', async ({ page }) => {
   await page.goto('/convite/token-que-nunca-existiu')
-  await expect(page.getByText('Não encontramos este convite')).toBeVisible()
+  await expect(page.getByText('Convite não encontrado')).toBeVisible()
 })
 
 test('o dono não pode conceder o papel de suporte da 4YU', async ({ page }) => {

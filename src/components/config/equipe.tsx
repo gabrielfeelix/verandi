@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
+import { Menu } from '@/components/ui/menu'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
 import {
   Avatar, Campo, Chip, ListaImpacto, Nota, Rotulo, entrada,
@@ -90,7 +91,6 @@ export function SecaoEquipe({
   return (
     <PainelConfig
       titulo={rotuloPlural}
-      sub="Existe sem usuário: um nome na grade não precisa de acesso ao sistema"
       acao={
         <Botao miudo onClick={() => setAberto('novo')}>
           Cadastrar {rotuloProfissional.toLowerCase()}
@@ -121,12 +121,12 @@ export function SecaoEquipe({
                   <span>{p.email ?? 'Sem e-mail cadastrado'}</span>
                   <span className="text-[12px] text-tinta-media">
                     {p.servicoIds.length === 0
-                      ? 'atende qualquer serviço'
+                      ? 'Atende todos os serviços'
                       : `atende ${p.servicoIds
                           .map((id) => nomeDoServico.get(id))
                           .filter(Boolean)
                           .join(', ')}`}
-                    {p.emUso > 0 ? ` · ${p.emUso} na grade` : ''}
+                    {p.emUso > 0 ? ` · ${p.emUso} ${p.emUso === 1 ? 'horário' : 'horários'} na grade` : ''}
                   </span>
                 </span>
               }
@@ -138,22 +138,22 @@ export function SecaoEquipe({
                     : 'bg-neutro-fundo text-tinta-media'
                 }`}
               >
-                {p.temLogin ? 'Tem login' : 'Sem usuário'}
+                {p.temLogin ? 'Com acesso' : 'Sem acesso'}
               </span>
               <span className="flex gap-1.5">
                 <BotaoLinha onClick={() => setAberto(p.id)}>Editar</BotaoLinha>
                 {p.ativo ? (
-                  /* com a palavra: um × sozinho pode ser desativar, apagar ou
-                     fechar, e quem descobre parando o mouse em cima descobre
-                     tarde, no celular, nunca */
-                  <BotaoLinha
-                    tom="perigo"
-                    aria-label={`Desativar ${p.nome}`}
-                    disabled={pendente}
-                    onClick={() => setADesativar(p)}
-                  >
-                    Desativar
-                  </BotaoLinha>
+                  /* desativar é raro: mora no "⋮", com a palavra escrita, e
+                     ainda pede confirmação no modal */
+                  <Menu
+                    titulo={`Outras ações de ${p.nome}`}
+                    itens={[{
+                      rotulo: 'Desativar',
+                      icone: 'proibido',
+                      perigo: true,
+                      aoEscolher: () => setADesativar(p),
+                    }]}
+                  />
                 ) : (
                   <span className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12px] font-medium text-alerta">
                     Desativado
