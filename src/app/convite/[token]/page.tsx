@@ -64,6 +64,7 @@ export default async function Convite({
             // só o convite de acesso pergunta o nome; o de senha nova não muda
             // nada além da senha
             nome={r.tipo === 'acesso' ? (r.nome ?? '') : null}
+            jaTemSenha={r.jaTemSenha}
           />
 
           {/*

@@ -21,12 +21,14 @@ const RECUSA: Record<string, string> = {
  * é quem convidou, não quem abre o link.
  */
 export function AceitarConvite({
-  token, email, nome,
+  token, email, nome, jaTemSenha = false,
 }: {
   token: string
   email: string
   /** `null` no link de senha nova, que não pergunta nome */
   nome: string | null
+  /** o e-mail já entra na Verandi: pede a senha atual, uma vez só */
+  jaTemSenha?: boolean
 }) {
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
@@ -39,7 +41,7 @@ export function AceitarConvite({
         setErro(null)
         const senha = String(f.get('senha') ?? '')
         const repete = String(f.get('repete') ?? '')
-        if (senha !== repete) {
+        if (!jaTemSenha && senha !== repete) {
           setErro('as duas senhas precisam ser iguais')
           return
         }
@@ -79,21 +81,29 @@ export function AceitarConvite({
         </Campo>
       ) : null}
 
-      <Campo rotulo="Senha" htmlFor="c-senha" dica="Ao menos 8 caracteres">
+      <Campo
+        rotulo={jaTemSenha ? 'Sua senha' : 'Senha'} htmlFor="c-senha"
+        dica={jaTemSenha
+          ? 'Este e-mail já tem acesso à Verandi. Use a mesma senha de sempre'
+          : 'Ao menos 8 caracteres'}
+      >
         <input
           id="c-senha" name="senha" type="password" required minLength={8}
-          autoFocus={nome === null || !!nome} autoComplete="new-password"
+          autoFocus={nome === null || !!nome}
+          autoComplete={jaTemSenha ? 'current-password' : 'new-password'}
           className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14.5px] focus:border-marca focus:bg-superficie"
         />
       </Campo>
 
-      <Campo rotulo="Repita a senha" htmlFor="c-repete">
-        <input
-          id="c-repete" name="repete" type="password" required minLength={8}
-          autoComplete="new-password"
-          className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14.5px] focus:border-marca focus:bg-superficie"
-        />
-      </Campo>
+      {jaTemSenha ? null : (
+        <Campo rotulo="Repita a senha" htmlFor="c-repete">
+          <input
+            id="c-repete" name="repete" type="password" required minLength={8}
+            autoComplete="new-password"
+            className="min-h-12 rounded-media border border-linha-suave bg-superficie-suave px-4 text-[14.5px] focus:border-marca focus:bg-superficie"
+          />
+        </Campo>
+      )}
 
       {erro ? <Nota tom="alerta">{erro}</Nota> : null}
 

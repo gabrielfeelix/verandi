@@ -1,6 +1,7 @@
 'use server'
 
 import { randomBytes, createHash } from 'node:crypto'
+import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { clienteAdmin } from '../supabase'
@@ -18,7 +19,7 @@ import { PAPEIS_CONVIDAVEIS, type PapelConvidavel } from '@/core/acesso/papeis'
  *
  * O token vive fora do banco: só o `sha256` dele é coluna, e o valor em claro
  * aparece uma vez, na tela de quem convidou. Guardar token legível é decisão que
- * só dói depois de vazar — e aí dói em todas as contas de uma vez.
+ * só dói depois de vazar, e aí dói em todas as contas de uma vez.
  */
 
 const DIAS_ATE_EXPIRAR = 7
@@ -44,13 +45,13 @@ async function exigirDono() {
 /**
  * Manda o convite por e-mail, e engole qualquer falha.
  *
- * Nada aqui dentro pode derrubar a criação do convite — nem o Brevo fora do ar,
+ * Nada aqui dentro pode derrubar a criação do convite, nem o Brevo fora do ar,
  * nem `APP_URL` faltando na produção, nem um defeito no template. O link na
  * tela é o plano B justamente para isso, e ele é montado no navegador, sem
  * depender de nada disto.
  *
- * A primeira versão deixava `urlDoApp()` lançar, e a suíte de navegador — que
- * roda contra build de produção, sem `APP_URL` — mostrou o custo: convite
+ * A primeira versão deixava `urlDoApp()` lançar, e a suíte de navegador (que
+ * roda contra build de produção, sem `APP_URL`) mostrou o custo: convite
  * nenhum era criado. Falhar alto é certo para configuração que ninguém vê;
  * aqui, alto é o log, não a tela de quem está trabalhando.
  */
@@ -104,10 +105,22 @@ export async function convidar(entrada: {
   /*
    * `suporte` é o papel da 4YU: enxerga conta de cliente e entra como suporte.
    * Sem esta recusa, o dono de qualquer conta se promoveria a suporte
-   * convidando o próprio e-mail — escalada de privilégio em dois cliques.
+   * convidando o próprio e-mail: escalada de privilégio em dois cliques.
    */
   if (!PAPEIS_CONVIDAVEIS.includes(entrada.papel)) {
     throw new Error('esse papel não pode ser concedido por convite')
+  }
+
+  /*
+   * Quem já tem acesso não recebe convite. Aceitar regravaria o vínculo com o
+   * papel do convite, por fora de `mudarPapel`: o único dono rebaixado por um
+   * convite de professor, sem a trava de "conta sem dono".
+   */
+  const { data: membros, error: erroMembros } =
+    await db.rpc('usuarios_da_conta', { p_conta: conta.contaId })
+  if (erroMembros) throw erroMembros
+  if ((membros ?? []).some((u) => u.ativo && u.email.toLowerCase() === email)) {
+    throw new Error('essa pessoa já tem acesso a esta conta. Para mudar o papel, use o menu ao lado do nome dela')
   }
 
   const { token, hash } = novoToken()
@@ -174,6 +187,19 @@ export async function gerarLinkDeSenha(usuarioId: string): Promise<{ token: stri
   const alvo = lista.find((u) => u.usuario_id === usuarioId)
   if (!alvo) throw new Error('essa pessoa não tem acesso a esta conta')
 
+  /*
+   * A senha é da pessoa, não da conta: quem também trabalha em outro estúdio
+   * entra com ela lá. O dono daqui não troca a senha que vale na casa do
+   * vizinho; a pessoa redefine sozinha, pelo e-mail.
+   */
+  const { count: outras, error: erroOutras } = await clienteAdmin()
+    .from('usuario_conta').select('conta_id', { count: 'exact', head: true })
+    .eq('usuario_id', usuarioId).eq('ativo', true).neq('conta_id', conta.contaId)
+  if (erroOutras) throw erroOutras
+  if ((outras ?? 0) > 0) {
+    throw new Error('essa pessoa também acessa outra conta. Peça que ela use "Esqueci a senha" na tela de entrada')
+  }
+
   const { token, hash } = novoToken()
   const { data: { user } } = await db.auth.getUser()
 
@@ -212,7 +238,7 @@ export async function revogarConvite(id: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Aceitar — roda sem sessão
+// Aceitar: roda sem sessão
 // ---------------------------------------------------------------------------
 
 export type ResultadoConvite =
@@ -222,6 +248,8 @@ export type ResultadoConvite =
       ok: true; contaNome: string; email: string; papel: Papel; tipo: string
       /** o nome que quem convidou escreveu, para o aceite vir preenchido */
       nome: string | null
+      /** o e-mail já entra na Verandi: o aceite pede a senha atual, não uma nova */
+      jaTemSenha: boolean
     }
   | { ok: false; motivo: EstadoConvite }
 
@@ -242,7 +270,7 @@ type LinhaConvite = {
  * Lê o convite pelo token, sem sessão nenhuma.
  *
  * Usa a chave de serviço porque quem abre o link ainda não é ninguém no
- * sistema — e o token **é** a credencial. Nada aqui aceita identificador do
+ * sistema, e o token **é** a credencial. Nada aqui aceita identificador do
  * navegador: a única entrada é o token, e ele é comparado por hash.
  */
 export async function lerConvite(token: string): Promise<ResultadoConvite> {
@@ -270,6 +298,7 @@ export async function lerConvite(token: string): Promise<ResultadoConvite> {
     papel: data.papel,
     tipo: data.tipo,
     nome: data.nome,
+    jaTemSenha: data.tipo === 'acesso' && (await procurarUsuario(db, data.email)) !== null,
   }
 }
 
@@ -310,7 +339,18 @@ export async function aceitarConvite(
   const existente = await procurarUsuario(db, convite.email)
 
   let usuarioId: string
-  if (existente) {
+  if (existente && convite.tipo === 'acesso') {
+    /*
+     * Convite de acesso nunca troca a senha de quem já existe.
+     *
+     * O link aparece na tela de quem convidou. Se o aceite gravasse a senha
+     * digitada, qualquer dono convidaria um e-mail alheio, abriria o próprio
+     * link e entraria na conta da pessoa (o Auth é compartilhado com outros
+     * produtos da 4YU). Quem já tem senha prova que é dono dela.
+     */
+    await conferirSenha(convite.email, senha)
+    usuarioId = existente
+  } else if (existente) {
     usuarioId = existente
     const { error } = await db.auth.admin.updateUserById(usuarioId, { password: senha })
     if (error) throw error
@@ -358,6 +398,7 @@ export async function aceitarConvite(
     papel: convite.papel,
     tipo: convite.tipo,
     nome,
+    jaTemSenha: existente !== null,
   }
 }
 
@@ -383,6 +424,21 @@ export async function salvarMeuNome(nome: string): Promise<void> {
     p_conta: conta.contaId, p_nome: limparNome(nome),
   })
   if (error) throw error
+}
+
+/** Entra com a senha num cliente sem sessão, só para saber se ela confere. */
+async function conferirSenha(email: string, senha: string): Promise<void> {
+  const url = process.env.SUPABASE_URL
+  const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !chave) throw new Error('SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY são obrigatórias')
+  const anonimo = createClient(url, chave, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+  const { error } = await anonimo.auth.signInWithPassword({ email, password: senha })
+  if (error) {
+    throw new Error('a senha não confere. Use a mesma senha com que você já entra na Verandi')
+  }
+  await anonimo.auth.signOut()
 }
 
 /** O Auth não tem busca por e-mail; a lista paginada é o caminho que existe. */
@@ -434,7 +490,7 @@ export async function mudarPapel(usuarioId: string, papel: PapelConvidavel): Pro
  * Remover é `ativo = false`.
  *
  * Nada do que a pessoa registrou é apagado: presença marcada por ela continua
- * marcada por ela. Se for profissional, o nome segue na grade — o que acaba é
+ * marcada por ela. Se for profissional, o nome segue na grade: o que acaba é
  * o acesso ao sistema.
  */
 export async function removerUsuario(usuarioId: string): Promise<void> {

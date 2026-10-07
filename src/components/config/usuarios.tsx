@@ -4,7 +4,8 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Avatar, Campo, Etiqueta, Nota, entrada } from '@/components/ui/pecas'
-import { ModalFormulario } from '@/components/ui/modal'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
+import { Escolha } from '@/components/ui/escolha'
 import { BotaoLinha, LinhaConfig, PainelConfig } from './casca'
 import { Menu } from '@/components/ui/menu'
 import { useAviso } from '@/components/ui/desfazer'
@@ -15,6 +16,13 @@ import { recadoDaEntrega } from '@/core/email/entrega'
 import { PAPEIS_CONVIDAVEIS, NOME_PAPEL, type PapelConvidavel } from '@/core/acesso/papeis'
 import type { ConvitePendente, UsuarioLinha } from '@/server/usuarios/consultas'
 import { erroLegivel } from '@/core/erro-legivel'
+
+/** o que cada papel faz, na segunda linha da escolha */
+const DETALHE_PAPEL: Record<PapelConvidavel, string> = {
+  dono: 'Tudo, inclusive configuração e acessos',
+  recepcao: 'Agenda e alunos, sem configuração',
+  profissional: 'A própria agenda, sem ver valores',
+}
 
 const TINTA_PAPEL: Record<string, 'positivo' | 'info' | 'atencao' | 'neutro'> = {
   dono: 'positivo',
@@ -44,6 +52,7 @@ export function SecaoUsuarios({
   meuId: string
 }) {
   const [convidando, setConvidando] = useState(false)
+  const [removendo, setRemovendo] = useState<UsuarioLinha | null>(null)
   /*
    * `enviado` só existe para o convite. O link de redefinir senha ainda não sai
    * por e-mail, dizer "o e-mail não saiu" ali seria inventar uma falha que não
@@ -112,15 +121,16 @@ export function SecaoUsuarios({
               </Campo>
               <Campo rotulo="E-mail" htmlFor="cv-email">
                 <input id="cv-email" name="email" type="email" required
+                  placeholder="Exemplo: ana@estudio.com.br"
                   className={entrada} />
               </Campo>
               <Campo rotulo="Papel" htmlFor="cv-papel">
-                <select id="cv-papel" name="papel" className={entrada}
-                  defaultValue="profissional">
-                  {PAPEIS_CONVIDAVEIS.map((p) => (
-                    <option key={p} value={p}>{NOME_PAPEL[p]}</option>
-                  ))}
-                </select>
+                <Escolha
+                  id="cv-papel" nome="papel" valorInicial="profissional"
+                  opcoes={PAPEIS_CONVIDAVEIS.map((p) => ({
+                    valor: p, rotulo: NOME_PAPEL[p], detalhe: DETALHE_PAPEL[p],
+                  }))}
+                />
               </Campo>
               <Nota tom="positivo">
                 O convite vale por 7 dias. Mandamos por e-mail, e o link
@@ -225,10 +235,7 @@ export function SecaoUsuarios({
                       {
                         rotulo: 'Remover acesso',
                         perigo: true,
-                        aoEscolher: () => comErro(
-                          () => removerUsuario(u.usuarioId),
-                          'Acesso removido',
-                        ),
+                        aoEscolher: () => setRemovendo(u),
                       },
                     ]}
                   />
@@ -238,6 +245,24 @@ export function SecaoUsuarios({
 
         </div>
       </PainelConfig>
+
+      <Modal
+        aberto={removendo !== null}
+        perigo
+        titulo="Remover acesso"
+        sub={removendo
+          ? `${removendo.nome ?? removendo.email} deixa de entrar nesta conta. O que já registrou continua no histórico, e o nome segue na grade.`
+          : undefined}
+        primario="Remover acesso"
+        pendente={pendente}
+        aoFechar={() => setRemovendo(null)}
+        aoConfirmar={() => {
+          const alvo = removendo
+          if (!alvo) return
+          setRemovendo(null)
+          comErro(() => removerUsuario(alvo.usuarioId), 'Acesso removido')
+        }}
+      />
 
       {convites.length > 0 ? (
         <PainelConfig

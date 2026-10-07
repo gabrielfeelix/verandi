@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { admin, contaDeTeste, entrar, usuarioDe, SENHA } from './apoio'
+import { admin, contaDeTeste, entrar, escolher, usuarioDe, SENHA } from './apoio'
 
 async function contaDono() {
   const base = await contaDeTeste()
@@ -13,7 +13,7 @@ async function convitePelaTela(page: import('@playwright/test').Page, para: stri
   await page.getByRole('button', { name: 'Convidar' }).click()
   await page.getByLabel('Nome').fill('Sofia Andrade')
   await page.getByLabel('E-mail').fill(para)
-  await page.getByLabel('Papel').selectOption({ label: papel })
+  await escolher(page, 'Papel', papel)
   await page.getByRole('button', { name: 'Enviar convite' }).click()
 
   const campo = page.getByLabel('Link do convite')
@@ -121,7 +121,9 @@ test('o dono não pode conceder o papel de suporte da 4YU', async ({ page }) => 
   await page.getByRole('button', { name: 'Convidar' }).click()
 
   // não está na tela, e a ação recusa mesmo se alguém forçar
-  await expect(page.getByLabel('Papel')).not.toContainText('Suporte')
+  await page.getByRole('combobox', { name: 'Papel', exact: true }).click()
+  await expect(page.getByRole('option', { name: /Recepção/ })).toBeVisible()
+  await expect(page.getByRole('option', { name: /Suporte/ })).toHaveCount(0)
 })
 
 test('redefinir senha gera link, e a senha nova passa a valer', async ({ page }) => {
@@ -197,6 +199,7 @@ test('remover acesso não apaga o que a pessoa registrou', async ({ page }) => {
   await page.goto('/config?s=usuarios')
   await abrirMenuDe(page, outro.email)
   await page.getByRole('menuitem', { name: 'Remover acesso' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Remover acesso' }).click()
 
   await expect.poll(async () => {
     const { data } = await admin.from('usuario_conta')
@@ -245,3 +248,53 @@ test('a conta não fica sem dono', async ({ page }) => {
 async function abrirMenuDe(page: Page, email: string) {
   await page.getByRole('button', { name: `Ações de ${email}` }).click()
 }
+
+test('quem já tem acesso não recebe convite', async ({ page }) => {
+  const c = await contaDono()
+  const outro = await usuarioDe(c.contaId, 'recepcao', `${c.marca}-ja`)
+
+  await entrar(page, c.email)
+  await page.goto('/config?s=usuarios')
+  await page.getByRole('button', { name: 'Convidar' }).click()
+  await page.getByLabel('Nome').fill('Sofia Andrade')
+  await page.getByLabel('E-mail').fill(outro.email)
+  await escolher(page, 'Papel', 'Profissional')
+  await page.getByRole('button', { name: 'Enviar convite' }).click()
+  await expect(page.getByText(/já tem acesso a esta conta/i)).toBeVisible()
+
+  // o papel continua o de antes: o convite não passou por cima dele
+  const { data } = await admin.from('usuario_conta')
+    .select('papel').eq('conta_id', c.contaId).eq('usuario_id', outro.usuarioId).single()
+  expect(data!.papel).toBe('recepcao')
+})
+
+test('convite para e-mail que já existe pede a senha atual e não a troca', async ({ page }) => {
+  const c = await contaDono()
+  const vizinha = await contaDeTeste()
+  const alheio = await usuarioDe(vizinha.contaId, 'dono', `${c.marca}-viz`)
+
+  await entrar(page, c.email)
+  const link = await convitePelaTela(page, alheio.email, 'Profissional')
+
+  await page.context().clearCookies()
+  await page.goto(link)
+  await expect(page.getByLabel('Repita a senha')).toHaveCount(0)
+
+  // quem só tem o link não define senha nova para a conta de outra pessoa
+  await page.getByLabel('Sua senha').fill('senha-inventada-123')
+  await page.getByRole('button', { name: 'Entrar na conta' }).click()
+  await expect(page.getByText(/a senha não confere/i)).toBeVisible()
+  const { data: semVinculo } = await admin.from('usuario_conta')
+    .select('usuario_id').eq('conta_id', c.contaId).eq('usuario_id', alheio.usuarioId)
+  expect(semVinculo).toEqual([])
+
+  // a dona do e-mail, com a senha dela, aceita e continua entrando com ela
+  await page.getByLabel('Sua senha').fill(SENHA)
+  await page.getByRole('button', { name: 'Entrar na conta' }).click()
+  await page.waitForURL(/\/entrar/)
+  await expect.poll(async () => {
+    const { data } = await admin.from('usuario_conta')
+      .select('papel').eq('conta_id', c.contaId).eq('usuario_id', alheio.usuarioId)
+    return data?.map((x) => x.papel)
+  }).toEqual(['profissional'])
+})
