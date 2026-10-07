@@ -10,6 +10,7 @@ import {
 } from '@/server/agenda/acoes'
 import { diaDaSemanaDe } from '@/core/agenda/datas'
 import { semAcento } from '@/core/pessoas/busca'
+import { FormAulaAvulsa } from './aula-avulsa'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -73,6 +74,8 @@ export function MarcarAula({
   const falta = faltaFixa ?? faltas[0] ?? null
   const [repor, setRepor] = useState(Boolean(falta))
   const [pendente, iniciar] = useTransition()
+  // aula que a grade não tem (ventosa na terça): nasce aqui, com valor
+  const [fora, setFora] = useState(false)
   const avisar = useAviso()
 
   function carregar(s: string | null, d: number) {
@@ -85,6 +88,7 @@ export function MarcarAula({
 
   function abrir() {
     setAberto(true)
+    setFora(false)
     setBusca('')
     setNoLimite(null)
     setRepor(Boolean(falta))
@@ -159,12 +163,29 @@ export function MarcarAula({
         <Modal
           aberto
           glifo="+"
-          titulo={`Marcar ${rotuloSessao.toLowerCase()} para ${nome.split(' ')[0]}`}
-          sub="Só horários com lugar. Um toque marca."
+          titulo={fora
+            ? `${rotuloSessao} avulsa para ${nome.split(' ')[0]}`
+            : `Marcar ${rotuloSessao.toLowerCase()} para ${nome.split(' ')[0]}`}
+          sub={fora
+            ? 'Fora da grade, em qualquer dia e hora. Com valor, gera a cobrança.'
+            : 'Só horários com lugar. Um toque marca.'}
           largura="lista"
           secundario="Fechar"
           aoFechar={() => setAberto(false)}
         >
+          {fora ? (
+            <FormAulaAvulsa
+              pessoaId={pessoaId}
+              servicos={servicos}
+              servicoInicial={servico}
+              aoVoltar={() => setFora(false)}
+              aoConcluir={(texto) => {
+                setAberto(false)
+                aoMarcar?.()
+                avisar({ texto: `${nome.split(' ')[0]}: ${texto}` })
+              }}
+            />
+          ) : (<>
           {falta ? (
             <div className="flex items-center justify-between gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3 py-2.5">
               <p className="text-[14.5px]">
@@ -277,6 +298,19 @@ export function MarcarAula({
               Ver mais duas semanas
             </button>
           ) : null}
+
+          {/* a exceção, depois da lista: o caminho comum é o horário da grade */}
+          {faltaFixa ? null : (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-linha-suave pt-3">
+              <span className="text-[13.5px] text-tinta-media">
+                Precisa de outro dia, hora ou modalidade?
+              </span>
+              <Botao tom="secundario" miudo onClick={() => setFora(true)}>
+                Aula avulsa fora da grade
+              </Botao>
+            </div>
+          )}
+          </>)}
         </Modal>
       ) : null}
     </>
