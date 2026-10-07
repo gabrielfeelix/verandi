@@ -240,31 +240,36 @@ function aplicarFiltros<T extends { eq: unknown }>(
  * quando precisar. Escolher a mais nova é o palpite menos pior porque é a que
  * alguém acabou de digitar.
  */
+/**
+ * Todas as pessoas da conta com esse telefone, ativas primeiro e, entre elas,
+ * a mais nova primeiro.
+ *
+ * Telefone repetido é permitido de propósito: mãe e filha dividem o número.
+ * Devolver só uma fazia o bot falar com a filha quando quem escreveu era a mãe.
+ */
 export async function acharPorTelefone(
   db: Db,
   contaId: string,
   telefone: string,
-): Promise<PessoaLinha | null> {
+): Promise<PessoaLinha[]> {
   const chaves = formasGuardadas(telefone)
-  if (chaves.length === 0) return null
+  if (chaves.length === 0) return []
 
   const { data, error } = await db
     .from('pessoa_resumo')
     .select('*')
     .eq('conta_id', contaId)
     .in('telefone', chaves)
+    .order('ativo', { ascending: false })
     .order('criado_em', { ascending: false })
-    .limit(1)
+    .limit(10)
     .returns<LinhaResumo[]>()
 
   if (error) throw error
 
-  const linha = (data ?? [])[0]
-  if (!linha) return null
-
-  const pessoa = paraLinha(linha)
-  await enriquecer(db, contaId, [pessoa])
-  return pessoa
+  const pessoas = (data ?? []).map(paraLinha)
+  if (pessoas.length) await enriquecer(db, contaId, pessoas)
+  return pessoas
 }
 
 export async function listarPessoas(

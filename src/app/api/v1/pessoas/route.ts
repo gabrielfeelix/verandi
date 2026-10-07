@@ -41,28 +41,27 @@ export const GET = comChave(async (req: NextRequest, ctx: Contexto) => {
    * Vem primeiro porque é mais específico: quem manda os dois quer o número.
    */
   if (telefone !== '') {
-    const pessoa = await acharPorTelefone(ctx.db, ctx.contaId, telefone)
+    const pessoas = await acharPorTelefone(ctx.db, ctx.contaId, telefone)
 
     /*
      * Não achar é **200 com lista vazia**, e não 404.
      *
      * No dado real 30% das pessoas não têm telefone cadastrado, e quem chega
      * pelo WhatsApp pode nunca ter passado por aqui. Não reconhecer é o caminho
-     * normal desta rota, não uma falha — e um 404 faria o integrador tratar
-     * como erro o que é metade das chamadas.
+     * normal desta rota, não uma falha: um 404 faria o integrador tratar como
+     * erro o que é metade das chamadas.
+     *
+     * Mais de uma é o número da família (mãe e filha). A primeira é a ativa
+     * mais nova; quem conversa pergunta o nome quando `total` passa de 1.
      */
     return NextResponse.json({
-      total: pessoa ? 1 : 0,
-      pessoas: pessoa
-        ? [
-            {
-              pessoaId: pessoa.id,
-              nome: pessoa.nome,
-              telefone: pessoa.telefone,
-              ativa: pessoa.ativo,
-            },
-          ]
-        : [],
+      total: pessoas.length,
+      pessoas: pessoas.map((p) => ({
+        pessoaId: p.id,
+        nome: p.nome,
+        telefone: p.telefone,
+        ativa: p.ativo,
+      })),
     })
   }
 
