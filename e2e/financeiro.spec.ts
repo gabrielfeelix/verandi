@@ -159,7 +159,7 @@ test('a tela abre pelo que está em atraso, com os dias e o telefone', async ({ 
    */
   await expect(page.getByText(/Em atraso há 40 dias/)).toBeVisible()
   await page.getByRole('button', { name: /Mais sobre a cobrança/ }).first().click()
-  await expect(page.getByRole('menuitem', { name: 'Ligar' })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: 'Enviar mensagem' })).toBeVisible()
   await expect(page.getByText(/cobranças? em atraso/)).toBeVisible()
 })
 

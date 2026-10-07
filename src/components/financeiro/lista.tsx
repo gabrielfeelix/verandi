@@ -78,6 +78,19 @@ type Modo =
   | { tipo: 'estornar'; c: CobrancaLinha; pagamentoId: string; recibo: string | null }
   | { tipo: 'emitir'; c: CobrancaLinha; pagamentoId: string; valorCent: number }
 
+
+/**
+ * O WhatsApp da pessoa com a mensagem de cobrança já escrita, em tom de
+ * lembrete. Quem manda revisa antes de enviar: o texto é ponto de partida.
+ */
+function linkDeCobranca(c: CobrancaLinha, faltaCent: number): string {
+  const primeiro = c.pessoaNome.trim().split(/\s+/)[0] ?? ''
+  const nome = primeiro.charAt(0).toUpperCase() + primeiro.slice(1).toLowerCase()
+  const venc = `${c.vencimento.slice(8, 10)}/${c.vencimento.slice(5, 7)}`
+  const texto = `Olá, ${nome}! Tudo bem? Passando para lembrar do pagamento de ${c.planoNome}, no valor de ${emReais(faltaCent)}, com vencimento em ${venc}. Qualquer dúvida, estamos à disposição.`
+  const numero = c.telefone!.replace(/\D/g, '')
+  return `https://wa.me/${numero.startsWith('55') ? numero : `55${numero}`}?text=${encodeURIComponent(texto)}`
+}
 export function ListaDeCobrancas({
   linhas: carregadas, vazio, naFicha = false,
 }: {
@@ -147,9 +160,11 @@ export function ListaDeCobrancas({
               const validos = c.pagamentos.filter((p) => !p.estornado)
               const ultimo = validos[validos.length - 1]
               const itens: ItemMenu[] = [
-                ...(c.telefone ? [{
-                  rotulo: 'Ligar',
-                  aoEscolher: () => { window.location.href = `tel:${c.telefone!.replace(/\D/g, '')}` },
+                // lembrete de cobrança em aberto; sem telefone, sem a opção
+                ...(c.telefone && recebivel && falta > 0 ? [{
+                  rotulo: 'Enviar mensagem',
+                  icone: 'whatsapp' as const,
+                  aoEscolher: () => window.open(linkDeCobranca(c, falta), '_blank', 'noopener'),
                 }] : []),
                 ...validos.map((p) => p.recibo
                   ? {
