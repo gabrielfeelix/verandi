@@ -23,29 +23,20 @@ o Gabriel apontou e numa varredura de celular.
 | `fb20df5` | Agenda e Hoje: consultas em paralelo, materialização numa ida só, setas pré-carregam o período vizinho. |
 | `1a1ff01`, `5362d03` | Financeiro cabe no celular. |
 
-## Falta
+## Falta (atualizado 07/out, fim do dia)
 
-1. **Integração Verandi ↔ Wellhub (pedido do Gabriel)**: pesquisar se o
-   Wellhub/Gympass tem API para parceiros puxarem os check-ins. Objetivo:
-   aluno faz check-in no Wellhub, o estúdio aceita lá, e a presença já
-   aparece confirmada na Verandi. `pessoa.gympass` já existe (marca o aluno).
-   Comece pela documentação de parceiros do Wellhub (Partners API / Booking
-   e Check-in API), o que exige credencial do estúdio e como ligar o aluno
-   deles ao nosso (`identificador_externo` ou telefone).
-2. Tarefa 4 (Nº da ficha automático) e 6 (nomes sem par do MGM): ver
-   `HANDOFF-REVISAO-GERAL.md`. A outra sessão mexeu no Nº da ficha: confira
-   antes.
-3. e2e velhos que falham sem relação com esta rodada:
-   `home-e-adiantado.spec.ts` ("Valor médio" não existe mais na tela;
-   "recibos se recorta por data"). `recibo.spec.ts` "emitir nasce da linha"
-   é instável (passa ao repetir).
-4. Telefone repetido entre alunos **não** foi bloqueado de propósito: mãe e
-   filha dividem número. Se o bot precisar de unicidade, a decisão é do
-   Gabriel.
-5. O bot recebe `sessao.cancelada` nas aulas que saem da grade e na data
-   fechada, mas não `participacao.cancelada` para quem foi solto (o bot
-   trata esse evento como cancelamento pedido pelo aluno). Combinar com o
-   bot da MGM.
+Fechados: Nº da ficha único no banco (`4bd5415`, migration 0073 aplicada),
+busca por telefone devolve a família (`fb60f3e`), `sessao.cancelada` leva
+`alunos` soltos (`461d6bc`), e2e de financeiro e recibos (`8de5a64`).
+**Nomes sem par do MGM: resolvidos** pela resposta do Daniel (17 nomes
+mantidos ativos, o resto excluído, Alexandres unidos no 426, 6 ex-alunos e
+6 testes inativados). Não pergunte de novo.
+
+1. **Wellhub**: plano e e-mail em `docs/WELLHUB.md`. Espera o Gabriel mandar
+   o e-mail e o ID do estúdio da MGM; sem credencial não há o que codar.
+2. **Bot da MGM**: passar a ler `dados.alunos` do `sessao.cancelada` e,
+   na busca por telefone, perguntar o nome quando `total` > 1.
+3. `recibo.spec.ts` "emitir nasce da linha" é instável (passa ao repetir).
 
 ## Atenção
 
