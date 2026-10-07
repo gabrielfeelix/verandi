@@ -8,7 +8,7 @@ import { useFecharFora, usePosicionar } from './flutuante'
 export type OpcaoEscolha = {
   valor: string
   rotulo: string
-  /** a segunda linha: professor, sala, telefone — o que desambigua */
+  /** a segunda linha: professor, sala, telefone: o que desambigua */
   detalhe?: string
   /** o cabeçalho que agrupa: "Segunda", "Terça" */
   grupo?: string
@@ -29,7 +29,7 @@ const semAcento = (s: string) =>
  * a turma nem em que sala.
  *
  * Aqui a mesma escolha vem agrupada por dia, com o detalhe embaixo do nome, e
- * com um campo de filtro assim que a lista passa de oito itens — digitar "ter 11"
+ * com um campo de filtro assim que a lista passa de oito itens: digitar "ter 11"
  * chega mais rápido que qualquer rolagem.
  *
  * O valor viaja num `<input type="hidden">`: quem usa continua lendo o
@@ -126,7 +126,7 @@ export function Escolha({
          * O rótulo do campo aponta para este botão (`htmlFor`), então clicar em
          * "Qual horário?" vira um clique aqui. Com `click`, a sequência era:
          * o `pointerdown` fora fechava o painel, e o `click` do rótulo abria de
-         * novo — o painel piscava e parecia que não fechava nunca. No
+         * novo, e o painel piscava e parecia que não fechava nunca. No
          * `pointerdown` os dois acontecem no mesmo instante, e o de dentro
          * ganha.
          */
