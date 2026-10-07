@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { inserirPessoa, proximoNumero, recusarNumeroEmUso } from './registro'
-import { incluirVagasNasSessoes } from '../agenda/materializar'
+import { incluirVagasNasSessoes, tirarDasAulasDepoisDoFim } from '../agenda/materializar'
+import { avisarQuemEspera } from '../agenda/espera'
+import { hojeEm } from '../agenda/fuso'
 import type { Atualizacao } from '../banco'
 import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
 import { cpfValido, soDigitosCpf } from '@/core/pessoas/documento'
@@ -158,6 +160,23 @@ export async function editarPessoa(id: string, campos: {
       throw new Error('Já existe uma ficha nesta conta com esse CPF.')
     }
     throw error
+  }
+
+  /*
+   * Inativar é a pessoa ter saído: o horário fixo dela fecha hoje e as aulas já
+   * geradas soltam o lugar. Antes ela continuava na chamada e ocupando vaga na
+   * turma, com o cadastro inativo. O contrato não muda aqui: encerrar cobrança é
+   * decisão de dinheiro, e fica em Contratos.
+   */
+  if (campos.ativo === false) {
+    const hoje = hojeEm(conta.fuso)
+    const { data: fechadas, error: erroVagas } = await db.from('vaga')
+      .update({ fim: hoje }).eq('conta_id', conta.contaId).eq('pessoa_id', id)
+      .is('fim', null).select('serie_id, pessoa_id, fim')
+    if (erroVagas) throw erroVagas
+    const sessoes = await tirarDasAulasDepoisDoFim(db, conta.contaId, conta.fuso, fechadas ?? [])
+    for (const s of sessoes) await avisarQuemEspera(db, conta.contaId, s)
+    if (sessoes.length) revalidatePath('/semana')
   }
 
   if (campos.condicoes !== undefined) {
@@ -379,10 +398,16 @@ export async function criarVaga(
  * antes dela continua exatamente como estava.
  */
 export async function encerrarVaga(vagaId: string, fim: string): Promise<void> {
+  const conta = await exigirConta()
   const db = await clienteServidor()
   const { data, error } = await db.from('vaga')
-    .update({ fim }).eq('id', vagaId)
-    .select('pessoa_id').maybeSingle()
+    .update({ fim }).eq('id', vagaId).eq('conta_id', conta.contaId)
+    .select('serie_id, pessoa_id, fim').maybeSingle()
   if (error) throw error
-  if (data) revalidatePath(`/pessoas/${data.pessoa_id}`)
+  if (!data) return
+  // o lugar volta de verdade: as aulas já geradas depois do fim também soltam
+  const sessoes = await tirarDasAulasDepoisDoFim(db, conta.contaId, conta.fuso, [data])
+  for (const id of sessoes) await avisarQuemEspera(db, conta.contaId, id)
+  revalidatePath(`/pessoas/${data.pessoa_id}`)
+  if (sessoes.length) revalidatePath('/semana')
 }

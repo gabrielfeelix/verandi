@@ -61,8 +61,9 @@ export function MarcarInativa({
       >
         <p className="text-[14.5px] leading-[1.55] text-tinta-media">
           {ativo
-            ? `Sai da lista padrão de ${rotuloPessoa.toLowerCase()} e das escolhas de horário novo. ` +
-              'Nada é apagado: presenças, faltas e reposições continuam no histórico.'
+            ? `Sai da lista padrão de ${rotuloPessoa.toLowerCase()}, e os horários fixos são encerrados hoje, ` +
+              'liberando o lugar nas próximas aulas. Contratos e cobranças não mudam: encerre em Contratos, se for o caso. ' +
+              'Presenças, faltas e reposições continuam no histórico.'
             : 'Volta para a lista padrão e para as escolhas de horário novo. O histórico já estava lá o tempo todo.'}
         </p>
       </Modal>

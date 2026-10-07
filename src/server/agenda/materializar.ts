@@ -238,3 +238,37 @@ export async function incluirVagasNasSessoes(
     if (erroP) throw erroP
   }
 }
+
+/**
+ * Quem perdeu o horário fixo sai das aulas dele que já foram geradas.
+ *
+ * A agenda gera as sessões algumas semanas à frente, com quem tem vaga. Encerrar
+ * a vaga (ou trancar, ou encerrar o contrato) só grava o fim dela: sem isto, a
+ * pessoa continuava na chamada dessas semanas, ocupando o lugar que a tela dizia
+ * ter devolvido. Só sai a participação do horário fixo, ainda em aberto, em aula
+ * prevista depois do fim; reposição e avulso marcados à parte ficam.
+ */
+export async function tirarDasAulasDepoisDoFim(
+  db: Db, contaId: string, fuso: string,
+  vagas: Array<{ serie_id: string; pessoa_id: string; fim: string | null }>,
+): Promise<string[]> {
+  const sessoesLiberadas = new Set<string>()
+  for (const v of vagas) {
+    if (!v.fim) continue
+    const { data, error } = await db.from('participacao')
+      .select('id, sessao:sessao_id!inner(id, inicio, serie_id, status)')
+      .eq('conta_id', contaId).eq('pessoa_id', v.pessoa_id).eq('origem', 'recorrente')
+      .in('status', ['esperada', 'confirmada', 'licenca'])
+      .eq('sessao.serie_id', v.serie_id).eq('sessao.status', 'prevista')
+      .gt('sessao.inicio', instante(v.fim, '00:00', fuso))
+      .returns<Array<{ id: string; sessao: { id: string; inicio: string } }>>()
+    if (error) throw error
+    const depois = (data ?? []).filter((p) => localDe(p.sessao.inicio, fuso).data > v.fim!)
+    if (!depois.length) continue
+    const { error: erroDelete } = await db.from('participacao')
+      .delete().in('id', depois.map((p) => p.id))
+    if (erroDelete) throw erroDelete
+    for (const p of depois) sessoesLiberadas.add(p.sessao.id)
+  }
+  return [...sessoesLiberadas]
+}

@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { hojeEm } from '../agenda/fuso'
-import { incluirVagasNasSessoes } from '../agenda/materializar'
+import { incluirVagasNasSessoes, tirarDasAulasDepoisDoFim } from '../agenda/materializar'
+import { avisarQuemEspera } from '../agenda/espera'
 import { temVinculo } from './consultas'
 import { precoAplicado, type Recorrencia } from '@/core/planos/plano'
 import { fimDoContrato, fimProrrogado } from '@/core/contratos/contrato'
@@ -293,8 +294,9 @@ export async function trancarContrato(
     await db.from('contrato').update({ status: 'pausado' }).eq('id', contratoId)
     // a vaga fecha no dia em que a pausa começa: o lugar volta para a horário, e
     // quem está na fila de espera pode ocupá-lo enquanto isso
-    await db.from('vaga').update({ fim: inicio })
-      .eq('contrato_id', contratoId).is('fim', null)
+    const { data: fechadas } = await db.from('vaga').update({ fim: inicio })
+      .eq('contrato_id', contratoId).is('fim', null).select('serie_id, pessoa_id, fim')
+    await liberarLugares(db, conta.contaId, conta.fuso, fechadas ?? [])
 
     // a cobrança do mês que já nasceu à frente não pode virar dívida de um mês
     // em que a pessoa não pode entrar na sala
@@ -406,8 +408,9 @@ export async function encerrarContrato(
 
     await db.from('contrato')
       .update({ status: 'encerrado', fim }).eq('id', contratoId)
-    await db.from('vaga').update({ fim })
-      .eq('contrato_id', contratoId).is('fim', null)
+    const { data: fechadas } = await db.from('vaga').update({ fim })
+      .eq('contrato_id', contratoId).is('fim', null).select('serie_id, pessoa_id, fim')
+    await liberarLugares(db, conta.contaId, conta.fuso, fechadas ?? [])
 
     /*
      * O que ainda não venceu é cancelado; o que venceu e não foi pago fica.
@@ -431,4 +434,14 @@ export async function encerrarContrato(
   } catch (e) {
     return { ok: false, erro: e instanceof Error ? e.message : 'Não foi possível encerrar.' }
   }
+}
+
+/** As aulas já geradas depois do fim das vagas soltam o lugar, e a fila sabe. */
+async function liberarLugares(
+  db: Awaited<ReturnType<typeof clienteServidor>>, contaId: string, fuso: string,
+  vagas: Array<{ serie_id: string; pessoa_id: string; fim: string | null }>,
+) {
+  const sessoes = await tirarDasAulasDepoisDoFim(db, contaId, fuso, vagas)
+  for (const id of sessoes) await avisarQuemEspera(db, contaId, id)
+  if (sessoes.length) revalidatePath('/semana')
 }
