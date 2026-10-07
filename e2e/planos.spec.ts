@@ -94,7 +94,9 @@ test('preço que não é número para o formulário, em vez de virar zero', asyn
   await page.getByLabel('Preço cheio').fill('combinar')
   await page.getByRole('button', { name: 'Criar', exact: true }).click()
 
-  await expect(page.getByText(/Escreva os dois preços em reais/)).toBeVisible()
+  // o campo de dinheiro só aceita dígitos: "combinar" não entra, o campo fica
+  // vazio e o formulário (obrigatório) nem chega a enviar
+  await expect(page.getByLabel('Preço cheio')).toHaveValue('')
 
   // e nada entrou no banco: plano valendo R$ 0,00 só apareceria na primeira
   // cobrança, meses depois

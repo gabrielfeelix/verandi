@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
+import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
 import { Menu } from '@/components/ui/menu'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
@@ -462,20 +463,18 @@ function FormularioDePlano({
           rotulo="Preço de cliente" htmlFor="pl-pv"
           dica="de quem já tem plano em vigor de outra modalidade"
         >
-          <input
-            id="pl-pv" name="precoVinculado" required inputMode="decimal"
-            defaultValue={plano ? emReais(plano.precoVinculadoCent) : ''}
-            placeholder="Exemplo: 195,00" className={`${entrada}`}
+          <CampoDinheiro
+            id="pl-pv" nome="precoVinculado" required
+            valorInicial={plano ? emReais(plano.precoVinculadoCent) : ''}
           />
         </Campo>
         <Campo
           rotulo="Preço cheio" htmlFor="pl-pa"
           dica="repita o mesmo valor quando o plano tem preço único"
         >
-          <input
-            id="pl-pa" name="precoAvulso" required inputMode="decimal"
-            defaultValue={plano ? emReais(plano.precoAvulsoCent) : ''}
-            placeholder="Exemplo: 230,00" className={`${entrada}`}
+          <CampoDinheiro
+            id="pl-pa" nome="precoAvulso" required
+            valorInicial={plano ? emReais(plano.precoAvulsoCent) : ''}
           />
         </Campo>
       </div>

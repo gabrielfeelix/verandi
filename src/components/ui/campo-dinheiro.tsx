@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { entrada } from './pecas'
 
 /**
@@ -18,15 +19,25 @@ export function formatarReais(digitos: string): string {
 }
 
 export function CampoDinheiro({
-  id, valor, aoMudar, disabled = false, placeholder = '0,00',
+  id, valor, aoMudar, nome, valorInicial, required, disabled = false, placeholder = '0,00',
 }: {
   id?: string
-  /** o texto já formatado ("45.000,00"), ou vazio */
-  valor: string
-  aoMudar: (texto: string) => void
+  /** controlado: o texto já formatado ("45.000,00"), ou vazio */
+  valor?: string
+  aoMudar?: (texto: string) => void
+  /** em formulário (`FormData`): o nome do campo */
+  nome?: string
+  /** em formulário: o valor de partida, em qualquer formato ("R$ 1.980,00", "45,5") */
+  valorInicial?: string
+  required?: boolean
   disabled?: boolean
   placeholder?: string
 }) {
+  const [proprio, setProprio] = useState(() => formatarReais(
+    // "45,5" vira 45,50 e não 4,55: completa os centavos antes de mascarar
+    (valorInicial ?? '').replace(/,(\d)$/, ',$10'),
+  ))
+  const texto = valor ?? proprio
   return (
     <div className="relative">
       <span
@@ -38,10 +49,16 @@ export function CampoDinheiro({
       <input
         id={id}
         inputMode="numeric"
-        value={valor}
+        name={nome}
+        required={required}
+        value={texto}
         disabled={disabled}
         placeholder={placeholder}
-        onChange={(e) => aoMudar(formatarReais(e.target.value))}
+        onChange={(e) => {
+          const novo = formatarReais(e.target.value)
+          if (aoMudar) aoMudar(novo)
+          else setProprio(novo)
+        }}
         className={`${entrada} pl-10 tabular-nums disabled:opacity-50`}
       />
     </div>

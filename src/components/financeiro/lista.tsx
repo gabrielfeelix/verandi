@@ -8,6 +8,7 @@ import { Menu, type ItemMenu } from '@/components/ui/menu'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Avatar, Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
 import { CELULA_FIXA, Cabecalho, LINHA, Tabela, Th } from '@/components/ui/tabela'
+import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
 import { Icone, type NomeIcone } from '@/components/ui/icones'
 import { CampoData } from '@/components/ui/campo-data'
 import { Escolha } from '@/components/ui/escolha'
@@ -306,10 +307,9 @@ export function ListaDeCobrancas({
         >
           <div className="grid gap-3 sm:grid-cols-3">
             <Campo rotulo="Valor recebido" htmlFor="pg-valor" obrigatorio>
-              <input
-                id="pg-valor" name="valor" className={entrada} inputMode="decimal"
-                defaultValue={(Math.max(0, modo.c.valorCent - modo.c.valorPagoCent) / 100)
-                  .toFixed(2).replace('.', ',')}
+              <CampoDinheiro
+                id="pg-valor" nome="valor"
+                valorInicial={emReais(Math.max(0, modo.c.valorCent - modo.c.valorPagoCent))}
               />
             </Campo>
             <Campo rotulo="Forma" htmlFor="pg-forma">
@@ -387,10 +387,7 @@ export function ListaDeCobrancas({
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <Campo rotulo="Valor" htmlFor="cr-valor" obrigatorio>
-              <input
-                id="cr-valor" name="valor" className={entrada} inputMode="decimal"
-                defaultValue={(modo.c.valorCent / 100).toFixed(2).replace('.', ',')}
-              />
+              <CampoDinheiro id="cr-valor" nome="valor" valorInicial={emReais(modo.c.valorCent)} />
             </Campo>
             <Campo rotulo="Motivo" htmlFor="cr-motivo" obrigatorio>
               <input
