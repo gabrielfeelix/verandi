@@ -228,6 +228,8 @@ async function reposicoesAbertas(
     .select('id, status, pessoa:pessoa_id(id, nome), sessao:sessao_id(inicio, servico:servico_id(nome))')
     .eq('conta_id', contaId)
     .in('status', statusComCredito(creditoAvisada))
+    // crédito acertado fora do sistema (histórico importado) não cobra ninguém
+    .is('credito_encerrado_em', null)
     
   if (error) throw error
 

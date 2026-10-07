@@ -600,7 +600,7 @@ export async function fichaDaPessoa(
   const { data: participacoes } = await db
     .from('participacao')
     .select(`
-      id, origem, status, sessao_id,
+      id, origem, status, sessao_id, credito_encerrado_em,
       sessao:sessao_id(inicio, servico:servico_id(id, nome)),
       reposicoes:participacao!reposicao_de_id(id)
     `)
@@ -620,7 +620,8 @@ export async function fichaDaPessoa(
         servicoId: x.sessao!.servico?.id ?? null,
         origem: x.origem,
         status: x.status,
-        temReposicao: (x.reposicoes ?? []).length > 0,
+        // crédito acertado fora do sistema conta como já reposto
+        temReposicao: (x.reposicoes ?? []).length > 0 || x.credito_encerrado_em !== null,
         inicio: x.sessao!.inicio,
       }
     })

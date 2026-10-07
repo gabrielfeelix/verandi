@@ -1087,6 +1087,8 @@ export type Database = {
       }
       participacao: {
         Row: {
+          credito_encerrado_em: string | null
+          credito_encerrado_motivo: string | null
           avisado_em: string | null
           conta_id: string
           contrato_id: string | null
@@ -1103,6 +1105,8 @@ export type Database = {
           status: Database["app_verandi"]["Enums"]["status_participacao"]
         }
         Insert: {
+          credito_encerrado_em?: string | null
+          credito_encerrado_motivo?: string | null
           avisado_em?: string | null
           conta_id: string
           contrato_id?: string | null
@@ -1119,6 +1123,8 @@ export type Database = {
           status?: Database["app_verandi"]["Enums"]["status_participacao"]
         }
         Update: {
+          credito_encerrado_em?: string | null
+          credito_encerrado_motivo?: string | null
           avisado_em?: string | null
           conta_id?: string
           contrato_id?: string | null

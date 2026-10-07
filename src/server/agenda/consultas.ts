@@ -530,7 +530,8 @@ export async function faltasEmAberto(
     // pagando, e Padrões decide o que vira cobrança em `/pendencias`, não o que
     // pode ser apontado à mão
     .in('status', statusComCredito(true))
-    
+    // crédito acertado fora do sistema (histórico importado) não se aponta
+    .is('credito_encerrado_em', null)
   if (error) throw error
   if (!data?.length) return []
 
