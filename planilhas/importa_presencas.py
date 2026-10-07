@@ -67,13 +67,33 @@ def status_de(celula):
     return None
 
 
+# apelido -> nome do cadastro: "ZÉ MARIA" é o José Maria
+APELIDO = {'ZE': 'JOSE', 'OSWALDINHO': 'OSWALDO', 'CRIS': 'CRISTINA', 'CAROL': 'CAROLINA', 'GABI': 'GABRIELA',
+           'DANI': 'DANIELA', 'FER': 'FERNANDA', 'BIA': 'BEATRIZ', 'MALU': 'MARIA LUIZA'}
+
+
+def parece(parte, palavra):
+    """Começo da palavra, ou a mesma com um erro de digitação (MASSERAM/MASSERAN)."""
+    if palavra.startswith(parte):
+        return True
+    if len(parte) < 5:
+        return False
+    from difflib import SequenceMatcher
+    return SequenceMatcher(None, parte, palavra[:len(parte) + 1]).ratio() >= 0.8
+
+
 def abrevia(partes, nome):
     """As palavras da planilha começam palavras do nome, na ordem, a 1ª na 1ª."""
-    if not partes or not nome or not nome[0].startswith(partes[0]):
+    partes = ' '.join(APELIDO.get(x, x) for x in partes).split(' ')
+    if not partes or not nome:
+        return False
+    # nome solto ("PAULA") só pelo começo exato: com folga, PAULA vira PAULO.
+    # Com sobrenome junto, o primeiro nome pode ter erro (THAYS YANO)
+    if not (nome[0].startswith(partes[0]) or (len(partes) > 1 and parece(partes[0], nome[0]))):
         return False
     j = 1
     for parte in partes[1:]:
-        while j < len(nome) and not nome[j].startswith(parte):
+        while j < len(nome) and not parece(parte, nome[j]):
             j += 1
         if j == len(nome):
             return False
@@ -192,7 +212,12 @@ def main():
     # quem o sistema não conhece: do financeiro (nome completo) e as matrículas
     # que só as planilhas trazem. Viram candidatos `novo:<matrícula>`; só os
     # que casarem com alguma presença são cadastrados, inativos
-    ex = {m: n for m, n in roster.items() if m not in por_mat}
+    # quem está no financeiro com outra grafia do mesmo nome ("GUSTAVO SOUZA
+    # SILVA" e "GUSTAVO SOUZA DA SILVA") já é a pessoa do sistema: não concorre
+    from difflib import SequenceMatcher
+    nomes_sistema = [chave(p['nome']) for p in todas]
+    ex = {m: n for m, n in roster.items() if m not in por_mat
+          and not any(SequenceMatcher(None, chave(n), x).ratio() >= 0.88 for x in nomes_sistema)}
     for r in lidos:
         if r['mat'] and r['mat'] not in por_mat and r['mat'] not in roster \
                 and len(r['nome']) > len(ex.get(r['mat'], '')):
@@ -208,15 +233,38 @@ def main():
                  "from app_verandi.vaga v join app_verandi.serie s on s.id = v.serie_id "
                  f"where v.conta_id = '{conta_id}'"):
         do_horario.setdefault((v['dia'], v['hora']), set()).add(v['pessoa_id'])
+    ativos_no_mes = {}
     for r in lidos:
         if r['mat'] in por_mat:
             do_horario.setdefault((DIA_NUM[r['dia']], r['hora']), set()).add(por_mat[r['mat']]['id'])
+            ativos_no_mes.setdefault(r['data'][:7], set()).add(por_mat[r['mat']]['id'])
 
     candidatos = todas + [p for p in por_mat.values() if str(p['id']).startswith('novo:')]
 
-    def por_nome(nome, dia, hora):
+    def por_nome(nome, dia, hora, mes):
         """Primeiro entre quem já está no sistema; só sem resposta, o financeiro."""
-        return casa(nome, dia, hora, todas) or casa(nome, dia, hora, candidatos)
+        return (casa(nome, dia, hora, todas) or casa(nome, dia, hora, candidatos)
+                or desempata(nome, dia, hora, mes, todas) or desempata(nome, dia, hora, mes, candidatos))
+
+    def desempata(nome, dia, hora, mes, candidatos):
+        """Nome solto ou com erro: candidatos pelo começo do nome, apelido ou
+        grafia parecida; fica quem frequenta o horário e, empatando, quem estava
+        ativo no mês."""
+        partes = ' '.join(APELIDO.get(x, x) for x in chave(nome).split(' ')).split(' ')
+        if not partes or len(partes[0]) < 3:
+            return None
+        pool = [p for p in candidatos
+                if (lambda n: parece(partes[0], n[0]) and all(
+                    any(parece(x, w) for w in n[1:]) for x in partes[1:]))(chave(p['nome']).split(' '))]
+        if not pool:
+            return None
+        daqui = [p for p in pool if p['id'] in do_horario.get((DIA_NUM[dia], hora), set())]
+        if len(daqui) == 1:
+            return daqui[0]
+        ativos = [p for p in (daqui or pool) if p['id'] in ativos_no_mes.get(mes, set())]
+        if daqui and len(ativos) == 1:
+            return ativos[0]
+        return None
 
     def casa(nome, dia, hora, candidatos):
         k = chave(nome)
@@ -228,6 +276,20 @@ def main():
         comeca = [p for p in candidatos if chave(p['nome']).startswith(k + ' ')] or iguais
         if len(comeca) == 1:
             return comeca[0]
+        if not comeca and len(k.split(' ')) == 1:
+            # nome solto com erro de digitação, quando só um nome do cadastro
+            # chega perto (CLAUDINIEI -> Claudinei)
+            from difflib import SequenceMatcher
+            perto = [p for p in candidatos
+                     if SequenceMatcher(None, k, chave(p['nome']).split(' ')[0]).ratio() >= 0.88]
+            if len(perto) == 1:
+                return perto[0]
+        if not comeca and len(k.split(' ')) > 1:
+            # o nome da planilha é o do meio: "MARCELO SOLER" é Marcos Marcelo Soler
+            meio = [p for p in candidatos
+                    if all(any(w.startswith(x) for w in chave(p['nome']).split(' ')) for x in k.split(' '))]
+            if len(meio) == 1:
+                return meio[0]
         if not comeca:
             # abreviado: "THAIS YANO", "CRIS LUCENA", "THAIS Y". Cada palavra da
             # planilha começa uma palavra do nome, na ordem, e a primeira é o
@@ -249,7 +311,7 @@ def main():
             continue
         pessoa = por_mat.get(r['mat']) if r['mat'] else None
         if not pessoa:
-            pessoa = por_nome(r['nome'], r['dia'], r['hora'])
+            pessoa = por_nome(r['nome'], r['dia'], r['hora'], r['data'][:7])
             n_nome += bool(pessoa)
         if not pessoa:
             sem_pessoa[r['nome']] = sem_pessoa.get(r['nome'], 0) + 1
@@ -258,6 +320,22 @@ def main():
         origem = 'reposicao' if r['rep'] else ('recorrente' if r['na_vaga'] and serie else 'avulso')
         unicos[(r['data'], r['hora'], pessoa['id'])] = (
             serie['id'] if serie else None, r['status'], origem, r['falta'])
+
+    # horário de costume: onde a pessoa aparece 2+ vezes no mês. Aparecer fora
+    # dele, sem vaga ali, é reposição (ou adiantamento), não aula avulsa
+    costume = {}
+    for (d, h, p) in unicos:
+        dow = date.fromisoformat(d).isoweekday() % 7
+        chave_c = (p, d[:7], dow, h)
+        costume[chave_c] = costume.get(chave_c, 0) + 1
+    n_rep = 0
+    for (d, h, p), (s_id, st, o, f) in list(unicos.items()):
+        dow = date.fromisoformat(d).isoweekday() % 7
+        if o == 'avulso' and costume.get((p, d[:7], dow, h), 0) < 2 \
+                and p not in do_horario.get((dow, h), set()):
+            unicos[(d, h, p)] = (s_id, st, 'reposicao', f)
+            n_rep += 1
+    print(f'  fora do horário de costume, como reposição: {n_rep}')
 
     por_status, por_mes = {}, {}
     for (d, _, _), (_, st, _, _) in unicos.items():
