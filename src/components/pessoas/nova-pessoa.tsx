@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ModalFormulario } from '@/components/ui/modal'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import { CampoTelefone } from '@/components/ui/campo-telefone'
+import { CampoInterruptor } from '@/components/ui/campo-interruptor'
 import { criarPessoa } from '@/server/pessoas/acoes'
 import { erroLegivel } from '@/core/erro-legivel'
 
@@ -72,7 +73,8 @@ export function NovaPessoa({
           })}
         >
           <Campo rotulo="Nome" htmlFor="np-nome" obrigatorio>
-            <input id="np-nome" name="nome" required autoFocus className={entrada} />
+            <input id="np-nome" name="nome" required autoFocus maxLength={120}
+              placeholder="Exemplo: Ana Paula Souza" className={entrada} />
           </Campo>
 
           <div className="grid gap-3 sm:grid-cols-2">
@@ -88,10 +90,7 @@ export function NovaPessoa({
             </Campo>
           </div>
 
-          <label className="flex items-center gap-2 text-[14.5px]">
-            <input type="checkbox" name="gympass" />
-            Aluno Gympass / Wellhub
-          </label>
+          <CampoInterruptor nome="gympass" rotulo="Aluno Gympass / Wellhub" />
 
           <Nota>
             Sem telefone não dá para avisar cancelamento nem cobrar reposição.

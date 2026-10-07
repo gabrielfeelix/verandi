@@ -1,5 +1,6 @@
 'use client'
 
+import { CampoInterruptor } from '@/components/ui/campo-interruptor'
 import { AtenderPedidoDeExclusao } from './acoes-da-ficha'
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
@@ -96,13 +97,13 @@ const CAMPOS = [
 
 /** O exemplo em cinza: campo vazio sem exemplo é campo que fica vazio. */
 const EXEMPLO: Record<string, string> = {
-  nome: 'Nome completo',
-  email: 'nome@email.com',
+  nome: 'Exemplo: Ana Paula Souza',
+  email: 'Exemplo: ana@email.com',
   identificador: 'Exemplo: 112',
-  cpf: '000.000.000-00',
-  cep: '00000-000',
-  uf: 'PR',
-  sexo: 'como a pessoa se identifica',
+  cpf: 'Exemplo: 123.456.789-00',
+  cep: 'Exemplo: 87020-000',
+  uf: 'Exemplo: PR',
+  sexo: 'Exemplo: Feminino',
 }
 
 /**
@@ -397,15 +398,8 @@ export function EditarPessoa({
             </Campo>
           )}
 
-          <label className="flex items-center gap-2 text-[14.5px]">
-            <input type="checkbox" name="ativo" defaultChecked={pessoa.ativo} />
-            Ativa
-          </label>
-
-          <label className="flex items-center gap-2 text-[14.5px]">
-            <input type="checkbox" name="gympass" defaultChecked={pessoa.gympass} />
-            Aluno Gympass / Wellhub
-          </label>
+          <CampoInterruptor nome="ativo" rotulo="Cadastro ativo" inicial={pessoa.ativo} />
+          <CampoInterruptor nome="gympass" rotulo="Aluno Gympass / Wellhub" inicial={pessoa.gympass} />
 
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}
 
