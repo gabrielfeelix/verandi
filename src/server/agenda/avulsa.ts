@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
-import { hojeEm, instante } from './fuso'
+import { hojeEm, instante, localDe } from './fuso'
 import { encaixar } from './acoes'
 import { materializarCobrancas } from '../financeiro/materializar'
 import { listarEquipe } from '../config/equipe'
@@ -122,6 +122,38 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
   } catch (erro) {
     console.error('aula avulsa', erro)
     return { ok: false, erro: 'Não foi possível criar a aula avulsa. Tente de novo.' }
+  }
+}
+
+/**
+ * Quem entra depois numa aula avulsa paga a dele: contrato avulso com o valor,
+ * ligado à participação, e a cobrança. Chamado pelo "Encaixar aluno" da aula.
+ */
+export async function cobrarAulaAvulsa(
+  sessaoId: string, pessoaId: string, valorCent: number,
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  try {
+    const conta = await exigirConta()
+    if (conta.papel !== 'dono' && conta.papel !== 'recepcao' && conta.papel !== 'suporte') {
+      return { ok: false, erro: 'Quem cobra é a recepção ou quem responde pelo negócio.' }
+    }
+    if (!(valorCent > 0)) return { ok: true }
+    const db = await clienteServidor()
+    const { data: sessao } = await db.from('sessao').select('servico_id, inicio, serie_id')
+      .eq('id', sessaoId).eq('conta_id', conta.contaId).maybeSingle()
+    if (!sessao || sessao.serie_id) return { ok: false, erro: 'Esta aula não é avulsa.' }
+    const contratoId = await contratoAvulso(
+      db, conta.contaId, pessoaId, sessao.servico_id, localDe(sessao.inicio, conta.fuso).data, valorCent)
+    const { error } = await db.from('participacao').update({ contrato_id: contratoId })
+      .eq('sessao_id', sessaoId).eq('pessoa_id', pessoaId)
+    if (error) throw error
+    await materializarCobrancas(db, conta.contaId, hojeEm(conta.fuso), contratoId)
+    revalidatePath(`/sessao/${sessaoId}`)
+    revalidatePath('/financeiro')
+    return { ok: true }
+  } catch (erro) {
+    console.error('cobrar aula avulsa', erro)
+    return { ok: false, erro: 'A pessoa entrou, mas a cobrança não foi criada. Lance em Cobranças.' }
   }
 }
 

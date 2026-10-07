@@ -11,6 +11,9 @@ import type { FaltaEmAberto } from '@/server/agenda/consultas'
 import { Botao } from '@/components/ui/botao'
 import { Modal } from '@/components/ui/modal'
 import { Avatar, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
+import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
+import { cobrarAulaAvulsa } from '@/server/agenda/avulsa'
+import { emCentavos } from '@/core/planos/plano'
 import { useChamada } from './chamada'
 import { CampoNumero } from '@/components/ui/campo-numero'
 import { Icone } from '@/components/ui/icones'
@@ -23,6 +26,8 @@ type Props = {
   rotuloPessoa: string
   /** "Pilates Solo · 12 ago 09:00", para o subtítulo do modal */
   ondeQuando: string
+  /** Aula avulsa: quem entra pode pagar a dela, e o valor é pedido aqui */
+  avulsa?: boolean
 }
 
 /**
@@ -33,8 +38,9 @@ type Props = {
  * disputa a atenção com a única coisa que importa enquanto a turma entra.
  */
 export function ModalEncaixe({
-  sessaoId, ocupacao, rotuloPessoa, ondeQuando,
+  sessaoId, ocupacao, rotuloPessoa, ondeQuando, avulsa = false,
 }: Props) {
+  const [valor, setValor] = useState('')
   const { encaixeAberto, fecharEncaixe } = useChamada()
   const [pendente, iniciar] = useTransition()
   const [busca, setBusca] = useState('')
@@ -120,6 +126,12 @@ export function ModalEncaixe({
         reposicaoDeId: origem === 'reposicao' ? falta?.participacaoId : undefined,
       })
       if (r.ok) {
+        const cent = avulsa && origem === 'avulso' ? emCentavos(valor) ?? 0 : 0
+        if (cent > 0) {
+          const c = await cobrarAulaAvulsa(sessaoId, pessoaId, cent)
+          if (!c.ok) { setAviso(c.erro); return }
+        }
+        setValor('')
         setBusca('')
         setExcedente(null)
         setEscolhido(null)
@@ -224,6 +236,14 @@ export function ModalEncaixe({
           placeholder="Buscar por nome"
           className={entrada}
         />
+
+        {avulsa && escolhido && origem === 'avulso' ? (
+          <div className="flex flex-col gap-1.5 pt-1">
+            <label htmlFor="enc-valor"><Rotulo>Valor desta aula</Rotulo></label>
+            <CampoDinheiro id="enc-valor" valor={valor} aoMudar={setValor} />
+            <span className="text-[12px] text-tinta-fraca">Em branco: sem cobrança.</span>
+          </div>
+        ) : null}
 
         {/*
           * A lista rola por dentro, com altura de três nomes e meio.

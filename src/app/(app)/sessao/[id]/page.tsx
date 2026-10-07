@@ -216,6 +216,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
           ocupacao={sessao.ocupacao}
           rotuloPessoa={rotulos.pessoa.singular}
           ondeQuando={`${sessao.servico} · ${dataCurta} ${sessao.hora}`}
+          avulsa={sessao.avulsa}
         />
         <ModalCancelar
           sessaoId={sessao.id}

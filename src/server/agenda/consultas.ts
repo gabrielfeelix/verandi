@@ -85,6 +85,8 @@ export type EventoDaTurma = {
 export type SessaoDetalhe = SessaoResumo & {
   participacoes: ParticipacaoDetalhe[]
   historico: EventoDaTurma[]
+  /** aula sem série: nasceu como Aula avulsa, e o encaixe pede o valor */
+  avulsa: boolean
 }
 
 const CAMPOS_RESUMO = `
@@ -499,7 +501,7 @@ export async function sessaoDetalhe(
     tom: 'positivo',
   })
 
-  return { ...resumo, participacoes, historico }
+  return { ...resumo, participacoes, historico, avulsa: data.serie_id === null }
 }
 
 export type FaltaEmAberto = {

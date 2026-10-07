@@ -140,7 +140,10 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
           })}
         </nav>
 
+        {/* a faixa compacta da Cobranças: quatro cartões empilhados empurravam a
+            lista para a segunda tela no celular */}
         <FaixaDeNumeros
+          compacta
           itens={[
             {
               rotulo: 'Comprovado',
@@ -175,15 +178,19 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
         <div className={`${cartao} flex flex-col gap-3 p-4`}>
           {nenhumAindaVazio ? null : (
             <>
-              <BarraDePeriodo
-                base="/recibos"
-                periodo={periodo}
-                hoje={hoje}
-                rotulo="Emissão"
-                escondidos={{ aba, q }}
-                abrirDatas={datas === '1'}
-              />
-              <BuscaDeRecibo valorInicial={q ?? ''} aba={aba} />
+              {/* período num menu e a busca ao lado, como na Cobranças */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1"><BuscaDeRecibo valorInicial={q ?? ''} aba={aba} /></div>
+                <BarraDePeriodo
+                  base="/recibos"
+                  periodo={periodo}
+                  hoje={hoje}
+                  rotulo="Emissão"
+                  escondidos={{ aba, q }}
+                  abrirDatas={datas === '1'}
+                  menu
+                />
+              </div>
             </>
           )}
           <ListaDeRecibos

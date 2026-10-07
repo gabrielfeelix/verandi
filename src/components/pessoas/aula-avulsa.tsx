@@ -24,8 +24,10 @@ const NOVA = '__nova__'
  * `server/agenda/avulsa.ts`.
  */
 export function FormAulaAvulsa({
-  pessoaId, servicos, servicoInicial, aoConcluir, aoVoltar,
+  pessoaId, servicos, servicoInicial, aoConcluir, aoVoltar, rotuloBotao = 'Criar aula avulsa',
 }: {
+  /** o texto do botão principal: "Marcar neste dia e hora" no Marcar aula */
+  rotuloBotao?: string
   /** `null`: a Agenda, onde se escolhe (ou não) o aluno aqui */
   pessoaId: string | null
   servicos: Servico[]
@@ -193,7 +195,7 @@ export function FormAulaAvulsa({
           <Botao tom="secundario" onClick={aoVoltar} disabled={pendente}>Voltar aos horários</Botao>
         ) : null}
         <Botao onClick={salvar} disabled={pendente}>
-          {pendente ? 'Criando…' : 'Criar aula avulsa'}
+          {pendente ? 'Marcando…' : rotuloBotao}
         </Botao>
       </div>
     </div>

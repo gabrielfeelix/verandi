@@ -247,6 +247,31 @@ export function MarcarAula({
 
           {aulas === null ? (
             <p className="py-3 text-[14.5px] text-tinta-media">Procurando horários com lugar…</p>
+          ) : aulas.length === 0 && servico ? (
+            /*
+             * Modalidade sem grade (fisioterapia, massagem): não há horário
+             * pronto para escolher, e "nenhum horário" travava a recepção
+             * (pedido do Edu, 07/out/2026). Abre direto o dia e a hora livres;
+             * sem valor, a aula vale pelo plano da pessoa.
+             */
+            <div className="flex flex-col gap-3">
+              <Nota tom="neutro">
+                {servicos.find((s) => s.id === servico)?.nome ?? 'Esta modalidade'} não tem horário
+                fixo na grade. Escolha o dia e a hora.
+              </Nota>
+              <FormAulaAvulsa
+                key={servico}
+                pessoaId={pessoaId}
+                servicos={servicos}
+                servicoInicial={servico}
+                rotuloBotao="Marcar neste dia e hora"
+                aoConcluir={(texto) => {
+                  setAberto(false)
+                  aoMarcar?.()
+                  avisar({ texto: `${nome.split(' ')[0]}: ${texto}` })
+                }}
+              />
+            </div>
           ) : visiveis.length === 0 ? (
             <Nota tom="atencao">
               {aulas.length === 0
@@ -289,7 +314,7 @@ export function MarcarAula({
             </div>
           )}
 
-          {aulas !== null && dias < 56 ? (
+          {aulas !== null && aulas.length > 0 && dias < 56 ? (
             <button
               type="button"
               onClick={maisAdiante}
@@ -300,7 +325,7 @@ export function MarcarAula({
           ) : null}
 
           {/* a exceção, depois da lista: o caminho comum é o horário da grade */}
-          {faltaFixa ? null : (
+          {faltaFixa || (aulas !== null && aulas.length === 0 && servico) ? null : (
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-linha-suave pt-3">
               <span className="text-[13.5px] text-tinta-media">
                 Precisa de outro dia, hora ou modalidade?
