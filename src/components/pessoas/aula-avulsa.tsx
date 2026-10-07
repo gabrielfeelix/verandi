@@ -7,6 +7,8 @@ import { buscarCandidatos } from '@/server/agenda/acoes'
 import { Botao } from '@/components/ui/botao'
 import { Avatar, Campo, Nota, entrada } from '@/components/ui/pecas'
 import { marcarAulaAvulsa, profissionaisParaAvulsa } from '@/server/agenda/avulsa'
+import { Escolha } from '@/components/ui/escolha'
+import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
 import { emCentavos } from '@/core/planos/plano'
 
 type Servico = { id: string; nome: string }
@@ -52,7 +54,7 @@ export function FormAulaAvulsa({
   const [lugares, setLugares] = useState('1')
   const [profissional, setProfissional] = useState('')
   const [valor, setValor] = useState('')
-  const [profs, setProfs] = useState<Array<{ id: string; nome: string }>>([])
+  const [profs, setProfs] = useState<Array<{ id: string; nome: string; cor: string | null; foto: string | null }> | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
 
@@ -123,10 +125,16 @@ export function FormAulaAvulsa({
       )}
 
       <Campo rotulo="Modalidade" htmlFor="av-servico" obrigatorio>
-        <select id="av-servico" value={servico} onChange={(e) => setServico(e.target.value)} className={entrada}>
-          {servicos.map((s) => <option key={s.id} value={s.id}>{s.nome}</option>)}
-          <option value={NOVA}>Nova modalidade…</option>
-        </select>
+        <Escolha
+          id="av-servico"
+          nome="servico"
+          valorInicial={servico}
+          aoTrocar={setServico}
+          opcoes={[
+            ...servicos.map((s) => ({ valor: s.id, rotulo: s.nome })),
+            { valor: NOVA, rotulo: 'Nova modalidade', detalhe: 'Escreva o nome a seguir' },
+          ]}
+        />
       </Campo>
       {servico === NOVA ? (
         <Campo rotulo="Nome da nova modalidade" htmlFor="av-novo" obrigatorio>
@@ -154,15 +162,27 @@ export function FormAulaAvulsa({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Campo rotulo="Professor" htmlFor="av-prof">
-          <select id="av-prof" value={profissional} onChange={(e) => setProfissional(e.target.value)} className={entrada}>
-            <option value="">Sem professor definido</option>
-            {profs.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
-          </select>
+          {profs === null ? (
+            <span className="campo flex items-center text-tinta-fraca">Carregando…</span>
+          ) : (
+            <Escolha
+              id="av-prof"
+              nome="profissional"
+              valorInicial={profissional}
+              aoTrocar={setProfissional}
+              placeholder="Sem professor definido"
+              opcoes={[
+                { valor: '', rotulo: 'Sem professor definido' },
+                ...profs.map((p) => ({
+                  valor: p.id, rotulo: p.nome, avatar: { nome: p.nome, foto: p.foto, cor: p.cor },
+                })),
+              ]}
+            />
+          )}
         </Campo>
-        <Campo rotulo="Valor (R$)" htmlFor="av-valor"
+        <Campo rotulo="Valor" htmlFor="av-valor"
           dica={quem ? 'Em branco: sem cobrança.' : 'A cobrança sai quando há aluno.'}>
-          <input id="av-valor" inputMode="decimal" value={valor} onChange={(e) => setValor(e.target.value)}
-            disabled={!quem} placeholder="Exemplo: 120,00" className={`${entrada} disabled:opacity-50`} />
+          <CampoDinheiro id="av-valor" valor={valor} aoMudar={setValor} disabled={!quem} />
         </Campo>
       </div>
 

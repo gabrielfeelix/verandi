@@ -2,6 +2,7 @@
 
 import { useId, useMemo, useRef, useState } from 'react'
 import { Icone } from './icones'
+import { Avatar } from './pecas'
 import { useFecharFora, usePosicionar } from './flutuante'
 
 export type OpcaoEscolha = {
@@ -11,6 +12,8 @@ export type OpcaoEscolha = {
   detalhe?: string
   /** o cabeçalho que agrupa: "Segunda", "Terça" */
   grupo?: string
+  /** rosto à esquerda: pessoa ou professor (foto, ou iniciais na cor dele) */
+  avatar?: { nome: string; foto?: string | null; cor?: string | null }
 }
 
 const semAcento = (s: string) =>
@@ -142,6 +145,10 @@ export function Escolha({
           invalido ? 'border-alerta-linha-forte bg-alerta-superficie' : ''
         } ${escolhida ? '' : 'text-tinta-fraca'}`}
       >
+        {escolhida?.avatar ? (
+          <Avatar nome={escolhida.avatar.nome} foto={escolhida.avatar.foto}
+            anel={escolhida.avatar.cor ?? undefined} tamanho={24} decorativo />
+        ) : null}
         <span className="min-w-0 flex-1 truncate">
           {escolhida ? escolhida.rotulo : placeholder}
         </span>
@@ -213,6 +220,10 @@ export function Escolha({
                         i === foco ? 'bg-superficie-suave' : ''
                       }`}
                     >
+                      {o.avatar ? (
+                        <Avatar nome={o.avatar.nome} foto={o.avatar.foto}
+                          anel={o.avatar.cor ?? undefined} tamanho={32} decorativo />
+                      ) : null}
                       <span className="flex min-w-0 flex-1 flex-col leading-tight">
                         <span className="truncate text-[14.5px] font-medium">{o.rotulo}</span>
                         {o.detalhe ? (

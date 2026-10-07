@@ -5,6 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { hojeEm, instante } from './fuso'
 import { encaixar } from './acoes'
 import { materializarCobrancas } from '../financeiro/materializar'
+import { listarEquipe } from '../config/equipe'
 
 /**
  * Aula avulsa: "a aluna quer uma ventosa na terça".
@@ -38,12 +39,15 @@ type Entrada = {
 
 type Resultado = { ok: true; sessaoId: string } | { ok: false; erro: string }
 
-export async function profissionaisParaAvulsa(): Promise<Array<{ id: string; nome: string }>> {
+export async function profissionaisParaAvulsa(): Promise<
+  Array<{ id: string; nome: string; cor: string | null; foto: string | null }>
+> {
   const conta = await exigirConta()
   const db = await clienteServidor()
-  const { data } = await db.from('profissional').select('id, nome')
-    .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-  return data ?? []
+  // pela listagem da Equipe: é ela que assina a URL das fotos, em lote
+  return (await listarEquipe(db, conta.contaId))
+    .filter((p) => p.ativo)
+    .map((p) => ({ id: p.id, nome: p.nome, cor: p.cor, foto: p.fotoUrl }))
 }
 
 export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
