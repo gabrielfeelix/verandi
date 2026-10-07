@@ -9,6 +9,7 @@ import { Escolha } from '../ui/escolha'
 import { Botao } from '../ui/botao'
 import { LIMITE_FOTO_MB } from '@/core/foto'
 import type { PosicaoNaTela } from './tipos'
+import { erroLegivel } from '@/core/erro-legivel'
 
 /**
  * Registrar a visita e as fotos dela, num modal só.
@@ -28,7 +29,7 @@ export function NovaAvaliacao({
   pessoaId: string
   pessoaNome: string
   posicoes: PosicaoNaTela[]
-  profissionais: Array<{ id: string; nome: string }>
+  profissionais: Array<{ id: string; nome: string; cor?: string | null; foto?: string | null }>
   /**
    * Cria a visita e sobe as fotos. Recebe o `FormData` inteiro porque é dele
    * que saem os arquivos, um por posição, com o nome `foto-<posicaoId>`.
@@ -53,7 +54,7 @@ export function NovaAvaliacao({
         await aoRegistrar(dados)
         setAberto(false)
       } catch (e) {
-        setErro(e instanceof Error ? e.message : 'Não foi possível registrar a avaliação.')
+        setErro(erroLegivel(e))
       }
     })
   }
@@ -84,7 +85,7 @@ export function NovaAvaliacao({
               nome="profissionalId"
               id="profissional-avaliacao"
               placeholder="Sem profissional"
-              opcoes={profissionais.map((p) => ({ valor: p.id, rotulo: p.nome }))}
+              opcoes={profissionais.map((p) => ({ valor: p.id, rotulo: p.nome, avatar: { nome: p.nome, foto: p.foto, cor: p.cor } }))}
             />
           </Campo>
         </div>
@@ -126,7 +127,7 @@ export function NovaAvaliacao({
             <Campo
               rotulo="Outra posição"
               htmlFor="nova-posicao"
-              dica="entra nesta avaliação e nas próximas"
+              dica="Entra nesta avaliação e nas próximas"
             >
               <input
                 id="nova-posicao"
@@ -142,8 +143,13 @@ export function NovaAvaliacao({
               miudo
               disabled={!novaPosicao.trim() || pendente}
               onClick={() => comecar(async () => {
-                await aoAdicionarPosicao(novaPosicao.trim())
-                setNovaPosicao('')
+                setErro(null)
+                try {
+                  await aoAdicionarPosicao(novaPosicao.trim())
+                  setNovaPosicao('')
+                } catch (e) {
+                  setErro(erroLegivel(e))
+                }
               })}
             >
               Adicionar
@@ -155,7 +161,7 @@ export function NovaAvaliacao({
 
         <Nota tom="neutro">
           As fotos ficam visíveis para quem atende e para quem responde pelo
-          negócio. A recepção não vê. Se a pessoa pedir exclusão dos dados dela,
+          negócio. A recepção não vê. Se a pessoa pedir exclusão dos próprios dados,
           as imagens saem junto.
         </Nota>
       </ModalFormulario>

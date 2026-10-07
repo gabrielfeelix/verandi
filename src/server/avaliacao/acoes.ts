@@ -6,6 +6,8 @@ import {
   BALDE_AVALIACAO, avaliacoesDaPessoa, podeVerAvaliacao, posicoesDaConta,
 } from './consultas'
 import { proximaOrdem } from '@/core/avaliacao/posicoes'
+import { hojeEm } from '../agenda/fuso'
+import { listarEquipe } from '../config/equipe'
 
 import { TIPOS_DE_FOTO, LIMITE_ENVIO_MB, MB } from '@/core/foto'
 
@@ -181,7 +183,25 @@ export async function apagarAvaliacao(id: string): Promise<void> {
 export async function registrarAvaliacao(dados: FormData): Promise<void> {
   const pessoaId = String(dados.get('pessoaId') ?? '')
   const data = String(dados.get('data') ?? '')
-  if (!pessoaId || !data) throw new Error('a avaliação precisa de pessoa e data')
+  if (!pessoaId || !/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    throw new Error('a avaliação precisa de pessoa e data')
+  }
+  const conta = await exigirQuemAtende()
+  if (data > hojeEm(conta.fuso)) throw new Error('a data da avaliação não pode ser no futuro')
+
+  const fotos: Array<{ posicaoId: string; foto: File; observacao: string }> = []
+  for (const [chave, valor] of dados.entries()) {
+    if (!chave.startsWith('foto-')) continue
+    if (!(valor instanceof File) || valor.size === 0) continue
+    const posicaoId = chave.slice('foto-'.length)
+    fotos.push({ posicaoId, foto: valor, observacao: String(dados.get(`observacao-${posicaoId}`) ?? '') })
+  }
+  // a foto ruim é recusada antes de a avaliação existir: recusar no meio
+  // deixaria uma visita pela metade, e tentar de novo criaria outra
+  for (const { foto } of fotos) {
+    if (!TIPOS_DE_FOTO.includes(foto.type)) throw new Error('a foto precisa ser JPEG, PNG ou WEBP')
+    if (foto.size > LIMITE) throw new Error(`a foto precisa ter até ${LIMITE_ENVIO_MB} MB depois de reduzida`)
+  }
 
   const { id } = await criarAvaliacao({
     pessoaId,
@@ -190,12 +210,12 @@ export async function registrarAvaliacao(dados: FormData): Promise<void> {
     observacao: String(dados.get('observacao') ?? '') || null,
   })
 
-  for (const [chave, valor] of dados.entries()) {
-    if (!chave.startsWith('foto-')) continue
-    if (!(valor instanceof File) || valor.size === 0) continue
-    const posicaoId = chave.slice('foto-'.length)
-    const observacao = String(dados.get(`observacao-${posicaoId}`) ?? '')
-    await salvarFotoDaAvaliacao(id, posicaoId, valor, observacao)
+  try {
+    for (const f of fotos) await salvarFotoDaAvaliacao(id, f.posicaoId, f.foto, f.observacao)
+  } catch (e) {
+    // falhou o envio: desfaz a visita inteira, e o "Registrar" de novo não duplica
+    await apagarAvaliacao(id)
+    throw e
   }
 
   revalidatePath(`/pessoas/${pessoaId}`)
@@ -218,10 +238,10 @@ export async function painelDeAvaliacao(pessoaId: string) {
   const [avaliacoes, posicoes, profissionais] = await Promise.all([
     avaliacoesDaPessoa(pessoaId),
     posicoesDaConta(),
-    db.from('profissional').select('id, nome')
-      .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
-      .returns<Array<{ id: string; nome: string }>>()
-      .then((r) => r.data ?? []),
+    // pela listagem da Equipe, que assina a foto de todos de uma vez
+    listarEquipe(db, conta.contaId).then((equipe) => equipe
+      .filter((p) => p.ativo)
+      .map((p) => ({ id: p.id, nome: p.nome, cor: p.cor, foto: p.fotoUrl }))),
   ])
 
   return { avaliacoes, posicoes, profissionais }
