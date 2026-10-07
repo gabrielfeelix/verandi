@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { entrada } from './pecas'
+import { emCentavos } from '@/core/planos/plano'
 
 /**
  * Campo de valor em reais: "R$" dentro do campo e a máscara enquanto digita.
@@ -16,6 +17,16 @@ export function formatarReais(digitos: string): string {
   const cent = so.padStart(3, '0')
   const inteiro = cent.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   return `${inteiro},${cent.slice(-2)}`
+}
+
+/**
+ * Texto que já veio pronto (colado, ou o valor de partida) é lido como reais, não
+ * como dígitos de maquininha: "120" é cento e vinte, "45,5" é 45,50 e
+ * "R$ 1.980,00" continua 1.980,00.
+ */
+function deTextoPronto(texto: string): string {
+  const cent = emCentavos(texto)
+  return cent === null ? '' : formatarReais(String(cent))
 }
 
 export function CampoDinheiro({
@@ -33,11 +44,9 @@ export function CampoDinheiro({
   disabled?: boolean
   placeholder?: string
 }) {
-  const [proprio, setProprio] = useState(() => formatarReais(
-    // "45,5" vira 45,50 e não 4,55: completa os centavos antes de mascarar
-    (valorInicial ?? '').replace(/,(\d)$/, ',$10'),
-  ))
+  const [proprio, setProprio] = useState(() => deTextoPronto(valorInicial ?? ''))
   const texto = valor ?? proprio
+  const trocar = (novo: string) => (aoMudar ? aoMudar(novo) : setProprio(novo))
   return (
     <div className="relative">
       <span
@@ -54,10 +63,12 @@ export function CampoDinheiro({
         value={texto}
         disabled={disabled}
         placeholder={placeholder}
-        onChange={(e) => {
-          const novo = formatarReais(e.target.value)
-          if (aoMudar) aoMudar(novo)
-          else setProprio(novo)
+        onChange={(e) => trocar(formatarReais(e.target.value))}
+        onPaste={(e) => {
+          const colado = deTextoPronto(e.clipboardData.getData('text'))
+          if (!colado) return
+          e.preventDefault()
+          trocar(colado)
         }}
         className={`${entrada} pl-10 tabular-nums disabled:opacity-50`}
       />
