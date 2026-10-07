@@ -27,13 +27,25 @@ test('cadastrar serviço e ele aparecer na grade', async ({ page }) => {
   await expect(page.getByLabel('Serviço')).toContainText('Fáscia avançada')
 })
 
+test('serviço com nome repetido é recusado, sem diferença de acento e caixa', async ({ page }) => {
+  const c = await contaDono()
+  await admin.from('servico').insert({ conta_id: c.contaId, nome: 'Fáscia avançada' })
+  await entrar(page, c.email)
+  await page.goto('/config?s=servicos')
+
+  await page.getByRole('button', { name: 'Cadastrar serviço' }).click()
+  await page.getByLabel('Nome').fill('fascia  AVANÇADA')
+  await page.getByRole('button', { name: 'Criar', exact: true }).click()
+  await expect(page.getByText('já existe um cadastro chamado Fáscia avançada')).toBeVisible()
+})
+
 test('desativar serviço tira das escolhas novas e mantém no histórico', async ({ page }) => {
   const c = await contaDono()
   await entrar(page, c.email)
   await page.goto('/config?s=servicos')
 
   await page.getByRole('button', { name: 'Editar' }).click()
-  await page.getByRole('checkbox', { name: 'Ativo' }).uncheck()
+  await page.getByRole('switch', { name: 'Ativo' }).click()
   await page.getByRole('button', { name: 'Salvar' }).click()
 
   // desativado sai da lista de cima e vai para a gaveta do pé, como no protótipo

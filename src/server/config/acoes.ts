@@ -171,6 +171,13 @@ export async function salvarEmitente(e: {
 // Serviço, local
 // ---------------------------------------------------------------------------
 
+/** Compara nome sem caixa, acento e espaço de sobra: "Pilates  Solo" é "pilates solo". */
+function mesmoNome(a: string, b: string): boolean {
+  const n = (x: string) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim()
+  return n(a) === n(b)
+}
+
 export async function salvarServico(e: {
   id?: string
   nome: string
@@ -187,6 +194,17 @@ export async function salvarServico(e: {
   if (!nome) throw new Error('o serviço precisa de nome')
   if (e.duracaoMin < 1) throw new Error('a duração precisa ser ao menos 1 minuto')
   if (e.capacidadePadrao < 1) throw new Error('a capacidade precisa ser ao menos 1')
+
+  // dois cadastros com o mesmo nome viram duas linhas iguais em todo menu
+  const { data: irmaos, error: erroIrmaos } = await db.from('servico')
+    .select('id, nome, ativo').eq('conta_id', conta.contaId)
+  if (erroIrmaos) throw erroIrmaos
+  const repetido = (irmaos ?? []).find((x) => x.id !== e.id && mesmoNome(x.nome, nome))
+  if (repetido) {
+    throw new Error(repetido.ativo
+      ? `já existe um cadastro chamado ${repetido.nome}`
+      : `já existe ${repetido.nome} fora de uso. Edite e reative esse cadastro`)
+  }
 
   const linha = {
     conta_id: conta.contaId,
@@ -224,6 +242,16 @@ export async function salvarLocal(e: {
   if (!nome) throw new Error('o local precisa de nome')
   if (e.capacidade != null && e.capacidade < 1) {
     throw new Error('a capacidade do local precisa ser ao menos 1')
+  }
+
+  const { data: irmaos, error: erroIrmaos } = await db.from('local')
+    .select('id, nome, ativo').eq('conta_id', conta.contaId)
+  if (erroIrmaos) throw erroIrmaos
+  const repetido = (irmaos ?? []).find((x) => x.id !== e.id && mesmoNome(x.nome, nome))
+  if (repetido) {
+    throw new Error(repetido.ativo
+      ? `já existe um cadastro chamado ${repetido.nome}`
+      : `já existe ${repetido.nome} fora de uso. Edite e reative esse cadastro`)
   }
 
   const linha = {

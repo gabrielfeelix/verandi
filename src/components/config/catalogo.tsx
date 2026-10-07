@@ -14,6 +14,22 @@ import type { Rotulo } from '@/core/vocabulario/padrao'
 import type { ServicoLinha, LocalLinha } from '@/server/config/consultas'
 import { erroLegivel } from '@/core/erro-legivel'
 import { CampoNumero } from '@/components/ui/campo-numero'
+import { Interruptor } from '@/components/ui/interruptor'
+
+/**
+ * O "Ativo" do cadastro, na alavanca da casa em vez do checkbox do sistema.
+ * O valor viaja num campo escondido, e quem salva continua lendo o `FormData`.
+ */
+function CampoAtivo({ inicial }: { inicial: boolean }) {
+  const [ligado, setLigado] = useState(inicial)
+  return (
+    <div className="flex items-center gap-2.5">
+      <input type="hidden" name="ativo" value={ligado ? 'on' : ''} />
+      <Interruptor ligado={ligado} aoMudar={setLigado} rotulo="Ativo"
+        textoLigado="Ativo" textoDesligado="Fora de uso" />
+    </div>
+  )
+}
 
 /**
  * Serviços e locais.
@@ -175,7 +191,7 @@ export function SecaoServicos({
           </Campo>
           <Campo
             rotulo="Categoria" htmlFor="srv-cat"
-            dica="junta modalidades parecidas na tabela de preços; deixe em branco se não precisar"
+            dica="Junta modalidades parecidas na tabela de preços; deixe em branco se não precisar"
           >
             <input id="srv-cat" name="categoria" maxLength={60}
               placeholder="Exemplo: Terapias manuais"
@@ -185,8 +201,8 @@ export function SecaoServicos({
             rotulo="Capacidade padrão" htmlFor="srv-cap"
             dica={
               emEdicao
-                ? 'vale para horários novos, os existentes mantêm a sua'
-                : `cada ${rotuloSerie.singular.toLowerCase()} daqui nasce com esse número`
+                ? 'Vale para horários novos, os existentes mantêm a sua'
+                : `Cada ${rotuloSerie.singular.toLowerCase()} daqui nasce com esse número`
             }
           >
             <span className="block w-32">
@@ -195,10 +211,7 @@ export function SecaoServicos({
             </span>
           </Campo>
           {emEdicao ? (
-            <label className="flex items-center gap-2 text-[13.5px]">
-              <input type="checkbox" name="ativo" defaultChecked={emEdicao.ativo} />
-              Ativo
-            </label>
+            <CampoAtivo inicial={emEdicao.ativo} />
           ) : null}
           {emEdicao && (!emEdicao.ativo || emEdicao.emUso > 0) ? (
             <Nota tom="atencao">
@@ -419,10 +432,7 @@ export function SecaoLocais({
           </Campo>
           {emEdicao ? (
             <>
-              <label className="flex items-center gap-2 text-[13.5px]">
-                <input type="checkbox" name="ativo" defaultChecked={emEdicao.ativo} />
-                Ativo
-              </label>
+              <CampoAtivo inicial={emEdicao.ativo} />
               <Nota tom="atencao">
                 Renomear muda o nome em {rotuloSessoes.toLowerCase()} antigas
                 também, não só nas novas.
