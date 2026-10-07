@@ -102,7 +102,7 @@ export function segundaDe(dia: string): string {
   return somar(dia, -recuo)
 }
 
-function somar(dia: string, n: number): string {
+export function somar(dia: string, n: number): string {
   const d = new Date(`${dia}T12:00:00Z`)
   d.setUTCDate(d.getUTCDate() + n)
   return d.toISOString().slice(0, 10)
@@ -113,4 +113,12 @@ function ultimoDia(dia: string): string {
   d.setUTCMonth(d.getUTCMonth() + 1)
   d.setUTCDate(0)
   return d.toISOString().slice(0, 10)
+}
+
+/**
+ * O dia (aaaa-mm-dd) em que cai o horário fixo na semana que começa em
+ * `segunda`. `diaSemana` segue o `getDay`: 0 domingo, 1 segunda.
+ */
+export function diaDoHorarioNaSemana(segunda: string, diaSemana: number): string {
+  return somar(segunda, (diaSemana + 6) % 7)
 }

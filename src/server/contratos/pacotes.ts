@@ -1,6 +1,8 @@
 import type { Db } from '../supabase'
 import { hojeEm, localDe } from '../agenda/fuso'
-import { aulasAFazerNoMes, estadoDoPacote, segundaDe, type EstadoDoPacote } from '@/core/contratos/pacote'
+import {
+  aulasAFazerNoMes, diaDoHorarioNaSemana, estadoDoPacote, segundaDe, somar, type EstadoDoPacote,
+} from '@/core/contratos/pacote'
 
 /**
  * O pacote de aulas de cada pessoa, por modalidade, com o aviso que ele pede.
@@ -195,6 +197,8 @@ export async function aulasDoPlanoDaConta(
     porSemana.set(chave, m)
   }
 
+  await somarHorariosFixosSemSessao(db, contaId, fuso, hoje, pessoas, porSemana)
+
   return [...planos.entries()]
     .map(([chave, p]) => ({
       pessoaId: p.pessoaId, pessoaNome: p.pessoaNome, servico: p.servico, frequencia: p.frequencia,
@@ -209,4 +213,56 @@ async function deLicenca(db: Db, contaId: string): Promise<Set<string>> {
     .eq('conta_id', contaId).is('encerrada_em', null)
   if (error) throw error
   return new Set((data ?? []).map((l) => l.pessoa_id))
+}
+
+/**
+ * A agenda só gera as sessões algumas semanas à frente. Sem isto, a última
+ * semana do mês parecia vazia para quem tem horário fixo, e todo aluno de plano
+ * semanal virava "aula a fazer" perto do fim do mês. O horário fixo conta na
+ * semana em que a sessão dele ainda não existe; onde ela existe, a participação
+ * já foi contada (e a falta ou o cancelamento valem como estão).
+ */
+async function somarHorariosFixosSemSessao(
+  db: Db, contaId: string, fuso: string, hoje: string, pessoas: string[],
+  porSemana: Map<string, Map<string, number>>,
+) {
+  const { data: vagas, error } = await db.from('vaga')
+    .select('pessoa_id, serie_id, inicio, fim, serie!inner(servico_id, dia_semana, ativo, vigencia_fim)')
+    .eq('conta_id', contaId).in('pessoa_id', pessoas)
+    .or(`fim.is.null,fim.gte.${segundaDe(hoje)}`)
+    .returns<Array<{ pessoa_id: string; serie_id: string; inicio: string; fim: string | null;
+      serie: { servico_id: string; dia_semana: number; ativo: boolean; vigencia_fim: string | null } }>>()
+  if (error) throw error
+  const fixas = (vagas ?? []).filter((v) => v.serie.ativo)
+  if (!fixas.length) return
+
+  const { data: sessoes, error: erroSessoes } = await db.from('sessao')
+    .select('serie_id, inicio')
+    .eq('conta_id', contaId).in('serie_id', [...new Set(fixas.map((v) => v.serie_id))])
+    .gte('inicio', new Date(Date.parse(`${segundaDe(hoje)}T00:00:00Z`) - 864e5).toISOString())
+    .returns<Array<{ serie_id: string; inicio: string }>>()
+  if (erroSessoes) throw erroSessoes
+  const geradas = new Set((sessoes ?? []).map((x) => `${x.serie_id}|${segundaDe(localDe(x.inicio, fuso).data)}`))
+
+  for (const v of fixas) {
+    const chave = `${v.pessoa_id}|${v.serie.servico_id}`
+    for (const seg of semanasDoMes(hoje)) {
+      if (geradas.has(`${v.serie_id}|${seg}`)) continue
+      const dia = diaDoHorarioNaSemana(seg, v.serie.dia_semana)
+      if (dia < v.inicio || (v.fim && dia > v.fim)) continue
+      if (v.serie.vigencia_fim && dia > v.serie.vigencia_fim) continue
+      const m = porSemana.get(chave) ?? new Map<string, number>()
+      m.set(seg, (m.get(seg) ?? 0) + 1)
+      porSemana.set(chave, m)
+    }
+  }
+}
+
+function semanasDoMes(hoje: string): string[] {
+  const mes = hoje.slice(0, 7)
+  const semanas: string[] = []
+  for (let seg = segundaDe(hoje); seg.slice(0, 7) <= mes; seg = somar(seg, 7)) {
+    semanas.push(seg)
+  }
+  return semanas
 }

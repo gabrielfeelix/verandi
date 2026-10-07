@@ -411,9 +411,12 @@ async function pacotesPendentes(
       tipo: `pacote_${p.aviso}`,
       referenciaId: p.pessoaId,
       titulo: p.pessoaNome,
-      detalhe: p.aviso === 'parado'
-        ? `${p.servico}: ${fraseDoSaldo(p)} · ${p.usadas ? `sem uso há ${p.diasSemUsar} dias` : 'nenhuma usada'}`
-        : `${p.servico}: ${fraseDoSaldo(p)}`,
+      detalhe: p.aviso !== 'parado'
+        ? `${p.servico}: ${fraseDoSaldo(p)}`
+        : p.usadas
+          ? `${p.servico}: ${fraseDoSaldo(p)} · ${semUso(p.diasSemUsar)}`
+          // "0 de 1 usadas, resta 1 · nenhuma usada" dizia a mesma coisa duas vezes
+          : `${p.servico}: ${p.restantes === 1 ? '1 aula paga' : `${p.restantes} aulas pagas`}, nenhuma marcada`,
       diasEmAberto: null,
       href: `/pessoas/${p.pessoaId}?aba=${p.aviso === 'parado' ? 'agenda' : 'contratos'}`,
       etiqueta: p.aviso === 'parado'
@@ -512,4 +515,9 @@ function diasEntre(de: string, ate: string) {
 /** "12/10": na linha da licença o ano só ocupa lugar */
 function diaMes(iso: string) {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
+}
+
+function semUso(dias: number) {
+  if (dias === 0) return 'última aula hoje'
+  return dias === 1 ? 'sem uso há 1 dia' : `sem uso há ${dias} dias`
 }

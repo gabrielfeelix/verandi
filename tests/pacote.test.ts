@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aulasAFazerNoMes, estadoDoPacote } from '@/core/contratos/pacote'
+import { aulasAFazerNoMes, diaDoHorarioNaSemana, estadoDoPacote } from '@/core/contratos/pacote'
 
 describe('aulasAFazerNoMes', () => {
   // quarta, 07/out/2026: semanas de 05, 12, 19 e 26 de outubro
@@ -27,5 +27,13 @@ describe('estadoDoPacote', () => {
     expect(estadoDoPacote({ ...base, contratadas: 10, usadas: 8 }).aviso).toBe('acabando')
     expect(estadoDoPacote({ ...base, contratadas: 10, usadas: 3 }).aviso).toBe('parado')
     expect(estadoDoPacote({ ...base, contratadas: 10, usadas: 3, temAgendada: true }).aviso).toBeNull()
+  })
+})
+
+describe('diaDoHorarioNaSemana', () => {
+  it('leva a segunda ao dia do horário, com domingo no fim da semana', () => {
+    expect(diaDoHorarioNaSemana('2026-10-26', 1)).toBe('2026-10-26')
+    expect(diaDoHorarioNaSemana('2026-10-26', 6)).toBe('2026-10-31')
+    expect(diaDoHorarioNaSemana('2026-10-26', 0)).toBe('2026-11-01')
   })
 })
