@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { estadoDoPacote, fraseDoSaldo } from '@/core/contratos/pacote'
+import { aulasAFazerNoMes, estadoDoPacote, fraseDoSaldo, segundaDe } from '@/core/contratos/pacote'
 
 const base = {
   contratadas: 10, usadas: 3, temAgendada: false,
@@ -46,5 +46,28 @@ describe('pacote de aulas', () => {
     expect(fraseDoSaldo({ contratadas: 10, usadas: 7, restantes: 3 })).toBe('7 de 10 usadas, restam 3')
     expect(fraseDoSaldo({ contratadas: 10, usadas: 9, restantes: 1 })).toBe('9 de 10 usadas, resta 1')
     expect(fraseDoSaldo({ contratadas: 10, usadas: 11, restantes: 0 })).toBe('10 de 10 usadas, nenhuma restante')
+  })
+})
+
+describe('aulas do plano semanal a fazer no mês', () => {
+  it('a Thais: 2x por semana com um horário fixo, quatro semanas até o fim de outubro', () => {
+    // hoje 07/10 (quarta); segundas 05, 12, 19, 26
+    const porSemana = new Map([['2026-10-05', 1], ['2026-10-12', 1], ['2026-10-19', 1], ['2026-10-26', 1]])
+    expect(aulasAFazerNoMes(2, '2026-10-07', porSemana)).toBe(4)
+  })
+
+  it('semana cheia não conta, e a frequência não fica negativa', () => {
+    const porSemana = new Map([['2026-10-05', 3], ['2026-10-12', 2], ['2026-10-19', 2], ['2026-10-26', 2]])
+    expect(aulasAFazerNoMes(2, '2026-10-07', porSemana)).toBe(0)
+  })
+
+  it('sem nada marcado, conta a frequência em cada semana', () => {
+    expect(aulasAFazerNoMes(1, '2026-10-07', new Map())).toBe(4)
+  })
+
+  it('segunda-feira de qualquer dia', () => {
+    expect(segundaDe('2026-10-07')).toBe('2026-10-05')
+    expect(segundaDe('2026-10-05')).toBe('2026-10-05')
+    expect(segundaDe('2026-10-11')).toBe('2026-10-05')
   })
 })

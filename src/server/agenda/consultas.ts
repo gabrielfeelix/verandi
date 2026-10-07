@@ -1,3 +1,4 @@
+import { emReais } from '@/core/planos/plano'
 import {
   calcularOcupacao, statusComCredito, type Ocupacao, type StatusParticipacao,
 } from '@/core/agenda/ocupacao'
@@ -202,6 +203,8 @@ type LinhaDetalhe = Omit<LinhaResumo, 'participacao'> & {
     registrado_por_origem: OrigemRegistro
     registrado_por_usuario_id: string | null
     pessoa: { id: string; nome: string; telefone: string | null } | null
+    /** o valor da aula avulsa; quem atende não lê contrato e recebe null */
+    contrato: { preco_aplicado_cent: number; plano: { recorrencia: string } | null } | null
   }>
 }
 
@@ -273,7 +276,8 @@ export async function sessaoDetalhe(
       participacao(
         id, status, origem, reposicao_de_id, observacao, observacao_visivel,
         registrado_em, registrado_por_origem, registrado_por_usuario_id,
-        pessoa:pessoa_id(id, nome, telefone)
+        pessoa:pessoa_id(id, nome, telefone),
+        contrato:contrato_id(preco_aplicado_cent, plano(recorrencia))
       )
     `)
     .eq('id', sessaoId)
@@ -397,7 +401,14 @@ export async function sessaoDetalhe(
       ? ['Encaixe', 'feito']
       : p.origem === 'reserva'
         ? ['Reserva', 'feita']
-        : ['Aula avulsa', 'agendada']
+        : [
+          // pedido do MGM: na aula, dizer que é avulsa e quanto custa. O valor
+          // é dinheiro, e quem atende não vê
+          p.contrato?.plano?.recorrencia === 'avulsa' && papel !== 'profissional'
+            ? `Aula avulsa de ${emReais(p.contrato.preco_aplicado_cent)}`
+            : 'Aula avulsa',
+          'agendada',
+        ]
     /*
      * Quem agendou e quando só enquanto ninguém registrou a presença: o
      * carimbo da linha é do último registro, e depois da chamada ele diria

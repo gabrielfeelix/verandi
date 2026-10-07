@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
-import { pacotesDaConta } from '@/server/contratos/pacotes'
+import { aulasDoPlanoDaConta, pacotesDaConta } from '@/server/contratos/pacotes'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import {
   contarPessoas, listarPessoas, POR_PAGINA, type FiltroPessoa,
@@ -128,6 +128,12 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
   for (const k of pacotes) {
     const atual = avisoDoPacote.get(k.pessoaId)
     if (k.aviso && (!atual || URGENCIA[k.aviso] > URGENCIA[atual])) avisoDoPacote.set(k.pessoaId, k.aviso)
+  }
+  // plano semanal com aula do mês por marcar entra como "Aulas a fazer"
+  const planos = await aulasDoPlanoDaConta(db, conta.contaId, conta.fuso)
+    .catch((e) => { console.error('aulas do plano em Alunos', e); return [] })
+  for (const k of planos) {
+    if (!avisoDoPacote.has(k.pessoaId)) avisoDoPacote.set(k.pessoaId, 'parado')
   }
 
   const cadastrados = contagem.ativos + contagem.inativos

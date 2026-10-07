@@ -1,6 +1,6 @@
 import type { Db } from '../supabase'
 import { hojeEm, localDe } from '../agenda/fuso'
-import { estadoDoPacote, type EstadoDoPacote } from '@/core/contratos/pacote'
+import { aulasAFazerNoMes, estadoDoPacote, segundaDe, type EstadoDoPacote } from '@/core/contratos/pacote'
 
 /**
  * O pacote de aulas de cada pessoa, por modalidade, com o aviso que ele pede.
@@ -108,4 +108,90 @@ export async function pacotesDaConta(
     if (g.soAvulsa) estado.aviso = g.temAgendada ? null : 'parado'
     return { pessoaId: g.pessoaId, pessoaNome: g.pessoaNome, servico: g.servico, ...estado }
   })
+}
+
+/** Plano de N vezes por semana com aulas do mês ainda por marcar. */
+export type AulasDoPlano = {
+  pessoaId: string
+  pessoaNome: string
+  servico: string
+  frequencia: number
+  /** aulas que cabem até o fim do mês e não estão marcadas */
+  restantes: number
+}
+
+type LinhaPlano = {
+  pessoa_id: string
+  pessoa: { nome: string; ativo: boolean } | null
+  plano: { servico_id: string; frequencia_semanal: number | null; recorrencia: string;
+           servico: { nome: string } | null } | null
+}
+
+/**
+ * A conta de `aulasAFazerNoMes` para cada pessoa com plano semanal.
+ *
+ * Licença aberta fica fora: a pessoa está afastada e as aulas esperam a volta.
+ */
+export async function aulasDoPlanoDaConta(
+  db: Db, contaId: string, fuso: string, pessoaId?: string,
+): Promise<AulasDoPlano[]> {
+  let q = db.from('contrato')
+    .select(`pessoa_id, pessoa(nome, ativo),
+             plano(servico_id, frequencia_semanal, recorrencia, servico(nome))`)
+    .eq('conta_id', contaId).eq('status', 'ativo')
+  if (pessoaId) q = q.eq('pessoa_id', pessoaId)
+  const { data, error } = await q.returns<LinhaPlano[]>()
+  if (error) throw error
+
+  const { data: licencas } = await db.from('licenca').select('pessoa_id')
+    .eq('conta_id', contaId).is('encerrada_em', null)
+  const afastadas = new Set((licencas ?? []).map((l) => l.pessoa_id))
+
+  const planos = new Map<string, AulasDoPlano & { servicoId: string }>()
+  for (const c of data ?? []) {
+    const pl = c.plano
+    if (!c.pessoa?.ativo || !pl?.frequencia_semanal) continue
+    if (pl.recorrencia === 'pacote' || pl.recorrencia === 'avulsa') continue
+    if (afastadas.has(c.pessoa_id)) continue
+    const chave = `${c.pessoa_id}|${pl.servico_id}`
+    const g = planos.get(chave) ?? {
+      pessoaId: c.pessoa_id, pessoaNome: c.pessoa.nome, servico: pl.servico?.nome ?? '',
+      servicoId: pl.servico_id, frequencia: 0, restantes: 0,
+    }
+    g.frequencia += pl.frequencia_semanal
+    planos.set(chave, g)
+  }
+  if (!planos.size) return []
+
+  const hoje = hojeEm(fuso)
+  const de = segundaDe(hoje)
+  const pessoas = [...new Set([...planos.values()].map((p) => p.pessoaId))]
+  // uma folga de um dia nas pontas cobre o fuso; a semana certa sai do dia local
+  const { data: aulas, error: erroAulas } = await db.from('participacao')
+    .select('pessoa_id, status, sessao!inner(inicio, servico_id, status)')
+    .eq('conta_id', contaId)
+    .in('pessoa_id', pessoas)
+    .neq('status', 'cancelada')
+    .gte('sessao.inicio', new Date(Date.parse(`${de}T00:00:00Z`) - 864e5).toISOString())
+    .lte('sessao.inicio', new Date(Date.parse(`${hoje.slice(0, 7)}-01T00:00:00Z`) + 33 * 864e5).toISOString())
+    .returns<Array<{ pessoa_id: string; status: string;
+      sessao: { inicio: string; servico_id: string; status: string } }>>()
+  if (erroAulas) throw erroAulas
+
+  const porSemana = new Map<string, Map<string, number>>()
+  for (const a of aulas ?? []) {
+    if (a.sessao.status === 'cancelada') continue
+    const chave = `${a.pessoa_id}|${a.sessao.servico_id}`
+    const semana = segundaDe(localDe(a.sessao.inicio, fuso).data)
+    const m = porSemana.get(chave) ?? new Map<string, number>()
+    m.set(semana, (m.get(semana) ?? 0) + 1)
+    porSemana.set(chave, m)
+  }
+
+  return [...planos.entries()]
+    .map(([chave, p]) => ({
+      pessoaId: p.pessoaId, pessoaNome: p.pessoaNome, servico: p.servico, frequencia: p.frequencia,
+      restantes: aulasAFazerNoMes(p.frequencia, hoje, porSemana.get(chave) ?? new Map()),
+    }))
+    .filter((p) => p.restantes > 0)
 }

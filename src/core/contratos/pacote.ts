@@ -69,3 +69,45 @@ export function fraseDoSaldo(e: Pick<EstadoDoPacote, 'contratadas' | 'usadas' | 
     : `${e.restantes === 1 ? 'resta 1' : `restam ${e.restantes}`}`
   return `${Math.min(e.usadas, e.contratadas)} de ${e.contratadas} usadas, ${restam}`
 }
+
+/**
+ * Aulas do plano semanal que ainda cabem no mês e não estão marcadas.
+ *
+ * Caso da Thais (MGM, 07/out/2026): "Mensal 2x por semana" com um horário fixo
+ * só. A segunda aula da semana é dela, mas não está na grade, e ninguém via.
+ * Conta, para cada semana (segunda a domingo) de hoje até o fim do mês, o que
+ * falta para chegar à frequência do plano. Semana que já passou não acumula:
+ * aula não marcada na semana passada não volta como dívida.
+ *
+ * `porSemana` leva a segunda-feira (aaaa-mm-dd) ao número de aulas da pessoa
+ * naquela semana, na modalidade do plano, de qualquer status menos cancelada.
+ */
+export function aulasAFazerNoMes(
+  frequencia: number, hoje: string, porSemana: Map<string, number>,
+): number {
+  const fimDoMes = ultimoDia(hoje)
+  let total = 0
+  for (let seg = segundaDe(hoje); seg <= fimDoMes; seg = somar(seg, 7)) {
+    total += Math.max(0, frequencia - (porSemana.get(seg) ?? 0))
+  }
+  return total
+}
+
+export function segundaDe(dia: string): string {
+  const d = new Date(`${dia}T12:00:00Z`)
+  const recuo = (d.getUTCDay() + 6) % 7
+  return somar(dia, -recuo)
+}
+
+function somar(dia: string, n: number): string {
+  const d = new Date(`${dia}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+function ultimoDia(dia: string): string {
+  const d = new Date(`${dia.slice(0, 7)}-01T12:00:00Z`)
+  d.setUTCMonth(d.getUTCMonth() + 1)
+  d.setUTCDate(0)
+  return d.toISOString().slice(0, 10)
+}

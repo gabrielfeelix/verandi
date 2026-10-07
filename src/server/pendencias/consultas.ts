@@ -4,7 +4,7 @@ import { estadoDaChamada } from '@/core/agenda/chamada'
 import { statusComCredito, type StatusParticipacao } from '@/core/agenda/ocupacao'
 import { dataCurta } from '@/core/agenda/datas'
 import { licencasAbertas } from '../licencas/licencas'
-import { pacotesDaConta } from '../contratos/pacotes'
+import { aulasDoPlanoDaConta, pacotesDaConta } from '../contratos/pacotes'
 import { fraseDoSaldo } from '@/core/contratos/pacote'
 
 /**
@@ -150,7 +150,7 @@ export async function listarPendencias(
     {
       tipo: 'pacote_parado',
       titulo: 'Aulas a fazer',
-      sub: 'Pacote ou aula avulsa com saldo e nada agendado',
+      sub: 'Saldo de pacote ou avulsa, ou aulas do plano semanal ainda por marcar no mês',
       itens: pacotes.filter((p) => p.tipo === 'pacote_parado'),
     },
     {
@@ -384,9 +384,25 @@ async function pacotesPendentes(
   db: Db, contaId: string, fuso: string,
 ): Promise<Pendencia[]> {
   // falha aqui não derruba Pendências: os outros grupos continuam
-  const pacotes = await pacotesDaConta(db, contaId, fuso)
-    .catch((e) => { console.error('pacotes em Pendências', e); return [] })
+  const [pacotes, planos] = await Promise.all([
+    pacotesDaConta(db, contaId, fuso)
+      .catch((e) => { console.error('pacotes em Pendências', e); return [] }),
+    aulasDoPlanoDaConta(db, contaId, fuso)
+      .catch((e) => { console.error('aulas do plano em Pendências', e); return [] }),
+  ])
   const itens: Pendencia[] = []
+  // plano de N vezes por semana com aula do mês por marcar (o caso da Thais)
+  for (const p of planos) {
+    itens.push({
+      tipo: 'pacote_parado',
+      referenciaId: p.pessoaId,
+      titulo: p.pessoaNome,
+      detalhe: `${p.servico}: plano ${p.frequencia}x por semana, aulas do mês ainda não marcadas`,
+      diasEmAberto: null,
+      href: `/pessoas/${p.pessoaId}?aba=agenda`,
+      etiqueta: { texto: p.restantes === 1 ? '1 aula a fazer' : `${p.restantes} aulas a fazer`, tinta: 'neutro' },
+    })
+  }
   for (const p of pacotes) {
     if (!p.aviso) continue
     itens.push({
@@ -405,7 +421,15 @@ async function pacotesPendentes(
           : { texto: p.restantes === 1 ? 'resta 1' : `restam ${p.restantes}`, tinta: 'atencao' },
     })
   }
-  return itens.sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
+  // a mesma pessoa com pacote e plano semanal: uma linha só, as duas frases
+  const juntos = new Map<string, Pendencia>()
+  for (const i of itens) {
+    const chave = `${i.tipo}|${i.referenciaId}`
+    const ja = juntos.get(chave)
+    if (ja) ja.detalhe = `${ja.detalhe} · ${i.detalhe}`
+    else juntos.set(chave, i)
+  }
+  return [...juntos.values()].sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'))
 }
 
 /**

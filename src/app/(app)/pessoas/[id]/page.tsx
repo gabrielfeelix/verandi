@@ -1,5 +1,5 @@
 import { Icone } from '@/components/ui/icones'
-import { pacotesDaConta } from '@/server/contratos/pacotes'
+import { aulasDoPlanoDaConta, pacotesDaConta } from '@/server/contratos/pacotes'
 import { fraseDoSaldo } from '@/core/contratos/pacote'
 import { inicioDaPessoa } from '@/core/pessoas/inicio'
 import Link from 'next/link'
@@ -214,6 +214,10 @@ export default async function Pessoa({
   const pacotes = operacional
     ? await pacotesDaConta(db, conta.contaId, conta.fuso, id)
         .catch((e) => { console.error('pacotes na ficha', e); return [] })
+    : []
+  const aulasDoPlano = operacional
+    ? await aulasDoPlanoDaConta(db, conta.contaId, conta.fuso, id)
+        .catch((e) => { console.error('aulas do plano na ficha', e); return [] })
     : []
 
   // "desde" é o mais antigo entre cadastro, primeiro contrato e primeira aula:
@@ -963,6 +967,17 @@ export default async function Pessoa({
             ) : (
               <p className="pb-3 text-[14.5px] text-tinta-media">Sem contrato em vigor.</p>
             )}
+            {aulasDoPlano.map((k) => (
+              <p key={`plano-${k.servico}`} className="mb-3 flex items-center justify-between gap-2 rounded-media border border-linha-fina bg-superficie-suave px-3 py-2.5 text-[13.5px]">
+                <span>
+                  <span className="font-medium">{k.servico}</span>
+                  <span className="text-tinta-media">: {k.frequencia}x por semana</span>
+                </span>
+                <span className="rounded-minima bg-neutro-fundo px-2 py-[3px] text-[12px] font-medium text-tinta-media">
+                  {k.restantes === 1 ? '1 aula a fazer' : `${k.restantes} aulas a fazer`} no mês
+                </span>
+              </p>
+            ))}
             {pacotes.map((k) => (
               <div key={k.servico} className="mb-3 flex flex-col gap-1.5 rounded-media border border-linha-fina bg-superficie-suave px-3 py-2.5">
                 <span className="flex items-center justify-between gap-2">
