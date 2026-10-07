@@ -150,6 +150,7 @@ export function MarcarAula({
     const t = textoDe(a)
     return termos.every((x) => t.includes(x))
   })
+  const semGrade = aulas !== null && aulas.length === 0 && !!servico
   const porDia = new Map<string, AulaParaRepor[]>()
   for (const a of visiveis) porDia.set(a.data, [...(porDia.get(a.data) ?? []), a])
 
@@ -166,7 +167,7 @@ export function MarcarAula({
           titulo={fora
             ? `Aula avulsa para ${nome.split(' ')[0]}`
             : `Marcar ${rotuloSessao.toLowerCase()} para ${nome.split(' ')[0]}`}
-          sub={fora
+          sub={fora || semGrade
             ? 'Em qualquer dia e hora. Com valor, gera a cobrança.'
             : 'Só horários com lugar. Um toque marca.'}
           largura="lista"
@@ -186,7 +187,10 @@ export function MarcarAula({
               }}
             />
           ) : (<>
-          {falta ? (
+          {/* sem grade, o dia e a hora livres gravam aula avulsa: dizer
+              "entra como reposição" ali fazia a recepção achar que usou o
+              crédito, que continuava aberto */}
+          {falta && !semGrade ? (
             <div className="flex items-center justify-between gap-3 rounded-media border border-linha-suave bg-superficie-suave px-3 py-2.5">
               <p className="text-[14.5px]">
                 {repor ? (
@@ -220,13 +224,15 @@ export function MarcarAula({
             </div>
           ) : null}
 
-          <input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Exemplo: quinta 18h"
-            aria-label="Procurar horário"
-            className={entrada}
-          />
+          {semGrade ? null : (
+            <input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Exemplo: quinta 18h"
+              aria-label="Procurar horário"
+              className={entrada}
+            />
+          )}
 
           {noLimite ? (
             <div className="flex flex-col gap-2 rounded-media border border-atencao-linha bg-atencao-superficie p-3">
@@ -247,7 +253,13 @@ export function MarcarAula({
 
           {aulas === null ? (
             <p className="py-3 text-[14.5px] text-tinta-media">Procurando horários com lugar…</p>
-          ) : aulas.length === 0 && servico ? (
+          ) : semGrade && faltaFixa ? (
+            <Nota tom="neutro">
+              A reposição vai num horário da grade com lugar, e{' '}
+              {servicos.find((s) => s.id === servico)?.nome ?? 'esta modalidade'} não tem nas
+              próximas duas semanas. Escolha outra modalidade.
+            </Nota>
+          ) : semGrade ? (
             /*
              * Modalidade sem grade (fisioterapia, massagem): não há horário
              * pronto para escolher, e "nenhum horário" travava a recepção
@@ -256,8 +268,10 @@ export function MarcarAula({
              */
             <div className="flex flex-col gap-3">
               <Nota tom="neutro">
-                {servicos.find((s) => s.id === servico)?.nome ?? 'Esta modalidade'} não tem horário
-                fixo na grade. Escolha o dia e a hora.
+                {/* vale para quem não tem grade e para grade toda cheia: a lista
+                    só traz horário com lugar */}
+                Nenhum horário de {servicos.find((s) => s.id === servico)?.nome ?? 'esta modalidade'} com
+                lugar nas próximas duas semanas. Escolha o dia e a hora.
               </Nota>
               <FormAulaAvulsa
                 key={servico}
@@ -325,7 +339,7 @@ export function MarcarAula({
           ) : null}
 
           {/* a exceção, depois da lista: o caminho comum é o horário da grade */}
-          {faltaFixa || (aulas !== null && aulas.length === 0 && servico) ? null : (
+          {faltaFixa || semGrade ? null : (
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-linha-suave pt-3">
               <span className="text-[13.5px] text-tinta-media">
                 Precisa de outro dia, hora ou modalidade?
