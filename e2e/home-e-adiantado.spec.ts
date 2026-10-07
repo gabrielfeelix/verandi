@@ -79,8 +79,8 @@ test('o financeiro diz quanto, e não só quantas', async ({ page }) => {
    * R$ 90 e dez de R$ 700 são a mesma frase e duas manhãs diferentes.
    */
   await expect(page.getByText('Cobrado', { exact: true })).toBeVisible()
-  await expect(page.getByText('Valor médio')).toBeVisible()
-  await expect(page.getByText('R$ 700,00').first()).toBeVisible()
+  await expect(page.getByText('Já recebido', { exact: true })).toBeVisible()
+  await expect(page.getByText('R$ 700,00').filter({ visible: true }).first()).toBeVisible()
 })
 
 test('o arquivo de recibos se recorta por data', async ({ page }) => {
@@ -93,7 +93,8 @@ test('o arquivo de recibos se recorta por data', async ({ page }) => {
 
   // e a barra de período diz o recorte em vez de deixar a tela mentir vazia
   await expect(page.getByText('em 19/01/26').first()).toBeVisible()
-  // "Todas as datas" é o chip que desfaz o recorte
+  // "Todas as datas", dentro do menu de período, desfaz o recorte
+  await page.getByText('Emissão:').click()
   await page.getByRole('link', { name: 'Todas as datas' }).click()
   await expect(page).not.toHaveURL(/de=2026-01-19/)
 })
