@@ -85,15 +85,9 @@ test('contratar ocupa os horários escolhidos, e o contrato aparece na ficha', a
 
 test('horário cheio é recusado, e nada é gravado pela metade', async ({ page }) => {
   const c = await cenario('Estúdio da turma cheia', { capacidade: 1 })
-
-  // enche o segundo horário com outra pessoa
   const { data: outra } = await admin.from('pessoa')
     .insert({ conta_id: c.contaId, nome: `Bruna ${c.marca}` })
     .select('id').single<{ id: string }>()
-  await admin.from('vaga').insert({
-    conta_id: c.contaId, serie_id: c.turmas[1], pessoa_id: outra!.id,
-    inicio: '2026-01-01',
-  })
 
   await entrar(page, c.email)
   await page.goto(`/pessoas/${c.pessoaId}?aba=contratos`)
@@ -103,6 +97,13 @@ test('horário cheio é recusado, e nada é gravado pela metade', async ({ page 
   await page.getByRole('tab', { name: 'Quarta' }).click()
   await page.getByRole('button', { name: /Quarta 09:00/ }).click()
   await page.getByRole('button', { name: 'Continuar' }).click()
+
+  // outra pessoa ocupa o último lugar com o modal aberto: só o servidor pode
+  // recusar, porque a tela carregou o horário como livre
+  await admin.from('vaga').insert({
+    conta_id: c.contaId, serie_id: c.turmas[1], pessoa_id: outra!.id,
+    inicio: '2026-01-01',
+  })
   await page.getByRole('button', { name: 'Criar contrato' }).click()
 
   await expect(page.getByText(/O horário de Quarta às 09:00 está cheio/)).toBeVisible()
@@ -115,6 +116,13 @@ test('horário cheio é recusado, e nada é gravado pela metade', async ({ page 
   const { count: contratos } = await admin.from('contrato')
     .select('*', { count: 'exact', head: true }).eq('pessoa_id', c.pessoaId)
   expect(contratos).toBe(0)
+
+  // aberto de novo, o horário cheio já aparece bloqueado
+  await page.goto(`/pessoas/${c.pessoaId}?aba=contratos`)
+  await page.getByRole('button', { name: 'Novo contrato' }).click()
+  await page.getByRole('button', { name: /Mensal, 2x por semana/ }).click()
+  await page.getByRole('tab', { name: 'Quarta' }).click()
+  await expect(page.getByRole('button', { name: 'Quarta 09:00, cheia' })).toBeDisabled()
 })
 
 test('quem já é cliente de outra modalidade paga o preço de vínculo', async ({ page }) => {

@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test'
 import { admin, contaDeTeste, entrar, usuarioDe } from './apoio'
+import { roteiroDe } from '../src/core/onboarding/roteiro'
+import { PADRAO } from '../src/core/vocabulario/padrao'
+
+// o tamanho da visita vem do roteiro: número fixo aqui envelhece a cada passo novo
+const passosDo = (papel: 'dono' | 'recepcao') => roteiroDe(papel, PADRAO).length
 
 /** Uma conta recém-criada e uma pessoa que nunca entrou: a primeira entrada. */
 async function primeiraVez(papel = 'dono') {
@@ -73,7 +78,7 @@ test('a visita guiada leva a pessoa pelas telas, e para quando pedem', async ({ 
   await page.getByRole('button', { name: 'Pular' }).click()
 
   // a visita começa na tela de trabalho, e é ela que navega
-  await expect(page.getByText('Passo 1 de 15')).toBeVisible()
+  await expect(page.getByText(`Passo 1 de ${passosDo('dono')}`)).toBeVisible()
   await expect(page).toHaveURL(/\/hoje/)
   await expect(page.getByRole('heading', { name: 'Esta é a sua tela de trabalho' }))
     .toBeVisible()
@@ -83,14 +88,14 @@ test('a visita guiada leva a pessoa pelas telas, e para quando pedem', async ({ 
     await page.getByRole('button', { name: 'Próxima' }).click()
   }
   await expect(page).toHaveURL(/\/semana/)
-  await expect(page.getByText('Passo 5 de 15')).toBeVisible()
+  await expect(page.getByText(`Passo 5 de ${passosDo('dono')}`)).toBeVisible()
 
   // dá para voltar sem perder o lugar
   await page.getByRole('button', { name: 'Voltar' }).click()
-  await expect(page.getByText('Passo 4 de 15')).toBeVisible()
+  await expect(page.getByText(`Passo 4 de ${passosDo('dono')}`)).toBeVisible()
 
   await page.getByRole('button', { name: 'Pular' }).click()
-  await expect(page.getByText(/Passo \d+ de 15/)).toHaveCount(0)
+  await expect(page.getByText(/Passo \d+ de \d+/)).toHaveCount(0)
 
   await expect.poll(async () => {
     const { data } = await admin.from('onboarding')
@@ -109,7 +114,8 @@ test('quem só opera não é ensinado a mexer na configuração', async ({ page 
 
   await page.getByRole('button', { name: 'Pular' }).click()
   // a visita dela é mais curta, e nenhum passo leva à configuração
-  await expect(page.getByText('Passo 1 de 11')).toBeVisible()
+  expect(passosDo('recepcao')).toBeLessThan(passosDo('dono'))
+  await expect(page.getByText(`Passo 1 de ${passosDo('recepcao')}`)).toBeVisible()
 })
 
 test('conta que já opera não recebe apontamento de conta nova', async ({ page }) => {
