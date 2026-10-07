@@ -85,3 +85,50 @@ test('sem valor, a aula avulsa sai do saldo do pacote', async ({ page }) => {
     .select('contrato_id').eq('pessoa_id', c.pessoaId)
   expect(parts).toEqual([{ contrato_id: c.pacoteId }])
 })
+
+test('encaixe pago numa aula avulsa não conta no limite do plano livre', async ({ page }) => {
+  const { contaId, marca } = await contaDeTeste('Estúdio do plano livre')
+  const { email } = await usuarioDe(contaId, 'dono', marca)
+  const { data: pessoa } = await admin.from('pessoa')
+    .insert({ conta_id: contaId, nome: `Paula ${marca}`, ativo: true })
+    .select('id').single<{ id: string }>()
+  const { data: servico } = await admin.from('servico')
+    .insert({ conta_id: contaId, nome: 'Fisioterapia' })
+    .select('id').single<{ id: string }>()
+  const { data: plano } = await admin.from('plano').insert({
+    conta_id: contaId, servico_id: servico!.id, codigo: 'L1', nome: 'Livre 1x',
+    recorrencia: 'mensal', horario_livre: true, frequencia_semanal: 1,
+    preco_vinculado_cent: 30000, preco_avulso_cent: 30000,
+  }).select('id').single<{ id: string }>()
+  const { data: livre } = await admin.from('contrato').insert({
+    conta_id: contaId, pessoa_id: pessoa!.id, plano_id: plano!.id,
+    inicio: '2026-01-01', preco_aplicado_cent: 30000,
+  }).select('id').single<{ id: string }>()
+
+  // a aula da semana que o plano dá já foi usada na segunda
+  const sessao = async (inicio: string) => (await admin.from('sessao').insert({
+    conta_id: contaId, servico_id: servico!.id, inicio, duracao_min: 60,
+    capacidade: 2, status: 'prevista',
+  }).select('id').single<{ id: string }>()).data!.id
+  const segunda = await sessao('2026-12-07T13:00:00Z')
+  await admin.from('participacao').insert({
+    conta_id: contaId, sessao_id: segunda, pessoa_id: pessoa!.id,
+    origem: 'avulso', status: 'esperada', contrato_id: livre!.id,
+  })
+  const quarta = await sessao('2026-12-09T13:00:00Z')
+
+  await entrar(page, email)
+  await page.goto(`/sessao/${quarta}`)
+  await page.getByRole('button', { name: /Encaixar/ }).click()
+  const modal = page.getByRole('dialog')
+  await modal.getByPlaceholder('Buscar por nome').fill('Paula')
+  await modal.getByRole('button', { name: /Paula/ }).click()
+  await modal.getByRole('textbox', { name: 'Valor desta aula' }).fill('8000')
+  await modal.getByRole('button', { name: /^Encaixar como/ }).click()
+  await expect(modal).toHaveCount(0)
+
+  const { data: parts } = await admin.from('participacao')
+    .select('contrato:contrato_id(plano(recorrencia), preco_aplicado_cent)')
+    .eq('sessao_id', quarta).eq('pessoa_id', pessoa!.id)
+  expect(parts).toEqual([{ contrato: { plano: { recorrencia: 'avulsa' }, preco_aplicado_cent: 8000 } }])
+})

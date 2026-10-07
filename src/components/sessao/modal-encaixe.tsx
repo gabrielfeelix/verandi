@@ -120,13 +120,16 @@ export function ModalEncaixe({
   function adicionar(pessoaId: string, confirmarAcima = false, passarDoLimite = false) {
     setAviso(null)
     setNoLimite(null)
+    // aula avulsa paga à parte não gasta o plano: nem o limite da semana nem os
+    // dias permitidos se aplicam, e a cobrança religa a aula ao avulso dela
+    const cent = avulsa && origem === 'avulso' ? emCentavos(valor) ?? 0 : 0
     iniciar(async () => {
       const r = await encaixar({
-        sessaoId, pessoaId, origem, confirmarAcima, passarDoLimite,
+        sessaoId, pessoaId, origem, confirmarAcima,
+        passarDoLimite: passarDoLimite || cent > 0,
         reposicaoDeId: origem === 'reposicao' ? falta?.participacaoId : undefined,
       })
       if (r.ok) {
-        const cent = avulsa && origem === 'avulso' ? emCentavos(valor) ?? 0 : 0
         if (cent > 0) {
           const c = await cobrarAulaAvulsa(sessaoId, pessoaId, cent)
           if (!c.ok) { setAviso(c.erro); return }
