@@ -14,7 +14,7 @@ import { horariosLivres } from './disponibilidade'
 import { hojeEm, localDe } from './fuso'
 import { abrirLicenca, desfazerLicencaSemAula, encerrarLicenca } from '../licencas/licencas'
 import { somarDias } from '@/core/agenda/datas'
-import { devolverASessao, soltarDaSessao } from './soltar'
+import { devolverASessao, soltarDaSessao, soltasDa } from './soltar'
 
 /** De qual lado do balcão veio o registro. Serve auditoria, não permissão. */
 async function quemRegistra() {
@@ -157,12 +157,12 @@ export async function cancelarSessao(sessaoId: string, motivo: string): Promise<
     .update({ status: 'cancelada', motivo_cancelamento: motivo })
     .eq('id', sessaoId)
   if (error) throw error
-  await soltarDaSessao(db, conta.contaId, [sessaoId])
+  const soltas = await soltarDaSessao(db, conta.contaId, [sessaoId])
   atualizarTela(sessaoId)
 
   // é o evento que mais justifica a Fase 4 existir: a aula caiu, e são seis
   // pessoas que precisam saber antes de sair de casa
-  await avisar(db, conta.contaId, 'sessao.cancelada', { sessaoId })
+  await avisar(db, conta.contaId, 'sessao.cancelada', { sessaoId, soltas: soltasDa(soltas, sessaoId) })
 }
 
 export async function reabrirSessao(sessaoId: string): Promise<void> {

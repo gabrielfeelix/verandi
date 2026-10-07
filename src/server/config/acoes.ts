@@ -5,7 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { hojeEm, instante } from '../agenda/fuso'
 import { avisar } from '../webhook/eventos'
-import { soltarDaSessao } from '../agenda/soltar'
+import { soltarDaSessao, soltasDa } from '../agenda/soltar'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
 import { BALDE_FOTO } from './equipe'
 import { BALDE_ASSINATURA } from './consultas'
@@ -432,11 +432,14 @@ export async function salvarDataFechada(e: {
     sessoesCanceladas = alvo?.length ?? 0
 
     if (sessoesCanceladas > 0) {
-      reposicoesAbertas = await soltarDaSessao(db, conta.contaId, alvo!.map((s) => s.id))
+      const soltas = await soltarDaSessao(db, conta.contaId, alvo!.map((s) => s.id))
+      reposicoesAbertas = soltas.length
 
       // o mesmo aviso do cancelamento de uma aula: o bot avisa quem ia
       for (const s of alvo!) {
-        await avisar(db, conta.contaId, 'sessao.cancelada', { sessaoId: s.id })
+        await avisar(db, conta.contaId, 'sessao.cancelada', {
+          sessaoId: s.id, soltas: soltasDa(soltas, s.id),
+        })
       }
     }
   }

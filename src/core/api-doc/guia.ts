@@ -51,7 +51,7 @@ export const WEBHOOK: Passo[] = [
   {
     titulo: 'O que chega',
     texto:
-      'Um POST com o corpo abaixo. Quatro eventos hoje: participacao.criada, participacao.cancelada, sessao.cancelada e vaga.aberta, este último quando abre vaga em horário que tinha fila. Ignore evento que você não conhece, porque outros vão aparecer.',
+      'Um POST com o corpo abaixo. Quatro eventos hoje: participacao.criada, participacao.cancelada, sessao.cancelada e vaga.aberta, este último quando abre vaga em horário que tinha fila. O sessao.cancelada traz em alunos quem estava na aula e saiu com reposição em aberto (participacaoId, pessoaId, pessoa, telefone, origem): é a lista para avisar. Esses alunos não geram participacao.cancelada, que continua querendo dizer desistência. Ignore evento que você não conhece, porque outros vão aparecer.',
     codigo: `POST no seu endereço
 Verandi-Event: participacao.cancelada
 Verandi-Timestamp: 1786820400

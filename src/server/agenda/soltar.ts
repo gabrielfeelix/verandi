@@ -16,18 +16,25 @@ import type { Db } from '../supabase'
  */
 export async function soltarDaSessao(
   db: Db, contaId: string, sessaoIds: string[], opcoes: { soAvulsos?: boolean } = {},
-): Promise<number> {
-  if (!sessaoIds.length) return 0
+): Promise<Solta[]> {
+  if (!sessaoIds.length) return []
   let q = db.from('participacao')
     .update({ status: 'cancelada' })
     .eq('conta_id', contaId)
     .in('sessao_id', sessaoIds)
     .in('status', ['esperada', 'confirmada'])
   if (opcoes.soAvulsos) q = q.neq('origem', 'recorrente')
-  const { data, error } = await q.select('id')
+  const { data, error } = await q.select('id, sessao_id')
   if (error) throw error
-  return data?.length ?? 0
+  return (data ?? []).map((p) => ({ participacaoId: p.id, sessaoId: p.sessao_id }))
 }
+
+/** Quem saiu da aula com reposição, para o aviso da aula cancelada dizer quem. */
+export type Solta = { participacaoId: string; sessaoId: string }
+
+/** As soltas de uma aula, no formato que o `sessao.cancelada` leva. */
+export const soltasDa = (soltas: Solta[], sessaoId: string) =>
+  soltas.filter((s) => s.sessaoId === sessaoId).map((s) => s.participacaoId)
 
 /**
  * O contrário, ao reabrir a aula: quem saiu com crédito volta para a lista.

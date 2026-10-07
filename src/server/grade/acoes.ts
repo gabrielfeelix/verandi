@@ -10,7 +10,7 @@ import { diaDaSemanaDe, DIAS_INTEIROS } from '@/core/agenda/datas'
 import { hojeEm, localDe } from '../agenda/fuso'
 import { registrar } from '../log'
 import { avisar } from '../webhook/eventos'
-import { soltarDaSessao } from '../agenda/soltar'
+import { soltarDaSessao, soltasDa } from '../agenda/soltar'
 import type { Atualizacao } from '../banco'
 
 /**
@@ -339,8 +339,10 @@ async function cancelarOrfas(
   if (error) throw error
   // o horário fixo segue no lugar novo (ou terminou com a vaga); quem marcou
   // aquela aula em particular fica com a reposição
-  await soltarDaSessao(db, contaId, ids, { soAvulsos: true })
-  for (const id of ids) await avisar(db, contaId, 'sessao.cancelada', { sessaoId: id })
+  const soltas = await soltarDaSessao(db, contaId, ids, { soAvulsos: true })
+  for (const id of ids) {
+    await avisar(db, contaId, 'sessao.cancelada', { sessaoId: id, soltas: soltasDa(soltas, id) })
+  }
 }
 
 /**

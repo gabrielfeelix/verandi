@@ -15,7 +15,7 @@ import { enfileirar, entregarPendentes, type TipoDeEvento } from './outbox'
  * e um webhook é justamente o lugar onde ninguém vai reparar que ela vazou.
  */
 
-type Contexto = { participacaoId?: string; sessaoId: string }
+type Contexto = { participacaoId?: string; sessaoId: string; soltas?: string[] }
 
 async function corpoDoEvento(
   db: Db, contaId: string, ctx: Contexto,
@@ -49,6 +49,30 @@ async function corpoDoEvento(
     hora,
     servico: servico?.nome ?? null,
     profissional: profissional?.nome ?? null,
+  }
+
+  /*
+   * Aula cancelada leva quem estava nela e saiu com reposição em aberto. Não
+   * vira um `participacao.cancelada` por aluno de propósito: o bot lê esse
+   * evento como desistência pedida pela pessoa, e mandaria a mensagem errada.
+   */
+  if (ctx.soltas) {
+    const { data: soltas } = ctx.soltas.length
+      ? await db.from('participacao')
+        .select('id, origem, pessoa:pessoa_id(id, nome, telefone)')
+        .in('id', ctx.soltas).eq('conta_id', contaId)
+      : { data: [] }
+    base.alunos = (soltas ?? []).map((p) => {
+      const pessoa = p.pessoa as unknown as { id: string; nome: string; telefone: string | null } | null
+      return {
+        participacaoId: p.id,
+        origem: p.origem,
+        pessoaId: pessoa?.id ?? null,
+        pessoa: pessoa?.nome ?? null,
+        telefone: pessoa?.telefone ?? null,
+        reposicao: true,
+      }
+    })
   }
 
   if (!ctx.participacaoId) return base
