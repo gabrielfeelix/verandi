@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
-import { inserirPessoa, proximoNumero, recusarNumeroEmUso } from './registro'
+import {
+  inserirPessoa, proximoNumero, recusarNumeroEmUso, NUMERO_REPETIDO, NUMERO_ACABOU_DE_SER_USADO,
+} from './registro'
 import { incluirVagasNasSessoes, tirarDasAulasDepoisDoFim } from '../agenda/materializar'
 import { avisarQuemEspera } from '../agenda/espera'
 import { hojeEm } from '../agenda/fuso'
@@ -158,7 +160,10 @@ export async function editarPessoa(id: string, campos: {
   if (error) {
     // CPF repetido é a mesma pessoa cadastrada duas vezes, e quem está na tela
     // é quem pode resolver isso
-    const e = error as { code?: string }
+    const e = error as { code?: string; message?: string }
+    if (e.code === NUMERO_REPETIDO && e.message?.includes('pessoa_numero_da_ficha_unico')) {
+      throw new Error(NUMERO_ACABOU_DE_SER_USADO)
+    }
     if (e.code === '23505') {
       throw new Error('Já existe uma ficha nesta conta com esse CPF.')
     }

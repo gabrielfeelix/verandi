@@ -26,7 +26,7 @@ export async function inserirPessoa(
   const nome = entrada.nome.trim()
   if (!nome) throw new Error('nome é obrigatório')
 
-  // telefone continua opcional; o que não se aceita é telefone pela metade —
+  // telefone continua opcional; o que não se aceita é telefone pela metade:
   // nove dígitos sem DDD é um número que não disca e ninguém adivinha depois
   const erroFone = erroDoTelefone(entrada.telefone)
   if (erroFone) throw new Error(erroFone)
@@ -34,17 +34,27 @@ export async function inserirPessoa(
   const digitado = entrada.identificadorExterno?.trim()
   if (digitado) await recusarNumeroEmUso(db, contaId, digitado)
 
-  const { data, error } = await db.from('pessoa').insert({
-    conta_id: contaId,
-    nome,
-    telefone: normalizarTelefone(entrada.telefone),
-    identificador_externo: digitado || await proximoNumero(db, contaId),
-    gympass: entrada.gympass ?? false,
-  }).select('id').single()
+  // o banco recusa número repetido: dois cadastros juntos pegam o mesmo
+  // "próximo", e o segundo tenta o seguinte
+  for (let tentativa = 0; ; tentativa++) {
+    const { data, error } = await db.from('pessoa').insert({
+      conta_id: contaId,
+      nome,
+      telefone: normalizarTelefone(entrada.telefone),
+      identificador_externo: digitado || await proximoNumero(db, contaId),
+      gympass: entrada.gympass ?? false,
+    }).select('id').single()
 
-  if (error) throw error
-  return { id: data.id }
+    if (!error) return { id: data.id }
+    if (error.code !== NUMERO_REPETIDO) throw error
+    if (digitado) await recusarNumeroEmUso(db, contaId, digitado)
+    if (digitado || tentativa >= 2) throw new Error(NUMERO_ACABOU_DE_SER_USADO)
+  }
 }
+
+/** Violação do índice `pessoa_numero_da_ficha_unico` (migration 0073). */
+export const NUMERO_REPETIDO = '23505'
+export const NUMERO_ACABOU_DE_SER_USADO = 'Esse Nº da ficha acabou de ser usado. Salve de novo.'
 
 /** "072" e "72" são o mesmo número de ficha; o que não é número compara como texto. */
 const mesmoNumero = (a: string, b: string) =>
