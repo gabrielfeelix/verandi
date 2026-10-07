@@ -146,6 +146,14 @@ export async function registrarPagamento(p: NovoPagamento): Promise<Resultado> {
     if (!Number.isInteger(p.valorCent) || p.valorCent <= 0) {
       return { ok: false, erro: 'O valor recebido precisa ser maior que zero.' }
     }
+    // dinheiro que ainda não entrou não vai para o caixa: data futura faria o
+    // fechamento de um dia que nem chegou já ter valor
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.recebidoEm) || Number.isNaN(Date.parse(p.recebidoEm))) {
+      return { ok: false, erro: 'Escolha a data em que o pagamento foi recebido.' }
+    }
+    if (p.recebidoEm > hojeEm(conta.fuso)) {
+      return { ok: false, erro: 'A data do pagamento não pode ser depois de hoje.' }
+    }
 
     const { data: c } = await db.from('cobranca')
       .select('id, pessoa_id, status').eq('id', p.cobrancaId)
