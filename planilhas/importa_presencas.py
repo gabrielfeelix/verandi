@@ -31,6 +31,7 @@ Aula que não existe é criada: da série, quando o horário está na grade de
 hoje; senão como aula de pilates sem série, porque a grade de 2025 não é a
 de agora. Pode rodar de novo: o que já está gravado não duplica.
 """
+import json
 import os
 import re
 import sys
@@ -66,6 +67,24 @@ def status_de(celula):
         return ('licenca', False)
     return None
 
+
+# A resposta do cliente para os nomes soltos da planilha (só o primeiro nome):
+# quem ainda é aluno, pela matrícula, e onde ele disse o horário. Mora fora do
+# git, em `.rascunho/respostas-presenca.json`, porque tem nome de aluno e este
+# repositório é público. Formato:
+#   {"resposta": {"MARIA": ["001", "002"]}, "no_horario": [["MARIA", "SEXTA", "17:00", "002"]]}
+# Nome com mais de um candidato vai para quem aparece naquele dia e hora; nome
+# que não está lá segue as regras de sempre.
+def _respostas():
+    caminho = os.path.join(os.path.dirname(__file__), '..', '.rascunho', 'respostas-presenca.json')
+    if not os.path.exists(caminho):
+        return {}, {}
+    with open(caminho, encoding='utf-8') as f:
+        r = json.load(f)
+    return r.get('resposta', {}), {(n, d, h): m for n, d, h, m in r.get('no_horario', [])}
+
+
+RESPOSTA, RESPOSTA_NO_HORARIO = _respostas()
 
 # apelido -> nome do cadastro: "ZÉ MARIA" é o José Maria
 APELIDO = {'ZE': 'JOSE', 'OSWALDINHO': 'OSWALDO', 'CRIS': 'CRISTINA', 'CAROL': 'CAROLINA', 'GABI': 'GABRIELA',
@@ -241,8 +260,43 @@ def main():
 
     candidatos = todas + [p for p in por_mat.values() if str(p['id']).startswith('novo:')]
 
+    no_mes = {}
+    for r in lidos:
+        if r['mat'] in por_mat:
+            no_mes.setdefault((DIA_NUM[r['dia']], r['hora'], r['data'][:7]), set()).add(por_mat[r['mat']]['id'])
+
+    # quantas vezes cada um aparece com nome completo em cada dia e hora
+    vezes_no_horario = {}
+    for r in lidos:
+        if r['mat'] in por_mat:
+            k = (DIA_NUM[r['dia']], r['hora'], por_mat[r['mat']]['id'])
+            vezes_no_horario[k] = vezes_no_horario.get(k, 0) + 1
+
+    def respondido(nome, dia, hora, mes):
+        """Um candidato só: é ele, foi o cliente quem disse. Mais de um: quem
+        aparece naquele dia e hora no mesmo mês; senão, quem tem a vaga fixa;
+        senão, quem mais frequenta aquele horário. Empate fica de fora."""
+        fixo = RESPOSTA_NO_HORARIO.get((chave(nome), dia, hora))
+        if fixo in por_mat:
+            return por_mat[fixo]
+        pool = [por_mat[m] for m in RESPOSTA.get(chave(nome), []) if m in por_mat]
+        if len(pool) == 1:
+            return pool[0]
+        for ids in (no_mes.get((DIA_NUM[dia], hora, mes), set()),
+                    do_horario.get((DIA_NUM[dia], hora), set())):
+            daqui = [p for p in pool if p['id'] in ids]
+            if len(daqui) == 1:
+                return daqui[0]
+        contagem = sorted(((vezes_no_horario.get((DIA_NUM[dia], hora, p['id']), 0), p) for p in pool),
+                          key=lambda x: -x[0])
+        if contagem and contagem[0][0] > 0 and (len(contagem) == 1 or contagem[0][0] > contagem[1][0]):
+            return contagem[0][1]
+        return None
+
     def por_nome(nome, dia, hora, mes):
         """Primeiro entre quem já está no sistema; só sem resposta, o financeiro."""
+        if chave(nome) in RESPOSTA:
+            return respondido(nome, dia, hora, mes)
         return (casa(nome, dia, hora, todas) or casa(nome, dia, hora, candidatos)
                 or desempata(nome, dia, hora, mes, todas) or desempata(nome, dia, hora, mes, candidatos))
 
