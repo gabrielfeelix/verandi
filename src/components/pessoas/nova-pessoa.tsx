@@ -78,7 +78,7 @@ export function NovaPessoa({
             <Campo rotulo="Telefone" dica="Opcional" htmlFor="np-fone">
               <CampoTelefone id="np-fone" />
             </Campo>
-            <Campo rotulo="Nº da ficha" dica="Opcional" htmlFor="np-id">
+            <Campo rotulo="Nº da ficha" dica="Em branco, gera o próximo" htmlFor="np-id">
               <input
                 id="np-id" name="identificador"
                 placeholder="Exemplo: 112"

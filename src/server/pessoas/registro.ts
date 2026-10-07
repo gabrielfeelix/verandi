@@ -27,13 +27,53 @@ export async function inserirPessoa(
   const erroFone = erroDoTelefone(entrada.telefone)
   if (erroFone) throw new Error(erroFone)
 
+  const digitado = entrada.identificadorExterno?.trim()
+  if (digitado) await recusarNumeroEmUso(db, contaId, digitado)
+
   const { data, error } = await db.from('pessoa').insert({
     conta_id: contaId,
     nome,
     telefone: normalizarTelefone(entrada.telefone),
-    identificador_externo: entrada.identificadorExterno?.trim() || null,
+    identificador_externo: digitado || await proximoNumero(db, contaId),
   }).select('id').single()
 
   if (error) throw error
   return { id: data.id }
+}
+
+/** "072" e "72" são o mesmo número de ficha; o que não é número compara como texto. */
+const mesmoNumero = (a: string, b: string) =>
+  /^\d+$/.test(a) && /^\d+$/.test(b) ? Number(a) === Number(b) : a === b
+
+async function numerosDaConta(db: Db, contaId: string) {
+  const { data, error } = await db.from('pessoa')
+    .select('id, nome, identificador_externo')
+    .eq('conta_id', contaId).not('identificador_externo', 'is', null)
+  if (error) throw error
+  return data ?? []
+}
+
+/**
+ * O próximo Nº da ficha livre na conta.
+ *
+ * Todo aluno tem número: em branco no cadastro, ele nasce com o seguinte ao
+ * maior que já existe, com zeros à esquerda no tamanho dos outros ("440" numa
+ * conta que veio da planilha com "001" a "439"). Conta nova começa em "001".
+ */
+export async function proximoNumero(db: Db, contaId: string): Promise<string> {
+  const numericos = (await numerosDaConta(db, contaId))
+    .map((p) => p.identificador_externo!)
+    .filter((x) => /^\d+$/.test(x))
+  const maior = Math.max(0, ...numericos.map(Number))
+  const largura = Math.max(3, ...numericos.filter((x) => Number(x) === maior).map((x) => x.length))
+  return String(maior + 1).padStart(largura, '0')
+}
+
+/** Dois alunos com o mesmo número é ficha trocada no balcão. */
+export async function recusarNumeroEmUso(
+  db: Db, contaId: string, numero: string, exceto?: string,
+): Promise<void> {
+  const dono = (await numerosDaConta(db, contaId))
+    .find((p) => p.id !== exceto && mesmoNumero(p.identificador_externo!, numero))
+  if (dono) throw new Error(`O Nº ${numero} já é de ${dono.nome}. Use outro, ou deixe em branco para gerar o próximo.`)
 }

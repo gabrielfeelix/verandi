@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
-import { inserirPessoa } from './registro'
+import { inserirPessoa, proximoNumero, recusarNumeroEmUso } from './registro'
 import { incluirVagasNasSessoes } from '../agenda/materializar'
 import type { Atualizacao } from '../banco'
 import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
@@ -98,7 +98,10 @@ export async function editarPessoa(id: string, campos: {
   }
   if (campos.email !== undefined) linha.email = campos.email || null
   if (campos.identificadorExterno !== undefined) {
-    linha.identificador_externo = campos.identificadorExterno || null
+    // apagar o número gera o próximo: todo aluno tem Nº da ficha
+    const numero = (campos.identificadorExterno ?? '').trim()
+    if (numero) await recusarNumeroEmUso(db, conta.contaId, numero, id)
+    linha.identificador_externo = numero || await proximoNumero(db, conta.contaId)
   }
   if (campos.nascimento !== undefined) linha.nascimento = campos.nascimento || null
   if (campos.vencimentoPlano !== undefined) {

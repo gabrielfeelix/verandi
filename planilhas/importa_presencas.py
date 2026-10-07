@@ -363,7 +363,7 @@ def main():
 
     if usados:
         valores = ',\n'.join(
-            f"('{conta_id}', '{ex[m].replace(chr(39), chr(39) * 2)}', '{m}', false)" for m in usados)
+            f"('{conta_id}', '{ex[m].replace(chr(39), chr(39) * 2)}', '{m.zfill(3)}', false)" for m in usados)
         sql('insert into app_verandi.pessoa (conta_id, nome, identificador_externo, ativo) '
             f'values {valores};')
         _, reais = pessoas()

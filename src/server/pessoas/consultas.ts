@@ -133,7 +133,23 @@ export type OpcoesLista = {
   pagina?: number
   /** sem paginar: é o que a exportação precisa, e só ela */
   tudo?: boolean
+  /** a coluna que ordena; sem ela, nome de A a Z */
+  ordem?: OrdemPessoas
 }
+
+export type OrdemPessoas = {
+  campo: 'nome' | 'numero' | 'presenca'
+  descendo: boolean
+}
+
+/*
+ * Nome ordena por `nome_busca` (sem acento, minúsculo): pelo `nome` cru, os
+ * nomes em maiúsculas da planilha e os digitados à mão saíam em dois blocos.
+ * O nome é sempre o desempate, para a página 2 não repetir ninguém da 1.
+ */
+const COLUNA_DA_ORDEM = {
+  nome: 'nome_busca', numero: 'identificador_externo', presenca: 'ultima_presenca',
+} as const
 
 /**
  * Os filtros aplicados na consulta, num lugar só.
@@ -279,7 +295,11 @@ export async function listarPessoas(
     q = q.in('id', porParticipacao)
   }
 
-  q = q.order('nome')
+  const ordem = opts.ordem ?? { campo: 'nome', descendo: false }
+  // quem não tem número ou presença vai para o fim, nos dois sentidos
+  q = q.order(COLUNA_DA_ORDEM[ordem.campo], { ascending: !ordem.descendo, nullsFirst: false })
+  if (ordem.campo !== 'nome') q = q.order('nome_busca')
+  q = q.order('id')
   if (!opts.tudo) {
     const pagina = Math.max(1, opts.pagina ?? 1)
     const de = (pagina - 1) * POR_PAGINA

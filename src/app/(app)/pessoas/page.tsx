@@ -3,7 +3,7 @@ import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { aulasDoPlanoDaConta, pacotesDaConta } from '@/server/contratos/pacotes'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import {
-  contarPessoas, listarPessoas, POR_PAGINA, type FiltroPessoa,
+  contarPessoas, listarPessoas, POR_PAGINA, type FiltroPessoa, type OrdemPessoas,
 } from '@/server/pessoas/consultas'
 import { telefoneMascarado } from '@/core/pessoas/telefone'
 import { situacaoDe, DIAS_CURTOS } from '@/core/pessoas/situacao'
@@ -84,7 +84,16 @@ function comPacote(
 /** Etiqueta da conta com a primeira letra maiúscula: "lesão" e "Idoso" lado a lado parecia descuido. */
 const capitular = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 
-type Busca = Promise<{ q?: string; f?: string | string[]; t?: string; p?: string }>
+type Busca = Promise<{ q?: string; f?: string | string[]; t?: string; p?: string; o?: string }>
+
+/** `o=numero` sobe, `o=-numero` desce; sem `o`, nome de A a Z */
+function lerOrdem(o: string | undefined): OrdemPessoas {
+  const descendo = o?.startsWith('-') ?? false
+  const campo = o?.replace(/^-/, '')
+  return campo === 'numero' || campo === 'presenca'
+    ? { campo, descendo }
+    : { campo: 'nome', descendo: campo === 'nome' && descendo }
+}
 
 function quando(iso: string | null) {
   if (!iso) return 'Sem presença'
@@ -96,7 +105,8 @@ function quando(iso: string | null) {
 }
 
 export default async function Pessoas({ searchParams }: { searchParams: Busca }) {
-  const { q, f, t: tag, p: pag } = await searchParams
+  const { q, f, t: tag, p: pag, o } = await searchParams
+  const ordem = lerOrdem(o)
   const conta = await exigirPapel(OPERA, 'Pessoas')
   const db = await clienteServidor()
   const rotulos = resolverRotulos(await carregarVocabulario(db, conta.contaId))
@@ -110,7 +120,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
 
   const [{ linhas: pessoas, total }, contagem] = await Promise.all([
     listarPessoas(db, conta.contaId, {
-      busca: q, filtros, tag, fuso: conta.fuso, pagina,
+      busca: q, filtros, tag, fuso: conta.fuso, pagina, ordem,
     }),
     contarPessoas(db, conta.contaId, {
       busca: q, fuso: conta.fuso, situacao: situacao === 'ativos' ? undefined : situacao,
@@ -154,6 +164,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
     if (q) base.set('q', q)
     for (const x of filtros) base.append('f', x)
     if (tag) base.set('t', tag)
+    if (o) base.set('o', o)
     mudanca(base)
     const s = base.toString()
     return s ? `/pessoas?${s}` : '/pessoas'
@@ -175,6 +186,30 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
       b.delete('f'); b.delete('t')
       if (valor !== 'ativos') b.append('f', valor)
     })
+
+  // clicar na coluna que já ordena inverte o sentido; outra coluna começa subindo
+  const ordenarPor = (campo: OrdemPessoas['campo']) =>
+    endereco((b) => {
+      b.delete('p')
+      const valor = ordem.campo === campo && !ordem.descendo ? `-${campo}` : campo
+      if (valor === 'nome') b.delete('o')
+      else b.set('o', valor)
+    })
+  const Ordena = ({ campo, children }: { campo: OrdemPessoas['campo']; children: React.ReactNode }) => {
+    const aqui = ordem.campo === campo
+    return (
+      <Link
+        href={ordenarPor(campo)}
+        aria-sort={aqui ? (ordem.descendo ? 'descending' : 'ascending') : undefined}
+        className={`inline-flex items-center gap-1 hover:text-tinta ${aqui ? 'text-tinta' : ''}`}
+      >
+        {children}
+        <span aria-hidden className={`text-[11px] ${aqui ? '' : 'opacity-0'}`}>
+          {aqui && ordem.descendo ? '↓' : '↑'}
+        </span>
+      </Link>
+    )
+  }
 
   const daPagina = (n: number) => endereco((b) => { if (n > 1) b.set('p', String(n)) })
   const exportar = endereco(() => {}).replace('/pessoas', '/pessoas/exportar')
@@ -270,12 +305,13 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           />
         </section>
       ) : (
-        <Tabela largura={820} soNoDesktop rotulo={rotulos.pessoa.plural}>
+        <Tabela largura={880} soNoDesktop rotulo={rotulos.pessoa.plural}>
           <Cabecalho>
-            <Th fixa>Nome</Th>
+            <Th fixa><Ordena campo="nome">Nome</Ordena></Th>
+            <Th className="max-md:hidden"><Ordena campo="numero">Nº</Ordena></Th>
             <Th className="max-md:hidden">Telefone</Th>
             <Th className="max-md:hidden">Horário fixo</Th>
-            <Th className="max-md:hidden">Última presença</Th>
+            <Th className="max-md:hidden"><Ordena campo="presenca">Última presença</Ordena></Th>
             <Th className="max-md:text-right">Situação</Th>
           </Cabecalho>
           <tbody>
@@ -316,8 +352,9 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                             </span>
                           ))}
                         </span>
+                        {/* no desktop o número tem coluna própria */}
                         {p.identificadorExterno ? (
-                          <span className="truncate text-[12px] text-tinta-media">
+                          <span className="truncate text-[12px] text-tinta-media md:hidden">
                             Ficha nº {p.identificadorExterno}
                           </span>
                         ) : null}
@@ -327,6 +364,10 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                         </span>
                       </span>
                     </span>
+                  </td>
+
+                  <td className={`${CELULA} whitespace-nowrap text-[13.5px] tabular-nums text-tinta-media max-md:hidden`}>
+                    {p.identificadorExterno ?? <span className="text-tinta-fraca">Sem nº</span>}
                   </td>
 
                   <td className={`${CELULA} whitespace-nowrap max-md:hidden`}>
