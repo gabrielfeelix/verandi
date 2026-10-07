@@ -247,7 +247,7 @@ test('marcar feriado cancela os horários daquele dia, com motivo', async ({ pag
   await page.goto('/config?s=funcionamento')
 
   await page.getByRole('button', { name: 'Nova data fechada' }).click()
-  await page.getByLabel('Data').fill('2036-12-25')
+  await page.getByLabel('Data').fill('25/12/2036')
   await page.getByLabel('Nome').fill('Natal')
   await page.getByRole('button', { name: 'Adicionar data' }).click()
 
@@ -279,7 +279,7 @@ test('dia fechado deixa quem tinha lugar com reposição em aberto', async ({ pa
   await page.goto('/config?s=funcionamento')
 
   await page.getByRole('button', { name: 'Nova data fechada' }).click()
-  await page.getByLabel('Data').fill('2036-12-24')
+  await page.getByLabel('Data').fill('24/12/2036')
   await page.getByLabel('Nome').fill('Véspera')
   await page.getByRole('button', { name: 'Adicionar data' }).click()
 
@@ -308,8 +308,8 @@ test('"só marcar como fechado" não cancela nada', async ({ page }) => {
   await page.goto('/config?s=funcionamento')
 
   await page.getByRole('button', { name: 'Nova data fechada' }).click()
-  await page.getByLabel('Data').fill('2036-11-15')
-  await page.getByRole('button', { name: 'Só marcar como fechado' }).click()
+  await page.getByLabel('Data').fill('15/11/2036')
+  await page.getByRole('button', { name: 'Manter os horários' }).click()
   await page.getByRole('button', { name: 'Adicionar data' }).click()
 
   // a etiqueta mostra dia/mês, como no protótipo, o ano só apareceria para

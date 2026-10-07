@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ModalFormulario } from '@/components/ui/modal'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
+import { CampoData } from '@/components/ui/campo-data'
+import { Escolha } from '@/components/ui/escolha'
 import { cartao, Campo, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
 import { BotaoLinha } from './casca'
 import { useAviso } from '@/components/ui/desfazer'
@@ -44,6 +46,7 @@ export function SecaoFuncionamento({
   const [estado, setEstado] = useState(dias)
   /** o dia em edição, `'data'` para o modal de data fechada, `null` fechado */
   const [modal, setModal] = useState<number | 'data' | null>(null)
+  const [removendo, setRemovendo] = useState<DataFechada | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
   const router = useRouter()
@@ -170,7 +173,7 @@ export function SecaoFuncionamento({
                 type="button"
                 aria-label={`Remover ${d.descricao ?? d.data}`}
                 disabled={pendente}
-                onClick={() => comErro(() => removerDataFechada(d.id), 'Data removida')}
+                onClick={() => setRemovendo(d)}
                 className="flex size-7 items-center justify-center rounded-minima text-tinta-fraca hover:bg-alerta-fundo hover:text-alerta"
               >
                 <span aria-hidden>×</span>
@@ -193,6 +196,31 @@ export function SecaoFuncionamento({
           </p>
         ) : null}
       </div>
+
+      <Modal
+        aberto={removendo !== null}
+        titulo="Remover data fechada"
+        sub={removendo
+          ? `${removendo.data.slice(8)}/${removendo.data.slice(5, 7)}${removendo.descricao ? `, ${removendo.descricao}` : ''} volta a ser um dia comum.`
+          : undefined}
+        primario="Remover data"
+        pendente={pendente}
+        aoFechar={() => setRemovendo(null)}
+        aoConfirmar={() => {
+          const alvo = removendo
+          if (!alvo) return
+          setRemovendo(null)
+          comErro(() => removerDataFechada(alvo.id), 'Data removida')
+        }}
+      >
+        {removendo?.acao === 'cancelar_avisar' ? (
+          <Nota tom="atencao">
+            Os horários já cancelados por esta data continuam cancelados, e as
+            reposições abertas continuam valendo. Para atender no dia, reabra
+            cada horário pela Agenda.
+          </Nota>
+        ) : null}
+      </Modal>
 
       {emEdicao ? (
         <ModalDia
@@ -339,52 +367,54 @@ function ModalDataFechada({
         acao,
       })}
     >
-      <div className="flex flex-wrap items-start gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <Campo rotulo="Data" htmlFor="dt-data">
-          <input id="dt-data" name="data" type="date" required
-            defaultValue={hoje} className={entrada} />
-        </Campo>
-        <Campo rotulo="Nome" htmlFor="dt-desc" dica="Aparece na agenda do dia">
-          <input id="dt-desc" name="descricao" className={entrada}
-            placeholder="Exemplo: Natal" />
+          <CampoData id="dt-data" nome="data" valorInicial={hoje} limpavel={false} />
         </Campo>
         <Campo rotulo="Tipo" htmlFor="dt-tipo">
-          <select id="dt-tipo" name="tipo" className={entrada}>
-            <option value="feriado">Feriado</option>
-            <option value="fechado">Fechado</option>
-          </select>
+          <Escolha
+            id="dt-tipo" nome="tipo" valorInicial="feriado"
+            opcoes={[
+              { valor: 'feriado', rotulo: 'Feriado' },
+              { valor: 'fechado', rotulo: 'Recesso ou manutenção' },
+            ]}
+          />
         </Campo>
       </div>
+      <Campo rotulo="Nome" htmlFor="dt-desc" dica="Aparece na agenda do dia">
+        <input id="dt-desc" name="descricao" className={entrada}
+          placeholder="Exemplo: Natal" />
+      </Campo>
 
       {/* o rótulo não nomeia a sessão de propósito: "o que fazer com as
           sessões" vira "com as atendimentos" numa conta de clínica, e aqui o
           artigo é inevitável. A frase muda, como manda a régua do vocabulário. */}
       <div className="flex flex-col gap-2">
-        <Rotulo>O que fazer com o que já está marcado no dia</Rotulo>
+        <Rotulo>Os horários do dia</Rotulo>
         <div className="flex flex-wrap gap-2">
           <Chip
             ativo={acao === 'cancelar_avisar'}
             onClick={() => setAcao('cancelar_avisar')}
           >
-            Cancelar e liberar reposição
+            Cancelar os horários
           </Chip>
           <Chip ativo={acao === 'so_marcar'} onClick={() => setAcao('so_marcar')}>
-            Só marcar como fechado
+            Manter os horários
           </Chip>
         </div>
       </div>
 
       {acao === 'cancelar_avisar' ? (
         <Nota tom="positivo">
-          Cancelar risca o que estava marcado naquele dia, com o motivo, em vez
-          de fazer sumir, e quem tinha vaga fixa entra em Pendências com
-          reposição em aberto. O aviso continua sendo seu: o sistema ainda não
-          manda mensagem sozinho.
+          Os horários do dia ficam cancelados, com o motivo, e quem tinha lugar
+          entra em Pendências com reposição em aberto. O cancelamento chega às
+          integrações, como o atendimento por WhatsApp; sem integração, o aviso
+          fica com a equipe.
         </Nota>
       ) : (
         <Nota tom="atencao">
-          Só marcar deixa o dia na agenda como fechado e não mexe no que estava
-          marcado. É o feriado em que o negócio decide trabalhar.
+          O dia aparece na agenda como feriado, e os horários acontecem normalmente.
+          É o feriado em que o negócio decide trabalhar.
         </Nota>
       )}
 

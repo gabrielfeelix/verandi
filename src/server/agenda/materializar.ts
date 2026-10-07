@@ -86,6 +86,8 @@ export async function materializarJanela(
   const { data: excecoesBrutas } = await db
     .from('excecao_calendario').select('data, tipo')
     .eq('conta_id', contaId).gte('data', de).lte('data', ate)
+    // "só marcar" é o feriado em que o estúdio trabalha: a aula nasce normal
+    .eq('acao', 'cancelar_avisar')
     .returns<Excecao[]>()
   const excecoes = excecoesBrutas ?? []
 
@@ -168,7 +170,7 @@ export async function materializarJanela(
     const { data: inseridas, error } = await db
       .from('sessao')
       .upsert(linhas, { onConflict: 'serie_id,inicio', ignoreDuplicates: true })
-      .select('id, inicio')
+      .select('id, inicio, status')
       
     if (error) throw error
     criadas += inseridas?.length ?? 0
@@ -180,6 +182,9 @@ export async function materializarJanela(
       // a data local da sessão, não o pedaço do ISO: a turma das 21h em Brasília
       // é 00h do dia seguinte em UTC, e a vaga tem vigência em data local
       const dia = localDe(sessao.inicio, fuso).data
+      // aula que nasce cancelada por data fechada deixa a reposição em aberto,
+      // igual à que já existia quando a data foi marcada
+      const cancelada = sessao.status === 'cancelada'
       return dasSerie
         .filter((v) => v.inicio <= dia && (v.fim === null || v.fim >= dia))
         .map((v) => {
@@ -190,7 +195,8 @@ export async function materializarJanela(
             pessoa_id: v.pessoa_id,
             origem: 'recorrente' as const,
             status: licenca && dentroDaLicenca(dia, licenca)
-              ? ('licenca' as const) : ('esperada' as const),
+              ? ('licenca' as const)
+              : cancelada ? ('cancelada' as const) : ('esperada' as const),
             registrado_por_origem: 'sistema' as const,
           }
         })

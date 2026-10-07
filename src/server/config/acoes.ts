@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { hojeEm, instante } from '../agenda/fuso'
+import { avisar } from '../webhook/eventos'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
 import { BALDE_FOTO } from './equipe'
 import { BALDE_ASSINATURA } from './consultas'
@@ -364,6 +365,11 @@ export async function salvarDataFechada(e: {
   const conta = await exigirDono()
   const db = await clienteServidor()
 
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.data)) throw new Error('escolha a data')
+  if (e.data < hojeEm(conta.fuso)) {
+    throw new Error('essa data já passou. Aula de um dia que já foi se cancela pela própria aula')
+  }
+
   const linha = {
     conta_id: conta.contaId,
     data: e.data,
@@ -379,7 +385,7 @@ export async function salvarDataFechada(e: {
 
   let sessoesCanceladas = 0
   let reposicoesAbertas = 0
-  if (e.acao === 'cancelar_avisar' && e.data >= hojeEm(conta.fuso)) {
+  if (e.acao === 'cancelar_avisar') {
     const de = instante(e.data, '00:00', conta.fuso)
     const ate = instante(e.data, '23:59', conta.fuso)
 
@@ -408,6 +414,11 @@ export async function salvarDataFechada(e: {
         
       if (erroPart) throw erroPart
       reposicoesAbertas = soltas?.length ?? 0
+
+      // o mesmo aviso do cancelamento de uma aula: o bot avisa quem ia
+      for (const s of alvo!) {
+        await avisar(db, conta.contaId, 'sessao.cancelada', { sessaoId: s.id })
+      }
     }
   }
 

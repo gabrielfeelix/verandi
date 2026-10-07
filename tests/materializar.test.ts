@@ -31,9 +31,11 @@ describe('materializarJanela', () => {
       conta_id: contaId, serie_id: serieId, pessoa_id: pessoaId, inicio: '2026-03-01',
     })
 
-    await db.from('excecao_calendario').insert({
-      conta_id: contaId, data: '2026-08-10', tipo: 'feriado', descricao: 'Teste',
-    })
+    await db.from('excecao_calendario').insert([
+      { conta_id: contaId, data: '2026-08-10', tipo: 'feriado', descricao: 'Teste', acao: 'cancelar_avisar' },
+      // feriado em que o estúdio trabalha: a aula nasce normal
+      { conta_id: contaId, data: '2026-08-24', tipo: 'feriado', descricao: 'Trabalha', acao: 'so_marcar' },
+    ])
   })
 
   it('cria uma sessão por ocorrência da janela', async () => {
@@ -60,11 +62,24 @@ describe('materializarJanela', () => {
     expect(data?.motivo_cancelamento).toContain('feriado')
   })
 
+  it('feriado marcado só como aviso não cancela a aula gerada', async () => {
+    const { data } = await db.from('sessao').select('status')
+      .eq('serie_id', serieId)
+      .gte('inicio', '2026-08-24T00:00:00Z').lt('inicio', '2026-08-25T00:00:00Z')
+      .single()
+    expect(data?.status).toBe('prevista')
+  })
+
   it('semeia a participação de quem tem vaga recorrente', async () => {
     const { data } = await db.from('participacao')
-      .select('origem, status').eq('pessoa_id', pessoaId)
+      .select('origem, status, sessao:sessao_id(status)').eq('pessoa_id', pessoaId)
     expect(data).toHaveLength(5)
-    expect(data![0]).toMatchObject({ origem: 'recorrente', status: 'esperada' })
+    // quem tinha lugar no feriado sai com reposição em aberto, como na aula
+    // que já existia quando a data foi marcada
+    const doFeriado = data!.filter((p) => p.sessao?.status === 'cancelada')
+    const comuns = data!.filter((p) => p.sessao?.status !== 'cancelada')
+    expect(doFeriado).toEqual([expect.objectContaining({ origem: 'recorrente', status: 'cancelada' })])
+    expect(comuns.every((p) => p.status === 'esperada')).toBe(true)
   })
 
   it('a hora local vira o instante certo no fuso da conta', async () => {
