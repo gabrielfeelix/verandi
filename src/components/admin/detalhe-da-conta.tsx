@@ -1,5 +1,6 @@
 'use client'
 
+import { Escolha } from '@/components/ui/escolha'
 import { useState, useTransition, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -18,6 +19,15 @@ import type { ContaDetalhe } from '@/server/admin/consultas'
 
 type AbaDaConta = 'dados' | 'pessoas' | 'log'
 
+
+/** os fusos que uma conta brasileira usa; o servidor confere o nome de qualquer jeito */
+const FUSOS_DO_BRASIL = [
+  { valor: 'America/Sao_Paulo', rotulo: 'Brasília', detalhe: 'Sul, Sudeste, Nordeste, Goiás, DF' },
+  { valor: 'America/Manaus', rotulo: 'Amazonas', detalhe: 'AM, RR, MT, MS, RO' },
+  { valor: 'America/Belem', rotulo: 'Pará', detalhe: 'PA, AP' },
+  { valor: 'America/Rio_Branco', rotulo: 'Acre', detalhe: 'AC, sudoeste do AM' },
+  { valor: 'America/Noronha', rotulo: 'Fernando de Noronha', detalhe: 'Ilhas oceânicas' },
+]
 /**
  * A tela de uma conta de cliente.
  *
@@ -111,8 +121,16 @@ export function DetalheDaConta({
               <Campo rotulo="Nome do negócio" htmlFor="dc-nome" obrigatorio>
                 <input id="dc-nome" name="nome" required defaultValue={conta.nome} className={entrada} />
               </Campo>
-              <Campo rotulo="Fuso" htmlFor="dc-fuso" dica="Exemplo: America/Sao_Paulo">
-                <input id="dc-fuso" name="fuso" required defaultValue={conta.fuso} className={entrada} />
+              <Campo rotulo="Fuso" htmlFor="dc-fuso">
+                <Escolha
+                  id="dc-fuso" nome="fuso" valorInicial={conta.fuso}
+                  opcoes={[
+                    ...FUSOS_DO_BRASIL,
+                    // conta com fuso fora da lista continua mostrando o dela
+                    ...(FUSOS_DO_BRASIL.some((f) => f.valor === conta.fuso)
+                      ? [] : [{ valor: conta.fuso, rotulo: conta.fuso }]),
+                  ]}
+                />
               </Campo>
               <Campo rotulo="Identificador" dica="Não muda: está em links e na API">
                 <input readOnly value={conta.slug} className={`${entrada} cursor-default font-mono text-tinta-media`} aria-label="Identificador" />
