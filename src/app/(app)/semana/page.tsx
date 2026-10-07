@@ -6,6 +6,7 @@ import { diaDaSemanaDe, somarDias } from '@/core/agenda/datas'
 import { agoraMs, hojeEm, localDe } from '@/server/agenda/fuso'
 import { GradeSemana } from '@/components/grade/grade-semana'
 import { BotaoImprimir } from '@/components/ui/imprimir'
+import { NovaAulaAvulsa } from '@/components/pessoas/aula-avulsa'
 import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
 import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
@@ -65,6 +66,9 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const p = await searchParams
   const conta = await exigirPapel(OPERA, 'Agenda')
   const db = await clienteServidor()
+  // as modalidades do botão "Aula avulsa" (a Agenda já é só de quem opera)
+  const { data: servicosAvulsa } = await db.from('servico').select('id, nome')
+    .eq('conta_id', conta.contaId).eq('ativo', true).order('nome')
 
   const fuso = conta.fuso
   const hoje = hojeEm(fuso)
@@ -225,6 +229,8 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
 
           {/* imprimir a semana é coisa de balcão, não de telefone */}
           {!ehDia ? <span className="hidden md:contents"><BotaoImprimir /></span> : null}
+
+          <NovaAulaAvulsa servicos={servicosAvulsa ?? []} />
         </div>
       </header>
 

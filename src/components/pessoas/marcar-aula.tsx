@@ -164,10 +164,10 @@ export function MarcarAula({
           aberto
           glifo="+"
           titulo={fora
-            ? `${rotuloSessao} avulsa para ${nome.split(' ')[0]}`
+            ? `Aula avulsa para ${nome.split(' ')[0]}`
             : `Marcar ${rotuloSessao.toLowerCase()} para ${nome.split(' ')[0]}`}
           sub={fora
-            ? 'Fora da grade, em qualquer dia e hora. Com valor, gera a cobrança.'
+            ? 'Em qualquer dia e hora. Com valor, gera a cobrança.'
             : 'Só horários com lugar. Um toque marca.'}
           largura="lista"
           secundario="Fechar"
@@ -306,7 +306,7 @@ export function MarcarAula({
                 Precisa de outro dia, hora ou modalidade?
               </span>
               <Botao tom="secundario" miudo onClick={() => setFora(true)}>
-                Aula avulsa fora da grade
+                Aula avulsa
               </Botao>
             </div>
           )}

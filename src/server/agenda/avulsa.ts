@@ -7,7 +7,7 @@ import { encaixar } from './acoes'
 import { materializarCobrancas } from '../financeiro/materializar'
 
 /**
- * Aula avulsa fora da grade: "a aluna quer uma ventosa na terça".
+ * Aula avulsa: "a aluna quer uma ventosa na terça".
  *
  * Pedido do MGM (07/out/2026): para cobrar uma aula avulsa era preciso criar
  * plano, ligar na modalidade e só então matricular, e marcar só funcionava em
@@ -21,7 +21,8 @@ import { materializarCobrancas } from '../financeiro/materializar'
  */
 
 type Entrada = {
-  pessoaId: string
+  /** pela Agenda a aula pode nascer sem ninguém, e a pessoa entra depois */
+  pessoaId: string | null
   /** modalidade existente, ou `null` com `novoServico` para criar ali mesmo */
   servicoId: string | null
   novoServico?: string
@@ -29,7 +30,9 @@ type Entrada = {
   hora: string
   duracaoMin: number
   profissionalId: string | null
-  /** zero: aula sem cobrança (cortesia, experimental) */
+  /** quantos cabem; mais gente entra pelo "Encaixar aluno" da aula */
+  capacidade: number
+  /** zero: aula sem cobrança (cortesia, experimental). Só vale com pessoa */
   valorCent: number
 }
 
@@ -55,6 +58,8 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
     const duracao = Math.round(e.duracaoMin)
     if (!(duracao >= 5 && duracao <= 600)) return { ok: false, erro: 'A duração vai de 5 a 600 minutos.' }
     if (!(e.valorCent >= 0)) return { ok: false, erro: 'O valor não pode ser negativo.' }
+    const lugares = Math.round(e.capacidade)
+    if (!(lugares >= 1 && lugares <= 100)) return { ok: false, erro: 'Os lugares vão de 1 a 100.' }
 
     const db = await clienteServidor()
 
@@ -76,7 +81,7 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
     }
 
     let contratoId: string | null = null
-    if (e.valorCent > 0) {
+    if (e.pessoaId && e.valorCent > 0) {
       contratoId = await contratoAvulso(db, conta.contaId, e.pessoaId, servicoId!, e.data, e.valorCent)
     }
 
@@ -88,14 +93,16 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
       local_id: null,
       inicio: instante(e.data, e.hora, conta.fuso),
       duracao_min: duracao,
-      capacidade: 1,
+      capacidade: lugares,
       status: 'prevista',
     }).select('id').single()
     if (erroSessao) throw erroSessao
 
     // pelo mesmo caminho de todo encaixe: o evento para o bot e a ligação com o
     // contrato com saldo (o avulso que acabou de nascer) saem de lá
-    const r = await encaixar({ sessaoId: sessao.id, pessoaId: e.pessoaId, origem: 'avulso' })
+    const r = e.pessoaId
+      ? await encaixar({ sessaoId: sessao.id, pessoaId: e.pessoaId, origem: 'avulso' })
+      : { ok: true as const }
     if (!r.ok) {
       await db.from('sessao').delete().eq('id', sessao.id)
       if (contratoId) await db.from('contrato').delete().eq('id', contratoId)
@@ -104,7 +111,7 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
 
     if (contratoId) await materializarCobrancas(db, conta.contaId, hojeEm(conta.fuso), contratoId)
 
-    revalidatePath(`/pessoas/${e.pessoaId}`)
+    if (e.pessoaId) revalidatePath(`/pessoas/${e.pessoaId}`)
     revalidatePath('/semana')
     revalidatePath('/financeiro')
     return { ok: true, sessaoId: sessao.id }
