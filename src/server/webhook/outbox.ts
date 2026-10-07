@@ -125,6 +125,8 @@ export async function entregarPendentes(limite = 20): Promise<{ entregues: numbe
         },
         body: corpo,
         signal: AbortSignal.timeout(10_000),
+        // redirecionamento levaria o evento para onde o cadastro não conferiu
+        redirect: 'manual',
       })
       // qualquer 2xx é sucesso: exigir 200 recusaria um 204 legítimo
       if (!r.ok) erro = `resposta ${r.status}`

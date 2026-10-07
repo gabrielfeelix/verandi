@@ -5,6 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { clienteAdmin } from '../supabase'
 import { novoSegredoDeWebhook } from './outbox'
 import { registrar } from '../log'
+import { enderecoPublico } from '@/core/webhook/endereco'
 
 /**
  * Configurar para onde a Verandi avisa.
@@ -33,6 +34,9 @@ export async function salvarWebhook(url: string): Promise<ResultadoWebhook> {
    */
   if (!/^https:\/\/.+/.test(limpa)) {
     throw new Error('o endereço precisa começar com https://')
+  }
+  if (!enderecoPublico(limpa)) {
+    throw new Error('o endereço precisa ser público na internet, não de rede interna')
   }
 
   const segredo = novoSegredoDeWebhook()
