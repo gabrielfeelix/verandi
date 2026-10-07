@@ -18,6 +18,8 @@ import { digitosDaBusca, semAcento } from '@/core/pessoas/busca'
 export type FiltroPessoa =
   | 'sem_telefone' | 'sem_horario_fixo' | 'plano_vencendo' | 'plano_vencido'
   | 'plano_a_renovar' | 'faltou_duas' | 'faltou_sem_avisar' | 'de_licenca' | 'inativa'
+  /** ativos e inativos juntos; sem ele nem `inativa`, a lista é só de ativos */
+  | 'todas'
 
 /**
  * Os filtros que a view não responde: saem da participação, como lista de ids.
@@ -149,7 +151,9 @@ function aplicarFiltros<T extends { eq: unknown }>(
 
   // inativa some do padrão e continua no histórico: quem parou em março
   // precisa continuar existindo no março
-  q = filtros.includes('inativa') ? q.eq('ativo', false) : q.eq('ativo', true)
+  if (!filtros.includes('todas')) {
+    q = filtros.includes('inativa') ? q.eq('ativo', false) : q.eq('ativo', true)
+  }
 
   if (opts.busca && opts.busca.trim()) {
     // Número procura no telefone (dígitos seguidos), texto procura no nome.
@@ -358,7 +362,11 @@ export type EtiquetaContada = { tag: string; n: number }
  * clica em "Sem telefone" por curiosidade, mas todo mundo repara em `5`.
  */
 export async function contarPessoas(
-  db: Db, contaId: string, opts: Pick<OpcoesLista, 'busca' | 'fuso'> = {},
+  db: Db, contaId: string,
+  opts: Pick<OpcoesLista, 'busca' | 'fuso'> & {
+    /** a situação escolhida na tela, para os chips de problema contarem dentro dela */
+    situacao?: 'inativa' | 'todas'
+  } = {},
 ): Promise<{
   ativos: number
   inativos: number
@@ -382,14 +390,15 @@ export async function contarPessoas(
     return count ?? 0
   }
 
+  const comSituacao: FiltroPessoa[] = opts.situacao ? [opts.situacao] : []
   // só os filtros que a tela mostra: cada chip é uma contagem a mais por abertura
   const [ativos, semTelefone, aRenovar, faltouSemAvisar, deLicenca, inativos] =
     await Promise.all([
       conta([]),
-      conta(['sem_telefone']),
-      conta(['plano_a_renovar']),
-      conta(['faltou_sem_avisar']),
-      conta(['de_licenca']),
+      conta(['sem_telefone', ...comSituacao]),
+      conta(['plano_a_renovar', ...comSituacao]),
+      conta(['faltou_sem_avisar', ...comSituacao]),
+      conta(['de_licenca', ...comSituacao]),
       conta(['inativa']),
     ])
 

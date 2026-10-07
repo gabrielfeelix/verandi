@@ -103,12 +103,18 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
 
   const filtros = (Array.isArray(f) ? f : f ? [f] : []) as FiltroPessoa[]
   const pagina = Math.max(1, Number(pag) || 1)
+  // a situação é uma escolha só (ativos, inativos ou todos), e os filtros de
+  // problema somam com ela
+  const situacao: 'ativos' | 'inativa' | 'todas' =
+    filtros.includes('todas') ? 'todas' : filtros.includes('inativa') ? 'inativa' : 'ativos'
 
   const [{ linhas: pessoas, total }, contagem] = await Promise.all([
     listarPessoas(db, conta.contaId, {
       busca: q, filtros, tag, fuso: conta.fuso, pagina,
     }),
-    contarPessoas(db, conta.contaId, { busca: q, fuso: conta.fuso }),
+    contarPessoas(db, conta.contaId, {
+      busca: q, fuso: conta.fuso, situacao: situacao === 'ativos' ? undefined : situacao,
+    }),
   ])
 
   // quem da página está de licença: a situação diz isso em vez de "ativa"
@@ -137,7 +143,6 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
   }
 
   const cadastrados = contagem.ativos + contagem.inativos
-  const semFiltro = filtros.length === 0 && !tag
 
   /*
    * O contador do topo conta a busca inteira, não a página: com paginação, "24
@@ -161,6 +166,14 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
       b.delete('f')
       for (const x of filtros) if (x !== valor) b.append('f', x)
       if (!filtros.includes(valor)) b.append('f', valor)
+    })
+
+  // trocar a situação limpa os outros filtros: "Inativos" com "Faltas
+  // recentes" ligado de antes dava uma lista vazia sem motivo aparente
+  const deSituacao = (valor: typeof situacao) =>
+    endereco((b) => {
+      b.delete('f'); b.delete('t')
+      if (valor !== 'ativos') b.append('f', valor)
     })
 
   const daPagina = (n: number) => endereco((b) => { if (n > 1) b.set('p', String(n)) })
@@ -210,9 +223,17 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           O número em cada chip é o que faz reparar sem precisar clicar. */}
       {/* no celular a faixa rola de lado, como na Agenda */}
       <div className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] *:shrink-0 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
-        <Chip href={endereco((b) => { b.delete('f'); b.delete('t') })} ativo={semFiltro}>
-          Todos <Contador ativo={semFiltro}>{contagem.ativos}</Contador>
-        </Chip>
+        {([
+          ['ativos', 'Ativos', contagem.ativos],
+          ['inativa', 'Inativos', contagem.inativos],
+          ['todas', 'Todos', contagem.ativos + contagem.inativos],
+        ] as const).map(([valor, rotulo, n]) => (
+          <Chip key={valor} href={deSituacao(valor)} ativo={situacao === valor}>
+            {rotulo} <Contador ativo={situacao === valor}>{n}</Contador>
+          </Chip>
+        ))}
+
+        <span aria-hidden className="mx-1 h-5 w-px bg-linha" />
 
         {FILTROS.map((x) => {
           const ativo = filtros.includes(x.valor)
@@ -235,10 +256,6 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           }))}
         />
 
-        {/* inativo não é problema a resolver: é outra lista, e fica de lado */}
-        <Chip href={alternar('inativa')} ativo={filtros.includes('inativa')}>
-          Inativos <Contador ativo={filtros.includes('inativa')}>{contagem.porFiltro.inativa ?? 0}</Contador>
-        </Chip>
       </div>
 
       {/* Tabela de verdade, como Cobranças: o cabeçalho de antes era uma
@@ -362,7 +379,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
           total={total}
           porPagina={POR_PAGINA}
           hrefDe={daPagina}
-          nota={NOTA_INATIVA}
+          nota={situacao === 'ativos' ? NOTA_INATIVA : undefined}
         />
       ) : null}
     </div>
