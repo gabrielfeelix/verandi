@@ -35,6 +35,8 @@ type Entrada = {
   capacidade: number
   /** zero: aula sem cobrança (cortesia, experimental). Só vale com pessoa */
   valorCent: number
+  /** como a pessoa entra: avulsa (aula solta) ou experimental (conhecendo) */
+  origem?: 'avulso' | 'experimental'
 }
 
 type Resultado = { ok: true; sessaoId: string } | { ok: false; erro: string }
@@ -120,7 +122,7 @@ export async function marcarAulaAvulsa(e: Entrada): Promise<Resultado> {
     // pessoa, e o avulso ficaria cobrado e sem aula
     const r = e.pessoaId
       ? await encaixar({
-          sessaoId: sessao.id, pessoaId: e.pessoaId, origem: 'avulso',
+          sessaoId: sessao.id, pessoaId: e.pessoaId, origem: e.origem ?? 'avulso',
           contratoId: contratoId ?? undefined,
         })
       : { ok: true as const }

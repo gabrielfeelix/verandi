@@ -1322,6 +1322,7 @@ export type Database = {
           endereco_numero: string | null
           estado_civil: string | null
           foto_path: string | null
+          gympass: boolean
           id: string
           identificador_externo: string | null
           nascimento: string | null
@@ -1354,6 +1355,7 @@ export type Database = {
           endereco_numero?: string | null
           estado_civil?: string | null
           foto_path?: string | null
+          gympass?: boolean
           id?: string
           identificador_externo?: string | null
           nascimento?: string | null
@@ -1386,6 +1388,7 @@ export type Database = {
           endereco_numero?: string | null
           estado_civil?: string | null
           foto_path?: string | null
+          gympass?: boolean
           id?: string
           identificador_externo?: string | null
           nascimento?: string | null
@@ -2344,6 +2347,7 @@ export type Database = {
       origem_participacao:
         | "recorrente"
         | "avulso"
+        | "experimental"
         | "reposicao"
         | "encaixe"
         | "reserva"
@@ -2493,6 +2497,7 @@ export const Constants = {
       origem_participacao: [
         "recorrente",
         "avulso",
+        "experimental",
         "reposicao",
         "encaixe",
         "reserva",

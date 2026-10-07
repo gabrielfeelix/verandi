@@ -85,6 +85,7 @@ const ABAS: Aba[] = ['agenda', 'historico', 'reposicoes', 'contratos', 'avaliaca
 const ROTULO_ORIGEM: Record<string, string> = {
   recorrente: 'Horário fixo',
   avulso: 'Avulso',
+  experimental: 'Experimental',
   reposicao: 'Reposição',
   encaixe: 'Encaixe',
   reserva: 'Reserva',
@@ -422,6 +423,11 @@ export default async function Pessoa({
               <h1 className="font-titulo text-[24px] leading-tight font-semibold">
                 {p.nome}
               </h1>
+              {p.gympass ? (
+                <span className="rounded-minima bg-info-fundo px-2 py-[3px] text-[12px] font-semibold text-info">
+                  Gympass
+                </span>
+              ) : null}
               {ficha.tags.map((t) => (
                 <span
                   key={t}
@@ -467,6 +473,7 @@ export default async function Pessoa({
               telefone: p.telefone,
               email: p.email,
               identificadorExterno: p.identificadorExterno,
+              gympass: p.gympass,
               nascimento: p.nascimento,
               vencimentoPlano: p.vencimentoPlano,
               ...p.cadastrais,

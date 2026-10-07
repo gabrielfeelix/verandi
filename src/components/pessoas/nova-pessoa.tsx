@@ -61,6 +61,7 @@ export function NovaPessoa({
                 nome: String(f.get('nome') ?? ''),
                 telefone: String(f.get('telefone') ?? ''),
                 identificadorExterno: String(f.get('identificador') ?? ''),
+                gympass: f.get('gympass') === 'on',
               })
               fechar()
               if (aoCriar) aoCriar(id)
@@ -86,6 +87,11 @@ export function NovaPessoa({
               />
             </Campo>
           </div>
+
+          <label className="flex items-center gap-2 text-[14.5px]">
+            <input type="checkbox" name="gympass" />
+            Aluno Gympass / Wellhub
+          </label>
 
           <Nota>
             Sem telefone não dá para avisar cancelamento nem cobrar reposição.

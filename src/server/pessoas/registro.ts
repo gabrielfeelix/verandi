@@ -17,7 +17,11 @@ import type { Db } from '../supabase'
 export async function inserirPessoa(
   db: Db,
   contaId: string,
-  entrada: { nome: string; telefone?: string | null; identificadorExterno?: string | null },
+  entrada: {
+    nome: string; telefone?: string | null; identificadorExterno?: string | null
+    /** aluno do Gympass/Wellhub */
+    gympass?: boolean
+  },
 ): Promise<{ id: string }> {
   const nome = entrada.nome.trim()
   if (!nome) throw new Error('nome é obrigatório')
@@ -35,6 +39,7 @@ export async function inserirPessoa(
     nome,
     telefone: normalizarTelefone(entrada.telefone),
     identificador_externo: digitado || await proximoNumero(db, contaId),
+    gympass: entrada.gympass ?? false,
   }).select('id').single()
 
   if (error) throw error

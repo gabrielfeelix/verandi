@@ -27,7 +27,7 @@ import { escolha, idObrigatorio, primeiro } from '@/core/api/pedido'
  *   { "pessoaId": "...", "sessaoId": "...", "origem": "avulso" }
  */
 
-const ORIGENS = ['avulso', 'reposicao', 'encaixe', 'reserva'] as const
+const ORIGENS = ['avulso', 'experimental', 'reposicao', 'encaixe', 'reserva'] as const
 
 export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
   const corpo = await lerCorpo(req)

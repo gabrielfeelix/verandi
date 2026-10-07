@@ -67,6 +67,7 @@ export function MarcarAula({
   const [aberto, setAberto] = useState(false)
   const [servico, setServico] = useState<string | null>(servicoInicial)
   const [dias, setDias] = useState(14)
+  const [tipo, setTipo] = useState<'avulso' | 'experimental'>('avulso')
   const [aulas, setAulas] = useState<AulaParaRepor[] | null>(null)
   const [busca, setBusca] = useState('')
   const [erro, setErro] = useState<string | null>(null)
@@ -114,7 +115,7 @@ export function MarcarAula({
     iniciar(async () => {
       const r = repor && falta
         ? await agendarReposicao(falta.id, a.sessaoId, pessoaId)
-        : await encaixar({ sessaoId: a.sessaoId, pessoaId, origem: 'avulso', passarDoLimite })
+        : await encaixar({ sessaoId: a.sessaoId, pessoaId, origem: tipo, passarDoLimite })
       if (r.ok) {
         setAberto(false)
         aoMarcar?.()
@@ -197,8 +198,8 @@ export function MarcarAula({
                   <>Entra como <strong className="font-semibold">Reposição</strong>
                     <span className="text-tinta-media">, da falta de {falta.quando}</span></>
                 ) : (
-                  <>Entra como <strong className="font-semibold">Avulso</strong>
-                    <span className="text-tinta-media">, só desta vez</span></>
+                  <>Sem usar a reposição
+                    <span className="text-tinta-media">, da falta de {falta.quando}</span></>
                 )}
               </p>
               {faltaFixa ? null : (
@@ -207,9 +208,20 @@ export function MarcarAula({
                   onClick={() => setRepor(!repor)}
                   className="shrink-0 cursor-pointer text-[13.5px] font-medium text-marca hover:underline"
                 >
-                  {repor ? 'Marcar como avulso' : 'Usar a reposição'}
+                  {repor ? 'Não usar a reposição' : 'Usar a reposição'}
                 </button>
               )}
+            </div>
+          ) : null}
+
+          {/* sem reposição, a recepção diz se é aula solta ou primeira aula */}
+          {!(repor && falta) && !semGrade ? (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <span className="text-[13.5px] text-tinta-media">Entra como</span>
+              <div role="group" aria-label="Tipo da aula" className="flex gap-1.5">
+                <Chip type="button" ativo={tipo === 'avulso'} onClick={() => setTipo('avulso')}>Avulsa</Chip>
+                <Chip type="button" ativo={tipo === 'experimental'} onClick={() => setTipo('experimental')}>Experimental</Chip>
+              </div>
             </div>
           ) : null}
 

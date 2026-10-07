@@ -14,6 +14,7 @@ import {
 const ORIGENS: Array<{ valor: OrigemParticipacao; rotulo: string; explica: string }> = [
   { valor: 'recorrente', rotulo: 'Fixo', explica: 'Tem vaga permanente neste horário' },
   { valor: 'avulso', rotulo: 'Avulso', explica: 'Somente nesta data' },
+  { valor: 'experimental', rotulo: 'Experimental', explica: 'Primeira aula, conhecendo o estúdio' },
   { valor: 'reposicao', rotulo: 'Reposição', explica: 'Está repondo uma falta' },
   { valor: 'encaixe', rotulo: 'Encaixe', explica: 'Entrou fora da capacidade prevista' },
   { valor: 'reserva', rotulo: 'Reserva', explica: 'Espera vaga abrir' },

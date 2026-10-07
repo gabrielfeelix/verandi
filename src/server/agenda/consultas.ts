@@ -9,7 +9,7 @@ import { hojeEm, instante, localDe } from './fuso'
 import { materializarJanela } from './materializar'
 
 export type OrigemParticipacao =
-  'recorrente' | 'avulso' | 'reposicao' | 'encaixe' | 'reserva'
+  'recorrente' | 'avulso' | 'experimental' | 'reposicao' | 'encaixe' | 'reserva'
 
 export type SessaoResumo = {
   id: string
@@ -468,7 +468,7 @@ export async function sessaoDetalhe(
    * iguais não são histórico, são ruído.
    */
   const TOM_ORIGEM = {
-    encaixe: 'alerta', reposicao: 'atencao', avulso: 'info',
+    encaixe: 'alerta', reposicao: 'atencao', avulso: 'info', experimental: 'positivo',
     reserva: 'neutro', recorrente: 'positivo',
   } as const
 

@@ -44,7 +44,7 @@ export function ModalEncaixe({
   const { encaixeAberto, fecharEncaixe } = useChamada()
   const [pendente, iniciar] = useTransition()
   const [busca, setBusca] = useState('')
-  const [origem, setOrigem] = useState<'avulso' | 'reposicao'>('avulso')
+  const [origem, setOrigem] = useState<'avulso' | 'experimental' | 'reposicao'>('avulso')
   /** a falta mais antiga ainda sem reposição de quem foi escolhido */
   const [falta, setFalta] = useState<FaltaEmAberto | null>(null)
   const [trocando, setTrocando] = useState(false)
@@ -122,7 +122,7 @@ export function ModalEncaixe({
     setNoLimite(null)
     // aula avulsa paga à parte não gasta o plano: nem o limite da semana nem os
     // dias permitidos se aplicam, e a cobrança religa a aula ao avulso dela
-    const cent = avulsa && origem === 'avulso' ? emCentavos(valor) ?? 0 : 0
+    const cent = avulsa && origem !== 'reposicao' ? emCentavos(valor) ?? 0 : 0
     iniciar(async () => {
       const r = await encaixar({
         sessaoId, pessoaId, origem, confirmarAcima,
@@ -177,6 +177,7 @@ export function ModalEncaixe({
    */
   const ORIGENS = [
     ['avulso', 'Avulso'],
+    ['experimental', 'Experimental'],
     ['reposicao', 'Reposição'],
   ] as const
   const nomeDaOrigem = ORIGENS.find(([v]) => v === origem)?.[1] ?? 'Avulso'
@@ -240,7 +241,7 @@ export function ModalEncaixe({
           className={entrada}
         />
 
-        {avulsa && escolhido && origem === 'avulso' ? (
+        {avulsa && escolhido && origem !== 'reposicao' ? (
           <div className="flex flex-col gap-1.5 pt-1">
             <label htmlFor="enc-valor"><Rotulo>Valor desta aula</Rotulo></label>
             <CampoDinheiro id="enc-valor" valor={valor} aoMudar={setValor} />

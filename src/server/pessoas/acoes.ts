@@ -23,6 +23,7 @@ export async function criarPessoa(entrada: {
   nome: string
   telefone?: string
   identificadorExterno?: string
+  gympass?: boolean
 }): Promise<{ id: string }> {
   const conta = await exigirConta()
   const db = await clienteServidor()
@@ -43,6 +44,7 @@ export async function editarPessoa(id: string, campos: {
   /** quem lê a observação da ficha; ver `0044` e a barreira logo abaixo */
   observacaoVisivel?: 'profissionais' | 'todos'
   ativo?: boolean
+  gympass?: boolean
   /*
    * Os campos que o formulário de matrícula do cliente pede. Todos opcionais:
    * ninguém é obrigado a preencher nada, e exigir documento é o jeito mais
@@ -114,6 +116,7 @@ export async function editarPessoa(id: string, campos: {
     linha.observacao_visivel = campos.observacaoVisivel
   }
   if (campos.ativo !== undefined) linha.ativo = campos.ativo
+  if (campos.gympass !== undefined) linha.gympass = campos.gympass
 
   /*
    * O CPF confere dígito antes de entrar. É o único documento aqui que tem

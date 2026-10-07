@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/modal'
 import { buscarCandidatos } from '@/server/agenda/acoes'
 import { Botao } from '@/components/ui/botao'
-import { Avatar, Campo, Nota, entrada } from '@/components/ui/pecas'
+import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { marcarAulaAvulsa, profissionaisParaAvulsa } from '@/server/agenda/avulsa'
 import { Escolha } from '@/components/ui/escolha'
 import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
@@ -56,6 +56,7 @@ export function FormAulaAvulsa({
   const [lugares, setLugares] = useState('1')
   const [profissional, setProfissional] = useState('')
   const [valor, setValor] = useState('')
+  const [tipo, setTipo] = useState<'avulso' | 'experimental'>('avulso')
   const [profs, setProfs] = useState<Array<{ id: string; nome: string; cor: string | null; foto: string | null }> | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
@@ -78,11 +79,12 @@ export function FormAulaAvulsa({
         profissionalId: profissional || null,
         capacidade: Number(lugares) || 0,
         valorCent,
+        origem: tipo,
       })
       if (!r.ok) return setErro(r.erro)
       const nomeServico = servico === NOVA ? novo.trim() : servicos.find((s) => s.id === servico)?.nome
       const [a, m, d] = data.split('-')
-      aoConcluir(`aula avulsa de ${nomeServico} em ${d}/${m}/${a}, ${hora}${
+      aoConcluir(`aula ${tipo === 'experimental' ? 'experimental' : 'avulsa'} de ${nomeServico} em ${d}/${m}/${a}, ${hora}${
         valorCent ? `, cobrança de R$ ${(valorCent / 100).toFixed(2).replace('.', ',')}` : ''}.`, r.sessaoId)
     })
   }
@@ -182,6 +184,14 @@ export function FormAulaAvulsa({
             />
           )}
         </Campo>
+        {quem ? (
+          <Campo rotulo="Tipo">
+            <div role="group" aria-label="Tipo da aula" className="flex flex-wrap gap-1.5">
+              <Chip type="button" ativo={tipo === 'avulso'} onClick={() => setTipo('avulso')}>Avulsa</Chip>
+              <Chip type="button" ativo={tipo === 'experimental'} onClick={() => setTipo('experimental')}>Experimental</Chip>
+            </div>
+          </Campo>
+        ) : null}
         <Campo rotulo="Valor" htmlFor="av-valor"
           dica={quem ? 'Em branco: sem cobrança.' : 'A cobrança sai quando há aluno.'}>
           <CampoDinheiro id="av-valor" valor={valor} aoMudar={setValor} disabled={!quem} />

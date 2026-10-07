@@ -20,6 +20,7 @@ type Pessoa = {
   telefone: string | null
   email: string | null
   identificadorExterno: string | null
+  gympass: boolean
   nascimento: string | null
   vencimentoPlano: string | null
   observacao: string | null
@@ -207,6 +208,7 @@ export function EditarPessoa({
                 telefone: String(f.get('telefone') ?? ''),
                 email: String(f.get('email') ?? ''),
                 identificadorExterno: String(f.get('identificador') ?? ''),
+                gympass: f.get('gympass') === 'on',
                 nascimento: String(f.get('nascimento') ?? ''),
                 // data que avisa, não valor que cobra; financeiro é outro produto
                 vencimentoPlano: String(f.get('vencimento') ?? ''),
@@ -398,6 +400,11 @@ export function EditarPessoa({
           <label className="flex items-center gap-2 text-[14.5px]">
             <input type="checkbox" name="ativo" defaultChecked={pessoa.ativo} />
             Ativa
+          </label>
+
+          <label className="flex items-center gap-2 text-[14.5px]">
+            <input type="checkbox" name="gympass" defaultChecked={pessoa.gympass} />
+            Aluno Gympass / Wellhub
           </label>
 
           {erro ? <Nota tom="alerta">{erro}</Nota> : null}

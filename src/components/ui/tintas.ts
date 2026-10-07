@@ -35,6 +35,7 @@ export const TINTA_CHAPADA: Record<Tinta, string> = {
 export const TINTA_ORIGEM = {
   recorrente: 'positivo',
   avulso: 'info',
+  experimental: 'positivo',
   reposicao: 'atencao',
   encaixe: 'alerta',
   reserva: 'neutro',

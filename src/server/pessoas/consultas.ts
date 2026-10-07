@@ -556,6 +556,8 @@ export type Ficha = {
     fotoUrl: string | null
     /** desde quando existe: é o denominador de "veio 92% das vezes" */
     criadoEm: string
+    /** aluno do Gympass/Wellhub */
+    gympass: boolean
   }
   tags: string[]
   vagas: VagaDaPessoa[]
@@ -597,7 +599,7 @@ export async function fichaDaPessoa(
   const { data: extras } = await db.from('pessoa')
     .select(`cpf, rg, endereco, endereco_numero, complemento, bairro, cidade,
              uf, cep, sexo, estado_civil, profissao, telefone_residencial,
-             telefone_comercial`)
+             telefone_comercial, gympass`)
     .eq('id', pessoaId).eq('conta_id', contaId).maybeSingle()
 
   // o balde é privado: a foto só existe para a tela como endereço assinado
@@ -666,6 +668,7 @@ export async function fichaDaPessoa(
               observacaoRestrita: !podeLerObservacao && p.observacao !== null,
               criadoEm: p.criado_em,
               anonimizadaEm: p.anonimizada_em,
+              gympass: extras?.gympass ?? false,
               cadastrais: {
                 cpf: extras?.cpf ?? null,
                 rg: extras?.rg ?? null,
