@@ -231,21 +231,14 @@ function aplicarFiltros<T extends { eq: unknown }>(
  *
  * Procura por **todas** as formas em que o mesmo aparelho pode estar gravado
  * (ver `chavesDeBusca`): com e sem o nono dígito, com e sem o país. Número sem
- * DDD não gera chave nenhuma e devolve `null`: chutar o DDD casaria a conversa
- * de uma pessoa com a ficha de outra, e isso não tem conserto.
+ * DDD não gera chave nenhuma: chutar o DDD casaria a conversa de uma pessoa
+ * com a ficha de outra, e isso não tem conserto.
  *
- * Devolve **uma** pessoa, a mais recentemente cadastrada quando há duas com o
- * mesmo número. Duas fichas com o mesmo telefone acontecem (mãe e filha, casal),
- * e a decisão de qual é qual é da conversa, não do banco: o bot pergunta o nome
- * quando precisar. Escolher a mais nova é o palpite menos pior porque é a que
- * alguém acabou de digitar.
- */
-/**
- * Todas as pessoas da conta com esse telefone, ativas primeiro e, entre elas,
- * a mais nova primeiro.
- *
- * Telefone repetido é permitido de propósito: mãe e filha dividem o número.
- * Devolver só uma fazia o bot falar com a filha quando quem escreveu era a mãe.
+ * Olha os três telefones da ficha (principal, residencial e comercial): a mãe
+ * que cuida da agenda da filha escreve do número dela, que fica no segundo
+ * campo. Telefone repetido entre fichas é permitido de propósito (mãe e filha),
+ * então vêm **todas**, ativas primeiro e, entre elas, a mais nova primeiro; o
+ * bot pergunta o nome quando vier mais de uma.
  */
 export async function acharPorTelefone(
   db: Db,
@@ -255,14 +248,49 @@ export async function acharPorTelefone(
   const chaves = formasGuardadas(telefone)
   if (chaves.length === 0) return []
 
+  const lista = chaves.map((c) => `"${c}"`).join(',')
+  const { data: donos, error: erroDonos } = await db
+    .from('pessoa')
+    .select('id')
+    .eq('conta_id', contaId)
+    .or(`telefone.in.(${lista}),telefone_residencial.in.(${lista}),telefone_comercial.in.(${lista})`)
+    .limit(10)
+  if (erroDonos) throw erroDonos
+  return resumosDe(db, contaId, (donos ?? []).map((d) => d.id))
+}
+
+/**
+ * Quem tem este e-mail? Mesma lógica do telefone: pode vir mais de uma ficha
+ * (a mãe cadastra o e-mail dela na da filha), ativas primeiro. Compara sem
+ * diferenciar maiúscula, que é como e-mail se escreve na vida real.
+ */
+export async function acharPorEmail(
+  db: Db,
+  contaId: string,
+  email: string,
+): Promise<PessoaLinha[]> {
+  const limpo = email.trim()
+  if (!limpo.includes('@')) return []
+  const literal = limpo.replace(/[\\%_]/g, (c) => `\\${c}`)
+  const { data: donos, error } = await db
+    .from('pessoa')
+    .select('id')
+    .eq('conta_id', contaId)
+    .ilike('email', literal)
+    .limit(10)
+  if (error) throw error
+  return resumosDe(db, contaId, (donos ?? []).map((d) => d.id))
+}
+
+async function resumosDe(db: Db, contaId: string, ids: string[]): Promise<PessoaLinha[]> {
+  if (!ids.length) return []
   const { data, error } = await db
     .from('pessoa_resumo')
     .select('*')
     .eq('conta_id', contaId)
-    .in('telefone', chaves)
+    .in('id', ids)
     .order('ativo', { ascending: false })
     .order('criado_em', { ascending: false })
-    .limit(10)
     .returns<LinhaResumo[]>()
 
   if (error) throw error

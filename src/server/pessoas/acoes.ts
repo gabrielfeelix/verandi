@@ -145,11 +145,17 @@ export async function editarPessoa(id: string, campos: {
   if (campos.sexo !== undefined) linha.sexo = campos.sexo || null
   if (campos.estadoCivil !== undefined) linha.estado_civil = campos.estadoCivil || null
   if (campos.profissao !== undefined) linha.profissao = campos.profissao || null
+  // os outros dois telefones também reconhecem a pessoa no bot, então entram
+  // com a mesma régua do principal (DDD obrigatório, gravado só em dígitos)
   if (campos.telefoneResidencial !== undefined) {
-    linha.telefone_residencial = campos.telefoneResidencial || null
+    const erroFone = erroDoTelefone(campos.telefoneResidencial)
+    if (erroFone) throw new Error(`Telefone residencial: ${erroFone}`)
+    linha.telefone_residencial = normalizarTelefone(campos.telefoneResidencial)
   }
   if (campos.telefoneComercial !== undefined) {
-    linha.telefone_comercial = campos.telefoneComercial || null
+    const erroFone = erroDoTelefone(campos.telefoneComercial)
+    if (erroFone) throw new Error(`Telefone comercial: ${erroFone}`)
+    linha.telefone_comercial = normalizarTelefone(campos.telefoneComercial)
   }
   // a UF é guardada em duas letras maiúsculas, e o banco recusa o resto
   if (campos.uf !== undefined) {
@@ -235,7 +241,7 @@ const TIPOS_FOTO = ['image/jpeg', 'image/png', 'image/webp']
  *
  * Em pilates e fisioterapia ela não é enfeite de cadastro: é o antes e depois
  * da correção postural, e é como a recepção reconhece quem chegou. Vai num
- * balde separado do da equipe, e o caminho começa pela conta — é por essa
+ * balde separado do da equipe, e o caminho começa pela conta, e é por essa
  * pasta que a política do Storage separa um cliente do outro.
  */
 export async function salvarFotoDaPessoa(id: string, foto: File): Promise<void> {

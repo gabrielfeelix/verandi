@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { acharPorTelefone, listarPessoas } from '@/server/pessoas/consultas'
+import { acharPorEmail, acharPorTelefone, listarPessoas } from '@/server/pessoas/consultas'
 import { inserirPessoa } from '@/server/pessoas/registro'
 import { comChave, erro, erroDePedido, type Contexto } from '@/server/api/rota'
 import { erroDoTelefone, normalizarTelefone } from '@/core/telefone'
@@ -11,7 +11,7 @@ import { primeiro, texto } from '@/core/api/pedido'
  *
  * É a rota que evita o defeito mais previsível da integração: a mesma pessoa
  * virando três cadastros porque escreveu o nome de três jeitos no WhatsApp. A
- * busca é a mesma da tela — `nome_busca`, a coluna sem acento —, então "ceci"
+ * busca é a mesma da tela (`nome_busca`, a coluna sem acento), então "ceci"
  * acha "Cecília" aqui e lá do mesmo jeito.
  *
  * **Duas letras no mínimo.** Sem o piso, um `busca=` vazio devolveria a lista de
@@ -24,24 +24,28 @@ import { primeiro, texto } from '@/core/api/pedido'
  *
  *   GET /api/v1/pessoas?busca=cecilia
  *   GET /api/v1/pessoas?telefone=5544998887766
+ *   GET /api/v1/pessoas?email=marina@exemplo.com
  */
 export const GET = comChave(async (req: NextRequest, ctx: Contexto) => {
   const parametros = req.nextUrl.searchParams
   const telefone = (parametros.get('telefone') ?? '').trim()
   const busca = (parametros.get('busca') ?? '').trim()
+  const email = (parametros.get('email') ?? '').trim()
 
   /*
    * Procurar pelo número é o caminho do robô; pelo nome, o de quem digitou.
    *
-   * **Sem este ramo, o bot começa toda conversa em "qual o seu nome?"** —
+   * **Sem este ramo, o bot começa toda conversa em "qual o seu nome?"**,
    * inclusive com quem faz aula aqui há dois anos e acabou de mandar mensagem
    * para remarcar. Quem escreve "oi" não disse nome nenhum, então a busca por
    * nome não tem o que procurar.
    *
    * Vem primeiro porque é mais específico: quem manda os dois quer o número.
    */
-  if (telefone !== '') {
-    const pessoas = await acharPorTelefone(ctx.db, ctx.contaId, telefone)
+  if (telefone !== '' || email !== '') {
+    const pessoas = telefone !== ''
+      ? await acharPorTelefone(ctx.db, ctx.contaId, telefone)
+      : await acharPorEmail(ctx.db, ctx.contaId, email)
 
     /*
      * Não achar é **200 com lista vazia**, e não 404.
@@ -68,7 +72,7 @@ export const GET = comChave(async (req: NextRequest, ctx: Contexto) => {
   if (busca.length < 2) {
     return erro(
       400,
-      'informe telefone=, ou busca= com pelo menos duas letras',
+      'informe telefone=, email=, ou busca= com pelo menos duas letras',
       'busca',
     )
   }
@@ -116,7 +120,7 @@ export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
    *
    * `inserirPessoa` valida com `throw`, porque quem a chama pela tela trata a
    * exceção. Aqui a exceção caía no `catch` genérico da casca e virava
-   * "não deu para responder agora" — a resposta que faz o integrador procurar
+   * "não deu para responder agora": a resposta que faz o integrador procurar
    * defeito no servidor quando o problema está no corpo que ele mandou, e que
    * na automação vira handoff em vez de uma correção possível.
    */

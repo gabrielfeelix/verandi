@@ -299,6 +299,24 @@ test.describe('pessoas', () => {
     expect(corpo.pessoas[0]).toMatchObject({ nome: 'Marina Alves', ativa: true })
   })
 
+  test('mais de um número e e-mail reconhecem, e a família vem inteira', async ({ request }) => {
+    const c = await contaComChave()
+    await admin.from('pessoa').insert([
+      { conta_id: c.contaId, nome: 'Ana Mãe', telefone: '44988776655', email: 'ana@exemplo.com' },
+      // a filha tem o número próprio, e o da mãe no segundo campo
+      { conta_id: c.contaId, nome: 'Bia Filha', telefone: '44911223344', telefone_comercial: '44988776655' },
+    ])
+
+    const familia = await json(request, '/api/v1/pessoas?telefone=5544988776655', com(c.segredo))
+    expect(familia.corpo.total).toBe(2)
+    expect(familia.corpo.pessoas.map((p: { nome: string }) => p.nome).sort())
+      .toEqual(['Ana Mãe', 'Bia Filha'])
+
+    const porEmail = await json(request, '/api/v1/pessoas?email=ANA@exemplo.com', com(c.segredo))
+    expect(porEmail.corpo.pessoas).toHaveLength(1)
+    expect(porEmail.corpo.pessoas[0]).toMatchObject({ nome: 'Ana Mãe' })
+  })
+
   test('o nono dígito não separa a mesma pessoa em duas', async ({ request }) => {
     const c = await contaComChave()
     // cadastro antigo, sem o nono dígito

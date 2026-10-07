@@ -117,9 +117,10 @@ export const ROTAS: Rota[] = [
     resumo:
       'Por telefone, para reconhecer quem chegou; ou por nome, sem acento e sem diferenciar maiúscula. Chame sempre antes de cadastrar, senão a mesma pessoa vira três cadastros porque escreveu o nome de três jeitos.',
     atencao:
-      'Pelo telefone é como um robô reconhece quem está falando: quem escreve "oi" não disse nome nenhum. Procuramos por todas as formas do mesmo número (com e sem o país, com e sem o nono dígito), porque contas antigas do WhatsApp vêm sem ele. Número sem DDD não é procurado: ele pode ser de onze estados, e reconhecer a pessoa errada não tem conserto. Não achar responde 200 com lista vazia, e não 404: no cadastro real 30% não têm telefone, então não reconhecer é o caminho normal desta rota. Telefone pode ser da família (mãe e filha no mesmo número): aí vem mais de uma, a ativa mais nova primeiro, e quem conversa pergunta o nome.',
+      'Pelo telefone é como um robô reconhece quem está falando: quem escreve "oi" não disse nome nenhum. Procuramos por todas as formas do mesmo número (com e sem o país, com e sem o nono dígito), porque contas antigas do WhatsApp vêm sem ele. Número sem DDD não é procurado: ele pode ser de onze estados, e reconhecer a pessoa errada não tem conserto. Não achar responde 200 com lista vazia, e não 404: no cadastro real 30% não têm telefone, então não reconhecer é o caminho normal desta rota. Telefone pode ser da família (mãe e filha no mesmo número): aí vem mais de uma, a ativa mais nova primeiro, e quem conversa pergunta o nome. O telefone é procurado nos três campos da ficha (principal, residencial e comercial), então o segundo número da família também reconhece.',
     parametros: [
       { nome: 'telefone', tipo: 'texto', descricao: 'com DDD; aceita máscara e o país' },
+      { nome: 'email', tipo: 'texto', descricao: 'o e-mail inteiro, sem diferenciar maiúscula; pode devolver mais de uma pessoa' },
       { nome: 'busca', tipo: 'texto', descricao: 'no mínimo duas letras; use quando não tiver o número' },
     ],
     exemplo: `curl "${BASE}/pessoas?telefone=5544998887766" \\
