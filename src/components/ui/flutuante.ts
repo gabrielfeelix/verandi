@@ -23,6 +23,8 @@ export function usePosicionar(
   larguraMinima = 260,
   /** o calendário tem largura própria: esticar até a do campo o deixa ralo */
   larguraFixa?: number,
+  /** painel largo preso a um botão pequeno cresce para a esquerda dele */
+  alinhar: 'esquerda' | 'direita' = 'esquerda',
 ) {
   // o nó do painel é do próprio gancho: quem escreve no `style` tem que ser
   // dono da referência, senão o compilador do React acusa mutação de argumento
@@ -37,13 +39,16 @@ export function usePosicionar(
       if (!a || !p) return
 
       const r = a.getBoundingClientRect()
-      const largura = larguraFixa ?? Math.max(r.width, larguraMinima)
+      const largura = Math.min(
+        larguraFixa ?? Math.max(r.width, larguraMinima), window.innerWidth - 32)
       const folgaAbaixo = window.innerHeight - r.bottom
       const cabeAbaixo = folgaAbaixo >= p.offsetHeight + 8 || r.top < folgaAbaixo
 
       p.style.position = 'fixed'
       p.style.width = `${largura}px`
-      p.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - largura - 8))}px`
+      const desejado = alinhar === 'direita' ? r.right - largura : r.left
+      const margem = alinhar === 'direita' ? 16 : 8
+      p.style.left = `${Math.max(margem, Math.min(desejado, window.innerWidth - largura - margem))}px`
       if (cabeAbaixo) {
         p.style.bottom = ''
         p.style.top = `${r.bottom + 6}px`
@@ -61,7 +66,7 @@ export function usePosicionar(
       window.removeEventListener('resize', posicionar)
       window.removeEventListener('scroll', posicionar, true)
     }
-  }, [ancora, aberto, larguraMinima, larguraFixa])
+  }, [ancora, aberto, larguraMinima, larguraFixa, alinhar])
 
   return painel
 }

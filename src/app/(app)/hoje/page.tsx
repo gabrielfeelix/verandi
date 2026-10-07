@@ -75,7 +75,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
 
   const podeVerTodos = conta.papel !== 'profissional'
   const notificacoes = podeVerTodos
-    ? await notificacoesDaConta(db, conta.contaId)
+    ? await notificacoesDaConta(db, conta.contaId, conta.fuso)
     : []
   // quem não dá aula não tem "minha agenda": abria nela vendo a de todos, com
   // a aba errada acesa. Sem cadastro de profissional, é sempre "Todos"
@@ -349,9 +349,9 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
               className="flex items-center gap-3 rounded-media bg-superficie-suave px-3 py-2.5 hover:bg-[#EDF3F0]"
             >
               <span
-                className={`flex size-7.5 items-center justify-center rounded-peca text-[14.5px] font-semibold ${TINTA_GRUPO[g.tipo] ?? 'bg-solido-neutro text-white'}`}
+                className={`flex h-8 min-w-8 shrink-0 items-center justify-center rounded-peca px-2 text-[13.5px] font-semibold tabular-nums ${TINTA_GRUPO[g.tipo] ?? 'bg-solido-neutro text-white'}`}
               >
-                {g.itens.length}
+                {g.itens.length > 99 ? '99+' : g.itens.length}
               </span>
               <span className="flex min-w-0 flex-col leading-tight">
                 <span className="text-[14.5px] font-medium">{g.titulo}</span>

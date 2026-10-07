@@ -13,6 +13,7 @@ import { BoasVindas } from '@/components/onboarding/boas-vindas'
 import { Sair } from '@/components/ui/sair'
 import { SairDoSuporte } from '@/components/ui/sair-do-suporte'
 import { Rail, BarraInferior, type ItemRail } from '@/components/ui/rail'
+import { AvisosDoNavegador } from '@/components/ui/avisos-do-navegador'
 import { RodapeLegal } from '@/components/ui/rodape-legal'
 import { ProvedorDeTroca } from '@/components/ui/troca'
 
@@ -203,6 +204,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           {/* a troca de tela precisa ser sentida no primeiro quadro, e quem
               muda só o `searchParams` não atravessa `loading.tsx` */}
           <ProvedorDeTroca>{children}</ProvedorDeTroca>
+          {conta.papel !== 'profissional' ? <AvisosDoNavegador /> : null}
 
           {/* mora dentro do `main` para respeitar o `pb-24` que a barra do
               celular exige: fora dele, o rodapé nasceria escondido atrás dela */}
