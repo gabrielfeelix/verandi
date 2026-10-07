@@ -52,6 +52,7 @@ export async function pacotesDaConta(
 
   const hoje = hojeEm(fuso)
   const agora = new Date().toISOString()
+  const afastadas = await deLicenca(db, contaId)
 
   const grupos = new Map<string, {
     pessoaId: string; pessoaNome: string; servico: string
@@ -106,6 +107,8 @@ export async function pacotesDaConta(
     })
     // aula avulsa não "acaba": ou está por fazer, ou já tem dia marcado
     if (g.soAvulsa) estado.aviso = g.temAgendada ? null : 'parado'
+    // de licença, ficar sem aula marcada é o combinado, não pendência
+    if (estado.aviso === 'parado' && afastadas.has(g.pessoaId)) estado.aviso = null
     return { pessoaId: g.pessoaId, pessoaNome: g.pessoaNome, servico: g.servico, ...estado }
   })
 }
@@ -122,6 +125,8 @@ export type AulasDoPlano = {
 
 type LinhaPlano = {
   pessoa_id: string
+  inicio: string
+  fim: string | null
   pessoa: { nome: string; ativo: boolean } | null
   plano: { servico_id: string; frequencia_semanal: number | null; recorrencia: string;
            servico: { nome: string } | null } | null
@@ -136,34 +141,36 @@ export async function aulasDoPlanoDaConta(
   db: Db, contaId: string, fuso: string, pessoaId?: string,
 ): Promise<AulasDoPlano[]> {
   let q = db.from('contrato')
-    .select(`pessoa_id, pessoa(nome, ativo),
+    .select(`pessoa_id, inicio, fim, pessoa(nome, ativo),
              plano(servico_id, frequencia_semanal, recorrencia, servico(nome))`)
     .eq('conta_id', contaId).eq('status', 'ativo')
   if (pessoaId) q = q.eq('pessoa_id', pessoaId)
   const { data, error } = await q.returns<LinhaPlano[]>()
   if (error) throw error
 
-  const { data: licencas } = await db.from('licenca').select('pessoa_id')
-    .eq('conta_id', contaId).is('encerrada_em', null)
-  const afastadas = new Set((licencas ?? []).map((l) => l.pessoa_id))
+  const afastadas = await deLicenca(db, contaId)
+  const hoje = hojeEm(fuso)
 
-  const planos = new Map<string, AulasDoPlano & { servicoId: string }>()
+  const planos = new Map<string, AulasDoPlano & { servicoId: string; fim: string | null }>()
   for (const c of data ?? []) {
     const pl = c.plano
     if (!c.pessoa?.ativo || !pl?.frequencia_semanal) continue
     if (pl.recorrencia === 'pacote' || pl.recorrencia === 'avulsa') continue
     if (afastadas.has(c.pessoa_id)) continue
+    // contrato que ainda não começou ou já terminou não deve aula
+    if (c.inicio > hoje || (c.fim && c.fim < hoje)) continue
     const chave = `${c.pessoa_id}|${pl.servico_id}`
     const g = planos.get(chave) ?? {
       pessoaId: c.pessoa_id, pessoaNome: c.pessoa.nome, servico: pl.servico?.nome ?? '',
-      servicoId: pl.servico_id, frequencia: 0, restantes: 0,
+      servicoId: pl.servico_id, frequencia: 0, restantes: 0, fim: c.fim,
     }
     g.frequencia += pl.frequencia_semanal
+    // dois contratos na mesma modalidade: vale o que vai mais longe
+    if (g.fim && (!c.fim || c.fim > g.fim)) g.fim = c.fim
     planos.set(chave, g)
   }
   if (!planos.size) return []
 
-  const hoje = hojeEm(fuso)
   const de = segundaDe(hoje)
   const pessoas = [...new Set([...planos.values()].map((p) => p.pessoaId))]
   // uma folga de um dia nas pontas cobre o fuso; a semana certa sai do dia local
@@ -191,7 +198,15 @@ export async function aulasDoPlanoDaConta(
   return [...planos.entries()]
     .map(([chave, p]) => ({
       pessoaId: p.pessoaId, pessoaNome: p.pessoaNome, servico: p.servico, frequencia: p.frequencia,
-      restantes: aulasAFazerNoMes(p.frequencia, hoje, porSemana.get(chave) ?? new Map()),
+      restantes: aulasAFazerNoMes(p.frequencia, hoje, porSemana.get(chave) ?? new Map(), p.fim),
     }))
     .filter((p) => p.restantes > 0)
+}
+
+/** Quem está de licença agora: some das pendências de aula a marcar. */
+async function deLicenca(db: Db, contaId: string): Promise<Set<string>> {
+  const { data, error } = await db.from('licenca').select('pessoa_id')
+    .eq('conta_id', contaId).is('encerrada_em', null)
+  if (error) throw error
+  return new Set((data ?? []).map((l) => l.pessoa_id))
 }

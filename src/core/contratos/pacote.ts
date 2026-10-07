@@ -84,10 +84,13 @@ export function fraseDoSaldo(e: Pick<EstadoDoPacote, 'contratadas' | 'usadas' | 
  */
 export function aulasAFazerNoMes(
   frequencia: number, hoje: string, porSemana: Map<string, number>,
+  /** o contrato termina antes do fim do mês: semana depois dele não conta */
+  fimDoContrato?: string | null,
 ): number {
   const fimDoMes = ultimoDia(hoje)
+  const ate = fimDoContrato && fimDoContrato < fimDoMes ? fimDoContrato : fimDoMes
   let total = 0
-  for (let seg = segundaDe(hoje); seg <= fimDoMes; seg = somar(seg, 7)) {
+  for (let seg = segundaDe(hoje); seg <= ate; seg = somar(seg, 7)) {
     total += Math.max(0, frequencia - (porSemana.get(seg) ?? 0))
   }
   return total
