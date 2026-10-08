@@ -6,8 +6,6 @@ import { listarPendencias, type GrupoPendencia } from '@/server/pendencias/consu
 import { somarDias } from '@/core/agenda/datas'
 import { agoraMs, hojeEm, horaEm, quantoFalta } from '@/server/agenda/fuso'
 import { BuscaRapida } from '@/components/hoje/busca-rapida'
-import { Sino } from '@/components/ui/sino'
-import { notificacoesDaConta } from '@/server/notificacoes'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Abas } from '@/components/ui/abas'
 import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
@@ -86,11 +84,10 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
     sessoesDoIntervalo(db, conta.contaId, dia, dia,
       !verTodos && eu ? { profissionalId: eu.id } : {}, fuso))
 
-  const [vocabulario, eu, verTodos, notificacoes, sessoes, grupos, caixa] = await Promise.all([
+  const [vocabulario, eu, verTodos, sessoes, grupos, caixa] = await Promise.all([
     carregarVocabulario(db, conta.contaId),
     euP,
     verTodosP,
-    podeVerTodos ? notificacoesDaConta(db, conta.contaId, conta.fuso) : Promise.resolve([]),
     sessoesP,
     // as pendências só existem para quem opera; o profissional não dispensa nada
     podeVerTodos ? listarPendencias(db, conta.contaId, conta.fuso) : Promise.resolve([]),
@@ -494,9 +491,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
           <div className="flex flex-wrap items-center gap-2.5">
             <BuscaRapida rotuloPessoa={rotulos.pessoa.singular} />
 
-            {/* o sino fica ao lado da busca, e só para quem responde pelo
-                negócio: professor não precisa saber do encaixe da recepção */}
-            {podeVerTodos ? <Sino itens={notificacoes} /> : null}
+            {/* o sino foi para o cabeçalho fixo, que aparece em toda tela */}
 
             <NavegadorPeriodo
               antes={{ href: link(somarDias(dia, -1)), rotulo: 'Dia anterior' }}

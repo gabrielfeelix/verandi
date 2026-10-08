@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { sair } from '@/app/contas/acoes'
 import { Icone, type NomeIcone } from './icones'
 import { travarPagina, destravarPagina } from './modal'
+import { SeletorDeConta, type ContaDoSeletor } from './seletor-de-conta'
 
 export type ItemRail = {
   href: string
@@ -78,22 +79,24 @@ function ativoEm(pathname: string, item: Pick<ItemRail, 'href' | 'tambem'>) {
  * Fechado ele continua mostrando o rótulo curto embaixo do glifo, ícone sozinho
  * com nove destinos vira adivinhação, e quem opera não deveria ter que passar o
  * mouse para descobrir onde clica.
+ *
+ * Quem é a pessoa, o Sair e a troca de senha moram no cabeçalho
+ * (`cabecalho.tsx`); aqui fica a conta, que é o contexto de tudo abaixo dela.
  */
 export function Rail({
-  itens, conta, pessoa, papel, podeTrocar, sair,
+  itens, atual, contas, suporte,
 }: {
   itens: ItemRail[]
-  conta: string
-  pessoa: string
-  papel: string
-  podeTrocar: boolean
-  sair: React.ReactNode
+  /** a conta aberta, que o seletor mostra logo abaixo da marca */
+  atual: ContaDoSeletor
+  contas: ContaDoSeletor[]
+  suporte: boolean
 }) {
   const pathname = usePathname()
   // a preferência é do dispositivo, não da conta: mesma pessoa, telas diferentes
   const aberto = useSyncExternalStore(assinarRail, lerRail, () => true)
 
-  const largura = aberto ? 212 : 74
+  const largura = aberto ? 232 : 78
 
   return (
     <>
@@ -114,23 +117,24 @@ export function Rail({
       style={{ width: largura }}
       className="fixed inset-y-0 left-0 z-30 hidden md:block"
     >
-      {/* o ruído impõe `position: relative`, que brigaria com o `fixed` */}
-      <div className="ruido-escuro h-full overflow-hidden bg-escuro">
-      <div className="relative z-[1] flex h-full flex-col gap-5 px-3 py-4">
-      <div className="flex items-center gap-3 pl-1">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[18px] font-bold text-escuro">
+      {/* o ruído impõe `position: relative`, que brigaria com o `fixed`.
+          Os cantos da direita arredondam: o rail é uma peça sobre o fundo, não
+          uma parede, como o dono pediu (08/out/2026) */}
+      <div className="ruido-escuro h-full overflow-hidden rounded-r-modal bg-escuro">
+      <div className="relative z-[1] flex h-full flex-col gap-4 px-3 py-4">
+      <div className={`flex items-center gap-2.5 ${aberto ? 'pl-2' : 'justify-center'}`}>
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[16px] font-bold text-escuro">
           V
         </span>
         {aberto ? (
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="font-titulo text-[18px] font-semibold text-tinta-clara">
-              Verandi
-            </span>
-            <span className="truncate text-[12px] font-medium text-tinta-fraca">
-              {conta}
-            </span>
-          </span>
+          <span className="font-titulo text-[18px] font-semibold text-tinta-clara">Verandi</span>
         ) : null}
+      </div>
+
+      {/* a conta logo abaixo da marca, com a troca ali mesmo: é o que mais
+          importa saber antes de mexer em qualquer coisa */}
+      <div className="border-b border-white/8 pb-4">
+        <SeletorDeConta atual={atual} contas={contas} suporte={suporte} compacto={!aberto} />
       </div>
 
       <nav aria-label="Navegação principal" className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
@@ -145,8 +149,8 @@ export function Rail({
               aria-current={ativo ? 'page' : undefined}
               className={`relative flex items-center rounded-media transition-colors duration-150 active:scale-[.96] ${
                 aberto
-                  ? 'min-h-[46px] flex-row gap-3 px-3'
-                  : 'min-h-[46px] flex-col justify-center gap-0.5 px-1 py-1.5'
+                  ? 'min-h-[44px] flex-row gap-3 px-3'
+                  : 'min-h-[48px] flex-col justify-center gap-0.5 px-1 py-1.5'
               } ${
                 ativo
                   ? 'bg-menta/16 text-menta'
@@ -178,56 +182,26 @@ export function Rail({
         })}
       </nav>
 
-      <div className="flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={() => gravarRail(!aberto)}
-          aria-expanded={aberto}
-          className="flex min-h-10 items-center gap-3 rounded-padrao px-3 text-tinta-escura-fraca hover:bg-white/8 hover:text-tinta-clara"
+      <button
+        type="button"
+        onClick={() => gravarRail(!aberto)}
+        aria-expanded={aberto}
+        title={aberto ? 'Retrair menu' : 'Expandir menu'}
+        className={`flex min-h-10 cursor-pointer items-center gap-3 rounded-padrao text-tinta-escura-fraca hover:bg-white/8 hover:text-tinta-clara ${
+          aberto ? 'px-3' : 'justify-center'
+        }`}
+      >
+        <span
+          aria-hidden
+          className="inline-flex w-6 shrink-0 justify-center transition-transform duration-200"
+          style={{ transform: `rotate(${aberto ? 180 : 0}deg)` }}
         >
-          <span
-            aria-hidden
-            className="inline-flex w-6 shrink-0 justify-center transition-transform duration-200"
-            style={{ transform: `rotate(${aberto ? 180 : 0}deg)` }}
-          >
-            <Icone nome="depois" />
-          </span>
-          <span className={aberto ? 'text-[13.5px] whitespace-nowrap' : 'sr-only'}>
-            {aberto ? 'Retrair menu' : 'Expandir menu'}
-          </span>
-        </button>
-
-        <div
-          className={`flex items-center gap-3 rounded-media p-1.5 ${
-            aberto ? '' : 'flex-col'
-          }`}
-        >
-          <span
-            aria-hidden
-            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2F4A40] text-[13.5px] leading-none font-semibold tracking-[-.02em] text-[#E6F4EF]"
-          >
-            {iniciais(pessoa)}
-          </span>
-          {aberto ? (
-            <span className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-[13.5px] text-tinta-clara">{pessoa}</span>
-              <span className="text-[12px] text-tinta-escura-fraca">
-                {papel}
-                {podeTrocar ? (
-                  <>
-                    {' · '}
-                    <Link href="/contas" className="text-menta underline">
-                      trocar
-                    </Link>
-                  </>
-                ) : null}
-              </span>
-            </span>
-          ) : null}
-          {aberto ? sair : null}
-        </div>
-        {aberto ? null : <div className="flex justify-center">{sair}</div>}
-        </div>
+          <Icone nome="depois" />
+        </span>
+        <span className={aberto ? 'text-[13.5px] whitespace-nowrap' : 'sr-only'}>
+          {aberto ? 'Retrair menu' : 'Expandir menu'}
+        </span>
+      </button>
       </div>
       </div>
     </aside>

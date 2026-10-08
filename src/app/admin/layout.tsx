@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { clienteServidor } from '@/server/conta'
 import { ehSuporte } from '@/server/suporte/consultas'
-import { Sair } from '@/components/ui/sair'
 import { Rail, BarraInferior, type ItemRail } from '@/components/ui/rail'
+import { Cabecalho } from '@/components/ui/cabecalho'
+import { SeletorDeConta } from '@/components/ui/seletor-de-conta'
 import { RodapeLegal } from '@/components/ui/rodape-legal'
 import { ProvedorDeTroca } from '@/components/ui/troca'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
@@ -38,32 +39,35 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
 
   const pessoa = user.email ?? 'Admin'
 
+  // o seletor daqui é o atalho para entrar em qualquer empresa como suporte
+  const atual = { contaId: 'administracao', nome: 'Administração', papel: 'Admin 4YU' }
+
   return (
     <div className="min-h-dvh">
       <div className="flex min-h-dvh">
-        <Rail
-          itens={ITENS_DO_ADMIN}
-          conta="Administração"
-          pessoa={pessoa}
-          papel="Admin 4YU"
-          podeTrocar={false}
-          sair={<Sair />}
-        />
+        <Rail itens={ITENS_DO_ADMIN} atual={atual} contas={[]} suporte />
 
-        <main className="min-w-0 flex-1 p-4 pb-24 md:p-6 md:pb-6">
-          {/* no celular o rail some, e o contexto precisa continuar à vista:
-              mexer na plataforma achando que está num estúdio é o erro caro */}
-          <p className="mb-3 flex items-center gap-2 md:hidden">
-            <span className="font-titulo text-[18px] font-semibold">Administração</span>
-            <span className="text-[12px] text-tinta-media">Admin 4YU</span>
-          </p>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Cabecalho
+            destinos={ITENS_DO_ADMIN}
+            pessoa={pessoa}
+            email={user.email ?? ''}
+            papel="Admin 4YU"
+            configHref={null}
+            comSino={false}
+            suporte={false}
+            podeTrocar
+            seletor={<SeletorDeConta atual={atual} contas={[]} suporte claro />}
+          />
 
-          <ProvedorDeAviso>
-            <ProvedorDeTroca>{children}</ProvedorDeTroca>
-          </ProvedorDeAviso>
+          <main className="min-w-0 flex-1 p-4 pb-24 md:p-6 md:pb-6">
+            <ProvedorDeAviso>
+              <ProvedorDeTroca>{children}</ProvedorDeTroca>
+            </ProvedorDeAviso>
 
-          <RodapeLegal className="pt-8" />
-        </main>
+            <RodapeLegal className="pt-8" />
+          </main>
+        </div>
       </div>
 
       <BarraInferior

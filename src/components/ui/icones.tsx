@@ -225,6 +225,33 @@ const TRACOS = {
       <path d="M5.2 5.2l9.6 9.6" />
     </>
   ),
+
+  /* o cabeçalho: ajuda, troca de organização, busca, e-mail */
+  ajuda: (
+    <>
+      <circle cx="10" cy="10" r="6.8" />
+      <path d="M8.1 8a2 2 0 013.9.6c0 1.3-2 1.7-2 2.9" />
+      <path d="M10 13.9h.01" />
+    </>
+  ),
+  trocar: (
+    <>
+      <path d="M4 7.2h11.5M12.6 4.3l2.9 2.9-2.9 2.9" />
+      <path d="M16 12.8H4.5M7.4 9.9l-2.9 2.9 2.9 2.9" />
+    </>
+  ),
+  busca: (
+    <>
+      <circle cx="9" cy="9" r="5.2" />
+      <path d="M12.8 12.8l3.6 3.6" />
+    </>
+  ),
+  email: (
+    <>
+      <rect x="2.8" y="4.6" width="14.4" height="10.8" rx="2" />
+      <path d="M3.4 5.6L10 10.6l6.6-5" />
+    </>
+  ),
 } as const
 
 export function Icone({

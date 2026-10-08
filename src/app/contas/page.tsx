@@ -3,7 +3,8 @@ import { contasDoUsuario } from '@/server/conta'
 import { destinoDoPapel } from '@/core/acesso/destino'
 import { PainelAcesso } from '@/components/ui/painel-acesso'
 import { Etiqueta } from '@/components/ui/pecas'
-import { PARES_AVATAR, type Tinta } from '@/components/ui/tintas'
+import { type Tinta } from '@/components/ui/tintas'
+import { tileDe } from '@/components/ui/tile-da-conta'
 import { escolherConta } from './acoes'
 
 const PAPEL: Record<string, { rotulo: string; tinta: Tinta }> = {
@@ -11,19 +12,6 @@ const PAPEL: Record<string, { rotulo: string; tinta: Tinta }> = {
   recepcao: { rotulo: 'Recepção', tinta: 'info' },
   profissional: { rotulo: 'Profissional', tinta: 'neutro' },
   suporte: { rotulo: 'Suporte 4YU', tinta: 'atencao' },
-}
-
-/** Mesma conta, mesma cor, em qualquer máquina — é o que faz reconhecer de relance. */
-function tileDe(nome: string) {
-  let soma = 0
-  for (const c of nome) soma = (soma + c.codePointAt(0)!) % 997
-  const [fundo, frente] = PARES_AVATAR[soma % PARES_AVATAR.length]
-  const sigla = nome
-    .trim().split(/\s+/).slice(0, 2)
-    .map((p) => p[0] ?? '')
-    .join('')
-    .toUpperCase()
-  return { fundo, frente, sigla }
 }
 
 export default async function Contas() {

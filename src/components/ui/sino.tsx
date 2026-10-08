@@ -41,7 +41,7 @@ const lerPermissao = (): Permissao =>
 const ouvintesPermissao = new Set<() => void>()
 
 /**
- * O sino, ao lado da busca.
+ * O sino, no cabeçalho fixo, ao lado da ajuda.
  *
  * Aula cancelada, aluno que avisou que não vem, quem confirmou ou remarcou
  * pelo WhatsApp: coisas que o dono descobria tarde, pelo aluno na porta ou
@@ -51,7 +51,11 @@ const ouvintesPermissao = new Set<() => void>()
  * some ao clicar nela (clicar é ter lido). A lista se atualiza sozinha: quem
  * busca é o `AvisosDoNavegador`, no layout.
  */
-export function Sino({ itens }: { itens: Notificacao[] }) {
+export function Sino({ itens, noCabecalho = false }: {
+  itens: Notificacao[]
+  /** no cabeçalho fixo: botão redondo e sem borda, como os vizinhos */
+  noCabecalho?: boolean
+}) {
   const [aberto, setAberto] = useState(false)
   const botao = useRef<HTMLButtonElement>(null)
   const painel = usePosicionar(botao, aberto, 380, undefined, 'direita')
@@ -92,9 +96,13 @@ export function Sino({ itens }: { itens: Notificacao[] }) {
         onClick={alternar}
         aria-label={`Notificações${novas ? `, ${novas} novas` : ''}`}
         aria-expanded={aberto}
-        className={`relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-padrao border bg-superficie transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta ${
-          aberto ? 'border-marca text-tinta' : 'border-linha text-tinta-media'
-        }`}
+        className={noCabecalho
+          ? `relative flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 hover:bg-superficie hover:text-tinta ${
+            aberto ? 'bg-superficie text-tinta' : 'text-tinta-media'
+          }`
+          : `relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-padrao border bg-superficie transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta ${
+            aberto ? 'border-marca text-tinta' : 'border-linha text-tinta-media'
+          }`}
       >
         <Icone nome="sino" tamanho={19} />
         {novas > 0 ? (

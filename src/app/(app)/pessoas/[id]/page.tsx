@@ -873,7 +873,7 @@ export default async function Pessoa({
 
         }}
       >
-        <aside className="flex flex-col gap-3.5 xl:sticky xl:top-4">
+        <aside className="flex flex-col gap-3.5 xl:sticky xl:top-20">
           {licenca ? (
             <div className="hidden xl:block">
               <CartaoLicenca

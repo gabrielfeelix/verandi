@@ -433,6 +433,18 @@ select:focus-visible {
   }
 }
 
+/* A gaveta da ajuda entra pela direita, de onde veio o botão. */
+@keyframes vd-gaveta {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Registro da chamada trocou: o rótulo encolhe e volta, como um carimbo. */
 @keyframes vd-marca {
   0% {

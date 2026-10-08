@@ -10,9 +10,10 @@ import { boasVindas } from '@/core/onboarding/boas-vindas'
 import { aindaNeutro } from '@/core/vocabulario/predefinicoes'
 import { Guia } from '@/components/onboarding/guia'
 import { BoasVindas } from '@/components/onboarding/boas-vindas'
-import { Sair } from '@/components/ui/sair'
 import { SairDoSuporte } from '@/components/ui/sair-do-suporte'
 import { Rail, BarraInferior, type ItemRail } from '@/components/ui/rail'
+import { Cabecalho } from '@/components/ui/cabecalho'
+import { SeletorDeConta } from '@/components/ui/seletor-de-conta'
 import { AvisosDoNavegador } from '@/components/ui/avisos-do-navegador'
 import { RodapeLegal } from '@/components/ui/rodape-legal'
 import { ProvedorDeTroca } from '@/components/ui/troca'
@@ -31,7 +32,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
    * A conta interna não é estúdio: é onde mora o vínculo que faz alguém ser
    * admin. Abrir Agenda ou Financeiro nela mostrava um estúdio vazio que não é
    * de ninguém, então quem cai nela vai para a administração. Dentro de conta
-   * de cliente o suporte fica, e o "Sair" do rail encerra o acesso.
+   * de cliente o suporte fica, e o "Sair do suporte" do cabeçalho encerra o acesso.
    */
   if (conta.papel === 'suporte' && conta.interna) redirect('/admin')
   const db = await clienteServidor()
@@ -158,6 +159,15 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   // dentro de conta de cliente, o "Sair" do suporte encerra o acesso em vez de
   // deslogar; a conta interna já foi mandada para /admin lá em cima
   const suporte = conta.papel === 'suporte'
+  const pessoa = eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'
+
+  /*
+   * A conta aberta e as outras, para o seletor do topo do rail. A conta da
+   * própria 4YU fica fora: suporte não trabalha nela, e quem cai nela já foi
+   * mandado para a administração lá em cima.
+   */
+  const doSeletor = contas.map((c) => ({ contaId: c.contaId, nome: c.nome, papel: PAPEL[c.papel] ?? c.papel }))
+  const atual = { contaId: conta.contaId, nome: conta.nome, papel: PAPEL[conta.papel] ?? conta.papel }
 
   return (
     <div className="min-h-dvh">
@@ -172,35 +182,28 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           * tela, e a regra de impressão o apaga com os filhos dentro.
           */}
         <div data-imprimir="fora" className="contents">
-        <Rail
-          itens={itens}
-          conta={conta.nome}
-          pessoa={eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'}
-          papel={PAPEL[conta.papel] ?? conta.papel}
-          podeTrocar={contas.length > 1}
-          sair={suporte ? <SairDoSuporte /> : <Sair />}
-        />
+        <Rail itens={itens} atual={atual} contas={doSeletor} suporte={suporte} />
         </div>
+
+        {/* o cabeçalho fica fora do `main` e preso no topo da coluna: a página
+            rola por baixo dele, e ele não some nem pisca na troca de tela */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Cabecalho
+            destinos={itens.map(({ href, tambem, rotulo }) => ({ href, tambem, rotulo }))}
+            pessoa={pessoa}
+            email={user?.email ?? ''}
+            papel={PAPEL[conta.papel] ?? conta.papel}
+            configHref={conta.papel === 'dono' || suporte ? '/config' : null}
+            comSino={conta.papel !== 'profissional'}
+            suporte={suporte}
+            podeTrocar={suporte || doSeletor.length > 1}
+            seletor={<SeletorDeConta atual={atual} contas={doSeletor} suporte={suporte} claro />}
+          />
 
         {/* `data-guia="tela"` é o alvo de reserva do onboarding: quando o
             elemento apontado não existe naquela conta, o balão aponta a área de
             trabalho inteira em vez de apontar o vazio */}
         <main data-guia="tela" className="min-w-0 flex-1 p-4 pb-24 md:p-6 md:pb-6">
-          {/* A conta ativa aparece em toda tela de propósito: operar na conta
-              errada é o erro mais caro que este sistema permite, e é silencioso.
-              No rail ela está sempre no topo; em celular, aqui. */}
-          <p data-imprimir="fora" className="mb-3 flex items-center gap-2 md:hidden">
-            <span className="font-titulo text-[18px] font-semibold">{conta.nome}</span>
-            <span className="text-[12px] text-tinta-media">
-              {PAPEL[conta.papel] ?? conta.papel}
-            </span>
-            {contas.length > 1 ? (
-              <a href="/contas" className="ml-auto text-[13.5px] text-marca underline">
-                Trocar
-              </a>
-            ) : null}
-          </p>
-
           {/* a troca de tela precisa ser sentida no primeiro quadro, e quem
               muda só o `searchParams` não atravessa `loading.tsx` */}
           <ProvedorDeTroca>{children}</ProvedorDeTroca>
@@ -212,13 +215,14 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
             <RodapeLegal className="pt-8" />
           </div>
         </main>
+        </div>
       </div>
 
       <div data-imprimir="fora" className="contents">
         <BarraInferior
           itens={itens}
           principais={principais}
-          pessoa={eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'}
+          pessoa={pessoa}
           papel={PAPEL[conta.papel] ?? conta.papel}
           podeTrocar={contas.length > 1}
           sair={suporte ? <SairDoSuporte claro /> : undefined}
