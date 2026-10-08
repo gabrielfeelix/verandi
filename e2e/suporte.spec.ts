@@ -191,3 +191,28 @@ test('o log de acesso da 4YU mostra o que ficou em aberto', async ({ page }) => 
       .filter({ hasText: 'em aberto' }).first(),
   ).toBeVisible()
 })
+
+/*
+ * O vínculo de suporte que ficou aberto põe o cliente em `/contas`. Escolher a
+ * empresa ali é querer entrar nela, como o "Entrar" do admin, e não voltar
+ * para a administração e procurar de novo.
+ */
+test('escolher a empresa na troca de conta entra nela como suporte', async ({ page }) => {
+  const s = await comoSuporte()
+  const nome = `Studio Lembrado ${Date.now()}`
+  const cliente = await contaDeTeste(nome)
+  await admin.from('usuario_conta')
+    .insert({ usuario_id: s.usuarioId, conta_id: cliente.contaId, papel: 'suporte' })
+
+  await entrar(page, s.email)
+  await page.goto('/contas')
+  await page.getByRole('button', { name: new RegExp(nome) }).click()
+
+  await expect(page).toHaveURL(/\/semana/)
+  await expect(page.getByRole('button', { name: 'Sair do suporte' })).toBeVisible()
+  await expect.poll(async () => {
+    const { data } = await admin.from('acesso_suporte')
+      .select('id').eq('conta_id', cliente.contaId).eq('usuario_id', s.usuarioId)
+    return data?.length ?? 0
+  }).toBe(1)
+})

@@ -3,7 +3,9 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { clienteServidor } from '@/server/conta'
+import { clienteAdmin } from '@/server/supabase'
 import { destinoDoPapel, type Papel } from '@/core/acesso/destino'
+import { entrarComoSuporte } from '@/server/suporte/acoes'
 
 export async function escolherConta(form: FormData) {
   const contaId = String(form.get('contaId') ?? '')
@@ -23,6 +25,19 @@ export async function escolherConta(form: FormData) {
     .maybeSingle()
 
   if (!data) redirect('/contas')
+
+  /*
+   * Suporte escolhendo uma empresa de cliente quer entrar nela, não voltar à
+   * administração: o mesmo "Entrar" do admin, que registra o acesso antes da
+   * primeira tela. Só a conta interna da 4YU leva para `/admin`.
+   */
+  if (data.papel === 'suporte') {
+    const { data: conta } = await clienteAdmin().from('conta').select('interna').eq('id', contaId).maybeSingle()
+    if (!conta?.interna) {
+      await entrarComoSuporte(contaId)
+      redirect('/semana')
+    }
+  }
 
   const jar = await cookies()
   jar.set('conta', contaId, { httpOnly: true, sameSite: 'lax', path: '/' })
