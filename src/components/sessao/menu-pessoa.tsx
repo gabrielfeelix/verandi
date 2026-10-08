@@ -169,7 +169,7 @@ export function MenuPessoa({
             </p>
           ) : (
             <ul className="flex flex-col gap-1.5">
-              {faltas.map((f) => (
+              {faltas.filter((f) => f.participacaoId !== participacao.id).map((f) => (
                 <li key={f.participacaoId}>
                   <button
                     type="button"

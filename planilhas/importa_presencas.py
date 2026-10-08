@@ -468,7 +468,7 @@ where app_verandi.participacao.status in ('esperada', 'confirmada')
 
 update app_verandi.participacao r set reposicao_de_id = (
   select f.id from app_verandi.participacao f join app_verandi.sessao fs on fs.id = f.sessao_id
-  where f.pessoa_id = r.pessoa_id and f.status in ('falta', 'falta_avisada')
+  where f.pessoa_id = r.pessoa_id and f.id <> r.id and f.status in ('falta', 'falta_avisada')
     and (fs.inicio at time zone '{fuso}')::date = i.falta
     and not exists (select 1 from app_verandi.participacao o where o.reposicao_de_id = f.id)
   order by fs.inicio limit 1)

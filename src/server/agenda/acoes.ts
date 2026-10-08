@@ -257,6 +257,8 @@ export async function apontarReposicao(
   participacaoId: string,
   faltaId: string | null,
 ): Promise<void> {
+  // uma aula não repõe a si mesma: o crédito some e a falta parece usada
+  if (faltaId === participacaoId) throw new Error('Uma aula não pode ser reposição dela mesma.')
   const { db, carimbo } = await quemRegistra()
 
   const { data, error } = await db
