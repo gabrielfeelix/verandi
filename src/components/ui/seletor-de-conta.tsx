@@ -39,8 +39,8 @@ function Tile({ nome, tamanho = 32 }: { nome: string; tamanho?: number }) {
   return (
     <span
       aria-hidden
-      className="flex shrink-0 items-center justify-center rounded-padrao font-titulo font-bold"
-      style={{ width: tamanho, height: tamanho, background: fundo, color: frente, fontSize: tamanho * 0.42 }}
+      className="flex shrink-0 items-center justify-center rounded-full font-semibold tracking-[-.02em]"
+      style={{ width: tamanho, height: tamanho, background: fundo, color: frente, fontSize: tamanho * 0.4 }}
     >
       {sigla}
     </span>
@@ -126,10 +126,10 @@ export function SeletorDeConta({
 
   const identificacao = (
     <>
-      <Tile nome={atual.nome} tamanho={compacto ? 36 : 32} />
+      <Tile nome={atual.nome} tamanho={compacto ? 34 : 30} />
       {compacto ? null : (
         <span className="flex min-w-0 flex-1 flex-col text-left leading-tight">
-          <span className={`truncate text-[14.5px] font-semibold ${claro ? 'text-tinta' : 'text-tinta-clara'}`}>
+          <span className={`truncate text-[13.5px] font-semibold ${claro ? 'text-tinta' : 'text-tinta-clara'}`}>
             {atual.nome}
           </span>
           <span className={`truncate text-[12px] ${claro ? 'text-tinta-media' : 'text-tinta-escura-fraca'}`}>
@@ -164,18 +164,18 @@ export function SeletorDeConta({
         aria-haspopup="dialog"
         aria-expanded={aberto}
         title={`${atual.nome}: trocar de organização`}
-        className={`group flex w-full min-w-0 items-center gap-2.5 rounded-media transition-colors duration-150 ${
+        className={`group flex w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-media border transition-colors duration-150 ${
           compacto ? 'justify-center p-1' : 'px-2 py-1.5'
         } ${
           claro
-            ? 'hover:bg-superficie-mais-suave'
-            : aberto ? 'bg-white/10' : 'hover:bg-white/8'
+            ? 'border-transparent hover:bg-superficie-mais-suave'
+            : aberto ? 'border-white/12 bg-white/7' : 'border-transparent hover:border-white/12 hover:bg-white/7'
         }`}
       >
         {identificacao}
         {compacto ? null : (
           <span className={`shrink-0 ${claro ? 'text-tinta-fraca' : 'text-tinta-escura-fraca group-hover:text-tinta-clara'}`}>
-            <Icone nome="trocar" tamanho={16} />
+            <Icone nome="seletor" tamanho={16} />
           </span>
         )}
       </button>

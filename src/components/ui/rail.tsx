@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from 'react'
+import { sairDoSuporte } from '@/server/suporte/acoes'
 import { Icone, type NomeIcone } from './icones'
 import { travarPagina, destravarPagina } from './modal'
 import { SeletorDeConta, type ContaDoSeletor } from './seletor-de-conta'
@@ -83,9 +84,11 @@ function ativoEm(pathname: string, item: Pick<ItemRail, 'href' | 'tambem'>) {
  * (`cabecalho.tsx`); aqui fica a conta, que é o contexto de tudo abaixo dela.
  */
 export function Rail({
-  itens, atual, contas, suporte,
+  itens, atual, contas, suporte, voltar,
 }: {
   itens: ItemRail[]
+  /** o "‹ Administração" do suporte dentro de uma empresa */
+  voltar?: string
   /** a conta aberta, que o seletor mostra logo abaixo da marca */
   atual: ContaDoSeletor
   contas: ContaDoSeletor[]
@@ -121,18 +124,50 @@ export function Rail({
           uma parede, como o dono pediu (08/out/2026) */}
       <div className="ruido-escuro h-full overflow-hidden rounded-r-modal bg-escuro">
       <div className="relative z-[1] flex h-full flex-col gap-4 px-3 py-4">
-      <div className={`flex items-center gap-2.5 ${aberto ? 'pl-2' : 'justify-center'}`}>
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-padrao bg-menta font-titulo text-[16px] font-bold text-escuro">
-          V
-        </span>
-        {aberto ? (
-          <span className="font-titulo text-[18px] font-semibold text-tinta-clara">Verandi</span>
-        ) : null}
-      </div>
+      {/* a marca no topo com o recolher ao lado, como no AutoFluxos; fechado,
+          a própria marca é o botão de abrir */}
+      {aberto ? (
+        <div className="flex items-center justify-between gap-2 pl-2">
+          <span className="flex items-center gap-2.5">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-peca bg-menta font-titulo text-[15px] font-bold text-escuro">
+              V
+            </span>
+            <span className="font-titulo text-[17px] font-semibold text-tinta-clara">Verandi</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => gravarRail(false)}
+            aria-expanded
+            title="Recolher menu"
+            aria-label="Recolher menu"
+            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-padrao text-tinta-escura-fraca hover:bg-white/8 hover:text-tinta-clara"
+          >
+            <Icone nome="painel" tamanho={18} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => gravarRail(true)}
+          aria-expanded={false}
+          title="Expandir menu"
+          aria-label="Expandir menu"
+          className="group relative mx-auto flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-padrao hover:bg-white/8"
+        >
+          <span className="flex size-7 items-center justify-center rounded-peca bg-menta font-titulo text-[15px] font-bold text-escuro transition-opacity group-hover:opacity-0">
+            V
+          </span>
+          <span aria-hidden className="absolute inset-0 flex items-center justify-center text-tinta-clara opacity-0 transition-opacity group-hover:opacity-100">
+            <Icone nome="painel" tamanho={18} />
+          </span>
+        </button>
+      )}
 
       {/* a conta logo abaixo da marca, com a troca ali mesmo: é o que mais
-          importa saber antes de mexer em qualquer coisa */}
-      <div className="border-b border-white/8 pb-4">
+          importa saber antes de mexer em qualquer coisa. O suporte tem o
+          caminho de volta à administração logo acima dela */}
+      <div className="flex flex-col gap-1">
+        {suporte && aberto && voltar ? <VoltarAAdministracao destino={voltar} /> : null}
         <SeletorDeConta atual={atual} contas={contas} suporte={suporte} compacto={!aberto} />
       </div>
 
@@ -181,30 +216,35 @@ export function Rail({
         })}
       </nav>
 
-      <button
-        type="button"
-        onClick={() => gravarRail(!aberto)}
-        aria-expanded={aberto}
-        title={aberto ? 'Retrair menu' : 'Expandir menu'}
-        className={`flex min-h-10 cursor-pointer items-center gap-3 rounded-padrao text-tinta-escura-fraca hover:bg-white/8 hover:text-tinta-clara ${
-          aberto ? 'px-3' : 'justify-center'
-        }`}
-      >
-        <span
-          aria-hidden
-          className="inline-flex w-6 shrink-0 justify-center transition-transform duration-200"
-          style={{ transform: `rotate(${aberto ? 180 : 0}deg)` }}
-        >
-          <Icone nome="depois" />
-        </span>
-        <span className={aberto ? 'text-[13.5px] whitespace-nowrap' : 'sr-only'}>
-          {aberto ? 'Retrair menu' : 'Expandir menu'}
-        </span>
-      </button>
       </div>
       </div>
     </aside>
     </>
+  )
+}
+
+/**
+ * O caminho de volta do suporte, acima da empresa aberta.
+ *
+ * Não é um link simples: sair da empresa encerra o acesso registrado em
+ * `acesso_suporte`, igual ao "Sair do suporte" do menu. Um link deixava o
+ * registro aberto para sempre, e acesso que nunca fecha não diz mais nada.
+ */
+function VoltarAAdministracao({ destino }: { destino: string }) {
+  const router = useRouter()
+  const [indo, iniciar] = useTransition()
+  return (
+    <button
+      type="button"
+      disabled={indo}
+      onClick={() => iniciar(async () => {
+        await sairDoSuporte()
+        router.push(destino)
+      })}
+      className="flex cursor-pointer items-center gap-1.5 self-start px-2.5 py-1 text-[12px] text-tinta-escura-fraca transition-colors hover:text-menta disabled:opacity-60"
+    >
+      <span aria-hidden>‹</span> {indo ? 'Saindo…' : 'Administração'}
+    </button>
   )
 }
 

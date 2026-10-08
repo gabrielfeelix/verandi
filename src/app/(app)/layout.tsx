@@ -194,7 +194,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           * tela, e a regra de impressão o apaga com os filhos dentro.
           */}
         <div data-imprimir="fora" className="contents">
-        <Rail itens={itens} atual={atual} contas={doSeletor} suporte={suporte} />
+        <Rail itens={itens} atual={atual} contas={doSeletor} suporte={suporte} voltar="/admin/empresas" />
         </div>
 
         {/* o cabeçalho fica fora do `main` e preso no topo da coluna: a página

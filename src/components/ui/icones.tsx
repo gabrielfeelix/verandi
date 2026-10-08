@@ -240,6 +240,15 @@ const TRACOS = {
       <path d="M16 12.8H4.5M7.4 9.9l-2.9 2.9 2.9 2.9" />
     </>
   ),
+  /* as duas setas do seletor: abre uma lista para escolher */
+  seletor: <path d="M6.5 12.5L10 16l3.5-3.5M6.5 7.5L10 4l3.5 3.5" />,
+  /* o painel lateral: recolher e expandir o menu */
+  painel: (
+    <>
+      <rect x="3" y="3.8" width="14" height="12.4" rx="2.6" />
+      <path d="M8 4v12" />
+    </>
+  ),
   busca: (
     <>
       <circle cx="9" cy="9" r="5.2" />
