@@ -2,6 +2,7 @@ import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { esvaziadasHoje, listarPendencias } from '@/server/pendencias/consultas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { ListaPendencias } from '@/components/pendencias/lista'
+import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 
 /**
  * A primeira tela do dia de quem opera: o que precisa de alguém hoje.
@@ -14,10 +15,14 @@ export default async function Pendencias() {
   const conta = await exigirPapel(OPERA, 'Pendências')
 
   const db = await clienteServidor()
-  const [grupos, esvaziadas] = await Promise.all([
+  const [grupos, esvaziadas, { data: servicos }, vocabulario] = await Promise.all([
     listarPendencias(db, conta.contaId, conta.fuso),
     esvaziadasHoje(db, conta.contaId, conta.fuso),
+    // "Agendar reposição" abre o mesmo Marcar aula da ficha, aqui mesmo
+    db.from('servico').select('id, nome').eq('conta_id', conta.contaId).eq('ativo', true).order('nome'),
+    carregarVocabulario(db, conta.contaId),
   ])
+  const rotuloSessao = resolverRotulos(vocabulario).sessao.singular
   const total = grupos.reduce((n, g) => n + g.itens.length, 0)
 
   return (
@@ -56,7 +61,7 @@ export default async function Pendencias() {
         {/* uma coluna só: o "Resumo" ao lado repetia a contagem que já está no
             título de cada grupo, e a dica do Dispensar mora no próprio modal */}
         <div data-guia="pendencias-lista">
-          <ListaPendencias grupos={grupos} />
+          <ListaPendencias grupos={grupos} servicos={servicos ?? []} rotuloSessao={rotuloSessao} />
         </div>
       </div>
     </ProvedorDeAviso>

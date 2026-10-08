@@ -38,6 +38,8 @@ export type Pendencia = {
   etiqueta?: { texto: string; tinta: 'neutro' | 'atencao' | 'alerta' | 'licenca' }
   /** só licença: o que as ações "Voltou" e "Prorrogar" precisam */
   licenca?: { id: string; pessoaId: string; voltaPrevista: string | null }
+  /** só reposição: a tela junta as faltas do mesmo aluno numa linha */
+  reposicao?: { pessoaId: string; data: string; motivo: string; servico: string; servicoId: string | null }
 }
 
 export type GrupoPendencia = {
@@ -231,7 +233,7 @@ async function reposicoesAbertas(
 
   const { data, error } = await db
     .from('participacao')
-    .select('id, status, pessoa:pessoa_id(id, nome), sessao:sessao_id(inicio, servico:servico_id(nome))')
+    .select('id, status, pessoa:pessoa_id(id, nome), sessao:sessao_id(inicio, servico:servico_id(id, nome))')
     .eq('conta_id', contaId)
     .in('status', statusComCredito(creditoAvisada))
     // crédito acertado fora do sistema (histórico importado) não cobra ninguém
@@ -269,6 +271,13 @@ async function reposicoesAbertas(
           ? ` · ${porPessoa.get(p.pessoa!.id)} reposições em aberto` : ''}`,
       diasEmAberto: diasDesde(p.sessao!.inicio, fuso),
       href: p.pessoa ? `/pessoas/${p.pessoa.id}` : '/pessoas',
+      reposicao: {
+        pessoaId: p.pessoa?.id ?? p.id,
+        data: localDe(p.sessao!.inicio, fuso).data,
+        motivo: MOTIVO_DO_CREDITO[p.status] ?? 'Horário perdido',
+        servico: p.sessao!.servico?.nome ?? '',
+        servicoId: p.sessao!.servico?.id ?? null,
+      },
     }))
 }
 

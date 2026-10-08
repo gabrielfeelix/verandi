@@ -15,6 +15,8 @@ import { ModalVolta } from '@/components/licenca/modal-volta'
 import type { GrupoPendencia, Pendencia } from '@/server/pendencias/consultas'
 import { SEM_DISPENSAR } from '@/core/pendencias'
 import { ACAO_GRUPO, PONTO_GRUPO, ROTULO_TIPO } from './tintas'
+import { dataCurta } from '@/core/agenda/datas'
+import { MarcarAula, type FaltaParaRepor } from '@/components/pessoas/marcar-aula'
 
 const MOTIVOS = [
   'Já resolvido fora do sistema',
@@ -32,6 +34,36 @@ function idade(dias: number | null) {
   return { texto: `há ${dias} dias`, tinta: 'alerta' as const }
 }
 
+/**
+ * Uma linha da tabela: uma pendência, ou todas as reposições de um aluno.
+ *
+ * Reposição é por falta, e o aluno com dez faltas virava dez linhas iguais. A
+ * pergunta da recepção é "quem eu chamo para repor", então o aluno aparece uma
+ * vez, com o total e a mais antiga, e as datas abrem embaixo.
+ */
+type Linha =
+  | { tipo: 'item'; chave: string; p: Pendencia }
+  | { tipo: 'aluno'; chave: string; titulo: string; href: string; itens: Pendencia[] }
+
+function agrupar(itens: Pendencia[], chave: (p: Pendencia) => string): Linha[] {
+  const porAluno = new Map<string, Pendencia[]>()
+  const linhas: Linha[] = []
+  for (const p of itens) {
+    if (!p.reposicao) { linhas.push({ tipo: 'item', chave: chave(p), p }); continue }
+    const lista = porAluno.get(p.reposicao.pessoaId)
+    if (lista) lista.push(p)
+    else porAluno.set(p.reposicao.pessoaId, [p])
+  }
+  for (const [pessoaId, lista] of porAluno) {
+    lista.sort((a, b) => a.reposicao!.data.localeCompare(b.reposicao!.data))
+    linhas.push(lista.length === 1
+      ? { tipo: 'item', chave: chave(lista[0]), p: lista[0] }
+      : { tipo: 'aluno', chave: `aluno-${pessoaId}`, titulo: lista[0].titulo, href: lista[0].href, itens: lista })
+  }
+  const nome = (l: Linha) => (l.tipo === 'item' ? l.p.titulo : l.titulo)
+  return linhas.sort((a, b) => nome(a).localeCompare(nome(b), 'pt-BR', { sensitivity: 'base' }))
+}
+
 const BOTAO = 'inline-flex min-h-9 items-center rounded-padrao border border-linha bg-superficie px-3 text-[13.5px] font-medium whitespace-nowrap text-tinta hover:border-tinta-media hover:bg-superficie-mais-suave disabled:opacity-50'
 const FANTASMA = 'min-h-9 cursor-pointer rounded-padrao px-2.5 text-[13.5px] whitespace-nowrap text-tinta-media hover:bg-superficie-suave hover:text-tinta'
 
@@ -44,7 +76,22 @@ const FANTASMA = 'min-h-9 cursor-pointer rounded-padrao px-2.5 text-[13.5px] whi
  * tipo na hora, com a contagem de cada um. Kanban foi descartado: nove colunas
  * viram rolagem lateral, e no celular não se lê.
  */
-export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[] }) {
+type Servico = { id: string; nome: string }
+
+/** A falta no formato que o Marcar aula mostra: "03/04/25 · Pilates aparelho". */
+const faltaDe = (p: Pendencia): FaltaParaRepor => ({
+  id: p.referenciaId,
+  quando: [dataCurta(p.reposicao!.data), p.reposicao!.servico].filter(Boolean).join(' · '),
+})
+
+export function ListaPendencias({
+  grupos: recebidos, servicos = [], rotuloSessao = 'Aula',
+}: {
+  grupos: GrupoPendencia[]
+  /** o Marcar aula da reposição abre aqui, sem ir para a ficha */
+  servicos?: Servico[]
+  rotuloSessao?: string
+}) {
   const [filtro, setFiltro] = useState<string | null>(null)
   const [dispensando, setDispensando] = useState<Pendencia | null>(null)
   const [motivo, setMotivo] = useState(MOTIVOS[0])
@@ -64,8 +111,9 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
   const ativo = grupos.some((g) => g.tipo === filtro) ? filtro : null
   // de A a Z pelo nome, como a recepção procura o aluno; os chips de cima
   // separam por tipo quando a pergunta é "o que é urgente"
-  const linhas = grupos.filter((g) => !ativo || g.tipo === ativo).flatMap((g) => g.itens)
-    .sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR', { sensitivity: 'base' }))
+  const linhas = agrupar(grupos.filter((g) => !ativo || g.tipo === ativo).flatMap((g) => g.itens), chave)
+  const [abertos, setAbertos] = useState<string[]>([])
+  const alternar = (k: string) => setAbertos((v) => (v.includes(k) ? v.filter((x) => x !== k) : [...v, k]))
 
   const acoes = (p: Pendencia) => (
     <>{p.licenca ? (
@@ -92,9 +140,24 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
       </>
     ) : (
       <>
-        <Link href={p.href} className={BOTAO}>
-          {ACAO_GRUPO[p.tipo] ?? 'Abrir'}
-        </Link>
+        {p.reposicao ? (
+          <MarcarAula
+            pessoaId={p.reposicao.pessoaId}
+            nome={p.titulo}
+            servicos={servicos}
+            servicoInicial={p.reposicao.servicoId}
+            faltas={[faltaDe(p)]}
+            rotuloSessao={rotuloSessao}
+            aoMarcar={() => { setSaiu((v) => [...v, chave(p)]); router.refresh() }}
+            className={`${BOTAO} cursor-pointer`}
+          >
+            {ACAO_GRUPO[p.tipo] ?? 'Agendar reposição'}
+          </MarcarAula>
+        ) : (
+          <Link href={p.href} className={BOTAO}>
+            {ACAO_GRUPO[p.tipo] ?? 'Abrir'}
+          </Link>
+        )}
         {/* horário sem contrato e pacote não se escondem: resolvem-se */}
         {SEM_DISPENSAR.has(p.tipo) ? null : (
           <button type="button" onClick={() => setDispensando(p)} className={`${FANTASMA} max-md:hidden`}>
@@ -127,7 +190,12 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
             ponto={PONTO_GRUPO[g.tipo]}
             onClick={() => setFiltro(ativo === g.tipo ? null : g.tipo)}
           >
-            {g.titulo} <Contador ativo={ativo === g.tipo}>{g.itens.length}</Contador>
+            {g.titulo}{' '}
+            <Contador ativo={ativo === g.tipo}>
+              {g.tipo === 'reposicao_aberta' && alunosDe(g.itens) < g.itens.length
+                ? `${g.itens.length} de ${alunosDe(g.itens)} ${alunosDe(g.itens) === 1 ? 'aluno' : 'alunos'}`
+                : g.itens.length}
+            </Contador>
           </Chip>
         ))}
       </div>
@@ -140,7 +208,22 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
           <Th className="text-right max-md:hidden">Ação</Th>
         </Cabecalho>
         <tbody>
-          {linhas.map((p) => {
+          {linhas.map((l) => {
+            if (l.tipo === 'aluno') {
+              return (
+                <LinhaDoAluno
+                  key={l.chave}
+                  linha={l}
+                  aberto={abertos.includes(l.chave)}
+                  aoAlternar={() => alternar(l.chave)}
+                  aoDispensar={setDispensando}
+                  servicos={servicos}
+                  rotuloSessao={rotuloSessao}
+                  aoMarcar={() => router.refresh()}
+                />
+              )
+            }
+            const p = l.p
             const i = p.etiqueta ?? idade(p.diasEmAberto)
             return (
               <LinhaQueAbre key={chave(p)} href={p.href} className={LINHA}>
@@ -258,5 +341,147 @@ function Contador({ ativo, children }: { ativo: boolean; children: React.ReactNo
     <span className={`text-[12px] ${ativo ? 'opacity-70' : 'text-tinta-fraca'}`}>
       {children}
     </span>
+  )
+}
+
+const alunosDe = (itens: Pendencia[]) => new Set(itens.map((p) => p.reposicao?.pessoaId ?? p.referenciaId)).size
+
+/** O aluno com várias reposições: o total na linha, as datas ao abrir. */
+function LinhaDoAluno({
+  linha, aberto, aoAlternar, aoDispensar, servicos, rotuloSessao, aoMarcar,
+}: {
+  linha: Extract<Linha, { tipo: 'aluno' }>
+  aberto: boolean
+  aoAlternar: () => void
+  aoDispensar: (p: Pendencia) => void
+  servicos: Servico[]
+  rotuloSessao: string
+  aoMarcar: () => void
+}) {
+  const { itens } = linha
+  const maisAntiga = itens[0]
+  const i = idade(Math.max(...itens.map((p) => p.diasEmAberto ?? 0)))
+  const modalidades = [...new Set(itens.map((p) => p.reposicao!.servico).filter(Boolean))].join(' e ')
+  const detalhe = [
+    modalidades,
+    `mais antiga em ${dataCurta(maisAntiga.reposicao!.data)}`,
+  ].filter(Boolean).join(' · ')
+  const idDatas = `datas-${linha.chave}`
+
+  const acoes = (
+    <>
+      {/* repõe a mais antiga, e o próprio modal deixa trocar */}
+      <MarcarAula
+        pessoaId={maisAntiga.reposicao!.pessoaId}
+        nome={linha.titulo}
+        servicos={servicos}
+        servicoInicial={maisAntiga.reposicao!.servicoId}
+        faltas={itens.map(faltaDe)}
+        rotuloSessao={rotuloSessao}
+        aoMarcar={aoMarcar}
+        className={`${BOTAO} cursor-pointer`}
+      >
+        {ACAO_GRUPO.reposicao_aberta ?? 'Agendar reposição'}
+      </MarcarAula>
+      <button
+        type="button"
+        aria-expanded={aberto}
+        aria-controls={idDatas}
+        onClick={aoAlternar}
+        className={`${FANTASMA} inline-flex items-center gap-1.5`}
+      >
+        {aberto ? 'Fechar' : 'Ver faltas'}
+        <span aria-hidden className={`inline-block text-[11px] transition-transform duration-200 ${aberto ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+    </>
+  )
+
+  return (
+    <>
+      <LinhaQueAbre href={linha.href} className={aberto ? `${LINHA} border-b-0` : LINHA}>
+        <td className={`${CELULA_FIXA} max-md:px-3`}>
+          <span className="flex items-start gap-2.5 md:min-w-[280px] md:items-center">
+            <Avatar nome={linha.titulo} tamanho={32} decorativo />
+            <span className="flex min-w-0 flex-col leading-[1.35]">
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <Link href={linha.href} className="text-[14.5px] font-medium hover:text-marca">
+                  {linha.titulo}
+                </Link>
+                <span className="rounded-full bg-alerta-superficie px-2 py-px text-[12px] font-semibold text-alerta tabular-nums">
+                  {itens.length} reposições
+                </span>
+              </span>
+              <span className="text-[13.5px] text-tinta-media">{detalhe}</span>
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 md:hidden">
+                <Tipo tipo="reposicao_aberta" />
+                {i ? <Etiqueta tinta={i.tinta}>{i.texto}</Etiqueta> : null}
+              </span>
+              <span className="flex flex-wrap items-center gap-1 pt-2 md:hidden">{acoes}</span>
+            </span>
+          </span>
+        </td>
+        <td className={`${CELULA} max-md:hidden`}><Tipo tipo="reposicao_aberta" /></td>
+        <td className={`${CELULA} max-md:hidden`}>
+          {i ? <Etiqueta tinta={i.tinta}>{i.texto}</Etiqueta> : null}
+        </td>
+        <td className={`${CELULA} max-md:hidden`}>
+          <span className="flex flex-wrap items-center justify-end gap-1">{acoes}</span>
+        </td>
+      </LinhaQueAbre>
+      {/* as faltas abrem como sub-linhas da própria tabela: a data sob o nome,
+          a idade em "Em aberto" e as ações em "Ação", sem cartão dentro de
+          tabela nem faixa vazia ao lado */}
+      {aberto ? itens.map((p, k) => {
+        const ip = idade(p.diasEmAberto)
+        const ponto = ip?.tinta === 'alerta' ? 'bg-alerta' : ip?.tinta === 'atencao' ? 'bg-atencao' : 'bg-tinta-fraca'
+        const ultima = k === itens.length - 1
+        const acoesDaFalta = (
+          <span className="flex items-center justify-end gap-0.5">
+            <button
+              type="button"
+              onClick={() => aoDispensar(p)}
+              className={`${FANTASMA} md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100`}
+            >
+              Dispensar
+            </button>
+            <MarcarAula
+              pessoaId={p.reposicao!.pessoaId}
+              nome={linha.titulo}
+              servicos={servicos}
+              servicoInicial={p.reposicao!.servicoId}
+              faltas={[]}
+              faltaFixa={faltaDe(p)}
+              rotuloSessao={rotuloSessao}
+              aoMarcar={aoMarcar}
+              className="inline-flex min-h-8 cursor-pointer items-center rounded-padrao border border-linha bg-superficie px-2.5 text-[13px] font-medium whitespace-nowrap hover:border-tinta-media"
+            >
+              Agendar
+            </MarcarAula>
+          </span>
+        )
+        return (
+          <tr
+            key={p.referenciaId}
+            id={k === 0 ? idDatas : undefined}
+            className={`group hover:bg-superficie-tenue ${ultima ? 'border-b border-linha-suave' : ''}`}
+          >
+            <td className={`${CELULA_FIXA} relative py-0! max-md:px-3`}>
+              {/* o fio que liga as faltas ao aluno de cima */}
+              <span aria-hidden className={`absolute left-[31px] w-px bg-linha max-md:left-[27px] ${ultima ? 'top-0 h-1/2' : 'inset-y-0'}`} />
+              <span aria-hidden className="absolute top-1/2 left-[31px] h-px w-3 bg-linha max-md:left-[27px]" />
+              <span className="flex min-h-11 items-center gap-2.5 pl-[42px] max-md:pl-[34px]">
+                <span aria-hidden className={`size-2 shrink-0 rounded-full ${ponto}`} />
+                <span className="text-[14px] font-semibold tabular-nums">{dataCurta(p.reposicao!.data)}</span>
+                <span className="truncate text-[13.5px] text-tinta-media">{p.reposicao!.motivo}</span>
+                <span className="ml-auto md:hidden">{acoesDaFalta}</span>
+              </span>
+            </td>
+            <td className={`${CELULA} max-md:hidden`} />
+            <td className={`${CELULA} py-0! text-[12.5px] text-tinta-fraca tabular-nums max-md:hidden`}>{ip?.texto}</td>
+            <td className={`${CELULA} py-0! max-md:hidden`}>{acoesDaFalta}</td>
+          </tr>
+        )
+      }) : null}
+    </>
   )
 }
