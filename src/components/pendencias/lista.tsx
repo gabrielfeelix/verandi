@@ -40,7 +40,7 @@ const FANTASMA = 'min-h-9 cursor-pointer rounded-padrao px-2.5 text-[13.5px] whi
  *
  * Antes eram nove cartões empilhados, cada um com três linhas e "Mostrar mais":
  * para ver tudo era rolar e abrir grupo por grupo. Aqui a lista inteira cabe
- * numa vista, na ordem de urgência dos grupos, e os chips de cima filtram por
+ * numa vista, em ordem alfabética, e os chips de cima filtram por
  * tipo na hora, com a contagem de cada um. Kanban foi descartado: nove colunas
  * viram rolagem lateral, e no celular não se lê.
  */
@@ -62,7 +62,10 @@ export function ListaPendencias({ grupos: recebidos }: { grupos: GrupoPendencia[
   const total = grupos.reduce((n, g) => n + g.itens.length, 0)
   // o filtro de um grupo que acabou de esvaziar volta para "Todas"
   const ativo = grupos.some((g) => g.tipo === filtro) ? filtro : null
+  // de A a Z pelo nome, como a recepção procura o aluno; os chips de cima
+  // separam por tipo quando a pergunta é "o que é urgente"
   const linhas = grupos.filter((g) => !ativo || g.tipo === ativo).flatMap((g) => g.itens)
+    .sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR', { sensitivity: 'base' }))
 
   const acoes = (p: Pendencia) => (
     <>{p.licenca ? (
