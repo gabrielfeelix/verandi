@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { clienteServidor, exigirConta } from '../conta'
 import { hojeEm } from '../agenda/fuso'
 import { abrirLicenca, encerrarLicenca, prorrogarLicenca } from './licencas'
+import { corrigirProrrogacao } from './prorrogacao'
+import { registrar } from '../log'
 
 const DATA = /^\d{4}-\d{2}-\d{2}$/
 
@@ -53,4 +55,33 @@ export async function marcarVolta(pessoaId: string): Promise<void> {
   revalidatePath('/pendencias')
   revalidatePath('/hoje')
   revalidatePath('/semana')
+}
+
+/**
+ * "Corrigir" no cartão do plano: quantos dias a licença devolveu.
+ *
+ * Erro volta como valor, pela mesma razão de `contratos/acoes.ts`: a frase do
+ * teto ("o plano devolve até 7 dias") é o que deixa a recepção acertar sozinha.
+ */
+export async function corrigirDiasDaLicenca(
+  licencaId: string, pessoaId: string, dias: number,
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  try {
+    const conta = await exigirConta()
+    if (conta.papel === 'profissional') {
+      return { ok: false, erro: 'Quem corrige o plano é a recepção ou o dono.' }
+    }
+    const db = await clienteServidor()
+    const r = await corrigirProrrogacao(db, conta.contaId, licencaId, dias)
+    if (!r.ok) return r
+    await registrar(db, {
+      contaId: conta.contaId, entidade: 'pessoa', entidadeId: pessoaId,
+      acao: 'editou', detalhe: { licenca: licencaId, diasProrrogados: r.dias },
+    })
+    revalidatePath(`/pessoas/${pessoaId}`)
+    revalidatePath('/pessoas')
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : 'Não foi possível corrigir.' }
+  }
 }

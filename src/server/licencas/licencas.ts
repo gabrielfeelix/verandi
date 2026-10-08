@@ -3,6 +3,7 @@ import { ajusteDaLicenca, type AulaDaPessoa, type JanelaDeLicenca } from '@/core
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
 import { localDe } from '../agenda/fuso'
 import { avisarQuemEspera } from '../agenda/espera'
+import { prorrogarPlanoPelaLicenca } from './prorrogacao'
 
 /**
  * A licença como período acompanhado (ver `0070_vr_licenca.sql`).
@@ -67,14 +68,26 @@ export async function encerrarLicenca(
   db: Db, contaId: string, pessoaIds: string[], por: EncerradaPor,
 ): Promise<number> {
   if (pessoaIds.length === 0) return 0
+  const agora = new Date()
   const { data, error } = await db.from('licenca')
-    .update({ encerrada_em: new Date().toISOString(), encerrada_por: por })
+    .update({ encerrada_em: agora.toISOString(), encerrada_por: por })
     .eq('conta_id', contaId).in('pessoa_id', pessoaIds).is('encerrada_em', null)
-    .select('pessoa_id')
+    .select('id, pessoa_id')
   if (error) throw error
-  // voltou: as aulas futuras que estavam em licença são dela de novo
-  for (const l of data ?? []) await acertarAulas(db, contaId, l.pessoa_id, null)
-  return data?.length ?? 0
+  if (!data?.length) return 0
+
+  const { data: conta, error: erroConta } = await db
+    .from('conta').select('fuso').eq('id', contaId).single()
+  if (erroConta) throw erroConta
+  const volta = localDe(agora.toISOString(), conta.fuso).data
+
+  for (const l of data) {
+    // voltou: as aulas futuras que estavam em licença são dela de novo
+    await acertarAulas(db, contaId, l.pessoa_id, null)
+    // e o plano anda pelos dias fora, até o teto dele
+    await prorrogarPlanoPelaLicenca(db, contaId, l.id, volta)
+  }
+  return data.length
 }
 
 /** Muda a data de volta da licença aberta. `null` tira a data. */

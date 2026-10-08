@@ -19,6 +19,8 @@ export type PlanoBase = {
   diasPermitidos?: number[] | null
   sessoesNoPacote: number | null
   validadeMeses: number | null
+  /** dias de licença que o plano devolve no fim do contrato; nulo é nenhum */
+  diasLicenca?: number | null
   precoVinculadoCent: number
   precoAvulsoCent: number
 }

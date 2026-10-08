@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { cpfValido, mascararCpf, soDigitosCpf } from '@/core/pessoas/documento'
 import {
   fimDoContrato, diasParados, fimProrrogado, saldoDoPacote, proximoVencimento,
+  diasForaNaLicenca, prorrogacaoDaLicenca,
 } from '@/core/contratos/contrato'
 
 describe('CPF', () => {
@@ -126,5 +127,34 @@ describe('vencimento', () => {
 
   it('sem dia de vencimento não há data para cobrar', () => {
     expect(proximoVencimento('2026-09-03', null)).toBeNull()
+  })
+})
+
+describe('licença que prorroga o plano', () => {
+  it('conta os dias fora até a véspera da volta', () => {
+    expect(diasForaNaLicenca('2026-10-06', '2026-10-14')).toBe(8)
+    expect(diasForaNaLicenca('2026-10-06', '2026-10-06')).toBe(0)
+  })
+
+  it('para no teto do plano', () => {
+    expect(prorrogacaoDaLicenca(8, 7)).toBe(7)
+    expect(prorrogacaoDaLicenca(5, 15)).toBe(5)
+  })
+
+  it('o teto vale para o contrato inteiro, não para cada licença', () => {
+    expect(prorrogacaoDaLicenca(5, 7, 5)).toBe(2)
+    expect(prorrogacaoDaLicenca(5, 7, 7)).toBe(0)
+  })
+
+  it('plano sem teto não prorroga', () => {
+    expect(prorrogacaoDaLicenca(10, null)).toBe(0)
+    expect(prorrogacaoDaLicenca(10, 0)).toBe(0)
+  })
+
+  it('os dias da licença somam com os da pausa no fim', () => {
+    expect(fimProrrogado('2026-12-31', [], 7)).toBe('2027-01-07')
+    expect(fimProrrogado('2026-12-31', [{ inicio: '2026-11-01', fim: '2026-11-02' }], 7))
+      .toBe('2027-01-09')
+    expect(fimProrrogado(null, [], 7)).toBeNull()
   })
 })

@@ -3,6 +3,7 @@ import type { Recorrencia } from '@/core/planos/plano'
 import {
   fimProrrogado, saldoDoPacote, type Pausa,
 } from '@/core/contratos/contrato'
+import { somaDosDias } from '../licencas/prorrogacao'
 
 export type ContratoLinha = {
   id: string
@@ -20,6 +21,10 @@ export type ContratoLinha = {
   formaPagamento: string | null
   status: 'ativo' | 'pausado' | 'encerrado'
   pausas: Pausa[]
+  /** as licenças que empurraram o fim deste contrato, e por quantos dias */
+  licencas: Array<{ id: string; inicio: string; volta: string | null; dias: number }>
+  /** quantos dias de licença o plano devolve, somados no contrato */
+  tetoDeLicenca: number
   /** só existe em contrato de pacote */
   saldo: { usadas: number; restantes: number; acabou: boolean } | null
   /** quantas turmas fixas este contrato ocupa hoje */
@@ -40,8 +45,9 @@ export async function contratosDaPessoa(
     .select(`
       id, plano_id, inicio, fim, dia_vencimento, preco_aplicado_cent,
       vinculo_usado, forma_pagamento, status, sessoes_contratadas,
-      plano(codigo, nome, recorrencia, servico(nome)),
+      plano(codigo, nome, recorrencia, dias_licenca, servico(nome)),
       pausa(inicio, fim),
+      licenca(id, inicio, encerrada_em, dias_prorrogados),
       vaga(id, fim),
       participacao(id, status)
     `)
@@ -73,13 +79,23 @@ export async function contratosDaPessoa(
       servicoNome: c.plano?.servico?.nome ?? '',
       recorrencia: (c.plano?.recorrencia ?? 'mensal') as Recorrencia,
       inicio: c.inicio,
-      fim: fimProrrogado(c.fim, pausas),
+      fim: fimProrrogado(c.fim, pausas, somaDosDias(c.licenca ?? [])),
       diaVencimento: c.dia_vencimento,
       precoAplicadoCent: c.preco_aplicado_cent,
       vinculoUsado: c.vinculo_usado,
       formaPagamento: c.forma_pagamento,
       status: c.status as 'ativo' | 'pausado' | 'encerrado',
       pausas,
+      licencas: (c.licenca ?? [])
+        .filter((l) => l.dias_prorrogados !== null)
+        .map((l) => ({
+          id: l.id,
+          inicio: l.inicio,
+          volta: l.encerrada_em ? l.encerrada_em.slice(0, 10) : null,
+          dias: l.dias_prorrogados ?? 0,
+        }))
+        .sort((a, b) => a.inicio.localeCompare(b.inicio)),
+      tetoDeLicenca: c.plano?.dias_licenca ?? 0,
       saldo: saldoDoPacote(c.sessoes_contratadas, usadas),
       vagasVivas: (c.vaga ?? []).filter((v) => v.fim === null).length,
     }

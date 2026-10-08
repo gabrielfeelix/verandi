@@ -5,10 +5,12 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Menu } from '@/components/ui/menu'
-import { Modal } from '@/components/ui/modal'
+import { Modal, ModalFormulario } from '@/components/ui/modal'
 import { Campo, ListaImpacto, entrada } from '@/components/ui/pecas'
 import { anonimizarPessoa, editarPessoa } from '@/server/pessoas/acoes'
 import { CampoData } from '@/components/ui/campo-data'
+import { CampoNumero } from '@/components/ui/campo-numero'
+import { corrigirDiasDaLicenca } from '@/server/licencas/acoes'
 import { useAviso } from '@/components/ui/desfazer'
 
 /**
@@ -284,6 +286,67 @@ export function RegistrarRenovacao({
           />
         </Campo>
       </Modal>
+    </>
+  )
+}
+
+/**
+ * Corrigir quantos dias uma licença devolveu ao plano.
+ *
+ * Mora no cartão Plano, ao lado da linha que diz "+7 dias", porque é ali que a
+ * recepção confere a data e vê que está errada. Antes, o único jeito de mexer
+ * era "Registrar renovação", que troca a data inteira e não diz de onde ela veio.
+ */
+export function CorrigirLicenca({
+  licencaId, pessoaId, dias, teto,
+}: {
+  licencaId: string
+  pessoaId: string
+  dias: number
+  teto: number
+}) {
+  const [aberto, setAberto] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+  const [pendente, iniciar] = useTransition()
+  const avisar = useAviso()
+  const router = useRouter()
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => { setErro(null); setAberto(true) }}
+        className="text-[13px] font-medium text-marca underline-offset-2 hover:underline"
+      >
+        Corrigir
+      </button>
+      <ModalFormulario
+        aberto={aberto}
+        glifo="✎"
+        largura="confirmacao"
+        titulo="Dias de licença no plano"
+        sub={`O plano devolve até ${teto} dias de licença.`}
+        primario="Salvar"
+        pendente={pendente}
+        aoFechar={() => setAberto(false)}
+        aoEnviar={(f) => {
+          const novo = Number(f.get('dias') ?? 0)
+          iniciar(async () => {
+            const r = await corrigirDiasDaLicenca(licencaId, pessoaId, novo)
+            if (!r.ok) { setErro(r.erro); return }
+            setAberto(false)
+            avisar({ texto: 'Vencimento corrigido' })
+            router.refresh()
+          })
+        }}
+      >
+        <Campo rotulo="Dias somados ao fim do plano" htmlFor="dias-licenca" obrigatorio>
+          <span className="block w-32">
+            <CampoNumero id="dias-licenca" nome="dias" min={0} max={teto} sufixo="dias" valorInicial={dias} />
+          </span>
+        </Campo>
+        {erro ? <p role="alert" className="text-[13.5px] text-alerta">{erro}</p> : null}
+      </ModalFormulario>
     </>
   )
 }

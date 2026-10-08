@@ -40,6 +40,8 @@ export type EntradaDePlano = {
   diasPermitidos: number[] | null
   sessoesNoPacote: number | null
   validadeMeses: number | null
+  /** dias de licença que o plano devolve no fim; nulo é nenhum */
+  diasLicenca: number | null
   precoVinculadoCent: number
   precoAvulsoCent: number
 }
@@ -73,6 +75,7 @@ function paraLinha(e: EntradaDePlano) {
       && e.diasPermitidos.length < 7 ? [...new Set(e.diasPermitidos)].sort() : null,
     sessoes_no_pacote: e.sessoesNoPacote,
     validade_meses: e.validadeMeses,
+    dias_licenca: e.diasLicenca && e.diasLicenca > 0 ? e.diasLicenca : null,
     preco_vinculado_cent: e.precoVinculadoCent,
     preco_avulso_cent: e.precoAvulsoCent,
   }

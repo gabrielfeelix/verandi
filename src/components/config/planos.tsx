@@ -241,6 +241,15 @@ export function SecaoPlanos({
  * num pacote é o jeito mais rápido de a tabela nascer com campo preenchido no
  * lugar errado, e ninguém confere quarenta e duas linhas depois.
  */
+/** Só plano com fim tem o que empurrar: o mensal se renova sozinho. */
+const temFim = (r: Recorrencia): boolean =>
+  r === 'trimestral' || r === 'semestral' || r === 'anual'
+
+/** A regra que o primeiro estúdio usa, como ponto de partida de plano novo. */
+const LICENCA_PADRAO: Partial<Record<Recorrencia, number>> = {
+  trimestral: 7, semestral: 15, anual: 30,
+}
+
 function FormularioDePlano({
   plano, servicos, rotuloServico, pendente, erro, aoFechar, aoEnviar,
 }: {
@@ -293,6 +302,9 @@ function FormularioDePlano({
             : null,
           validadeMeses: recorrencia === 'pacote'
             ? Number(f.get('validadeMeses') ?? 0) || null
+            : null,
+          diasLicenca: temFim(recorrencia)
+            ? Number(f.get('diasLicenca') ?? 0) || null
             : null,
           precoVinculadoCent: vinculado,
           precoAvulsoCent: avulso,
@@ -486,6 +498,25 @@ function FormularioDePlano({
               </span>
             </Campo>
           </>
+        ) : null}
+
+        {temFim(recorrencia) ? (
+          <Campo
+            rotulo="Licença" htmlFor="pl-lic"
+            dica="Dias de licença que o plano devolve no fim. 0 é nenhum"
+          >
+            <span className="block w-32">
+              {/* a chave refaz o campo ao trocar a recorrência: o padrão do
+                  trimestral não serve para o anual */}
+              <CampoNumero
+                key={recorrencia}
+                id="pl-lic" nome="diasLicenca" min={0} max={365} sufixo="dias"
+                valorInicial={plano?.recorrencia === recorrencia
+                  ? plano.diasLicenca ?? 0
+                  : LICENCA_PADRAO[recorrencia] ?? 0}
+              />
+            </span>
+          </Campo>
         ) : null}
       </div>
 

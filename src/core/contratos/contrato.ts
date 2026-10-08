@@ -100,11 +100,40 @@ export function diasParados(pausas: Pausa[]): number {
  *
  * É a coluna "Novo Venc" da planilha do cliente: quem trancou dois meses volta
  * e quer os dois meses de volta, e não perder o que já tinha pago.
+ *
+ * `diasDeLicenca` é o que as licenças do contrato devolveram (ver
+ * `prorrogacaoDaLicenca`). Fica fora das pausas porque o financeiro lê só as
+ * pausas: licença empurra a validade, não o calendário de cobrança.
  */
-export function fimProrrogado(fim: string | null, pausas: Pausa[]): string | null {
+export function fimProrrogado(
+  fim: string | null, pausas: Pausa[], diasDeLicenca = 0,
+): string | null {
   if (!fim) return null
-  const dias = diasParados(pausas)
+  const dias = diasParados(pausas) + Math.max(0, diasDeLicenca)
   return dias > 0 ? somarDias(fim, dias) : fim
+}
+
+/**
+ * Quantos dias a pessoa ficou longe numa licença: do começo até a véspera da
+ * volta. Saiu em 06/10 e voltou em 14/10 são oito dias fora, porque no dia 14
+ * ela já estava na sala.
+ */
+export function diasForaNaLicenca(inicio: string, volta: string): number {
+  return Math.max(0, Math.round((paraData(volta).getTime() - paraData(inicio).getTime()) / DIA))
+}
+
+/**
+ * Quanto uma licença devolve ao fim do contrato.
+ *
+ * O teto é do plano e vale para o contrato inteiro, não para cada licença: um
+ * trimestral com duas licenças de cinco dias devolve sete, não dez. Por isso
+ * entra o que as outras licenças do mesmo contrato já usaram.
+ */
+export function prorrogacaoDaLicenca(
+  diasFora: number, teto: number | null, jaUsados = 0,
+): number {
+  if (!teto || teto <= 0) return 0
+  return Math.max(0, Math.min(diasFora, teto - jaUsados))
 }
 
 /**

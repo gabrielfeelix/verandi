@@ -28,7 +28,7 @@ export async function listarPlanos(db: Db, contaId: string): Promise<PlanoLinha[
     .from('plano')
     .select(`
       id, codigo, nome, servico_id, recorrencia, parcelas, frequencia_semanal, horario_livre, dias_permitidos,
-      sessoes_no_pacote, validade_meses, preco_vinculado_cent,
+      sessoes_no_pacote, validade_meses, dias_licenca, preco_vinculado_cent,
       preco_avulso_cent, ativo, servico(nome, categoria)
     `)
     .eq('conta_id', contaId)
@@ -57,6 +57,7 @@ export async function listarPlanos(db: Db, contaId: string): Promise<PlanoLinha[
     diasPermitidos: p.dias_permitidos,
     sessoesNoPacote: p.sessoes_no_pacote,
     validadeMeses: p.validade_meses,
+    diasLicenca: p.dias_licenca,
     precoVinculadoCent: p.preco_vinculado_cent,
     precoAvulsoCent: p.preco_avulso_cent,
     ativo: p.ativo,

@@ -8,7 +8,8 @@ import { incluirVagasNasSessoes, tirarDasAulasDepoisDoFim } from '../agenda/mate
 import { avisarQuemEspera } from '../agenda/espera'
 import { temVinculo } from './consultas'
 import { precoAplicado, type Recorrencia } from '@/core/planos/plano'
-import { fimDoContrato, fimProrrogado } from '@/core/contratos/contrato'
+import { fimDoContrato } from '@/core/contratos/contrato'
+import { escreverVencimentoNaFicha } from '../licencas/prorrogacao'
 import {
   cancelarCobrancasFuturas, materializarCobrancas, sincronizarCobrancas,
 } from '../financeiro/materializar'
@@ -238,36 +239,6 @@ async function conferirVagas(
     }
   }
   return { recusa: null, adotar }
-}
-
-/**
- * A ficha continua mostrando um vencimento, e ele passa a vir do contrato.
- *
- * A coluna é lida em seis lugares, um deles o filtro "plano vencendo" da lista
- * de pessoas, que a lê dentro de `pessoa_resumo`. Derivar tudo em tempo de
- * leitura obrigaria a mexer na view e a refazer o filtro; escrever aqui mantém
- * as duas coisas funcionando e o número certo.
- */
-async function escreverVencimentoNaFicha(
-  db: Awaited<ReturnType<typeof clienteServidor>>,
-  contaId: string, pessoaId: string,
-): Promise<void> {
-  const { data } = await db.from('contrato')
-    .select('fim, pausa(inicio, fim)')
-    .eq('conta_id', contaId).eq('pessoa_id', pessoaId)
-    .neq('status', 'encerrado')
-
-  const fins = (data ?? [])
-    .map((c) => fimProrrogado(c.fim, (c.pausa ?? []).map((p) => ({
-      inicio: p.inicio, fim: p.fim,
-    }))))
-    .filter((f): f is string => f !== null)
-    .sort()
-
-  // o mais próximo é o que a ficha precisa mostrar: é ele que vence primeiro
-  await db.from('pessoa')
-    .update({ vencimento_plano: fins[0] ?? null })
-    .eq('id', pessoaId).eq('conta_id', contaId)
 }
 
 /** Trancar: as vagas fecham, e o fim vai andar quando a pessoa voltar. */

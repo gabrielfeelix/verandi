@@ -10,7 +10,7 @@ import { fichaDaPessoa, type Ficha } from '@/server/pessoas/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
 import { EditarPessoa } from '@/components/pessoas/editar-pessoa'
 import {
-  AvisoDeCadastro, CopiarTelefone, MarcarInativa, RegistrarRenovacao,
+  AvisoDeCadastro, CopiarTelefone, CorrigirLicenca, MarcarInativa, RegistrarRenovacao,
 } from '@/components/pessoas/acoes-da-ficha'
 import { ProvedorDeMatricula, Vagas } from '@/components/pessoas/vagas'
 import { ReposicoesAbertas } from '@/components/pessoas/reposicoes'
@@ -212,10 +212,17 @@ export default async function Pessoa({
   const modalidades = await modalidadesDaPessoa(db, conta.contaId, id)
   const temContrato = operacional ? contratosEmVigor > 0 : modalidades.length > 0
   // o cartão Plano: nome, valor e vencimento; quem atende lê só o nome
-  const vigentes: Array<{ id: string; nome: string; detalhe: string | null }> = operacional
+  const vigentes: Array<{
+    id: string; nome: string; detalhe: string | null
+    licencas: Array<{ id: string; inicio: string; dias: number }>; teto: number
+  }> = operacional
     ? contratos.filter((c) => c.status !== 'encerrado').map((c) => ({
         id: c.id,
         nome: c.planoNome,
+        // a licença que empurrou o fim aparece junto do plano, com o número
+        // que dá para corrigir; o teto é do plano, e só plano com fim tem
+        licencas: c.licencas,
+        teto: c.tetoDeLicenca,
         detalhe: [
           `${emReais(c.precoAplicadoCent)}${POR_RECORRENCIA[c.recorrencia] ?? ''}`,
           c.diaVencimento ? `vence todo dia ${c.diaVencimento}` : null,
@@ -223,7 +230,7 @@ export default async function Pessoa({
           c.status === 'pausado' ? 'pausado' : null,
         ].filter(Boolean).join(' · '),
       }))
-    : modalidades.map((m) => ({ id: m, nome: m, detalhe: null }))
+    : modalidades.map((m) => ({ id: m, nome: m, detalhe: null, licencas: [], teto: 0 }))
   const licenca = await licencaDaPessoa(db, conta.contaId, id)
   // saldo de pacote é da operação, como o contrato de onde ele vem
   const pacotes = operacional
@@ -996,6 +1003,20 @@ export default async function Pessoa({
                     <span className="text-[14.5px] font-medium">{c.nome}</span>
                     {c.detalhe ? (
                       <span className="text-[13.5px] text-tinta-media">{c.detalhe}</span>
+                    ) : null}
+                    {c.licencas.map((l) => (
+                      <span key={l.id} className="flex items-center justify-between gap-2 text-[13.5px] text-tinta-media">
+                        <span>
+                          Licença de {curta(l.inicio)}:{' '}
+                          {l.dias === 0 ? 'sem dias no plano' : l.dias === 1 ? '+1 dia no plano' : `+${l.dias} dias no plano`}
+                        </span>
+                        <CorrigirLicenca licencaId={l.id} pessoaId={p.id} dias={l.dias} teto={c.teto} />
+                      </span>
+                    ))}
+                    {licenca && c.teto > 0 ? (
+                      <span className="text-[13.5px] text-tinta-media">
+                        Na volta da licença, o plano anda até {c.teto} dias.
+                      </span>
                     ) : null}
                   </li>
                 ))}
