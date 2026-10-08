@@ -162,8 +162,11 @@ function Titulo({ glifo = '+', icone, tom = 'positivo', titulo, sub, perigo = fa
 
 /** O corpo que rola. `gap-4` é o espaço entre campos do protótipo. */
 function Corpo({ children }: { children: ReactNode }) {
+  // quem rola é o corpo, e os filhos não encolhem: uma fileira com rolagem
+  // horizontal aqui dentro pode ir a zero de altura (os dias da semana da
+  // matrícula sumiam com zoom no navegador)
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pb-1">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 pb-1 [&>*]:shrink-0">
       {children}
     </div>
   )

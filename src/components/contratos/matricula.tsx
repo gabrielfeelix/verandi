@@ -329,8 +329,11 @@ export function NovaMatricula({
               ) : (
                 <>
                   {/* um dia por vez: setenta horários numa parede só é como
-                      a primeira versão desta tela ficou ilegível */}
-                  <div role="tablist" aria-label="Dia da semana" className="-mx-2 flex gap-1.5 overflow-x-auto px-2 pt-2 pb-0.5">
+                      a primeira versão desta tela ficou ilegível.
+                      `shrink-0` porque a fileira rola na horizontal, e item de
+                      coluna flex com rolagem pode encolher até zero: com zoom
+                      no navegador, os dias sumiam e ficava só a linha */}
+                  <div role="tablist" aria-label="Dia da semana" className="-mx-2 flex shrink-0 gap-1.5 overflow-x-auto px-2 pt-2 pb-0.5">
                     {diasComHorario.map((d) => {
                       const nele = escolhidas.filter((id) =>
                         doPlano.find((t) => t.id === id)?.diaSemana === d).length
