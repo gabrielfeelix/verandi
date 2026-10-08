@@ -6,6 +6,7 @@ import { LinhaDaGrade } from '@/components/grade/linha-da-grade'
 import { CapacidadeDaSemana } from '@/components/grade/capacidade-semana'
 import { cartao, Vazio } from '@/components/ui/pecas'
 import { Abas } from '@/components/ui/abas'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
@@ -39,9 +40,9 @@ export default async function Grade() {
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <TituloDaTela tela="grade">
             Grade fixa
-          </h1>
+          </TituloDaTela>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {vigentes.length} {rotulos.serie.plural.toLowerCase()} em uso, que se
             repetem toda semana.

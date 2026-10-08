@@ -34,6 +34,15 @@ const AJUDA = {
       { titulo: 'Monte a grade fixa', texto: 'Em "Grade fixa" ficam as turmas que se repetem toda semana. A agenda nasce dela.' },
     ],
   },
+  grade: {
+    titulo: 'Grade fixa',
+    resumo: 'As turmas que se repetem toda semana.',
+    passos: [
+      { titulo: 'Cadastre a turma', texto: 'Cada turma da grade tem dia, horário, modalidade, profissional e local.' },
+      { titulo: 'A agenda nasce dela', texto: 'As aulas de cada semana saem da grade, sem precisar marcar uma por uma.' },
+      { titulo: 'Exceção se resolve na Agenda', texto: 'Feriado, aula cancelada ou aula avulsa se resolvem na Agenda, sem mexer na grade.' },
+    ],
+  },
   pendencias: {
     titulo: 'Pendências',
     resumo: 'O que está em aberto, uma linha por pessoa.',

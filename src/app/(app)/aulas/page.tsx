@@ -10,6 +10,7 @@ import { dataCurta, somarDias } from '@/core/agenda/datas'
 import { Avatar, Vazio, cartao } from '@/components/ui/pecas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 /**
  * Quantas aulas cada profissional aplicou.
@@ -61,9 +62,9 @@ export default async function Aulas({ searchParams }: { searchParams: Busca }) {
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <TituloDaTela tela="financeiro">
             Financeiro
-          </h1>
+          </TituloDaTela>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {r.total.aplicadas === 0
               ? 'Nenhuma aula aconteceu no período escolhido.'

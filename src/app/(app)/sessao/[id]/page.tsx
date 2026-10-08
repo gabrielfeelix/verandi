@@ -16,6 +16,7 @@ import {
 import { TrocarProfissional } from '@/components/sessao/trocar-profissional'
 import { AvatarProf } from '@/components/hoje/pecas'
 import { cartao } from '@/components/ui/pecas'
+import { FimDaTrilha } from '@/components/ui/fim-da-trilha'
 
 // a migalha é uma linha de 12,5px entre duas barras; "Quinta-feira" empurra o
 // nome da turma para longe e não acrescenta nada que a data já não diga
@@ -120,6 +121,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                   <h1 className="font-titulo text-[24px] leading-tight font-semibold">
                     {sessao.servico}
                   </h1>
+                  <FimDaTrilha rotulo={`${sessao.servico} · ${sessao.hora}`} />
                   <span
                     className={`rounded-peca px-2.5 py-1 text-[13.5px] ${
                       sessao.ocupacao.excedida

@@ -19,6 +19,7 @@ import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { Chip, Nota, Paginacao, cartao } from '@/components/ui/pecas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 /**
  * O arquivo de recibos: o item 8 do documento, na parte que diz "deverá ser
@@ -93,9 +94,9 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <header>
-          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <TituloDaTela tela="financeiro">
             Financeiro
-          </h1>
+          </TituloDaTela>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {/* o singular carrega o particípio junto: "1 recibo emitidos" era
                 o que saía quando só o substantivo variava */}

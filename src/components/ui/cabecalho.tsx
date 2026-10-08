@@ -11,6 +11,7 @@ import { travarPagina, destravarPagina } from './modal'
 import { Avatar } from './pecas'
 import { Sino } from './sino'
 import { ABRIR_SELETOR } from './seletor-de-conta'
+import { useFimDaTrilha } from './fim-da-trilha'
 
 /** O pedaço da navegação que o cabeçalho precisa para dizer onde se está. */
 export type DestinoDaTrilha = { href: string; tambem?: string[]; rotulo: string }
@@ -47,14 +48,15 @@ function ativoEm(caminho: string, d: Pick<DestinoDaTrilha, 'href' | 'tambem'>) {
   return [d.href, ...(d.tambem ?? [])].some((h) => caminho === h || caminho.startsWith(`${h}/`))
 }
 
-function trilhaDe(caminho: string, destinos: DestinoDaTrilha[]) {
+function trilhaDe(caminho: string, destinos: DestinoDaTrilha[], fim: string | null) {
   const destino = destinos.find((d) => ativoEm(caminho, d))
   if (!destino) return []
   const partes = caminho.split('/').filter(Boolean)
   const raiz = `/${partes[0] ?? ''}`
   const pedacos: Array<{ rotulo: string; href?: string }> = [{ rotulo: destino.rotulo, href: destino.href }]
   if (raiz !== destino.href && DENTRO[raiz]) pedacos.push({ rotulo: DENTRO[raiz], href: raiz })
-  if (partes.length > 1 && REGISTRO[raiz]) pedacos.push({ rotulo: REGISTRO[raiz] })
+  // o nome que a página mandou ganha do genérico: "Maria Silva", não "Ficha"
+  if (partes.length > 1 && REGISTRO[raiz]) pedacos.push({ rotulo: fim ?? REGISTRO[raiz] })
   // o último é onde se está: não é link
   pedacos[pedacos.length - 1] = { rotulo: pedacos[pedacos.length - 1].rotulo }
   return pedacos
@@ -88,7 +90,8 @@ export function Cabecalho({
 }) {
   const caminho = usePathname()
   const [ajuda, setAjuda] = useState(false)
-  const trilha = trilhaDe(caminho, destinos)
+  const fim = useFimDaTrilha()
+  const trilha = trilhaDe(caminho, destinos, fim)
   const destino = destinos.find((d) => ativoEm(caminho, d))
 
   return (
