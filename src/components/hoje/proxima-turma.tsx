@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 import { paresDe, primeiroNome, iniciaisDe } from './pecas'
+import { chamadaAbreEm } from '@/core/agenda/chamada'
 
 /**
  * A próxima turma, em destaque.
@@ -26,9 +27,10 @@ export function ProximaTurma({
 
   // marcar em bloco só depois do começo, como na tela da chamada; o botão
   // libera sozinho na hora, sem recarregar
-  const [comecou, setComecou] = useState(() => Date.parse(sessao.inicio) <= Date.now())
+  // a chamada abre uma hora antes do começo (`CHAMADA_ABRE_ANTES_MS`)
+  const [comecou, setComecou] = useState(() => chamadaAbreEm(sessao.inicio) <= Date.now())
   useEffect(() => {
-    const falta = Date.parse(sessao.inicio) - Date.now()
+    const falta = chamadaAbreEm(sessao.inicio) - Date.now()
     if (falta <= 0 || falta > 2 ** 31 - 1) return
     const t = setTimeout(() => setComecou(true), falta)
     return () => clearTimeout(t)

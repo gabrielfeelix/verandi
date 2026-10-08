@@ -10,6 +10,7 @@ import { marcarTodosPresentes, mudarStatus } from '@/server/agenda/acoes'
 import { useAviso } from '@/components/ui/desfazer'
 import { cartao } from '@/components/ui/pecas'
 import { Menu } from '@/components/ui/menu'
+import { chamadaAbreEm } from '@/core/agenda/chamada'
 
 /**
  * O estado vivo da chamada, num lugar só.
@@ -30,7 +31,7 @@ type Chamada = {
   registrados: number
   total: number
   podeRegistrar: boolean
-  /** a aula já começou: antes disso não há o que marcar em bloco */
+  /** a chamada já abriu (uma hora antes do começo): antes disso não há o que marcar em bloco */
   comecou: boolean
   ocupado: boolean
   registrar: (p: ParticipacaoDetalhe, status: StatusParticipacao) => void
@@ -76,14 +77,15 @@ export function ProvedorChamada({
   children: ReactNode
 }) {
   /*
-   * "Marcar todos presentes" só a partir do começo. Antes aparecia em aula de
-   * daqui a três dias, e um toque distraído dava presença a quem nem chegou.
-   * O relógio vira sozinho na hora, sem recarregar: quem abriu a chamada cinco
-   * minutos antes vê o botão aparecer quando a aula começa.
+   * Presença, falta e "Marcar todos presentes" só a partir de uma hora antes
+   * do começo. Antes aparecia em aula de daqui a três dias, e um toque
+   * distraído dava presença a quem nem chegou. O relógio vira sozinho na hora,
+   * sem recarregar: quem abriu a aula antes vê a chamada abrir sozinha.
    */
-  const [comecou, setComecou] = useState(() => Date.parse(inicio) <= Date.now())
+  // a chamada abre uma hora antes do começo (`CHAMADA_ABRE_ANTES_MS`)
+  const [comecou, setComecou] = useState(() => chamadaAbreEm(inicio) <= Date.now())
   useEffect(() => {
-    const falta = Date.parse(inicio) - Date.now()
+    const falta = chamadaAbreEm(inicio) - Date.now()
     // setTimeout não aceita mais que ~24 dias; além disso, a tela recarrega antes
     if (falta <= 0 || falta > 2 ** 31 - 1) return
     const t = setTimeout(() => setComecou(true), falta)
