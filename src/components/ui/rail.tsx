@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { sair } from '@/app/contas/acoes'
 import { Icone, type NomeIcone } from './icones'
 import { travarPagina, destravarPagina } from './modal'
 import { SeletorDeConta, type ContaDoSeletor } from './seletor-de-conta'
@@ -215,20 +214,16 @@ const ABA = 'relative flex min-h-13 flex-1 flex-col items-center justify-center 
  * A barra de baixo, que é o rail em tela estreita.
  *
  * Quatro destinos à vista e um "Mais" com o resto. Antes eram só os quatro, e o
- * celular não chegava ao Financeiro, aos Recibos, à Configuração, nem ao Sair:
- * "o resto se alcança pelas telas" não era verdade para nenhum deles.
+ * celular não chegava ao Financeiro, aos Recibos nem à Configuração: "o resto
+ * se alcança pelas telas" não era verdade para nenhum deles. Quem é a pessoa,
+ * a troca de conta e o Sair moram no cabeçalho, que também aparece no celular.
  */
 export function BarraInferior({
-  itens, principais, pessoa, papel, podeTrocar, sair: sairOutro,
+  itens, principais,
 }: {
   itens: ItemRail[]
   /** os `href` que ficam à vista; o resto vai para o "Mais" */
   principais: string[]
-  pessoa: string
-  papel: string
-  podeTrocar: boolean
-  /** troca o "Sair" comum, como o do suporte, que encerra o acesso */
-  sair?: React.ReactNode
 }) {
   const pathname = usePathname()
   const [aberto, setAberto] = useState(false)
@@ -329,47 +324,8 @@ export function BarraInferior({
             )
           })}
 
-          <div className={`flex items-center gap-3 px-3 pt-3 ${resto.length ? 'mt-2 border-t border-linha-fina' : ''}`}>
-            <span
-              aria-hidden
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-positivo-superficie text-[13.5px] leading-none font-semibold tracking-[-.02em] text-marca"
-            >
-              {iniciais(pessoa)}
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col leading-tight">
-              <span className="truncate text-[14.5px]">{pessoa}</span>
-              <span className="text-[12px] text-tinta-media">
-                {papel}
-                {podeTrocar ? (
-                  <>
-                    {' · '}
-                    <Link href="/contas" onClick={() => setAberto(false)} className="text-marca underline">
-                      trocar
-                    </Link>
-                  </>
-                ) : null}
-              </span>
-            </span>
-            {sairOutro ?? (
-              <form action={sair}>
-                <button
-                  type="submit"
-                  className="flex min-h-11 items-center gap-2 rounded-padrao border border-linha px-3.5 text-[14.5px] text-tinta-media"
-                >
-                  <Icone nome="sair" tamanho={16} />
-                  Sair
-                </button>
-              </form>
-            )}
-          </div>
         </div>
       </dialog>
     </>
   )
-}
-
-function iniciais(nome: string) {
-  // "Edu (dono)" dava "E(": só conta palavra que começa com letra
-  const partes = nome.trim().split(/\s+/).filter((w) => /^\p{L}/u.test(w))
-  return ((partes[0]?.[0] ?? '?') + (partes[1]?.[0] ?? '')).toUpperCase()
 }

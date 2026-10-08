@@ -75,6 +75,28 @@ function diasDesde(iso: string, fuso: string): number {
   return Math.max(0, Math.round((ate - de) / DIA))
 }
 
+/**
+ * Quantas chamadas estão por fazer, para o número de Pendências no rail.
+ *
+ * Só as chamadas, e não a lista inteira: reposição em aberto conta centenas
+ * numa conta com histórico, e número que nunca zera ninguém lê. Chamada não
+ * feita é o que pede ação hoje. As dispensadas saem, para o rail e a tela
+ * dizerem o mesmo número.
+ */
+export async function contarChamadasPorFazer(
+  db: Db, contaId: string, fuso: string,
+): Promise<number> {
+  const [chamadas, dispensadas] = await Promise.all([
+    chamadasNaoFeitas(db, contaId, fuso, new Date().toISOString()),
+    db.from('pendencia_dispensada')
+      .select('referencia_id')
+      .eq('conta_id', contaId)
+      .eq('tipo', 'chamada_nao_feita'),
+  ])
+  const fora = new Set((dispensadas.data ?? []).map((d) => d.referencia_id))
+  return chamadas.filter((c) => !fora.has(c.referenciaId)).length
+}
+
 export async function listarPendencias(
   db: Db, contaId: string, fuso: string,
 ): Promise<GrupoPendencia[]> {

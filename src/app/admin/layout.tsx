@@ -73,9 +73,6 @@ export default async function LayoutAdmin({ children }: { children: React.ReactN
       <BarraInferior
         itens={ITENS_DO_ADMIN}
         principais={ITENS_DO_ADMIN.map((i) => i.href)}
-        pessoa={pessoa}
-        papel="Admin 4YU"
-        podeTrocar={false}
       />
     </div>
   )

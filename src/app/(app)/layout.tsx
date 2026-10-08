@@ -3,6 +3,7 @@ import { exigirConta, clienteServidor, contasDoUsuario } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { estadoDoOnboarding, encerrado, contaVazia } from '@/server/onboarding/consultas'
 import { contarAtrasadas } from '@/server/financeiro/consultas'
+import { contarChamadasPorFazer } from '@/server/pendencias/consultas'
 import { quitarParcelasDoCartao } from '@/server/financeiro/materializar'
 import { hojeEm } from '@/server/agenda/fuso'
 import { roteiroDe } from '@/core/onboarding/roteiro'
@@ -10,7 +11,6 @@ import { boasVindas } from '@/core/onboarding/boas-vindas'
 import { aindaNeutro } from '@/core/vocabulario/predefinicoes'
 import { Guia } from '@/components/onboarding/guia'
 import { BoasVindas } from '@/components/onboarding/boas-vindas'
-import { SairDoSuporte } from '@/components/ui/sair-do-suporte'
 import { Rail, BarraInferior, type ItemRail } from '@/components/ui/rail'
 import { Cabecalho } from '@/components/ui/cabecalho'
 import { SeletorDeConta } from '@/components/ui/seletor-de-conta'
@@ -108,9 +108,13 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   if (operacional) {
     await quitarParcelasDoCartao(db, conta.contaId, hojeEm(conta.fuso)).catch(() => 0)
   }
-  const atrasadas = operacional
-    ? await contarAtrasadas(db, conta.contaId, hojeEm(conta.fuso))
-    : 0
+  // as duas contagens do rail vão juntas: em fila custavam a soma
+  const [atrasadas, chamadas] = operacional
+    ? await Promise.all([
+        contarAtrasadas(db, conta.contaId, hojeEm(conta.fuso)),
+        contarChamadasPorFazer(db, conta.contaId, conta.fuso).catch(() => 0),
+      ])
+    : [0, 0]
 
   /*
    * Seis destinos, um por pergunta. Recibos e Aulas por professor moram no
@@ -129,7 +133,11 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
             href: '/semana', tambem: ['/grade', '/vaga'],
             rotulo: 'Agenda', curto: 'Agenda', icone: 'semana', guia: 'rail-semana',
           },
-          { href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', icone: 'pendencias', guia: 'rail-pendencias' },
+          {
+            href: '/pendencias', rotulo: 'Pendências', curto: 'Pend.', icone: 'pendencias',
+            badge: chamadas, badgeRotulo: chamadas === 1 ? 'chamada por fazer' : 'chamadas por fazer',
+            guia: 'rail-pendencias',
+          },
           {
             href: '/pessoas',
             rotulo: rotulos.pessoa.plural,
@@ -160,7 +168,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   // e o resto fica no "Mais"
   const principais = ['/hoje', '/semana', '/pessoas', '/pendencias']
 
-  // dentro de conta de cliente, o "Sair" do suporte encerra o acesso em vez de
+  // dentro de conta de cliente, o "Sair do suporte" do menu do perfil encerra o acesso em vez de
   // deslogar; a conta interna já foi mandada para /admin lá em cima
   const suporte = conta.papel === 'suporte'
   const pessoa = eu?.nome ?? conta.meuNome ?? user?.email ?? 'Você'
@@ -226,10 +234,6 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
         <BarraInferior
           itens={itens}
           principais={principais}
-          pessoa={pessoa}
-          papel={PAPEL[conta.papel] ?? conta.papel}
-          podeTrocar={contas.length > 1}
-          sair={suporte ? <SairDoSuporte claro /> : undefined}
         />
       </div>
 
