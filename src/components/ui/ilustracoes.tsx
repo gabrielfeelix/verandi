@@ -25,6 +25,9 @@ export type Desenho =
   | 'tudo-certo'
   | 'erro'
   | 'fotos'
+  | 'contrato'
+  | 'local'
+  | 'servicos'
 
 const TRACO = {
   fill: 'none',
@@ -244,6 +247,65 @@ function Fotos() {
   )
 }
 
+/** O contrato: folha com cláusulas, a linha da assinatura e o selo do plano. */
+function Contrato() {
+  return (
+    <Tela titulo="Um contrato com cláusulas e a linha da assinatura">
+      <rect x={58} y={8} width={84} height={104} rx={8} {...TRACO} opacity={0.45} />
+      <Barra x={70} y={20} w={40} o={0.8} />
+      {[0, 1, 2, 3].map((l) => (
+        <Barra key={l} x={70} y={34 + l * 11} w={l === 3 ? 34 : 58} o={0.35} h={3.5} />
+      ))}
+      <path d="M70 92c6-7 10 4 15-2s8 2 13 0" {...TRACO} opacity={0.75} />
+      <line x1={70} y1={99} x2={108} y2={99} {...TRACO} opacity={0.3} />
+      <circle cx={126} cy={92} r={10} {...TRACO} strokeDasharray="3 3" opacity={0.6} />
+      <path d="M121.5 92l3 3 6-6" {...TRACO} />
+    </Tela>
+  )
+}
+
+/** Os locais: duas salas lado a lado, uma com o marcador de lugar em cima. */
+function Local() {
+  return (
+    <Tela titulo="Duas salas, uma delas marcada como local">
+      {[40, 106].map((x, i) => (
+        <g key={x} opacity={i ? 0.5 : 1}>
+          <path d={`M${x} 56l27-18 27 18v44a4 4 0 0 1-4 4H${x + 4}a4 4 0 0 1-4-4z`} {...TRACO} opacity={0.7} />
+          <rect x={x + 19} y={78} width={16} height={26} rx={3} {...TRACO} opacity={0.6} />
+        </g>
+      ))}
+      <path d="M67 10a9 9 0 0 1 9 9c0 7-9 15-9 15s-9-8-9-15a9 9 0 0 1 9-9z" {...TRACO} />
+      <circle cx={67} cy={19} r={3} fill="currentColor" opacity={0.6} />
+      <path d="M133 26v8M129 30h8" {...TRACO} opacity={0.5} />
+    </Tela>
+  )
+}
+
+/** Os serviços: cartões de modalidade, cada um com a etiqueta de preço. */
+function Servicos() {
+  return (
+    <Tela titulo="Modalidades do estúdio, cada uma com o preço">
+      {[0, 1, 2].map((l) => (
+        <g key={l} opacity={l === 2 ? 0.5 : 1}>
+          <rect x={36} y={12 + l * 34} width={128} height={26} rx={6} {...TRACO}
+            strokeDasharray={l === 2 ? '3 4' : undefined} opacity={0.7} />
+          {l < 2 ? (
+            <>
+              <circle cx={50} cy={25 + l * 34} r={5} fill="currentColor" opacity={0.25} />
+              <Barra x={62} y={20 + l * 34} w={l ? 30 : 42} o={0.75} />
+              <Barra x={62} y={28 + l * 34} w={22} o={0.35} h={3.5} />
+              <path d={`M132 ${19 + l * 34}h16l5 6-5 6h-16z`} {...TRACO} opacity={0.75} />
+              <circle cx={137} cy={25 + l * 34} r={1.6} fill="currentColor" opacity={0.6} />
+            </>
+          ) : (
+            <path d="M100 85v8M96 89h8" {...TRACO} opacity={0.6} />
+          )}
+        </g>
+      ))}
+    </Tela>
+  )
+}
+
 const DESENHOS: Record<Desenho, () => ReactNode> = {
   dia: Dia,
   semana: Semana,
@@ -254,6 +316,9 @@ const DESENHOS: Record<Desenho, () => ReactNode> = {
   'tudo-certo': TudoCerto,
   erro: Erro,
   fotos: Fotos,
+  contrato: Contrato,
+  local: Local,
+  servicos: Servicos,
 }
 
 export function Ilustracao({ desenho }: { desenho: Desenho }) {

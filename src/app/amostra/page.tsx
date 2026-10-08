@@ -23,6 +23,7 @@ import { TINTA, type Tinta } from '@/components/ui/tintas'
  */
 const DESENHOS: Desenho[] = [
   'dia', 'semana', 'grade', 'pessoas', 'dinheiro', 'lista', 'tudo-certo', 'erro', 'fotos',
+  'contrato', 'local', 'servicos',
 ]
 
 const TINTAS: Tinta[] = ['positivo', 'atencao', 'alerta', 'info', 'licenca', 'neutro']

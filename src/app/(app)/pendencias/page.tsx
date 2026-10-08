@@ -3,6 +3,7 @@ import { esvaziadasHoje, listarPendencias } from '@/server/pendencias/consultas'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { ListaPendencias } from '@/components/pendencias/lista'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 /**
  * A primeira tela do dia de quem opera: o que precisa de alguém hoje.
@@ -30,9 +31,9 @@ export default async function Pendencias() {
       <div className="flex flex-col gap-4">
         <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
           <div>
-            <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+            <TituloDaTela tela="pendencias">
               Pendências
-            </h1>
+            </TituloDaTela>
             {/* vazio, quem fala é a nota da lista: dizer duas vezes era eco */}
             {total > 0 ? (
               <p className="pt-[3px] text-[14.5px] text-tinta-media">

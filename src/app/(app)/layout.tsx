@@ -119,6 +119,10 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
    */
   const itens: ItemRail[] = [
     { href: '/hoje', rotulo: 'Hoje', curto: 'Hoje', icone: 'hoje', guia: 'rail-hoje' },
+    // a profissional também planeja a semana: a dela, sem a da equipe
+    ...(conta.papel === 'profissional'
+      ? ([{ href: '/semana', rotulo: 'Minha semana', curto: 'Semana', icone: 'semana' }] satisfies ItemRail[])
+      : []),
     ...(operacional
       ? ([
           {

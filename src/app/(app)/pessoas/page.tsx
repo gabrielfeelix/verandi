@@ -17,6 +17,7 @@ import { CELULA, CELULA_FIXA, Cabecalho, LINHA, Tabela, Th } from '@/components/
 import { TINTA } from '@/components/ui/tintas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 /*
  * Cinco perguntas, e não dez. Cada uma é uma ligação a fazer: quem sumiu sem
@@ -219,9 +220,9 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <TituloDaTela tela="pessoas">
             {rotulos.pessoa.plural}
-          </h1>
+          </TituloDaTela>
           {/* três números, não um: "28 cadastrados" sozinho esconde que três
               pessoas pararam, e é justamente quem parou que se quer achar */}
           <p className="pt-[3px] text-[14.5px] text-tinta-media">

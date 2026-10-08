@@ -235,6 +235,7 @@ const DESENHO_DO_ICONE: Partial<Record<NomeIcone, Desenho>> = {
   lista: 'lista',
   check: 'tudo-certo',
   aviso: 'erro',
+  local: 'local',
 }
 
 /**

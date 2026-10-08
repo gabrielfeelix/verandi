@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 import { AvatarProf } from '@/components/hoje/pecas'
-import { cartao } from '@/components/ui/pecas'
+import { cartao, Vazio } from '@/components/ui/pecas'
 
 /*
  * A sombra branca que fecha as frestas do cabeçalho fixo.
@@ -34,7 +34,7 @@ function diaDe(dataIso: string) {
  * degradação, é a forma correta no tamanho pequeno.
  */
 export function GradeSemana({
-  sessoes, dias, feriados, hoje, fechados, agora, rotuloSessoes,
+  sessoes, dias, feriados, hoje, fechados, agora, rotuloSessoes, podeMontar = true,
 }: {
   sessoes: SessaoResumo[]
   dias: string[]
@@ -46,6 +46,8 @@ export function GradeSemana({
   agora: string | null
   /** o rótulo da conta no plural: "aulas", "sessões", "atendimentos" */
   rotuloSessoes: string
+  /** quem opera monta a grade; a profissional só vê a semana dela */
+  podeMontar?: boolean
 }) {
   const horas = [...new Set(sessoes.map((s) => s.hora))].sort()
 
@@ -73,25 +75,22 @@ export function GradeSemana({
 
   if (horas.length === 0) {
     return (
-      <section className="flex flex-col items-center gap-2.5 rounded-cartao border border-dashed border-linha-tracejada bg-superficie px-6 py-8.5 text-center">
-        <span
-          aria-hidden
-          className="flex size-11 items-center justify-center rounded-media bg-superficie-mais-suave text-[18px] text-tinta-media"
-        >
-          ▦
-        </span>
-        <span className="font-titulo text-[18px] font-semibold">
-          Nenhum horário nesta semana
-        </span>
-        <span className="max-w-[380px] text-[14.5px] leading-relaxed text-tinta-media">
-          Os horários aparecem aqui depois de cadastrados em Grade fixa.
-        </span>
-        <Link
-          href="/grade"
-          className="mt-1.5 rounded-padrao bg-escuro px-4 py-2.5 text-[14.5px] font-medium text-tinta-clara"
-        >
-          Montar a grade fixa
-        </Link>
+      <section className="rounded-cartao border border-dashed border-linha-tracejada bg-superficie">
+        <Vazio
+          desenho="semana"
+          titulo="Nenhum horário nesta semana"
+          texto={podeMontar
+            ? 'Os horários aparecem aqui depois de cadastrados em Grade fixa.'
+            : `Quando houver ${rotuloSessoes} com você nesta semana, elas aparecem aqui.`}
+          acao={podeMontar ? (
+            <Link
+              href="/grade"
+              className="inline-flex rounded-padrao bg-escuro px-4 py-2.5 text-[14.5px] font-medium text-tinta-clara"
+            >
+              Montar a grade fixa
+            </Link>
+          ) : null}
+        />
       </section>
     )
   }

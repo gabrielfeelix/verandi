@@ -26,10 +26,10 @@ function destinoNaOutra(caminho: string, papel: Papel): string {
   const partes = caminho.split('/').filter(Boolean)
   const raiz = `/${partes[0] ?? 'hoje'}`
   // vindo da administração não há seção para manter: abre a agenda
-  if (raiz === '/admin') return papel === 'profissional' ? '/hoje' : '/semana'
+  if (raiz === '/admin') return '/semana'
   // a aula aberta é da agenda: volta para a semana, não para `/sessao`
   const alvo = partes.length > 1 ? (raiz === '/sessao' ? '/semana' : raiz) : raiz
-  if (papel === 'profissional' && alvo !== '/hoje') return '/hoje'
+  if (papel === 'profissional' && alvo !== '/hoje' && alvo !== '/semana') return '/hoje'
   if (papel === 'recepcao' && alvo === '/config') return '/semana'
   return alvo
 }

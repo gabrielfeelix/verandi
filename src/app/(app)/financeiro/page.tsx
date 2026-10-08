@@ -26,6 +26,7 @@ import { AreaQueTroca } from '@/components/ui/troca'
 import { SecoesDoFinanceiro } from '@/components/financeiro/secoes'
 import { Chip } from '@/components/ui/pecas'
 import Carregando from './loading'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 /**
  * O caixa da recepção.
@@ -189,9 +190,9 @@ function Cabecalho({ atrasadas, hoje }: { atrasadas: number; hoje: string }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
       <div>
-        <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+        <TituloDaTela tela="financeiro">
           Financeiro
-        </h1>
+        </TituloDaTela>
         <p className="pt-[3px] text-[14.5px] text-tinta-media">
           {atrasadas === 0
             ? `Nada em atraso hoje, ${dataCurta(hoje)}.`

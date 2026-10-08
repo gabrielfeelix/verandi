@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao } from '@/components/ui/botao'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
-import { Campo, Nota, entrada } from '@/components/ui/pecas'
+import { Campo, Nota, Vazio, entrada } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
 import { CampoData } from '@/components/ui/campo-data'
 import { CampoNumero } from '@/components/ui/campo-numero'
@@ -609,10 +609,11 @@ export function ContratosDaFicha({
 
   if (contratos.length === 0) {
     return (
-      <p className="text-[14.5px] text-tinta-media">
-        Nenhum contrato ainda. É ela que diz qual plano {pessoaNome.split(' ')[0]}{' '}
-        contratou, por quanto, e até quando.
-      </p>
+      <Vazio
+        desenho="contrato"
+        titulo="Nenhum contrato ainda"
+        texto={`É o contrato que diz qual plano ${pessoaNome.split(' ')[0]} contratou, por quanto, e até quando.`}
+      />
     )
   }
 

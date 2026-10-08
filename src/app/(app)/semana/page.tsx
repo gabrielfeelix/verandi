@@ -15,6 +15,7 @@ import { cartao, Chip, Vazio } from '@/components/ui/pecas'
 import { Suspenso } from '@/components/ui/suspenso'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 type Busca = Promise<{
   de?: string
@@ -64,8 +65,25 @@ function faixaDaSemana(de: string, ate: string) {
 
 export default async function Semana({ searchParams }: { searchParams: Busca }) {
   const p = await searchParams
-  const conta = await exigirPapel(OPERA, 'Agenda')
+  const conta = await exigirPapel([...OPERA, 'profissional'], 'Agenda')
   const db = await clienteServidor()
+
+  /*
+   * A profissional vê a semana **dela**, e só ela: sem os filtros da equipe,
+   * sem aula avulsa e sem grade fixa, que são coisa de quem opera o estúdio.
+   * Sem cadastro de profissional ligado ao usuário não há aula dela, e o id
+   * nulo garante a lista vazia em vez de cair na semana de todo mundo.
+   */
+  const ehProf = conta.papel === 'profissional'
+  const eu = ehProf
+    ? await (async () => {
+        const { data: { user } } = await db.auth.getUser()
+        const { data } = await db.from('profissional').select('id')
+          .eq('conta_id', conta.contaId).eq('usuario_id', user?.id ?? '').maybeSingle()
+        return data
+      })()
+    : null
+  const filtroProf = ehProf ? (eu?.id ?? '00000000-0000-0000-0000-000000000000') : p.profissional
   const fuso = conta.fuso
   const hoje = hojeEm(fuso)
   const segunda = segundaDe(p.de ?? hoje)
@@ -101,7 +119,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     db.from('local').select('id, nome')
       .eq('conta_id', conta.contaId).eq('ativo', true).order('nome'),
     sessoesDoIntervalo(db, conta.contaId, de, ate, {
-      ...(p.profissional ? { profissionalId: p.profissional } : {}),
+      ...(filtroProf ? { profissionalId: filtroProf } : {}),
       ...(p.local ? { localId: p.local } : {}),
     }, fuso),
     // dia sem linha em `funcionamento` é dia fechado: é o que separa o sábado
@@ -170,9 +188,9 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
-          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
-            {ehDia ? 'Agenda do dia' : 'Agenda da semana'}
-          </h1>
+          <TituloDaTela tela="agenda">
+            {ehProf ? (ehDia ? 'Meu dia' : 'Minha semana') : ehDia ? 'Agenda do dia' : 'Agenda da semana'}
+          </TituloDaTela>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {ehDia
               ? dataLonga(diaFoco)
@@ -191,7 +209,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               { id: 'semana', rotulo: 'Semana', href: q({ modo: undefined }) },
               { id: 'dia', rotulo: 'Dia', href: q({ modo: 'dia', dia: diaFoco }) },
               // a grade fixa é o molde desta agenda: mora aqui, não no menu
-              { id: 'grade', rotulo: 'Grade fixa', href: '/grade' },
+              ...(ehProf ? [] : [{ id: 'grade', rotulo: 'Grade fixa', href: '/grade' }]),
             ]}
           />
 
@@ -234,7 +252,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           {/* imprimir a semana é coisa de balcão, não de telefone */}
           {!ehDia ? <span className="hidden md:contents"><BotaoImprimir /></span> : null}
 
-          <NovaAulaAvulsa servicos={servicosAvulsa ?? []} />
+          {ehProf ? null : <NovaAulaAvulsa servicos={servicosAvulsa ?? []} />}
         </div>
       </header>
 
@@ -242,6 +260,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           semana da Marina". O de local só aparece quando há mais de um lugar. */}
       {/* no celular a faixa rola de lado: quebrando, eram cinco linhas de
           filtro antes da primeira aula */}
+      {ehProf ? null : (
       <div
         data-imprimir="fora"
         className="-mx-4 flex items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] *:shrink-0 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
@@ -284,6 +303,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         ) : null}
 
       </div>
+      )}
 
       {ehDia ? (
         <>
@@ -299,7 +319,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             recursos={
               porLocal
                 ? (locais ?? []).map((l) => ({ id: l.id, nome: l.nome }))
-                : (profissionais ?? []).map((pr) => ({
+                : (profissionais ?? []).filter((pr) => !ehProf || pr.id === eu?.id).map((pr) => ({
                     id: pr.id, nome: pr.nome, cor: pr.cor,
                   }))
             }
@@ -329,6 +349,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
               fechados={fechados}
               agora={dias.includes(hoje) ? localDe(new Date(agoraMs()).toISOString(), fuso).hora : null}
               rotuloSessoes={rotulos.sessao.plural.toLowerCase()}
+              podeMontar={!ehProf}
             />
           </div>
 

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Botao, BotaoIcone } from '@/components/ui/botao'
 import { Modal, ModalFormulario } from '@/components/ui/modal'
-import { Campo, ListaImpacto, Nota, entrada } from '@/components/ui/pecas'
+import { Campo, ListaImpacto, Nota, Vazio, entrada } from '@/components/ui/pecas'
 import {
   BotaoLinha, CampoAtivo, Dado, Estado, LinhaConfig, PainelConfig, Recolhivel,
 } from './casca'
@@ -87,10 +87,11 @@ export function SecaoServicos({
       }
     >
       {servicos.length === 0 ? (
-        <p className="px-5 py-6 text-[14.5px] text-tinta-media">
-          Nada cadastrado ainda. É o primeiro cadastro da conta: sem isso não
-          dá para montar a grade.
-        </p>
+        <Vazio
+          desenho="servicos"
+          titulo="Nada cadastrado ainda"
+          texto="É o primeiro cadastro da conta: sem isso não dá para montar a grade."
+        />
       ) : null}
 
       {ativos.map((s) => (
@@ -244,10 +245,11 @@ export function SecaoLocais({
       titulo={rotulo.plural}
     >
       {locais.length === 0 ? (
-        <p className="px-5 py-6 text-[14.5px] text-tinta-media">
-          Nada cadastrado ainda. A grade funciona sem isso: cadastre quando
-          houver mais de um lugar para separar.
-        </p>
+        <Vazio
+          desenho="local"
+          titulo="Nada cadastrado ainda"
+          texto="A grade funciona sem isso: cadastre quando houver mais de um lugar para separar."
+        />
       ) : null}
 
       {/*

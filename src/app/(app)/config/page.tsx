@@ -27,6 +27,7 @@ import { listarChaves } from '@/server/api/chave'
 import { listarConvites, listarUsuarios } from '@/server/usuarios/consultas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 // os glifos são os do protótipo: mono, discretos, e o suficiente para achar a
 // seção pelo canto do olho depois da terceira visita
@@ -102,9 +103,9 @@ export default async function Config({
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
         <header>
-          <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+          <TituloDaTela tela="config">
             Configuração da conta
-          </h1>
+          </TituloDaTela>
         </header>
 
         <div className="grid items-start gap-4 md:grid-cols-[236px_minmax(0,1fr)]">

@@ -20,6 +20,7 @@ import { variacao } from '@/core/financeiro/metricas'
 import { emReais } from '@/core/planos/plano'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
+import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
 type Busca = Promise<{
   dia?: string; todos?: string; prof?: string; restrita?: string
@@ -468,7 +469,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
       <div className="flex flex-col gap-4.5">
         <header className="flex flex-wrap items-center justify-between gap-5">
           <div>
-            <h1 className="font-titulo text-[28px] leading-[1.05] font-semibold tracking-[-.02em]">
+            <TituloDaTela tela="hoje">
               {ehHoje
                 ? (
                   <Saudacao
@@ -478,7 +479,7 @@ export default async function Hoje({ searchParams }: { searchParams: Busca }) {
                   />
                 )
                 : dataLonga(dia, fuso)}
-            </h1>
+            </TituloDaTela>
             <p className="pt-[3px] text-[14.5px] text-tinta-media">
               {/* a conta já está no rail (e no topo, no celular): repetir aqui
                   era a terceira vez na mesma dobra */}
