@@ -71,9 +71,16 @@ export async function mudarStatus(
 ): Promise<void> {
   const { db, conta, carimbo } = await quemRegistra()
 
+  /*
+   * Registrar de novo é corrigir, e a correção desfaz o encerramento do
+   * crédito. O único que encerra crédito é a importação do histórico ("acertada
+   * no papel"), em lote; quando a recepção remarca a falta justificada de
+   * setembro, é porque aquela reposição não foi feita, e o crédito precisa
+   * voltar. Sem isto a correção não mudava nada (Erika, MGM, 08/out/2026).
+   */
   const { data, error } = await db
     .from('participacao')
-    .update({ status, ...carimbo })
+    .update({ status, ...carimbo, credito_encerrado_em: null, credito_encerrado_motivo: null })
     .eq('id', participacaoId)
     .select('sessao_id, pessoa_id, sessao:sessao_id(inicio)')
     .maybeSingle()
