@@ -25,6 +25,7 @@ import type { ResumoDeCobrancas } from '@/core/financeiro/metricas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import { SecoesDoFinanceiro } from '@/components/financeiro/secoes'
 import { Chip } from '@/components/ui/pecas'
+import { Suspenso } from '@/components/ui/suspenso'
 import Carregando from './loading'
 import { TituloDaTela } from '@/components/ui/titulo-da-tela'
 
@@ -47,13 +48,15 @@ const ABAS: Array<{ id: FiltroCobranca | 'fechamento'; rotulo: string }> = [
   { id: 'fechamento', rotulo: 'Fechamento' },
 ]
 
-type Busca = Promise<{ aba?: string; q?: string; p?: string; de?: string; ate?: string; datas?: string }>
+type Busca = Promise<{ aba?: string; q?: string; p?: string; de?: string; ate?: string; datas?: string; ordem?: string }>
 
 export default async function Financeiro({ searchParams }: { searchParams: Busca }) {
   // dinheiro é do dono e da recepção; quem atende cai onde ele trabalha
   const conta = await exigirPapel(OPERA, 'Financeiro')
 
-  const { aba: abaBruta, q, p, de: deBruto, ate: ateBruto, datas } = await searchParams
+  const { aba: abaBruta, q, p, de: deBruto, ate: ateBruto, datas, ordem: ordemBruta } = await searchParams
+  // a ordem é escolha de quem usa: situação (o urgente no topo) ou nome
+  const ordem = ordemBruta === 'nome' ? 'nome' as const : undefined
   const db = await clienteServidor()
   const hoje = hojeEm(conta.fuso)
 
@@ -92,7 +95,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
 
   const [{ linhas, total }, { resumo, completo }] = await Promise.all([
     listarCobrancas(db, conta.contaId, hoje, {
-      filtro: aba, busca: q, pagina, periodo,
+      filtro: aba, busca: q, pagina, periodo, ordem,
     }),
     resumoDasCobrancas(db, conta.contaId, hoje, { filtro: aba, busca: q, periodo }),
   ])
@@ -102,6 +105,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
     base.set('aba', aba)
     if (q) base.set('q', q)
     if (periodo) { base.set('de', periodo.de); base.set('ate', periodo.ate) }
+    if (ordem) base.set('ordem', ordem)
     mudanca(base)
     return `/financeiro?${base}`
   }
@@ -120,7 +124,7 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
               busca), e a lista começava no meio da tela */}
           <ProvedorDeBusca servidor={q?.trim() ?? ''}>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5">
-              <Trilha aba={aba} q={q} periodo={periodo} atrasadas={atrasadas} />
+              <Trilha aba={aba} q={q} periodo={periodo} atrasadas={atrasadas} ordem={ordem} />
               <div className="flex flex-1 flex-wrap items-center justify-end gap-2">
                 <div className="w-full sm:w-64">
                   <BuscaDeCobranca valorInicial={q?.trim() ?? ''} aba={aba} />
@@ -130,9 +134,17 @@ export default async function Financeiro({ searchParams }: { searchParams: Busca
                   periodo={periodo}
                   hoje={hoje}
                   rotulo="Vencimento"
-                  escondidos={{ aba, q }}
+                  escondidos={{ aba, q, ordem }}
                   abrirDatas={datas === '1'}
                   menu
+                />
+                <Suspenso
+                  rotulo={ordem === 'nome' ? 'Ordem: nome' : 'Ordem: situação'}
+                  ativo={ordem === 'nome'}
+                  itens={[
+                    { rotulo: 'Situação (urgentes no topo)', href: endereco((b) => { b.delete('ordem'); b.delete('p') }), ativo: !ordem },
+                    { rotulo: 'Nome (A a Z)', href: endereco((b) => { b.set('ordem', 'nome'); b.delete('p') }), ativo: ordem === 'nome' },
+                  ]}
                 />
               </div>
             </div>
@@ -262,9 +274,10 @@ function faixaDaAba(aba: FiltroCobranca, r: ResumoDeCobrancas): NumeroDaFaixa[] 
 }
 
 function Trilha({
-  aba, q, periodo, atrasadas,
+  aba, q, periodo, atrasadas, ordem,
 }: {
   aba: string
+  ordem?: 'nome'
   q?: string
   periodo: { de: string; ate: string } | null
   atrasadas: number
@@ -279,6 +292,7 @@ function Trilha({
         // o período atravessa a troca: quem filtrou setembro e clicou em
         // "Recebidas" quer as recebidas de setembro, e não recomeçar
         if (periodo) { busca.set('de', periodo.de); busca.set('ate', periodo.ate) }
+        if (ordem) busca.set('ordem', ordem)
         return (
           <Chip key={a.id} ativo={a.id === aba} href={`/financeiro?${busca}`}>
             {a.rotulo}

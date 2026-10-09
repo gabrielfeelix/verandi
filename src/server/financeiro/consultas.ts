@@ -213,6 +213,8 @@ export async function listarCobrancas(
     busca?: string
     pagina?: number
     periodo?: { de: string; ate: string } | null
+    /** situação: urgente no topo, nome dentro do bloco; nome: A a Z puro */
+    ordem?: 'situacao' | 'nome'
   },
 ): Promise<{ linhas: CobrancaLinha[]; total: number }> {
   const pagina = Math.max(1, opcoes.pagina ?? 1)
@@ -224,7 +226,7 @@ export async function listarCobrancas(
   const base = () => db.from('cobranca_resumo')
     .select(SELECT_LINHA, { count: 'exact' }).eq('conta_id', contaId)
 
-  if (opcoes.filtro === 'todas') {
+  if (opcoes.filtro === 'todas' && opcoes.ordem !== 'nome') {
     return todasEmBlocos(db, contaId, hoje, {
       periodo: opcoes.periodo, pessoaIds, de,
     })
