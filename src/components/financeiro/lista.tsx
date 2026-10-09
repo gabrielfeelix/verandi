@@ -159,6 +159,9 @@ export function ListaDeCobrancas({
               const s = SITUACAO[c.situacao] ?? SITUACAO.aberta
               const validos = c.pagamentos.filter((p) => !p.estornado)
               const ultimo = validos[validos.length - 1]
+              // o recibo que falta emitir fica à vista na linha, e não só nos
+              // três pontos: escondido, ninguém achava (MGM, 09/out/2026)
+              const aEmitir = validos.filter((p) => !p.recibo).at(-1) ?? null
               const itens: ItemMenu[] = [
                 // lembrete de cobrança em aberto; sem telefone, sem a opção
                 ...(c.telefone && recebivel && falta > 0 ? [{
@@ -166,7 +169,7 @@ export function ListaDeCobrancas({
                   icone: 'whatsapp' as const,
                   aoEscolher: () => window.open(linkDeCobranca(c, falta), '_blank', 'noopener'),
                 }] : []),
-                ...validos.map((p) => p.recibo
+                ...validos.filter((p) => p.recibo || p.id !== aEmitir?.id).map((p) => p.recibo
                   ? {
                       rotulo: `Ver ${p.recibo.descricao}${p.recibo.cancelado ? ' (cancelado)' : ''}`,
                       icone: 'recibo' as const,
@@ -236,6 +239,11 @@ export function ListaDeCobrancas({
                           {c.situacao === 'cancelada' ? (
                             <Miudo onClick={() => agir(() => reabrirCobranca(c.id), 'Cobrança reaberta')}>
                               Reabrir
+                            </Miudo>
+                          ) : null}
+                          {aEmitir ? (
+                            <Miudo onClick={() => setModo({ tipo: 'emitir', c, pagamentoId: aEmitir.id, valorCent: aEmitir.valorCent })}>
+                              Emitir recibo
                             </Miudo>
                           ) : null}
                           {itens.length ? (
@@ -312,6 +320,11 @@ export function ListaDeCobrancas({
                       {c.situacao === 'cancelada' ? (
                         <Miudo onClick={() => agir(() => reabrirCobranca(c.id), 'Cobrança reaberta')}>
                           Reabrir
+                        </Miudo>
+                      ) : null}
+                      {aEmitir ? (
+                        <Miudo onClick={() => setModo({ tipo: 'emitir', c, pagamentoId: aEmitir.id, valorCent: aEmitir.valorCent })}>
+                          Emitir recibo
                         </Miudo>
                       ) : null}
                       {itens.length ? (

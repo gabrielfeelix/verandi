@@ -256,9 +256,8 @@ export async function listarCobrancas(
 }
 
 /**
- * "Todas", na ordem do balcão: o que está em atraso, depois o que já venceu ou
- * vence hoje (o mais recente na frente), e por último o que ainda vai vencer
- * (o mais perto na frente).
+ * "Todas", na ordem do balcão: o urgente primeiro, o resto depois, cada bloco
+ * em ordem alfabética.
  *
  * Ordenada só por vencimento, a aba abria pelas mensalidades de novembro, que
  * o contrato gera adiantadas, e as atrasadas ficavam na última página. Não há
@@ -272,15 +271,23 @@ async function todasEmBlocos(
   const recorte = { periodo: r.periodo, pessoaIds: r.pessoaIds }
   const base = () => db.from('cobranca_resumo')
     .select(SELECT_LINHA, { count: 'exact' }).eq('conta_id', contaId)
+  /*
+   * Dois blocos: o urgente no topo (em atraso ou vencendo hoje, ainda em
+   * aberto) e o resto embaixo, cada um em ordem alfabética. A ordem
+   * alfabética pura escondia cobrança vencida no meio da lista; por urgência
+   * pura, ninguém achava a pessoa. O MGM fechou assim em 09/out/2026.
+   */
   const blocos = [
-    { q: () => recortar(base(), { ...recorte, filtro: 'atrasadas' }, hoje), crescente: true },
     {
       q: () => recortar(base(), { ...recorte, filtro: 'todas' }, hoje)
-        .lte('vencimento', hoje)
-        .or(`situacao.not.in.(aberta,parcial),vencimento.eq.${hoje}`),
+        .in('situacao', ['aberta', 'parcial']).lte('vencimento', hoje),
+      crescente: true,
+    },
+    {
+      q: () => recortar(base(), { ...recorte, filtro: 'todas' }, hoje)
+        .or(`situacao.not.in.(aberta,parcial),vencimento.gt.${hoje}`),
       crescente: false,
     },
-    { q: () => recortar(base(), { ...recorte, filtro: 'todas' }, hoje).gt('vencimento', hoje), crescente: true },
   ]
 
   const contagens = await Promise.all(blocos.map(async (b) => {
