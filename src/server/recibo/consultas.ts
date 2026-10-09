@@ -91,9 +91,12 @@ export async function listarRecibos(
   const de = (pagina - 1) * POR_PAGINA
 
   const { data, error, count } = await recortarRecibos(
-    db.from('recibo').select(SELECT_LINHA, { count: 'exact' }).eq('conta_id', contaId),
+    // `pessoa(nome)` só está aqui para a ordem: o nome que sai é o do corpo
+    db.from('recibo').select(`${SELECT_LINHA}, pessoa(nome)`, { count: 'exact' }).eq('conta_id', contaId),
     opcoes,
   )
+    // em ordem alfabética, como toda lista da casa; o mais novo desempata
+    .order('pessoa(nome)')
     .order('emitido_em', { ascending: false })
     .range(de, de + POR_PAGINA - 1)
     .returns<LinhaCrua[]>()

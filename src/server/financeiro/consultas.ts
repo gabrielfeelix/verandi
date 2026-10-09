@@ -235,13 +235,16 @@ export async function listarCobrancas(
   }, hoje)
 
   /*
-   * A ordem é a do que dói primeiro: em atraso, o mais velho na frente; a
-   * vencer, o mais próximo na frente; o resto, o mais recente. A recepção não
-   * pede ordenação, ela pede a próxima ligação.
+   * Ordem alfabética pelo nome, como as outras listas. Dentro da mesma pessoa,
+   * a ordem do que dói primeiro: em atraso, o mais velho na frente; a vencer,
+   * o mais próximo; o resto, o mais recente.
    */
   const crescente = opcoes.filtro === 'atrasadas' || opcoes.filtro === 'a_vencer'
 
   const { data, error, count } = await recortada
+    // em ordem alfabética, como toda lista da casa (pedido do MGM, 09/out/2026);
+    // o vencimento desempata as cobranças da mesma pessoa
+    .order('pessoa(nome)')
     .order('vencimento', { ascending: crescente })
     .range(de, de + POR_PAGINA - 1)
     .returns<LinhaCrua[]>()
@@ -295,6 +298,8 @@ async function todasEmBlocos(
     const ate = Math.min(r.de + POR_PAGINA, fimDoBloco)
     if (de < ate) {
       const { data, error } = await b.q()
+        // o bloco segura o atraso na frente; dentro dele, ordem alfabética
+        .order('pessoa(nome)')
         .order('vencimento', { ascending: b.crescente })
         .range(de - inicioDoBloco, ate - inicioDoBloco - 1)
         .returns<LinhaCrua[]>()
