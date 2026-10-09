@@ -42,6 +42,7 @@ import {
   criarPosicao, painelDeAvaliacao, registrarAvaliacao,
 } from '@/server/avaliacao/acoes'
 import { FimDaTrilha } from '@/components/ui/fim-da-trilha'
+import { EtiquetaGympass } from '@/components/pessoas/etiqueta-gympass'
 
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 
@@ -432,11 +433,7 @@ export default async function Pessoa({
                 {p.nome}
               </h1>
               <FimDaTrilha rotulo={p.nome} />
-              {p.gympass ? (
-                <span className="rounded-minima bg-info-fundo px-2 py-[3px] text-[12px] font-semibold text-info">
-                  Gympass
-                </span>
-              ) : null}
+              {p.gympass ? <EtiquetaGympass /> : null}
               {ficha.tags.map((t) => (
                 <span
                   key={t}

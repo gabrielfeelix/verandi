@@ -46,6 +46,8 @@ export type ParticipacaoDetalhe = {
   pessoaId: string
   nome: string
   telefone: string | null
+  /** aluno do Gympass/Wellhub: a recepção confere o check-in dele */
+  gympass: boolean
   tags: string[]
   origem: OrigemParticipacao
   status: StatusParticipacao
@@ -206,7 +208,7 @@ type LinhaDetalhe = Omit<LinhaResumo, 'participacao'> & {
     registrado_em: string
     registrado_por_origem: OrigemRegistro
     registrado_por_usuario_id: string | null
-    pessoa: { id: string; nome: string; telefone: string | null } | null
+    pessoa: { id: string; nome: string; telefone: string | null; gympass: boolean } | null
     /** o valor da aula avulsa; quem atende não lê contrato e recebe null */
     contrato: { preco_aplicado_cent: number; plano: { recorrencia: string } | null } | null
   }>
@@ -280,7 +282,7 @@ export async function sessaoDetalhe(
       participacao(
         id, status, origem, reposicao_de_id, observacao, observacao_visivel,
         registrado_em, registrado_por_origem, registrado_por_usuario_id,
-        pessoa:pessoa_id(id, nome, telefone),
+        pessoa:pessoa_id(id, nome, telefone, gympass),
         contrato:contrato_id(preco_aplicado_cent, plano(recorrencia))
       )
     `)
@@ -443,6 +445,7 @@ export async function sessaoDetalhe(
       pessoaId: p.pessoa!.id,
       nome: p.pessoa!.nome,
       telefone: p.pessoa!.telefone,
+      gympass: p.pessoa!.gympass,
       tags: porPessoa.get(p.pessoa!.id) ?? [],
       origem: p.origem,
       status: p.status,

@@ -8,6 +8,7 @@ import { cartao, Avatar, Vazio } from '@/components/ui/pecas'
 import { Icone } from '@/components/ui/icones'
 import { MenuPessoa } from './menu-pessoa'
 import { useChamada } from './chamada'
+import { EtiquetaGympass } from '@/components/pessoas/etiqueta-gympass'
 
 /**
  * O que cada aluno pode virar, e quando.
@@ -106,6 +107,8 @@ export function ListaParticipacao({
                   >
                     {p.nome}
                   </Link>
+
+                  {p.gympass ? <EtiquetaGympass /> : null}
 
                   {p.tags.map((t) => (
                     <Marca key={t} tinta="atencao">{t}</Marca>

@@ -90,6 +90,8 @@ export type PessoaLinha = {
   /** o horário fixo em si ("Qua 09:00"), não quantos são */
   horarioFixo: { diaSemana: number; hora: string } | null
   tags: string[]
+  /** aluno do Gympass/Wellhub, para a etiqueta da lista */
+  gympass: boolean
 }
 
 type LinhaResumo = {
@@ -118,6 +120,7 @@ const paraLinha = (l: LinhaResumo): PessoaLinha => ({
   ultimaPresenca: l.ultima_presenca,
   horarioFixo: null,
   tags: [],
+  gympass: false,
 })
 
 /** Vinte por página, como manda o design system. */
@@ -374,7 +377,7 @@ async function enriquecer(db: Db, contaId: string, linhas: PessoaLinha[]) {
   const porId = new Map(linhas.map((p) => [p.id, p]))
 
   const hoje = new Date().toISOString().slice(0, 10)
-  const [{ data: vagas }, { data: tags }] = await Promise.all([
+  const [{ data: vagas }, { data: tags }, { data: doGympass }] = await Promise.all([
     db.from('vaga')
       .select('pessoa_id, fim, serie:serie_id(dia_semana, hora_inicio)')
       .in('pessoa_id', ids)
@@ -383,7 +386,14 @@ async function enriquecer(db: Db, contaId: string, linhas: PessoaLinha[]) {
     db.from('pessoa_tag')
       .select('pessoa_id, tag').eq('conta_id', contaId).in('pessoa_id', ids)
       ,
+    // a coluna não está na view `pessoa_resumo`: vem da tabela, só da página
+    db.from('pessoa')
+      .select('id').eq('conta_id', contaId).in('id', ids).eq('gympass', true),
   ])
+  for (const g of doGympass ?? []) {
+    const p = porId.get(g.id)
+    if (p) p.gympass = true
+  }
 
   for (const v of vagas ?? []) {
     if (!v.serie) continue

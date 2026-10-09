@@ -18,6 +18,7 @@ import { TINTA } from '@/components/ui/tintas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 import { TituloDaTela } from '@/components/ui/titulo-da-tela'
+import { EtiquetaGympass } from '@/components/pessoas/etiqueta-gympass'
 
 /*
  * Cinco perguntas, e não dez. Cada uma é uma ligação a fazer: quem sumiu sem
@@ -344,6 +345,7 @@ export default async function Pessoas({ searchParams }: { searchParams: Busca })
                           >
                             {p.nome}
                           </Link>
+                          {p.gympass ? <EtiquetaGympass /> : null}
                           {p.tags.map((x) => (
                             <span
                               key={x}
