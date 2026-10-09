@@ -3,6 +3,7 @@ import { calcularOcupacao } from '@/core/agenda/ocupacao'
 import { avaliarEncaixe } from '@/core/agenda/encaixe'
 import type { OrigemParticipacao } from './consultas'
 import { avisar } from '../webhook/eventos'
+import { reorganizarReposicoes } from './reorganizar-reposicoes'
 import { aulasNaSemana, dataLocal } from '@/core/contratos/horario-livre'
 
 /**
@@ -153,6 +154,9 @@ export async function encaixarNaSessao(
     ...carimbo,
   }).select('id').single()
   if (erroInsert) throw erroInsert
+
+  // a aula mais cedo paga a falta mais antiga, seja quem for que marcou
+  if (entrada.reposicaoDeId) await reorganizarReposicoes(db, contaId, entrada.pessoaId)
 
   /*
    * O evento sai daqui, e não da tela nem da rota, pelo mesmo motivo que a regra

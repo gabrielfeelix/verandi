@@ -15,6 +15,7 @@ import { hojeEm, localDe } from './fuso'
 import { abrirLicenca, desfazerLicencaSemAula, encerrarLicenca } from '../licencas/licencas'
 import { somarDias } from '@/core/agenda/datas'
 import { devolverASessao, soltarDaSessao, soltasDa } from './soltar'
+import { reorganizarReposicoes } from './reorganizar-reposicoes'
 
 /** De qual lado do balcão veio o registro. Serve auditoria, não permissão. */
 async function quemRegistra() {
@@ -266,7 +267,7 @@ export async function apontarReposicao(
 ): Promise<void> {
   // uma aula não repõe a si mesma: o crédito some e a falta parece usada
   if (faltaId === participacaoId) throw new Error('Uma aula não pode ser reposição dela mesma.')
-  const { db, carimbo } = await quemRegistra()
+  const { db, conta, carimbo } = await quemRegistra()
 
   const { data, error } = await db
     .from('participacao')
@@ -276,10 +277,12 @@ export async function apontarReposicao(
       ...carimbo,
     })
     .eq('id', participacaoId)
-    .select('sessao_id')
+    .select('sessao_id, pessoa_id')
     .maybeSingle()
 
   if (error) throw error
+  // escolher a falta à mão não fura a regra: a aula mais cedo paga a mais antiga
+  if (data && faltaId) await reorganizarReposicoes(db, conta.contaId, data.pessoa_id)
   if (data) atualizarTela(data.sessao_id)
 }
 
