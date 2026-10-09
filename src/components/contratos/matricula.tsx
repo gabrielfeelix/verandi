@@ -135,9 +135,13 @@ export function NovaMatricula({
   const pede = plano?.horarioLivre ? 0 : plano?.frequenciaSemanal ?? 0
   const etapas: Etapa[] = pede > 0 ? ['plano', 'horarios', 'pagamento'] : ['plano', 'pagamento']
   const indice = etapas.indexOf(etapa)
-  // os horários em que ela já está, sem contrato, na modalidade do plano
+  // os horários em que ela já está na modalidade do plano, sem contrato ou
+  // pelo contrato que está saindo
   const minhas = doPlano.filter((t) => t.jaOcupa)
   const lotou = escolhidas.length >= pede
+  // os escolhidos que estavam cheios: entram acima do limite, e o servidor
+  // só aceita lotação passada nos que vierem nesta lista
+  const acima = horarios.filter((t) => escolhidas.includes(t.id) && !t.jaOcupa && t.ocupadas >= t.capacidade)
   const escolhidosEmOrdem = doPlano
     .filter((t) => escolhidas.includes(t.id))
     .sort((a, b) => ORDEM_DOS_DIAS.indexOf(a.diaSemana) - ORDEM_DOS_DIAS.indexOf(b.diaSemana)
@@ -243,6 +247,7 @@ export function NovaMatricula({
                 pessoaId,
                 planoId,
                 serieIds: pede > 0 ? escolhidas : [],
+                acimaDoLimite: pede > 0 ? acima.map((t) => t.id) : [],
                 inicio: String(f.get('inicio') ?? hoje),
                 diaVencimento: Number(f.get('diaVencimento') ?? 0) || null,
                 formaPagamento: String(f.get('formaPagamento') ?? '') || null,
@@ -373,7 +378,10 @@ export function NovaMatricula({
                       // o lugar dela já conta na ocupação: cheio, para ela, não está
                       const cheia = !t.jaOcupa && t.ocupadas >= t.capacidade
                       const marcada = escolhidas.includes(t.id)
-                      const travada = !marcada && (cheia || (lotou && pede > 1))
+                      // cheia não trava: quem já frequenta o horário fora do
+                      // sistema entra acima do limite, com aviso (Caroline,
+                      // MGM, 09/out/2026). Só a quantidade do plano trava
+                      const travada = !marcada && lotou && pede > 1
                       return (
                         <button
                           key={t.id}
@@ -407,13 +415,24 @@ export function NovaMatricula({
                           ) : null}
                           {/* a ocupação decide a escolha, e decidir sem ela
                               é descobrir que o horário estava cheio no envio */}
-                          <span className={`text-[12px] ${cheia ? 'text-alerta' : 'text-tinta-fraca'}`}>
-                            {t.jaOcupa ? 'já está aqui' : cheia ? 'cheia' : `${t.capacidade - t.ocupadas} de ${t.capacidade} livres`}
+                          <span className={`text-[12px] ${cheia ? (marcada ? 'font-medium text-atencao' : 'text-alerta') : 'text-tinta-fraca'}`}>
+                            {t.jaOcupa
+                              ? 'já está aqui'
+                              : cheia
+                                ? marcada ? `entra como ${t.ocupadas + 1}ª de ${t.capacidade}` : 'cheia'
+                                : `${t.capacidade - t.ocupadas} de ${t.capacidade} livres`}
                           </span>
                         </button>
                       )
                     })}
                   </div>
+
+                  {acima.length > 0 ? (
+                    <p className="rounded-media bg-atencao-superficie px-3.5 py-2.5 text-[13.5px] leading-relaxed text-atencao">
+                      {acima.length === 1 ? 'Um horário escolhido está cheio' : `${acima.length} horários escolhidos estão cheios`}:{' '}
+                      {pessoaNome.split(' ')[0]} entra acima do limite da turma. Use para quem já frequenta o horário.
+                    </p>
+                  ) : null}
 
                   {lotou && pede > 1 ? (
                     <p className="text-[13.5px] text-tinta-media">

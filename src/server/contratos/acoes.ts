@@ -31,6 +31,8 @@ export type NovoContrato = {
   planoId: string
   /** as horários que a pessoa vai ocupar; o plano diz quantas são */
   serieIds: string[]
+  /** horários escolhidos cheios, de propósito: entram acima do limite da turma */
+  acimaDoLimite?: string[]
   inicio: string
   diaVencimento: number | null
   formaPagamento: string | null
@@ -80,7 +82,7 @@ export async function criarContrato(
     }
 
     const { recusa, adotar } = await conferirVagas(
-      db, conta.contaId, novo.pessoaId, pedidas, hoje, { adotarSoltas: true })
+      db, conta.contaId, novo.pessoaId, pedidas, hoje, { adotarSoltas: true, inicioNovo: novo.inicio, acimaDoLimite: novo.acimaDoLimite })
     if (recusa) return { ok: false, erro: recusa }
     // quem já tinha o lugar fica com ele: a vaga é a mesma, só ganha contrato
     const adotadas = new Set(adotar.map((v) => v.serieId))
@@ -198,6 +200,14 @@ async function conferirVagas(
      */
     ignorarContrato?: string
     adotarSoltas?: boolean
+    /*
+     * O começo do contrato novo, para a troca de contrato: quem encerrou o
+     * contrato antigo e abre outro no mesmo horário continua no lugar dela,
+     * e a turma cheia não pode barrá-la por causa da própria vaga.
+     */
+    inicioNovo?: string
+    /** os horários que a recepção escolheu cheios, sabendo: a lotação não barra */
+    acimaDoLimite?: string[]
   } = {},
 ): Promise<{ recusa: string | null; adotar: Array<{ id: string; serieId: string }> }> {
   const adotar: Array<{ id: string; serieId: string }> = []
@@ -227,14 +237,25 @@ async function conferirVagas(
         adotar.push({ id: dela.id, serieId: s.id })
         continue
       }
+      /*
+       * Troca de contrato: a vaga dela tem saída marcada (o contrato antigo foi
+       * encerrado) e o novo começa a partir dessa data. Ela continua no mesmo
+       * lugar, e a lotação não se aplica: ninguém perde vaga para ela, que só
+       * substitui a si mesma (Caroline, MGM, 09/out/2026).
+       */
+      if (opcoes.inicioNovo && dela.contrato_id !== null && dela.fim !== null
+        && opcoes.inicioNovo >= dela.fim) continue
+      const ate = dela.fim ? `${dela.fim.slice(8, 10)}/${dela.fim.slice(5, 7)}` : null
       return {
         recusa: dela.contrato_id
-          ? `Esta pessoa já ocupa o horário de ${nome} por outro contrato.`
+          ? ate
+            ? `Esta pessoa ocupa o horário de ${nome} pelo contrato atual até ${ate}. Comece o novo contrato a partir de ${ate}.`
+            : `Esta pessoa já ocupa o horário de ${nome} pelo contrato atual. Encerre o contrato atual e faça a matrícula nova: o lugar dela fica guardado.`
           : `Esta pessoa já ocupa o horário de ${nome}, com saída marcada.`,
         adotar,
       }
     }
-    if (vivas.length >= s.capacidade) {
+    if (vivas.length >= s.capacidade && !opcoes.acimaDoLimite?.includes(s.id)) {
       return { recusa: `O horário de ${nome} está cheio: ${vivas.length} de ${s.capacidade}.`, adotar }
     }
   }

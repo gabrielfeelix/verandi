@@ -784,8 +784,11 @@ export default async function Pessoa({
                       local: s.local,
                       capacidade: s.capacidade,
                       ocupadas: s.ocupadas,
+                      // qualquer vaga dela que ainda vale: sem contrato, ou do
+                      // contrato que está saindo (troca de contrato). Contar a
+                      // própria vaga deixava a turma "cheia" para ela mesma
                       jaOcupa: ficha.vagas.some((v) => v.serieId === s.id
-                        && v.contratoId === null && v.fim === null),
+                        && (v.fim === null || v.fim >= hoje)),
                     }))}
                 />
               </div>
