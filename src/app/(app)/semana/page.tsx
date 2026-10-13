@@ -232,6 +232,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             }}
             irPara={{
               molde: ehDia ? q({ dia: 'AAAA-MM-DD' }) : q({ de: 'AAAA-MM-DD' }),
+              modo: ehDia ? 'dia' : 'semana',
             }}
           />
 

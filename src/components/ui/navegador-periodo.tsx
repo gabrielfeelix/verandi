@@ -53,10 +53,11 @@ export function NavegadorPeriodo({
   meio: { href: string; texto: string }
   depois: { href: string; rotulo: string }
   /**
-   * Pular direto para uma data. `molde` é o endereço com `AAAA-MM-DD` no lugar
-   * da data; a página acha a semana dela sozinha.
+   * Com isto, o botão do meio vira um menu: atalhos e uma data digitada.
+   * `molde` é o endereço com `AAAA-MM-DD` no lugar da data; a página acha a
+   * semana dela sozinha.
    */
-  irPara?: { molde: string }
+  irPara?: { molde: string; modo: 'semana' | 'dia' }
 }) {
   const troca = useTroca()
   const aoClicar = (href: string) => (e: React.MouseEvent) => {
@@ -78,13 +79,17 @@ export function NavegadorPeriodo({
         <Miolo indo={troca?.alvo === antes.href}><Icone nome="antes" /></Miolo>
       </Link>
 
-      <Link
-        href={meio.href}
-        onClick={aoClicar(meio.href)}
-        className="flex min-h-11 items-center px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave"
-      >
-        <Miolo indo={troca?.alvo === meio.href}>{meio.texto}</Miolo>
-      </Link>
+      {irPara ? (
+        <MenuDoPeriodo meio={meio} {...irPara} />
+      ) : (
+        <Link
+          href={meio.href}
+          onClick={aoClicar(meio.href)}
+          className="flex min-h-11 items-center px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave"
+        >
+          <Miolo indo={troca?.alvo === meio.href}>{meio.texto}</Miolo>
+        </Link>
+      )}
 
       <Link
         href={depois.href}
@@ -95,34 +100,70 @@ export function NavegadorPeriodo({
       >
         <Miolo indo={troca?.alvo === depois.href}><Icone nome="depois" /></Miolo>
       </Link>
-
-      {irPara ? <IrParaData {...irPara} /> : null}
     </div>
   )
 }
 
+/** a data de hoje no relógio de quem está olhando, em ISO */
+function hojeIso(): string {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+function somar(iso: string, dias: number): string {
+  const d = new Date(`${iso}T12:00:00`)
+  d.setDate(d.getDate() + dias)
+  return d.toISOString().slice(0, 10)
+}
+
 /**
- * O calendário ao lado das setas.
+ * O botão do meio como menu: atalhos e "ir para a data".
  *
- * Chegar em janeiro a partir de outubro eram quarenta cliques na seta (Daniel,
- * MGM, 13/10/2026, conferindo a presença de cada aluno desde o começo do ano).
- * Digitar a data já leva: a máscara põe as barras, e a data completa navega.
+ * Era um link fixo para a semana atual: em cima dela, clicar não fazia nada, e
+ * parecia travado. Chegar em janeiro a partir de outubro eram quarenta cliques
+ * na seta (Daniel, MGM, 13/10/2026, conferindo a presença desde o começo do
+ * ano). Digitar a data leva direto: a máscara põe as barras, e a data completa
+ * navega.
  */
-function IrParaData({ molde }: { molde: string }) {
+function MenuDoPeriodo({
+  meio, molde, modo,
+}: {
+  meio: { href: string; texto: string }
+  molde: string
+  modo: 'semana' | 'dia'
+}) {
   const troca = useTroca()
   const router = useRouter()
   const [aberto, setAberto] = useState(false)
   const botao = useRef<HTMLButtonElement>(null)
-  const painel = usePosicionar(botao, aberto, 280, 280, 'direita')
+  const painel = usePosicionar(botao, aberto, 280, 280)
   useFecharFora([botao, painel], aberto, () => setAberto(false))
 
-  const ir = (iso: string) => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return
+  const navegar = (href: string) => {
     setAberto(false)
-    const href = molde.replace('AAAA-MM-DD', iso)
     if (troca) troca.ir(href)
     else router.push(href)
   }
+  const irData = (iso: string) => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) navegar(molde.replace('AAAA-MM-DD', iso))
+  }
+
+  const hoje = hojeIso()
+  const mesPassado = (() => {
+    const d = new Date(`${hoje}T12:00:00`)
+    d.setDate(1)
+    d.setMonth(d.getMonth() - 1)
+    return d.toISOString().slice(0, 10)
+  })()
+  const atalhos: Array<{ rotulo: string; href: string }> = [
+    { rotulo: meio.texto, href: meio.href },
+    modo === 'semana'
+      ? { rotulo: 'Semana passada', href: molde.replace('AAAA-MM-DD', somar(hoje, -7)) }
+      : { rotulo: 'Ontem', href: molde.replace('AAAA-MM-DD', somar(hoje, -1)) },
+    { rotulo: 'Começo do mês passado', href: molde.replace('AAAA-MM-DD', mesPassado) },
+    { rotulo: 'Começo do ano', href: molde.replace('AAAA-MM-DD', `${hoje.slice(0, 4)}-01-01`) },
+  ]
 
   return (
     <>
@@ -130,29 +171,41 @@ function IrParaData({ molde }: { molde: string }) {
         ref={botao}
         type="button"
         onClick={() => setAberto((a) => !a)}
-        aria-label="Ir para uma data"
+        aria-haspopup="dialog"
         aria-expanded={aberto}
-        className="flex min-h-11 cursor-pointer items-center border-l border-linha px-3 text-tinta-media transition-colors duration-150 hover:bg-superficie-mais-suave hover:text-tinta"
+        className="flex min-h-11 cursor-pointer items-center gap-1.5 px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave"
       >
-        <Icone nome="hoje" tamanho={18} />
+        {meio.texto}
+        <Icone nome="abaixo" tamanho={14} />
       </button>
       {aberto ? (
         <div
           ref={painel}
+          role="dialog"
+          aria-label="Escolher o período"
           style={{ position: 'fixed', zIndex: 60 }}
-          className="w-[280px] rounded-grande border border-linha bg-superficie p-3 shadow-modal"
+          className="w-[280px] rounded-grande border border-linha bg-superficie p-1.5 shadow-modal"
           onKeyDown={(e) => { if (e.key === 'Escape') setAberto(false) }}
         >
-          <label htmlFor="ir-para-data" className="mb-1.5 block text-[13.5px] font-medium">
-            Ir para a data
-          </label>
-          <CampoData
-            id="ir-para-data"
-            nome="ir-para-data"
-            limpavel={false}
-            autoFocus
-            aoTrocar={ir}
-          />
+          <ul className="flex flex-col">
+            {atalhos.map((a) => (
+              <li key={a.rotulo}>
+                <button
+                  type="button"
+                  onClick={() => navegar(a.href)}
+                  className="flex w-full cursor-pointer items-center rounded-padrao px-2.5 py-2 text-left text-[14.5px] hover:bg-superficie-mais-suave"
+                >
+                  {a.rotulo}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-1.5 border-t border-linha-fina px-1.5 pt-2.5 pb-1">
+            <label htmlFor="ir-para-data" className="mb-1.5 block text-[13.5px] font-medium">
+              Ir para a data
+            </label>
+            <CampoData id="ir-para-data" nome="ir-para-data" limpavel={false} aoTrocar={irData} />
+          </div>
         </div>
       ) : null}
     </>
