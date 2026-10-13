@@ -127,8 +127,28 @@ export async function criarSeries(
     }
   }
 
+  const linhas = linhasDaSerie({ ...nova, diasSemana: dias }, conta.contaId)
+  if (!codigo) {
+    /*
+     * Conta que numera as turmas ganha o próximo número sozinha. A MGM chama
+     * as turmas pelo número da planilha ("001 - Segunda 7h00"), e horário
+     * criado aqui sem número aparecia na Grade fixa sem nada no lugar, como
+     * os Personal da importação (13/10/2026). Conta que nunca numerou continua
+     * sem número: inventar um aqui seria impor a planilha de outro estúdio.
+     */
+    const { data: comNumero } = await db.from('serie')
+      .select('codigo').eq('conta_id', conta.contaId).not('codigo', 'is', null)
+    const numeros = (comNumero ?? [])
+      .map((l) => l.codigo as string).filter((c) => /^\d+$/.test(c))
+    if (numeros.length) {
+      const largura = Math.max(...numeros.map((c) => c.length))
+      let proximo = Math.max(...numeros.map(Number)) + 1
+      for (const linha of linhas) linha.codigo = String(proximo++).padStart(largura, '0')
+    }
+  }
+
   const { data, error } = await db.from('serie')
-    .insert(linhasDaSerie({ ...nova, diasSemana: dias }, conta.contaId))
+    .insert(linhas)
     .select('id')
 
   if (error) throw error
