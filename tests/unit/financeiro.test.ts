@@ -77,6 +77,41 @@ describe('as cobranças que um contrato deve', () => {
     expect(r.map((c) => c.valorCent)).toEqual([66000, 66000, 66000, 66000, 66000])
   })
 
+  it('o anual que acaba no aniversário não cobra uma décima terceira', () => {
+    // Arnaldo Bernal, MGM: de 12/09/2025 a 12/09/2026, o ciclo seguinte
+    // começava em setembro de 2026 e cobrava mais uma parcela
+    const r = cobrancasPrevistas({
+      ...mensal, recorrencia: 'anual', parcelas: 12, precoAplicadoCent: 630000,
+      inicio: '2025-09-12', fim: '2026-09-12', diaVencimento: 12,
+    }, '2026-12-01')
+    expect(r).toHaveLength(12)
+    expect(r.at(-1)?.competencia).toBe('2026-08-01')
+  })
+
+  it('o anual recebido de uma vez é uma cobrança só, do contrato inteiro', () => {
+    const r = cobrancasPrevistas({
+      ...mensal, recorrencia: 'anual', parcelas: 1, precoAplicadoCent: 622600,
+      inicio: '2026-09-12', fim: '2027-09-12', diaVencimento: 12,
+    }, '2027-12-01')
+    expect(r.map((c) => [c.competencia, c.valorCent])).toEqual([['2026-09-01', 622600]])
+  })
+
+  it('o anual prorrogado por licença continua com doze parcelas', () => {
+    const r = cobrancasPrevistas({
+      ...mensal, recorrencia: 'anual', parcelas: 12, precoAplicadoCent: 630000,
+      inicio: '2025-09-17', fim: '2026-10-02', diaVencimento: 17,
+    }, '2026-12-01')
+    expect(r).toHaveLength(12)
+  })
+
+  it('quem encerra no meio do ciclo ainda deve o mês do fim', () => {
+    const r = cobrancasPrevistas({
+      ...mensal, recorrencia: 'anual', parcelas: 12, precoAplicadoCent: 630000,
+      inicio: '2025-09-12', fim: '2026-05-20', diaVencimento: 12,
+    }, '2026-12-01')
+    expect(r.at(-1)?.competencia).toBe('2026-05-01')
+  })
+
   it('o trimestral à vista cobra tudo no primeiro mês do ciclo', () => {
     const r = cobrancasPrevistas({
       ...mensal, recorrencia: 'trimestral', parcelas: 1,

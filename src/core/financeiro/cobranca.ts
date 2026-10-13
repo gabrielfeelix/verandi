@@ -173,6 +173,15 @@ export function cobrancasPrevistas(
     // o contrato acabou: a competência seguinte ao fim não é devida, e quem
     // encerrou no meio do mês já deve o mês inteiro
     if (c.fim && competencia > competenciaDe(c.fim)) break
+    /*
+     * Contrato com fim é um período só: o ciclo não recomeça antes dele. O
+     * anual de 12/09/2025 a 12/09/2026 cobrava as doze parcelas e, em setembro
+     * de 2026, abria o ciclo seguinte e cobrava uma décima terceira; o
+     * prorrogado por licença até outubro cobrava a décima quarta (MGM,
+     * 13/10/2026). Quem renova ganha contrato novo. O mensal fica de fora:
+     * nele, cada mês é um ciclo.
+     */
+    if (c.fim && meses > 1 && !primeira && indiceNoCiclo === 0) break
 
     if (indiceNoCiclo < parcelas && !mesTrancado(competencia, c.pausas)) {
       previstas.push({
