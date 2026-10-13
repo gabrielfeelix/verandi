@@ -78,7 +78,8 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
                cobranca(competencia, contrato_id,
                         pessoa(id, nome, cpf, identificador_externo, endereco,
                                endereco_numero, bairro, cidade, uf),
-                        contrato(plano(nome)))`)
+                        contrato(inicio, fim, preco_aplicado_cent, desconto_cent,
+                                 desconto_motivo, parcelas, plano(nome)))`)
       .eq('id', pagamentoId).eq('conta_id', conta.contaId).maybeSingle()
     if (!pg) return { ok: false, erro: 'Este pagamento não existe mais.' }
     if (pg.estornado_em) {
@@ -96,6 +97,8 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
     }
 
     const pessoa = pg.cobranca?.pessoa
+    const ct = pg.cobranca?.contrato ?? null
+    const dataBr = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`
     const { data: { user } } = await db.auth.getUser()
     const { data: quemEmite } = await db.from('profissional')
       .select('nome').eq('conta_id', conta.contaId)
@@ -126,11 +129,22 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
         endereco: endereco || null,
       },
       referente: [
-        pg.cobranca?.contrato?.plano?.nome,
-        pg.cobranca?.competencia
-          ? competenciaPorExtenso(pg.cobranca.competencia) : null,
+        ct?.plano?.nome,
+        // recebido de uma vez, a cobrança é do contrato inteiro: o papel diz
+        // o período, e não o mês em que ele começou
+        ct && ct.parcelas === 1
+          ? `de ${dataBr(ct.inicio)}${ct.fim ? ` a ${dataBr(ct.fim)}` : ''}`
+          : pg.cobranca?.competencia
+            ? competenciaPorExtenso(pg.cobranca.competencia) : null,
       ].filter(Boolean).join(', ') || 'Serviços prestados',
       valorCent: pg.valor_cent,
+      composicao: ct && ct.parcelas === 1 && ct.desconto_cent > 0
+        ? {
+            valorDoPlanoCent: ct.preco_aplicado_cent + ct.desconto_cent,
+            descontoCent: ct.desconto_cent,
+            descontoMotivo: ct.desconto_motivo,
+          }
+        : null,
       forma: ROTULO_FORMA[pg.forma as Forma] ?? pg.forma,
       recebidoEm: pg.recebido_em,
       emitidoPor: nomeDeQuemEmite,

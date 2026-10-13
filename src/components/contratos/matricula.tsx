@@ -17,7 +17,8 @@ import { anteciparCobrancas } from '@/server/financeiro/acoes'
 import { MAXIMO_MESES_ANTECIPADOS } from '@/core/financeiro/cobranca'
 import type { ContratoLinha } from '@/server/contratos/consultas'
 import type { PlanoLinha } from '@/server/planos/consultas'
-import { comoCobra, emReais, nomesDosDias } from '@/core/planos/plano'
+import { comoCobra, emCentavos, emReais, nomesDosDias } from '@/core/planos/plano'
+import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
 import { erroLegivel } from '@/core/erro-legivel'
 
 /**
@@ -69,6 +70,16 @@ const PAGAMENTOS = [
   { valor: 'boleto', rotulo: 'Boleto' },
 ]
 
+/*
+ * Como o dinheiro entra. "De uma vez" é o anual pago à vista ou no cartão
+ * parcelado pela maquininha: a operadora paga o estúdio, e o aluno não deve
+ * nada mês a mês. Vira uma cobrança só, do contrato inteiro (0077).
+ */
+const RECEBIMENTO = [
+  { valor: 'mensal', rotulo: 'Mês a mês' },
+  { valor: 'uma-vez', rotulo: 'De uma vez (à vista ou cartão parcelado)' },
+]
+
 type Etapa = 'plano' | 'horarios' | 'pagamento'
 
 const NOME_DA_ETAPA: Record<Etapa, string> = {
@@ -94,7 +105,9 @@ export function NovaMatricula({
   const [dia, setDia] = useState<number | null>(null)
   // o que já foi escrito no último passo, para sobreviver a um "Voltar": o
   // formulário se limpa a cada envio, e cada "Continuar" é um envio
-  const [rascunho, setRascunho] = useState({ inicio: '', vencimento: '5', pagamento: '' })
+  const [rascunho, setRascunho] = useState({
+    inicio: '', vencimento: '5', pagamento: '', recebimento: 'mensal', desconto: '', motivo: '',
+  })
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, comecar] = useTransition()
   const router = useRouter()
@@ -180,7 +193,7 @@ export function NovaMatricula({
     setPlanoId(null)
     setEscolhidas([])
     setDia(null)
-    setRascunho({ inicio: '', vencimento: '5', pagamento: '' })
+    setRascunho({ inicio: '', vencimento: '5', pagamento: '', recebimento: 'mensal', desconto: '', motivo: '' })
     setErro(null)
   }
 
@@ -193,6 +206,9 @@ export function NovaMatricula({
           inicio: String(f.get('inicio') ?? ''),
           vencimento: String(f.get('diaVencimento') ?? ''),
           pagamento: String(f.get('formaPagamento') ?? ''),
+          recebimento: String(f.get('recebimento') ?? 'mensal'),
+          desconto: String(f.get('desconto') ?? ''),
+          motivo: String(f.get('descontoMotivo') ?? ''),
         })
       }
     }
@@ -251,6 +267,9 @@ export function NovaMatricula({
                 inicio: String(f.get('inicio') ?? hoje),
                 diaVencimento: Number(f.get('diaVencimento') ?? 0) || null,
                 formaPagamento: String(f.get('formaPagamento') ?? '') || null,
+                descontoCent: emCentavos(String(f.get('desconto') ?? '')) ?? 0,
+                descontoMotivo: String(f.get('descontoMotivo') ?? '') || null,
+                recebidoDeUmaVez: f.get('recebimento') === 'uma-vez',
               })
               if (!r.ok) return setErro(r.erro)
               avisar({ texto: 'Contrato criado' })
@@ -491,6 +510,24 @@ export function NovaMatricula({
                   <Escolha
                     id="mt-pag" nome="formaPagamento" valorInicial={rascunho.pagamento}
                     opcoes={PAGAMENTOS}
+                  />
+                </Campo>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Campo rotulo="Como recebe" htmlFor="mt-receb">
+                  <Escolha
+                    id="mt-receb" nome="recebimento" valorInicial={rascunho.recebimento}
+                    opcoes={RECEBIMENTO}
+                  />
+                </Campo>
+                <Campo rotulo="Desconto" htmlFor="mt-desc" dica="opcional, sai do preço do plano">
+                  <CampoDinheiro id="mt-desc" nome="desconto" valorInicial={rascunho.desconto} />
+                </Campo>
+                <Campo rotulo="Motivo do desconto" htmlFor="mt-motivo" dica="sai no recibo">
+                  <input
+                    id="mt-motivo" name="descontoMotivo" defaultValue={rascunho.motivo}
+                    placeholder="Exemplo: família parou" className={entrada}
                   />
                 </Campo>
               </div>

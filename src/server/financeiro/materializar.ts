@@ -46,7 +46,7 @@ export async function materializarCobrancas(
 
   let q = db.from('contrato')
     .select(`id, pessoa_id, inicio, fim, status, dia_vencimento, criado_em,
-             preco_aplicado_cent, pausa(inicio, fim),
+             preco_aplicado_cent, parcelas, pausa(inicio, fim),
              plano(recorrencia, parcelas), cobranca(competencia)`)
     .eq('conta_id', contaId).neq('status', 'encerrado')
   if (contratoId) q = q.eq('id', contratoId)
@@ -54,7 +54,7 @@ export async function materializarCobrancas(
   const { data: contratos, error } = await q.returns<Array<{
     id: string; pessoa_id: string; inicio: string; fim: string | null
     status: string; dia_vencimento: number | null; preco_aplicado_cent: number
-    criado_em: string
+    criado_em: string; parcelas: number | null
     pausa: Array<{ inicio: string; fim: string | null }>
     plano: { recorrencia: string; parcelas: number } | null
     cobranca: Array<{ competencia: string }>
@@ -75,7 +75,8 @@ export async function materializarCobrancas(
       inicio: c.inicio,
       fim: fimProrrogado(c.fim, pausas),
       recorrencia: c.plano.recorrencia as Recorrencia,
-      parcelas: c.plano.parcelas,
+      // o contrato recebido de uma vez manda mais que o plano (0077)
+      parcelas: c.parcelas ?? c.plano.parcelas,
       precoAplicadoCent: c.preco_aplicado_cent,
       diaVencimento: c.dia_vencimento,
       pausas,
@@ -192,7 +193,7 @@ export async function sincronizarCobrancas(
   const horizonte = proximaCompetencia(competenciaDe(hoje))
 
   const { data: c } = await db.from('contrato')
-    .select(`id, inicio, fim, dia_vencimento, preco_aplicado_cent, criado_em,
+    .select(`id, inicio, fim, dia_vencimento, preco_aplicado_cent, criado_em, parcelas,
              pausa(inicio, fim), plano(recorrencia, parcelas)`)
     .eq('id', contratoId).eq('conta_id', contaId).maybeSingle()
   if (!c?.plano) return
@@ -202,7 +203,8 @@ export async function sincronizarCobrancas(
     inicio: c.inicio,
     fim: fimProrrogado(c.fim, pausas),
     recorrencia: c.plano.recorrencia as Recorrencia,
-    parcelas: c.plano.parcelas,
+    // o contrato recebido de uma vez manda mais que o plano (0077)
+      parcelas: c.parcelas ?? c.plano.parcelas,
     precoAplicadoCent: c.preco_aplicado_cent,
     diaVencimento: c.dia_vencimento,
     pausas,

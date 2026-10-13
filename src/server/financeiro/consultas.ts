@@ -553,13 +553,13 @@ export async function materialDoFechamento(
       }>>(),
     db.from('contrato')
       .select(`inicio, fim, status, preco_aplicado_cent, vinculo_usado,
-               dia_vencimento, pausa(inicio, fim),
+               dia_vencimento, parcelas, pausa(inicio, fim),
                plano(recorrencia, parcelas, preco_avulso_cent, preco_vinculado_cent)`)
       .eq('conta_id', contaId)
       .returns<Array<{
         inicio: string; fim: string | null; status: string
         preco_aplicado_cent: number; vinculo_usado: boolean
-        dia_vencimento: number | null
+        dia_vencimento: number | null; parcelas: number | null
         pausa: Array<{ inicio: string; fim: string | null }>
         plano: {
           recorrencia: string; parcelas: number
@@ -648,7 +648,7 @@ export async function materialDoFechamento(
       inicio: c.inicio,
       fim: fimProrrogado(c.fim, pausas),
       recorrencia: c.plano.recorrencia as Recorrencia,
-      parcelas: c.plano.parcelas,
+      parcelas: c.parcelas ?? c.plano.parcelas,
       precoAplicadoCent: c.preco_aplicado_cent,
       diaVencimento: c.dia_vencimento,
       pausas,

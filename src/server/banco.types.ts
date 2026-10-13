@@ -476,6 +476,9 @@ export type Database = {
           conta_id: string
           criado_em: string
           criado_por_usuario_id: string | null
+          desconto_cent: number
+          desconto_motivo: string | null
+          parcelas: number | null
           dia_vencimento: number | null
           fim: string | null
           forma_pagamento: string | null
@@ -492,6 +495,9 @@ export type Database = {
           conta_id: string
           criado_em?: string
           criado_por_usuario_id?: string | null
+          desconto_cent?: number
+          desconto_motivo?: string | null
+          parcelas?: number | null
           dia_vencimento?: number | null
           fim?: string | null
           forma_pagamento?: string | null
@@ -508,6 +514,9 @@ export type Database = {
           conta_id?: string
           criado_em?: string
           criado_por_usuario_id?: string | null
+          desconto_cent?: number
+          desconto_motivo?: string | null
+          parcelas?: number | null
           dia_vencimento?: number | null
           fim?: string | null
           forma_pagamento?: string | null

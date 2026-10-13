@@ -1,6 +1,6 @@
 import { emReais } from '../planos/plano'
 import {
-  dataPorExtenso, documentoComRotulo, documentoFormatado, localDeEmissao, numeroFormatado,
+  composicaoEmTexto, dataPorExtenso, documentoComRotulo, documentoFormatado, localDeEmissao, numeroFormatado,
   quemAssina, type CorpoDoRecibo,
 } from './recibo'
 
@@ -44,7 +44,7 @@ export function textoDoRecibo(
     `Recebemos de ${corpo.pagadorNome}`
       + `${corpo.pagadorDocumento ? `, CPF ${documentoFormatado(corpo.pagadorDocumento)}` : ''}`
       + ` a importância de ${emReais(corpo.valorCent)} (${corpo.valorPorExtenso}),`
-      + ` referente a ${corpo.referente}, pagos em ${corpo.forma}`
+      + ` referente a ${corpo.referente}${composicaoEmTexto(corpo)}, pagos em ${corpo.forma}`
       + ` no dia ${dataPorExtenso(corpo.recebidoEm)}.`,
     '',
     `${local ? `${local}, ` : ''}${dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.`,
@@ -107,7 +107,7 @@ export function htmlDoRecibo(
       corpo.pagadorMatricula ? `, matrícula nº ${escapar(corpo.pagadorMatricula)}` : ''
     } a importância de <strong>${emReais(corpo.valorCent)}</strong>
     (<strong>${escapar(corpo.valorPorExtenso)}</strong>), referente a
-    ${escapar(corpo.referente)}, pagos em ${escapar(corpo.forma)} no dia
+    ${escapar(corpo.referente)}${escapar(composicaoEmTexto(corpo))}, pagos em ${escapar(corpo.forma)} no dia
     ${dataPorExtenso(corpo.recebidoEm)}.
   </p>
 

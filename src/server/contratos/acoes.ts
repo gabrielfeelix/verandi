@@ -36,6 +36,14 @@ export type NovoContrato = {
   inicio: string
   diaVencimento: number | null
   formaPagamento: string | null
+  /** quanto sai do preço do plano, em centavos; com motivo obrigatório */
+  descontoCent?: number
+  descontoMotivo?: string | null
+  /**
+   * O contrato inteiro pago de uma vez (à vista, ou no cartão parcelado pela
+   * maquininha): vira uma cobrança só, do valor total, em vez de uma por mês.
+   */
+  recebidoDeUmaVez?: boolean
 }
 
 async function exigirOperacional() {
@@ -95,6 +103,15 @@ export async function criarContrato(
       precoAvulsoCent: plano.preco_avulso_cent,
     }, vinculo)
 
+    const desconto = Math.max(0, Math.trunc(novo.descontoCent ?? 0))
+    const motivoDesconto = novo.descontoMotivo?.trim() || null
+    if (desconto > 0 && !motivoDesconto) {
+      return { ok: false, erro: 'Diga o motivo do desconto: ele sai no recibo, e seis meses depois ninguém lembra.' }
+    }
+    if (desconto >= preco.cent) {
+      return { ok: false, erro: `O desconto não pode ser igual ou maior que o preço do plano (${(preco.cent / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).` }
+    }
+
     const fim = fimDoContrato(novo.inicio, {
       recorrencia: plano.recorrencia as Recorrencia,
       validadeMeses: plano.validade_meses,
@@ -108,7 +125,10 @@ export async function criarContrato(
       inicio: novo.inicio,
       fim,
       dia_vencimento: novo.diaVencimento,
-      preco_aplicado_cent: preco.cent,
+      preco_aplicado_cent: preco.cent - desconto,
+      desconto_cent: desconto,
+      desconto_motivo: desconto > 0 ? motivoDesconto : null,
+      parcelas: novo.recebidoDeUmaVez ? 1 : null,
       vinculo_usado: preco.vinculo,
       forma_pagamento: novo.formaPagamento,
       sessoes_contratadas: plano.sessoes_no_pacote,

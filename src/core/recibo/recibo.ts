@@ -226,6 +226,12 @@ export type CorpoDoRecibo = {
   referente: string
   valorCent: number
   valorPorExtenso: string
+  /**
+   * De onde sai o valor, quando houve desconto: "valor do plano de R$ 6.600,00,
+   * com desconto de R$ 374,00". Sem ele, o recibo do anual com desconto dizia
+   * só o total, e quem lia achava que o plano custava aquilo (0077).
+   */
+  composicao?: { valorDoPlanoCent: number; descontoCent: number; descontoMotivo: string | null } | null
   forma: string
   recebidoEm: string
   /** quem apertou o botão */
@@ -265,6 +271,7 @@ export function montarCorpo(dados: {
   }
   referente: string
   valorCent: number
+  composicao?: CorpoDoRecibo['composicao']
   forma: string
   recebidoEm: string
   emitidoPor: string
@@ -284,6 +291,7 @@ export function montarCorpo(dados: {
     referente: dados.referente,
     valorCent: dados.valorCent,
     valorPorExtenso: porExtenso(dados.valorCent),
+    composicao: dados.composicao ?? null,
     forma: dados.forma,
     recebidoEm: dados.recebidoEm,
     emitidoPor: dados.emitidoPor,
@@ -336,4 +344,16 @@ export function descricaoDoRecibo(r: {
   const base = numeroFormatado(r.serie, r.numero)
   if (r.versao > 1) return `${base} (correção ${r.versao})`
   return base
+}
+
+/**
+ * O parêntese da composição, para entrar logo depois do "referente a": vazio
+ * quando não houve desconto. Texto puro; quem monta HTML escapa.
+ */
+export function composicaoEmTexto(corpo: Pick<CorpoDoRecibo, 'composicao'>): string {
+  const c = corpo.composicao
+  if (!c || c.descontoCent <= 0) return ''
+  const brl = (cent: number) => (cent / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  return ` (valor do plano de ${brl(c.valorDoPlanoCent)}, com desconto de ${brl(c.descontoCent)}${
+    c.descontoMotivo ? `: ${c.descontoMotivo}` : ''})`
 }

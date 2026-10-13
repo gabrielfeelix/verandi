@@ -1,6 +1,6 @@
 import { emReais } from '@/core/planos/plano'
 import {
-  dataPorExtenso, documentoComRotulo, documentoFormatado, localDeEmissao, motivoDoRecibo, numeroFormatado,
+  composicaoEmTexto, dataPorExtenso, documentoComRotulo, documentoFormatado, localDeEmissao, motivoDoRecibo, numeroFormatado,
   quemAssina, quemEmitiu, type CorpoDoRecibo,
 } from '@/core/recibo/recibo'
 import { exibirTelefone } from '@/core/telefone'
@@ -154,7 +154,7 @@ function Via({
         {corpo.pagadorEndereco ? <>, {corpo.pagadorEndereco}</> : null}
         {' '}a importância de <strong>{emReais(corpo.valorCent)}</strong>{' '}
         (<strong>{corpo.valorPorExtenso}</strong>), referente a{' '}
-        {corpo.referente}, pagos em {corpo.forma} no dia{' '}
+        {corpo.referente}{composicaoEmTexto(corpo)}, pagos em {corpo.forma} no dia{' '}
         {dataPorExtenso(corpo.recebidoEm)}.
       </p>
 
