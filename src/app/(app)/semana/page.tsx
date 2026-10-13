@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Icone } from '@/components/ui/icones'
 import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { sessoesDoIntervalo } from '@/server/agenda/consultas'
@@ -7,6 +8,7 @@ import { agoraMs, hojeEm, localDe } from '@/server/agenda/fuso'
 import { GradeSemana } from '@/components/grade/grade-semana'
 import { BotaoImprimir } from '@/components/ui/imprimir'
 import { NovaAulaAvulsa } from '@/components/pessoas/aula-avulsa'
+import { GradeMes } from '@/components/agenda/grade-mes'
 import { PreCarregar } from '@/components/agenda/pre-carregar'
 import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
 import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
@@ -24,6 +26,8 @@ type Busca = Promise<{
   local?: string
   dia?: string
   modo?: string
+  /** `AAAA-MM` (ou uma data dele) no modo Mês */
+  mes?: string
   eixo?: string
   /** `sim`: só horário que ainda vai acontecer e tem lugar */
   vaga?: string
@@ -67,6 +71,11 @@ function faixaDaSemana(de: string, ate: string) {
 const MESES_DO_BOTAO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 /** `2026-09-20` → `20 set` */
 const diaCurto = (iso: string) => `${Number(iso.slice(8))} ${MESES_DO_BOTAO[Number(iso.slice(5, 7)) - 1]}`
+/** `2026-09` + 1 → `2026-10` */
+function mesMais(mes: string, n: number): string {
+  const d = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)) - 1 + n, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
 
 export default async function Semana({ searchParams }: { searchParams: Busca }) {
   const p = await searchParams
@@ -98,8 +107,14 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   const ehDia = p.modo === 'dia'
   // no modo dia a janela é de um dia só; na semana, os sete
   const diaFoco = p.dia ?? hoje
-  const de = ehDia ? diaFoco : segunda
-  const ate = ehDia ? diaFoco : sabado
+  // no modo mês, as semanas inteiras que o mês toca: a grade começa na
+  // segunda e termina no domingo, como a semana
+  const ehMes = p.modo === 'mes'
+  const mesFoco = /^\d{4}-\d{2}/.test(p.mes ?? '') ? p.mes!.slice(0, 7) : hoje.slice(0, 7)
+  const primeiroDoMes = `${mesFoco}-01`
+  const ultimoDoMes = somarDias(`${mesMais(mesFoco, 1)}-01`, -1)
+  const de = ehDia ? diaFoco : ehMes ? segundaDe(primeiroDoMes) : segunda
+  const ate = ehDia ? diaFoco : ehMes ? somarDias(segundaDe(ultimoDoMes), 6) : sabado
 
   /*
    * Tudo de uma vez. Uma leitura depois da outra eram sete idas ao banco em
@@ -161,6 +176,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     if (p.local) base.local = p.local
     if (p.dia) base.dia = p.dia
     if (p.modo) base.modo = p.modo
+    if (p.mes) base.mes = p.mes
     if (p.eixo) base.eixo = p.eixo
     if (p.vaga) base.vaga = p.vaga
     for (const [k, v] of Object.entries(extra)) {
@@ -171,7 +187,8 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   }
 
   // a ocupação é da semana inteira, mesmo com o filtro de vaga ligado
-  const vagas = todas.reduce(
+  const doPeriodo = ehMes ? sessoes.filter((s) => s.data.slice(0, 7) === mesFoco) : sessoes
+  const vagas = (ehMes ? todas.filter((s) => s.data.slice(0, 7) === mesFoco) : todas).reduce(
     (acc, s) => ({
       ocupadas: acc.ocupadas + s.ocupacao.ocupadas,
       total: acc.total + s.ocupacao.capacidade,
@@ -191,22 +208,28 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
   return (
     <AreaQueTroca esqueleto={<Carregando />}>
     <PreCarregar
-      hrefs={ehDia
-        ? [1, -1, 2, -2, 3, -3].map((n) => q({ dia: somarDias(diaFoco, n) }))
-        : [1, -1, 2, -2, 3, -3, 4, -4].map((n) => q({ de: somarDias(segunda, 7 * n) }))}
+      hrefs={ehMes
+        ? [1, -1, 2, -2].map((n) => q({ mes: mesMais(mesFoco, n) }))
+        : ehDia
+          ? [1, -1, 2, -2, 3, -3].map((n) => q({ dia: somarDias(diaFoco, n) }))
+          : [1, -1, 2, -2, 3, -3, 4, -4].map((n) => q({ de: somarDias(segunda, 7 * n) }))}
     />
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
           <TituloDaTela tela="agenda">
-            {ehProf ? (ehDia ? 'Meu dia' : 'Minha semana') : ehDia ? 'Agenda do dia' : 'Agenda da semana'}
+            {ehProf
+              ? (ehDia ? 'Meu dia' : ehMes ? 'Meu mês' : 'Minha semana')
+              : ehDia ? 'Agenda do dia' : ehMes ? 'Agenda do mês' : 'Agenda da semana'}
           </TituloDaTela>
           <p className="pt-[3px] text-[14.5px] text-tinta-media">
             {ehDia
               ? dataLonga(diaFoco)
-              : faixaDaSemana(segunda, dias[6])}
+              : ehMes
+                ? `${MESES[Number(mesFoco.slice(5, 7)) - 1]} de ${mesFoco.slice(0, 4)}`
+                : faixaDaSemana(segunda, dias[6])}
             {' · '}
-            {sessoes.length} {rotulos.sessao.plural.toLowerCase()}
+            {doPeriodo.length} {rotulos.sessao.plural.toLowerCase()}
             {vagas.total > 0 ? ` · ${porcento}% das vagas ocupadas` : ''}
           </p>
         </div>
@@ -214,42 +237,59 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
         <div data-imprimir="fora" className="flex flex-wrap items-center gap-2.5">
           <Abas
             rotuloDoGrupo="Como ver a agenda"
-            ativo={ehDia ? 'dia' : 'semana'}
+            ativo={ehDia ? 'dia' : ehMes ? 'mes' : 'semana'}
             itens={[
-              { id: 'semana', rotulo: 'Semana', href: q({ modo: undefined }) },
-              { id: 'dia', rotulo: 'Dia', href: q({ modo: 'dia', dia: diaFoco }) },
-              // a grade fixa é o molde desta agenda: mora aqui, não no menu
-              ...(ehProf ? [] : [{ id: 'grade', rotulo: 'Grade fixa', href: '/grade' }]),
+              {
+                id: 'semana', rotulo: 'Semana',
+                href: q({ modo: undefined, mes: undefined, de: ehMes ? (mesFoco === hoje.slice(0, 7) ? hoje : primeiroDoMes) : undefined }),
+              },
+              {
+                id: 'dia', rotulo: 'Dia',
+                href: q({ modo: 'dia', mes: undefined, dia: ehMes ? (mesFoco === hoje.slice(0, 7) ? hoje : primeiroDoMes) : diaFoco }),
+              },
+              {
+                id: 'mes', rotulo: 'Mês',
+                // a quinta decide o mês da semana que vira a página
+                href: q({ modo: 'mes', mes: (ehDia ? diaFoco : somarDias(segunda, 3)).slice(0, 7) }),
+              },
             ]}
           />
 
           <NavegadorPeriodo
             antes={{
-              href: ehDia
-                ? q({ dia: somarDias(diaFoco, -1) })
-                : q({ de: somarDias(segunda, -7) }),
-              rotulo: ehDia ? 'Dia anterior' : 'Semana anterior',
+              href: ehMes
+                ? q({ mes: mesMais(mesFoco, -1) })
+                : ehDia
+                  ? q({ dia: somarDias(diaFoco, -1) })
+                  : q({ de: somarDias(segunda, -7) }),
+              rotulo: ehMes ? 'Mês anterior' : ehDia ? 'Dia anterior' : 'Semana anterior',
             }}
             meio={{
-              href: ehDia ? q({ dia: hoje }) : q({ de: segundaDe(hoje) }),
+              href: ehMes ? q({ mes: hoje.slice(0, 7) }) : ehDia ? q({ dia: hoje }) : q({ de: segundaDe(hoje) }),
               // fora do período atual, o botão diz onde se está: "Esta semana"
               // em cima de setembro fazia achar que a tela não tinha mudado
-              texto: ehDia
+              texto: ehMes
+                ? (mesFoco === hoje.slice(0, 7)
+                    ? 'Este mês'
+                    : `${MESES_DO_BOTAO[Number(mesFoco.slice(5, 7)) - 1]} ${mesFoco.slice(0, 4)}`)
+                : ehDia
                 ? (diaFoco === hoje ? 'Hoje' : diaCurto(diaFoco))
                 : segunda === segundaDe(hoje)
                   ? 'Esta semana'
                   : `${Number(segunda.slice(8))}–${diaCurto(dias[6])}`,
             }}
             depois={{
-              href: ehDia
-                ? q({ dia: somarDias(diaFoco, 1) })
-                : q({ de: somarDias(segunda, 7) }),
-              rotulo: ehDia ? 'Próximo dia' : 'Próxima semana',
+              href: ehMes
+                ? q({ mes: mesMais(mesFoco, 1) })
+                : ehDia
+                  ? q({ dia: somarDias(diaFoco, 1) })
+                  : q({ de: somarDias(segunda, 7) }),
+              rotulo: ehMes ? 'Próximo mês' : ehDia ? 'Próximo dia' : 'Próxima semana',
             }}
             irPara={{
-              molde: ehDia ? q({ dia: 'AAAA-MM-DD' }) : q({ de: 'AAAA-MM-DD' }),
-              modo: ehDia ? 'dia' : 'semana',
-              atual: ehDia ? diaFoco : segunda,
+              molde: ehMes ? q({ mes: 'AAAA-MM-DD' }) : ehDia ? q({ dia: 'AAAA-MM-DD' }) : q({ de: 'AAAA-MM-DD' }),
+              modo: ehMes ? 'mes' : ehDia ? 'dia' : 'semana',
+              atual: ehMes ? primeiroDoMes : ehDia ? diaFoco : segunda,
               hoje,
             }}
           />
@@ -271,8 +311,20 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             />
           ) : null}
 
+          {/* a grade fixa é o molde desta agenda, e não um jeito de vê-la: saiu
+              do seletor Semana/Dia/Mês, onde parecia mais uma opção de visão */}
+          {ehProf ? null : (
+            <Link
+              href="/grade"
+              className="inline-flex min-h-11 items-center gap-2 rounded-media border border-linha bg-superficie px-4 text-[14.5px] font-medium transition-colors duration-150 hover:bg-superficie-mais-suave"
+            >
+              <Icone nome="grade" tamanho={16} />
+              Grade fixa
+            </Link>
+          )}
+
           {/* imprimir a semana é coisa de balcão, não de telefone */}
-          {!ehDia ? <span className="hidden md:contents"><BotaoImprimir /></span> : null}
+          {!ehDia && !ehMes ? <span className="hidden md:contents"><BotaoImprimir /></span> : null}
 
           {ehProf ? null : <NovaAulaAvulsa servicos={servicosAvulsa ?? []} />}
         </div>
@@ -327,7 +379,17 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
       </div>
       )}
 
-      {ehDia ? (
+      {ehMes ? (
+        <GradeMes
+          sessoes={sessoes}
+          mes={mesFoco}
+          hoje={hoje}
+          fechados={fechados}
+          feriados={feriados}
+          hrefDoDia={(dia) => q({ modo: 'dia', mes: undefined, dia })}
+          rotuloSessoes={rotulos.sessao.plural.toLowerCase()}
+        />
+      ) : ehDia ? (
         <>
           {feriados[diaFoco] ? (
             <span className="self-start rounded-peca bg-atencao-fundo px-2.5 py-1 text-[12px] font-medium text-atencao">

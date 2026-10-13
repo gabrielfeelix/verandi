@@ -57,7 +57,7 @@ export function NavegadorPeriodo({
    * `molde` é o endereço com `AAAA-MM-DD` no lugar da data; a página acha a
    * semana dela sozinha.
    */
-  irPara?: { molde: string; modo: 'semana' | 'dia'; atual: string; hoje: string }
+  irPara?: { molde: string; modo: 'semana' | 'dia' | 'mes'; atual: string; hoje: string }
 }) {
   const troca = useTroca()
   const aoClicar = (href: string) => (e: React.MouseEvent) => {
@@ -131,8 +131,8 @@ function MenuDoPeriodo({
 }: {
   meio: { href: string; texto: string }
   molde: string
-  modo: 'semana' | 'dia'
-  /** a data aberta agora (a segunda da semana, ou o dia) */
+  modo: 'semana' | 'dia' | 'mes'
+  /** a data aberta agora (a segunda da semana, o dia, ou o dia 1 do mês) */
   atual: string
   hoje: string
 }) {
@@ -154,12 +154,24 @@ function MenuDoPeriodo({
     if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) navegar(para(iso))
   }
 
-  const atalhos = [
-    { rotulo: modo === 'semana' ? 'Esta semana' : 'Hoje', href: meio.href },
-    modo === 'semana'
-      ? { rotulo: 'Próxima semana', href: para(somar(hoje, 7)) }
-      : { rotulo: 'Amanhã', href: para(somar(hoje, 1)) },
-  ]
+  const proximoMes = (() => {
+    const d = new Date(Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7)), 1)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
+  })()
+  const atalhos = modo === 'mes'
+    ? [
+        { rotulo: 'Este mês', href: meio.href },
+        { rotulo: 'Próximo mês', href: para(proximoMes) },
+      ]
+    : modo === 'semana'
+      ? [
+          { rotulo: 'Esta semana', href: meio.href },
+          { rotulo: 'Próxima semana', href: para(somar(hoje, 7)) },
+        ]
+      : [
+          { rotulo: 'Hoje', href: meio.href },
+          { rotulo: 'Amanhã', href: para(somar(hoje, 1)) },
+        ]
   const mesAberto = atual.slice(0, 7)
   const mesDeHoje = hoje.slice(0, 7)
 

@@ -52,7 +52,7 @@ export function Abas({
        * dão 383px, e num celular de 390px isso empurrava a página inteira para
        * o lado. Quem rola é a fita de abas, nunca a tela.
        */
-      className={`inline-flex max-w-full gap-[3px] overflow-x-auto rounded-media border border-linha bg-superficie p-1 ${className}`}
+      className={`inline-flex max-w-full gap-[3px] overflow-x-auto rounded-media bg-linha/80 p-1 ${className}`}
     >
       {itens.map((i) => {
         const ligado = i.id === ativoAgora
@@ -61,9 +61,12 @@ export function Abas({
          * faz parecer que ele desligou: o feedback contradiz o estado.
          */
         const estilo = `inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-padrao px-3 text-[14.5px] whitespace-nowrap transition-colors duration-150 ${
+          // trilho cinza, opção escolhida em branco elevado: é o desenho de
+          // "escolha uma", e não se confunde com botão (preto chapado) nem
+          // com filtro (verde-claro), que antes usavam o mesmo preto
           ligado
-            ? 'bg-escuro font-medium text-tinta-clara'
-            : 'text-tinta-media hover:bg-superficie-mais-suave'
+            ? 'bg-superficie font-medium text-tinta shadow-[0_1px_2px_rgb(0_0_0/0.08)] ring-1 ring-linha'
+            : 'text-tinta-media hover:text-tinta'
         }`
 
         const dentro = (
@@ -72,7 +75,7 @@ export function Abas({
             {i.contagem === undefined ? null : (
               <span
                 className={`rounded-minima px-1.5 text-[12px] ${
-                  ligado ? 'bg-tinta-clara/16 text-tinta-clara' : 'bg-superficie-mais-suave text-tinta-media'
+                  ligado ? 'bg-superficie-mais-suave text-tinta' : 'bg-superficie text-tinta-media'
                 }`}
               >
                 {i.contagem}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Modal } from '@/components/ui/modal'
 import { buscarCandidatos } from '@/server/agenda/acoes'
 import { Botao } from '@/components/ui/botao'
+import { Icone } from '@/components/ui/icones'
 import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { marcarAulaAvulsa, profissionaisParaAvulsa } from '@/server/agenda/avulsa'
 import { Escolha } from '@/components/ui/escolha'
@@ -219,7 +220,7 @@ export function NovaAulaAvulsa({ servicos }: { servicos: Servico[] }) {
   const router = useRouter()
   return (
     <>
-      <Botao tom="secundario" onClick={() => setAberto(true)}>Aula avulsa</Botao>
+      <Botao onClick={() => setAberto(true)}><Icone nome="mais" tamanho={16} />Aula avulsa</Botao>
       {aberto ? (
         <Modal
           aberto

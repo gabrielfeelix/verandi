@@ -98,8 +98,9 @@ export function Chip({
   children: ReactNode
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>) {
   const estilo = `inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border px-3 text-[14.5px] transition-colors duration-150 ${
+    // filtro ligado em verde-claro: o preto chapado é do botão de ação
     ativo
-      ? 'border-escuro bg-escuro font-medium text-tinta-clara'
+      ? 'border-marca bg-positivo-superficie font-medium text-marca'
       : 'border-linha bg-superficie text-tinta-media hover:bg-superficie-mais-suave'
   }`
 
