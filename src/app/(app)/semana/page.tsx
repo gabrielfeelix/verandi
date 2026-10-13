@@ -7,6 +7,7 @@ import { agoraMs, hojeEm, localDe } from '@/server/agenda/fuso'
 import { GradeSemana } from '@/components/grade/grade-semana'
 import { BotaoImprimir } from '@/components/ui/imprimir'
 import { NovaAulaAvulsa } from '@/components/pessoas/aula-avulsa'
+import { PreCarregar } from '@/components/agenda/pre-carregar'
 import { NavegadorPeriodo } from '@/components/ui/navegador-periodo'
 import { DiaPorRecurso } from '@/components/grade/dia-por-recurso'
 import { LinhaAgenda, AvatarProf } from '@/components/hoje/pecas'
@@ -62,6 +63,10 @@ function faixaDaSemana(de: string, ate: string) {
     ? `${diaDe} – ${diaAte} de ${MESES[mesAte]}`
     : `${diaDe} de ${MESES[mesDe]} – ${diaAte} de ${MESES[mesAte]}`
 }
+
+const MESES_DO_BOTAO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+/** `2026-09-20` → `20 set` */
+const diaCurto = (iso: string) => `${Number(iso.slice(8))} ${MESES_DO_BOTAO[Number(iso.slice(5, 7)) - 1]}`
 
 export default async function Semana({ searchParams }: { searchParams: Busca }) {
   const p = await searchParams
@@ -185,6 +190,11 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
 
   return (
     <AreaQueTroca esqueleto={<Carregando />}>
+    <PreCarregar
+      hrefs={ehDia
+        ? [1, -1, 2, -2, 3, -3].map((n) => q({ dia: somarDias(diaFoco, n) }))
+        : [1, -1, 2, -2, 3, -3, 4, -4].map((n) => q({ de: somarDias(segunda, 7 * n) }))}
+    />
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
         <div>
@@ -222,7 +232,13 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             }}
             meio={{
               href: ehDia ? q({ dia: hoje }) : q({ de: segundaDe(hoje) }),
-              texto: ehDia ? 'Hoje' : 'Esta semana',
+              // fora do período atual, o botão diz onde se está: "Esta semana"
+              // em cima de setembro fazia achar que a tela não tinha mudado
+              texto: ehDia
+                ? (diaFoco === hoje ? 'Hoje' : diaCurto(diaFoco))
+                : segunda === segundaDe(hoje)
+                  ? 'Esta semana'
+                  : `${Number(segunda.slice(8))}–${diaCurto(dias[6])}`,
             }}
             depois={{
               href: ehDia
@@ -233,6 +249,8 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             irPara={{
               molde: ehDia ? q({ dia: 'AAAA-MM-DD' }) : q({ de: 'AAAA-MM-DD' }),
               modo: ehDia ? 'dia' : 'semana',
+              atual: ehDia ? diaFoco : segunda,
+              hoje,
             }}
           />
 

@@ -57,7 +57,7 @@ export function NavegadorPeriodo({
    * `molde` é o endereço com `AAAA-MM-DD` no lugar da data; a página acha a
    * semana dela sozinha.
    */
-  irPara?: { molde: string; modo: 'semana' | 'dia' }
+  irPara?: { molde: string; modo: 'semana' | 'dia'; atual: string; hoje: string }
 }) {
   const troca = useTroca()
   const aoClicar = (href: string) => (e: React.MouseEvent) => {
@@ -104,12 +104,7 @@ export function NavegadorPeriodo({
   )
 }
 
-/** a data de hoje no relógio de quem está olhando, em ISO */
-function hojeIso(): string {
-  const d = new Date()
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
-}
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
 function somar(iso: string, dias: number): string {
   const d = new Date(`${iso}T12:00:00`)
@@ -118,59 +113,62 @@ function somar(iso: string, dias: number): string {
 }
 
 /**
- * O botão do meio como menu: atalhos e "ir para a data".
+ * O botão do meio como menu: os dois atalhos do dia a dia, os meses e a data.
  *
  * Era um link fixo para a semana atual: em cima dela, clicar não fazia nada, e
- * parecia travado. Chegar em janeiro a partir de outubro eram quarenta cliques
- * na seta (Daniel, MGM, 13/10/2026, conferindo a presença desde o começo do
- * ano). Digitar a data leva direto: a máscara põe as barras, e a data completa
- * navega.
+ * parecia travado. O que se pede à agenda, na ordem do balcão:
+ *
+ * - **esta semana e a próxima**, onde se encaixa reposição e experimental. A
+ *   semana passada é a seta, e não ganha atalho;
+ * - **um mês inteiro para trás**, para conferir presença e reposição contra a
+ *   planilha (Daniel, MGM, 13/10/2026: de outubro a janeiro eram quarenta
+ *   cliques na seta). Um clique no mês leva à primeira semana dele;
+ * - **uma data exata**, digitada: a máscara põe as barras, a data completa
+ *   navega.
  */
 function MenuDoPeriodo({
-  meio, molde, modo,
+  meio, molde, modo, atual, hoje,
 }: {
   meio: { href: string; texto: string }
   molde: string
   modo: 'semana' | 'dia'
+  /** a data aberta agora (a segunda da semana, ou o dia) */
+  atual: string
+  hoje: string
 }) {
   const troca = useTroca()
   const router = useRouter()
   const [aberto, setAberto] = useState(false)
+  const [ano, setAno] = useState(() => Number(atual.slice(0, 4)))
   const botao = useRef<HTMLButtonElement>(null)
-  const painel = usePosicionar(botao, aberto, 280, 280)
+  const painel = usePosicionar(botao, aberto, 300, 300)
   useFecharFora([botao, painel], aberto, () => setAberto(false))
 
+  const para = (iso: string) => molde.replace('AAAA-MM-DD', iso)
   const navegar = (href: string) => {
     setAberto(false)
     if (troca) troca.ir(href)
     else router.push(href)
   }
   const irData = (iso: string) => {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) navegar(molde.replace('AAAA-MM-DD', iso))
+    if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) navegar(para(iso))
   }
 
-  const hoje = hojeIso()
-  const mesPassado = (() => {
-    const d = new Date(`${hoje}T12:00:00`)
-    d.setDate(1)
-    d.setMonth(d.getMonth() - 1)
-    return d.toISOString().slice(0, 10)
-  })()
-  const atalhos: Array<{ rotulo: string; href: string }> = [
-    { rotulo: meio.texto, href: meio.href },
+  const atalhos = [
+    { rotulo: modo === 'semana' ? 'Esta semana' : 'Hoje', href: meio.href },
     modo === 'semana'
-      ? { rotulo: 'Semana passada', href: molde.replace('AAAA-MM-DD', somar(hoje, -7)) }
-      : { rotulo: 'Ontem', href: molde.replace('AAAA-MM-DD', somar(hoje, -1)) },
-    { rotulo: 'Começo do mês passado', href: molde.replace('AAAA-MM-DD', mesPassado) },
-    { rotulo: 'Começo do ano', href: molde.replace('AAAA-MM-DD', `${hoje.slice(0, 4)}-01-01`) },
+      ? { rotulo: 'Próxima semana', href: para(somar(hoje, 7)) }
+      : { rotulo: 'Amanhã', href: para(somar(hoje, 1)) },
   ]
+  const mesAberto = atual.slice(0, 7)
+  const mesDeHoje = hoje.slice(0, 7)
 
   return (
     <>
       <button
         ref={botao}
         type="button"
-        onClick={() => setAberto((a) => !a)}
+        onClick={() => { setAno(Number(atual.slice(0, 4))); setAberto((a) => !a) }}
         aria-haspopup="dialog"
         aria-expanded={aberto}
         className="flex min-h-11 cursor-pointer items-center gap-1.5 px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 hover:bg-superficie-mais-suave"
@@ -184,7 +182,7 @@ function MenuDoPeriodo({
           role="dialog"
           aria-label="Escolher o período"
           style={{ position: 'fixed', zIndex: 60 }}
-          className="w-[280px] rounded-grande border border-linha bg-superficie p-1.5 shadow-modal"
+          className="w-[300px] rounded-grande border border-linha bg-superficie p-1.5 shadow-modal"
           onKeyDown={(e) => { if (e.key === 'Escape') setAberto(false) }}
         >
           <ul className="flex flex-col">
@@ -200,7 +198,49 @@ function MenuDoPeriodo({
               </li>
             ))}
           </ul>
-          <div className="mt-1.5 border-t border-linha-fina px-1.5 pt-2.5 pb-1">
+
+          <div className="mt-1.5 border-t border-linha-fina px-1.5 pt-2">
+            <div className="flex items-center justify-between pb-1.5">
+              <button
+                type="button" onClick={() => setAno((a) => a - 1)} aria-label="Ano anterior"
+                className="flex size-8 cursor-pointer items-center justify-center rounded-padrao text-tinta-media hover:bg-superficie-mais-suave hover:text-tinta"
+              >
+                <Icone nome="antes" tamanho={16} />
+              </button>
+              <span className="text-[14.5px] font-medium tabular-nums">{ano}</span>
+              <button
+                type="button" onClick={() => setAno((a) => a + 1)} aria-label="Próximo ano"
+                className="flex size-8 cursor-pointer items-center justify-center rounded-padrao text-tinta-media hover:bg-superficie-mais-suave hover:text-tinta"
+              >
+                <Icone nome="depois" tamanho={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-4 gap-1">
+              {MESES.map((m, i) => {
+                const chave = `${ano}-${String(i + 1).padStart(2, '0')}`
+                const ativo = chave === mesAberto
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => navegar(para(`${chave}-01`))}
+                    aria-pressed={ativo}
+                    className={`flex h-9 cursor-pointer items-center justify-center rounded-padrao text-[14.5px] capitalize transition-colors duration-100 ${
+                      ativo
+                        ? 'bg-escuro font-semibold text-tinta-clara'
+                        : chave === mesDeHoje
+                          ? 'border border-marca font-medium text-marca hover:bg-positivo-superficie'
+                          : 'hover:bg-superficie-mais-suave'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="mt-2 border-t border-linha-fina px-1.5 pt-2.5 pb-1">
             <label htmlFor="ir-para-data" className="mb-1.5 block text-[13.5px] font-medium">
               Ir para a data
             </label>
