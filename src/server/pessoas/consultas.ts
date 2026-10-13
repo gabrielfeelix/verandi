@@ -3,8 +3,6 @@ import { localDe } from '../agenda/fuso'
 import { NAO_REPOEM, statusComCredito } from '@/core/agenda/ocupacao'
 import { formasGuardadas } from '@/core/telefone'
 
-/** os status que deixam a pessoa devendo uma reposição, ver `statusComCredito` */
-const COM_CREDITO = new Set<string>(statusComCredito(true))
 /** reposição nestes status não pagou a falta, ver `NAO_REPOEM` */
 const NAO_REPOE = new Set<string>(NAO_REPOEM)
 
@@ -656,8 +654,10 @@ export async function fichaDaPessoa(
   }
 
   const { data: contaRow } = await db
-    .from('conta').select('fuso').eq('id', contaId).single()
+    .from('conta').select('fuso, credito_falta').eq('id', contaId).single()
   const fuso = (contaRow?.fuso as string) ?? 'America/Sao_Paulo'
+  // os status que deixam a pessoa devendo uma reposição, ver `statusComCredito`
+  const comCredito = new Set<string>(statusComCredito(true, contaRow?.credito_falta ?? true))
 
   const { data: tags } = await db
     .from('pessoa_tag').select('tag').eq('pessoa_id', pessoaId)
@@ -753,6 +753,6 @@ export async function fichaDaPessoa(
     // menu de apontar reposição: Padrões decide o que vira cobrança em
     // `/pendencias`, não o que a ficha da pessoa deixa ver.
     reposicoesAbertas: todas.filter(
-      (x) => COM_CREDITO.has(x.status) && !x.temReposicao && !ehReposicaoDeOutra.has(x.id)),
+      (x) => comCredito.has(x.status) && !x.temReposicao && !ehReposicaoDeOutra.has(x.id)),
   }
 }

@@ -47,6 +47,7 @@ export async function salvarPadroes(p: {
   prazoReposicaoDias: number
   minutosMinimosCancelamento: number
   encaixeAcima: boolean
+  creditoFalta: boolean
   creditoFaltaAvisada: boolean
   horariosSugeridos: string[]
 }): Promise<void> {
@@ -79,6 +80,7 @@ export async function salvarPadroes(p: {
     prazo_reposicao_dias: p.prazoReposicaoDias,
     minutos_minimos_cancelamento: p.minutosMinimosCancelamento,
     encaixe_acima: p.encaixeAcima,
+    credito_falta: p.creditoFalta,
     credito_falta_avisada: p.creditoFaltaAvisada,
     horarios_sugeridos: horarios,
   }).eq('id', conta.contaId)

@@ -105,7 +105,7 @@ export async function listarPendencias(
 
   const [conta, dispensadas] = await Promise.all([
     db.from('conta')
-      .select('prazo_reposicao_dias, credito_falta_avisada')
+      .select('prazo_reposicao_dias, credito_falta_avisada, credito_falta')
       .eq('id', contaId)
       .single(),
     db.from('pendencia_dispensada')
@@ -121,10 +121,11 @@ export async function listarPendencias(
 
   const prazo = conta.data?.prazo_reposicao_dias ?? 60
   const creditoAvisada = conta.data?.credito_falta_avisada ?? true
+  const creditoFalta = conta.data?.credito_falta ?? true
 
   const [chamadas, reposicoes, reservas, cadastros, licencas, semContrato, pacotes] = await Promise.all([
     chamadasNaoFeitas(db, contaId, fuso, agora),
-    reposicoesAbertas(db, contaId, prazo, creditoAvisada, fuso),
+    reposicoesAbertas(db, contaId, prazo, creditoAvisada, creditoFalta, fuso),
     reservasEsperando(db, contaId, agora, fuso),
     cadastrosIncompletos(db, contaId, hoje),
     licencasEmAcompanhamento(db, contaId, hoje),
@@ -249,7 +250,8 @@ async function chamadasNaoFeitas(
  * decidir, o lugar era dela.
  */
 async function reposicoesAbertas(
-  db: Db, contaId: string, prazoDias: number, creditoAvisada: boolean, fuso: string,
+  db: Db, contaId: string, prazoDias: number, creditoAvisada: boolean,
+  creditoFalta: boolean, fuso: string,
 ): Promise<Pendencia[]> {
   const limite = new Date(Date.now() - prazoDias * DIA).toISOString()
 
@@ -257,7 +259,7 @@ async function reposicoesAbertas(
     .from('participacao')
     .select('id, status, pessoa:pessoa_id(id, nome), sessao:sessao_id(inicio, servico:servico_id(id, nome))')
     .eq('conta_id', contaId)
-    .in('status', statusComCredito(creditoAvisada))
+    .in('status', statusComCredito(creditoAvisada, creditoFalta))
     // crédito acertado fora do sistema (histórico importado) não cobra ninguém
     .is('credito_encerrado_em', null)
     // falta na reposição devolve a falta antiga, não abre crédito novo

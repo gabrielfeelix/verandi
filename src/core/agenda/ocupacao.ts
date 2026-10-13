@@ -29,10 +29,19 @@ const LIBERAM_A_VAGA: ReadonlySet<string> = new Set(['falta_avisada', 'cancelada
  * é o negócio que fechou o dia ou tirou a pessoa do horário, e o lugar era dela.
  * `licenca` fica de fora: quem está afastado mantém o horário fixo, não perdeu nada.
  */
-export function statusComCredito(creditoFaltaAvisada: boolean): StatusParticipacao[] {
-  return creditoFaltaAvisada
-    ? ['falta', 'falta_avisada', 'cancelada']
-    : ['falta', 'cancelada']
+export function statusComCredito(
+  creditoFaltaAvisada: boolean,
+  /**
+   * Falta sem aviso gera crédito? `credito_falta` da conta, desde a `0076`. Na
+   * MGM não gera: só a justificada dá direito a repor.
+   */
+  creditoFalta = true,
+): StatusParticipacao[] {
+  return [
+    ...(creditoFalta ? ['falta' as const] : []),
+    ...(creditoFaltaAvisada ? ['falta_avisada' as const] : []),
+    'cancelada',
+  ]
 }
 
 /**

@@ -371,6 +371,7 @@ export type Database = {
           assinatura_path: string | null
           ativo: boolean
           capacidade_padrao: number
+          credito_falta: boolean
           credito_falta_avisada: boolean
           criado_em: string
           documento: string | null
@@ -396,6 +397,7 @@ export type Database = {
           assinatura_path?: string | null
           ativo?: boolean
           capacidade_padrao?: number
+          credito_falta?: boolean
           credito_falta_avisada?: boolean
           criado_em?: string
           documento?: string | null
@@ -421,6 +423,7 @@ export type Database = {
           assinatura_path?: string | null
           ativo?: boolean
           capacidade_padrao?: number
+          credito_falta?: boolean
           credito_falta_avisada?: boolean
           criado_em?: string
           documento?: string | null

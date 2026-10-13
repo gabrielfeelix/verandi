@@ -23,6 +23,7 @@ const DE_FABRICA = {
   prazoReposicaoDias: 60,
   minutosMinimosCancelamento: 0,
   encaixeAcima: true,
+  creditoFalta: true,
   creditoFaltaAvisada: true,
   horariosSugeridos: [
     '07:00', '08:00', '09:00', '10:00', '11:00',
@@ -71,6 +72,7 @@ export function SecaoPadroes({
           prazoReposicaoDias: v.prazoReposicaoDias,
           minutosMinimosCancelamento: v.minutosMinimosCancelamento,
           encaixeAcima: v.encaixeAcima,
+          creditoFalta: v.creditoFalta,
           creditoFaltaAvisada: v.creditoFaltaAvisada,
           horariosSugeridos: v.horariosSugeridos,
         })
@@ -191,6 +193,21 @@ export function SecaoPadroes({
               [false, 'Bloquear'],
             ]}
             aoMudar={(b) => setV({ ...v, encaixeAcima: b })}
+          />
+        </LinhaPadrao>
+
+        <LinhaPadrao
+          rotulo="Falta sem aviso gera crédito"
+          detalhe="Quando desligado, quem falta sem avisar perde a aula e não ganha reposição. As faltas continuam no histórico"
+        >
+          <Opcoes
+            rotulo="Falta sem aviso gera crédito"
+            valor={v.creditoFalta}
+            opcoes={[
+              [true, 'Sim'],
+              [false, 'Não'],
+            ]}
+            aoMudar={(b) => setV({ ...v, creditoFalta: b })}
           />
         </LinhaPadrao>
 

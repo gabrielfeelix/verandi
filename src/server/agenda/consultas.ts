@@ -526,6 +526,9 @@ export type FaltaEmAberto = {
 export async function faltasEmAberto(
   db: Db, contaId: string, pessoaId: string,
 ): Promise<FaltaEmAberto[]> {
+  // falta sem aviso só se aponta se a conta der crédito para ela
+  const { data: contaRow } = await db
+    .from('conta').select('credito_falta').eq('id', contaId).single()
   const { data, error } = await db
     .from('participacao')
     .select('id, status, sessao:sessao_id(inicio, servico:servico_id(nome))')
@@ -534,7 +537,7 @@ export async function faltasEmAberto(
     // a lista mais larga de propósito: aqui é quem repõe escolhendo o que está
     // pagando, e Padrões decide o que vira cobrança em `/pendencias`, não o que
     // pode ser apontado à mão
-    .in('status', statusComCredito(true))
+    .in('status', statusComCredito(true, contaRow?.credito_falta ?? true))
     // crédito acertado fora do sistema (histórico importado) não se aponta
     .is('credito_encerrado_em', null)
     // falta na reposição devolve a falta antiga, não abre crédito novo
