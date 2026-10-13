@@ -21,8 +21,20 @@ export async function proxy(req: NextRequest) {
     },
   )
 
-  // renova a sessão a cada pedido; sem isto o Server Component vê token velho
-  const { data: { user } } = await db.auth.getUser()
+  /*
+   * Renova a sessão a cada pedido; sem isto o Server Component vê token velho.
+   *
+   * `getClaims` e não `getUser` desde 13/10/2026: o projeto assina o token com
+   * chave assimétrica (ES256), e a assinatura se confere aqui mesmo, com a
+   * chave pública que o supabase-js guarda por dez minutos. `getUser` era uma
+   * ida ao servidor de autenticação em todo pedido, e trocar de semana na
+   * agenda pagava duas (esta e a de `contaAtiva`). O que se perde: sessão
+   * encerrada em outro aparelho só deixa de valer quando o token vence (uma
+   * hora). Quem é tirado de uma conta perde o acesso na hora do mesmo jeito,
+   * porque `contaAtiva` confere `usuario_conta` no banco a cada pedido.
+   */
+  const { data: sessao } = await db.auth.getClaims()
+  const user = sessao?.claims?.sub ? { id: sessao.claims.sub } : null
 
   const publica =
     req.nextUrl.pathname.startsWith('/entrar') ||

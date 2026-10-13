@@ -70,7 +70,9 @@ export type ContaAtiva =
  */
 export const contaAtiva = cache(async function contaAtiva(): Promise<ContaAtiva | null> {
   const db = await clienteServidor()
-  const { data: { user } } = await db.auth.getUser()
+  // assinatura conferida aqui, sem ida ao servidor de autenticação (ver o proxy)
+  const { data: sessao } = await db.auth.getClaims()
+  const user = sessao?.claims?.sub ? { id: sessao.claims.sub } : null
   if (!user) return null
 
   const { data } = await db
