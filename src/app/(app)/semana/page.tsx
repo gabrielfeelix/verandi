@@ -230,6 +230,9 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
                 : q({ de: somarDias(segunda, 7) }),
               rotulo: ehDia ? 'Próximo dia' : 'Próxima semana',
             }}
+            irPara={{
+              molde: ehDia ? q({ dia: 'AAAA-MM-DD' }) : q({ de: 'AAAA-MM-DD' }),
+            }}
           />
 
           {/* no Dia, o eixo das colunas mora aqui, no lugar do imprimir: na
