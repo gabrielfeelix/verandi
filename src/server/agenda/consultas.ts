@@ -1,6 +1,6 @@
 import { emReais } from '@/core/planos/plano'
 import {
-  calcularOcupacao, statusComCredito, type Ocupacao, type StatusParticipacao,
+  calcularOcupacao, FILTRO_NAO_REPOEM, statusComCredito, type Ocupacao, type StatusParticipacao,
 } from '@/core/agenda/ocupacao'
 import { estadoDaChamada, type EstadoChamada } from '@/core/agenda/chamada'
 import type { Papel } from '@/core/acesso/destino'
@@ -537,6 +537,8 @@ export async function faltasEmAberto(
     .in('status', statusComCredito(true))
     // crédito acertado fora do sistema (histórico importado) não se aponta
     .is('credito_encerrado_em', null)
+    // falta na reposição devolve a falta antiga, não abre crédito novo
+    .is('reposicao_de_id', null)
   if (error) throw error
   if (!data?.length) return []
 
@@ -545,7 +547,8 @@ export async function faltasEmAberto(
     .select('reposicao_de_id')
     .eq('conta_id', contaId)
     .not('reposicao_de_id', 'is', null)
-    
+    // reposição em que a pessoa faltou não pagou nada
+    .not('status', 'in', FILTRO_NAO_REPOEM)
   const jaReposta = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
 
   return data

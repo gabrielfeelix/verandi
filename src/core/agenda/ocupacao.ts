@@ -35,6 +35,21 @@ export function statusComCredito(creditoFaltaAvisada: boolean): StatusParticipac
     : ['falta', 'cancelada']
 }
 
+/**
+ * Os status em que a aula de reposição **não repõe** nada.
+ *
+ * Quem falta à reposição não pagou a falta antiga: ela volta a ficar em aberto,
+ * e a falta na reposição não vira um crédito novo, senão a pessoa sairia com
+ * dois. A ligação (`reposicao_de_id`) fica, para se saber qual falta aquela
+ * aula ia pagar e para valer de novo se a chamada for corrigida para presente.
+ * Até 13/out/2026 a falta na reposição contava como reposição feita (MGM,
+ * Giovanna e Gustavo, 13/10 8h).
+ */
+export const NAO_REPOEM: readonly StatusParticipacao[] = ['falta', 'falta_avisada', 'cancelada', 'licenca']
+
+/** `NAO_REPOEM` no formato do filtro `.not('status', 'in', ...)` do PostgREST */
+export const FILTRO_NAO_REPOEM = `(${NAO_REPOEM.join(',')})`
+
 export type Ocupacao = {
   capacidade: number
   ocupadas: number

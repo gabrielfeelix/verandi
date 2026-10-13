@@ -1,10 +1,12 @@
 import type { Db } from '../supabase'
 import { localDe } from '../agenda/fuso'
-import { statusComCredito } from '@/core/agenda/ocupacao'
+import { NAO_REPOEM, statusComCredito } from '@/core/agenda/ocupacao'
 import { formasGuardadas } from '@/core/telefone'
 
 /** os status que deixam a pessoa devendo uma reposição, ver `statusComCredito` */
 const COM_CREDITO = new Set<string>(statusComCredito(true))
+/** reposição nestes status não pagou a falta, ver `NAO_REPOEM` */
+const NAO_REPOE = new Set<string>(NAO_REPOEM)
 
 /**
  * Mesma normalização que a coluna gerada `pessoa.nome_busca` faz no banco.
@@ -674,14 +676,18 @@ export async function fichaDaPessoa(
   const { data: participacoes } = await db
     .from('participacao')
     .select(`
-      id, origem, status, sessao_id, credito_encerrado_em,
+      id, origem, status, sessao_id, credito_encerrado_em, reposicao_de_id,
       sessao:sessao_id(inicio, servico:servico_id(id, nome)),
-      reposicoes:participacao!reposicao_de_id(id)
+      reposicoes:participacao!reposicao_de_id(id, status)
     `)
     .eq('pessoa_id', pessoaId)
     
 
   const agora = new Date().toISOString()
+  // a aula que é reposição de outra não abre crédito próprio: se a pessoa
+  // faltou nela, quem volta a ficar em aberto é a falta que ela ia pagar
+  const ehReposicaoDeOutra = new Set(
+    (participacoes ?? []).filter((x) => x.reposicao_de_id !== null).map((x) => x.id))
   const todas: ParticipacaoHistorico[] = (participacoes ?? [])
     .filter((x) => x.sessao !== null)
     .map((x) => {
@@ -695,7 +701,8 @@ export async function fichaDaPessoa(
         origem: x.origem,
         status: x.status,
         // crédito acertado fora do sistema conta como já reposto
-        temReposicao: (x.reposicoes ?? []).length > 0 || x.credito_encerrado_em !== null,
+        temReposicao: (x.reposicoes ?? []).some((r) => !NAO_REPOE.has(r.status))
+          || x.credito_encerrado_em !== null,
         inicio: x.sessao!.inicio,
       }
     })
@@ -746,6 +753,6 @@ export async function fichaDaPessoa(
     // menu de apontar reposição: Padrões decide o que vira cobrança em
     // `/pendencias`, não o que a ficha da pessoa deixa ver.
     reposicoesAbertas: todas.filter(
-      (x) => COM_CREDITO.has(x.status) && !x.temReposicao),
+      (x) => COM_CREDITO.has(x.status) && !x.temReposicao && !ehReposicaoDeOutra.has(x.id)),
   }
 }

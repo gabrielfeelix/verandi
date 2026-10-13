@@ -1,4 +1,5 @@
 import type { Db } from '../supabase'
+import { FILTRO_NAO_REPOEM } from '@/core/agenda/ocupacao'
 
 /**
  * A aula de reposição mais cedo paga a falta mais antiga.
@@ -11,7 +12,7 @@ import type { Db } from '../supabase'
  *
  * O conjunto de faltas usadas não muda: só a ordem de quem paga qual. Ficam de
  * fora as reposições vindas da importação, cujo `REP dd/mm` é o que o estúdio
- * escreveu na planilha, e as canceladas, que não usam crédito.
+ * escreveu na planilha, e as que não repõem (`NAO_REPOEM`: falta, cancelada).
  *
  * Roda depois de toda escrita que mexe na ligação. Falhar aqui não desfaz a
  * marcação: a ordem fica como estava, e a próxima escrita tenta de novo.
@@ -26,7 +27,7 @@ export async function reorganizarReposicoes(
       .eq('conta_id', contaId)
       .eq('pessoa_id', pessoaId)
       .not('reposicao_de_id', 'is', null)
-      .neq('status', 'cancelada')
+      .not('status', 'in', FILTRO_NAO_REPOEM)
       .neq('registrado_por_origem', 'importacao')
     if (error || !data) return
     const ligadas = data.flatMap((r) => (r.falta ? [{ ...r, falta: r.falta }] : []))

@@ -1,4 +1,5 @@
 import type { Db } from '../supabase'
+import { FILTRO_NAO_REPOEM } from '@/core/agenda/ocupacao'
 
 /**
  * Quem tinha lugar numa aula que o estúdio cancelou sai com reposição em
@@ -49,6 +50,7 @@ export async function devolverASessao(db: Db, contaId: string, sessaoId: string)
 
   const { data: usadas, error: erroUsadas } = await db.from('participacao')
     .select('reposicao_de_id').eq('conta_id', contaId).in('reposicao_de_id', ids)
+    .not('status', 'in', FILTRO_NAO_REPOEM)
   if (erroUsadas) throw erroUsadas
   const jaRepostas = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
   const voltam = ids.filter((id) => !jaRepostas.has(id))

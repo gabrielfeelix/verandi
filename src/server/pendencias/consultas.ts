@@ -1,7 +1,7 @@
 import type { Db } from '../supabase'
 import { hojeEm, instante, localDe } from '../agenda/fuso'
 import { estadoDaChamada } from '@/core/agenda/chamada'
-import { statusComCredito, type StatusParticipacao } from '@/core/agenda/ocupacao'
+import { FILTRO_NAO_REPOEM, statusComCredito, type StatusParticipacao } from '@/core/agenda/ocupacao'
 import { dataCurta } from '@/core/agenda/datas'
 import { licencasAbertas } from '../licencas/licencas'
 import { aulasDoPlanoDaConta, pacotesDaConta } from '../contratos/pacotes'
@@ -260,7 +260,8 @@ async function reposicoesAbertas(
     .in('status', statusComCredito(creditoAvisada))
     // crédito acertado fora do sistema (histórico importado) não cobra ninguém
     .is('credito_encerrado_em', null)
-    
+    // falta na reposição devolve a falta antiga, não abre crédito novo
+    .is('reposicao_de_id', null)
   if (error) throw error
 
   const faltas = (data ?? []).filter((p) => p.sessao && p.sessao.inicio >= limite)
@@ -272,7 +273,8 @@ async function reposicoesAbertas(
     .select('reposicao_de_id')
     .eq('conta_id', contaId)
     .not('reposicao_de_id', 'is', null)
-    
+    // reposição em que a pessoa faltou não pagou nada
+    .not('status', 'in', FILTRO_NAO_REPOEM)
   const jaReposta = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
 
   const abertas = faltas.filter((p) => !jaReposta.has(p.id))
