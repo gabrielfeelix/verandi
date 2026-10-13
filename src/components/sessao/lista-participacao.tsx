@@ -242,6 +242,13 @@ function Presenca({
   aoDesfazer: () => void
 }) {
   const [aberto, setAberto] = useState(false)
+  /*
+   * Perto do fim da página o menu abre para cima. Aberto sempre para baixo, o
+   * da última pessoa da lista esticava a página e o "Desfazer" ficava fora da
+   * tela (13/10/2026). 320px é o menu inteiro mais a barra da chamada, que
+   * fica presa no rodapé.
+   */
+  const [paraCima, setParaCima] = useState(false)
   // o rótulo só estala depois de um toque: no carregamento a lista inteira
   // pulando de uma vez é ruído, não resposta
   const [tocou, setTocou] = useState(false)
@@ -290,7 +297,11 @@ function Presenca({
         aria-expanded={aberto}
         aria-haspopup="menu"
         title={provisorio ? 'Conta como presente ao concluir a chamada' : `Mudar o registro de ${primeiro}`}
-        onClick={() => setAberto(!aberto)}
+        onClick={() => {
+          const r = caixa.current?.getBoundingClientRect()
+          if (r) setParaCima(window.innerHeight - r.bottom < 320 && r.top > window.innerHeight - r.bottom)
+          setAberto(!aberto)
+        }}
         className={`flex h-11 min-w-[124px] max-sm:w-full cursor-pointer items-center justify-between gap-1.5 rounded-padrao border px-3 text-[14.5px] font-medium whitespace-nowrap transition-colors duration-150 disabled:opacity-60 ${tinta}`}
       >
         <span
@@ -311,7 +322,7 @@ function Presenca({
         <div aria-hidden className="fixed inset-0 z-[40] bg-black/25 animate-[vd-esmaece_.2s_ease_both] sm:hidden" />
         <div
           role="menu"
-          className="fixed inset-x-3 bottom-3 z-[41] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-2 shadow-elevado sm:absolute sm:inset-x-auto sm:top-[48px] sm:right-0 sm:bottom-auto sm:z-[25] sm:w-[240px] sm:p-1.5 sm:origin-top-right animate-[vd-folha_.26s_var(--ease-sobe)_both] sm:animate-[vd-pop_.18s_ease_both]"
+          className={`fixed inset-x-3 bottom-3 z-[41] flex flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-2 shadow-elevado sm:absolute sm:inset-x-auto sm:right-0 sm:z-[25] sm:w-[240px] sm:p-1.5 ${paraCima ? 'sm:top-auto sm:bottom-[48px] sm:origin-bottom-right' : 'sm:top-[48px] sm:bottom-auto sm:origin-top-right'} animate-[vd-folha_.26s_var(--ease-sobe)_both] sm:animate-[vd-pop_.18s_ease_both]`}
         >
           <p className="px-3 pt-1.5 pb-1 text-[13.5px] text-tinta-media sm:hidden">{nome}</p>
           {motivos.map((m) => (
