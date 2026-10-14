@@ -4,7 +4,11 @@ Continua `docs/HANDOFF-09-OUT.md`, que tem o "como trabalhar com o Gabriel" e
 como ler os pedidos da MGM no AutoFluxos. Regras de banco:
 `docs/BANCO-COMPARTILHADO.md`. Última migration: `0077`.
 
-## Features novas para fazer (em ordem de prioridade)
+## Features novas (estado em 14/out)
+
+Feitos em 14/out: **1** (`cd19482`, recibo avulso, não lança no caixa), **2**
+(`220c709`, botão Renovar; as 20 cobranças antigas continuam esperando o
+Daniel) e **4** (`9eb0e4b`). Faltam o 3 (depende do Daniel) e o 5.
 
 ### 1. "Novo recibo" (pedido do Daniel, 13/10 17:32)
 
