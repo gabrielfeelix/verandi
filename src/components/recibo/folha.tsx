@@ -244,13 +244,13 @@ function Via({
           {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
         </p>
         <div className="ml-auto min-w-[260px]">
-          <div className="flex h-[46px] items-end justify-center print:h-[30px]">
+          <div className="flex h-[60px] items-end justify-center print:h-[44px]">
             {assinatura ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={assinatura}
                 alt={`Assinatura de ${assina.nome}`}
-                className="max-h-[46px] max-w-[240px] object-contain print:max-h-[30px]"
+                className="max-h-[60px] max-w-[240px] object-contain print:max-h-[44px]"
               />
             ) : null}
           </div>
