@@ -88,7 +88,10 @@ function Via({
     ? marca.trim() : null
   const local = localDeEmissao(corpo.emitenteEndereco)
   const documentoEmitente = documentoComRotulo(corpo.emitenteDocumento)
+  // embaixo da linha vai quem assina pelo estúdio, ou o nome que o aluno
+  // conhece; a razão social e o CNPJ já estão no cabeçalho (MGM, 14/out/2026)
   const assina = quemAssina(corpo)
+  const nomeNaLinha = corpo.assinanteNome?.trim() || fantasia || assina.nome
 
   const pp = planoEPeriodo(corpo.referente)
   const comp = corpo.composicao && corpo.composicao.descontoCent > 0 ? corpo.composicao : null
@@ -251,18 +254,15 @@ function Via({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={assinatura}
-                alt={`Assinatura de ${assina.nome}`}
+                alt={`Assinatura de ${nomeNaLinha}`}
                 className="max-h-[60px] max-w-[240px] object-contain print:max-h-[44px]"
               />
             ) : null}
           </div>
           <div className="border-t border-tinta-media pt-1.5 text-center">
-            <p className="text-[13px] font-medium">{assina.nome}</p>
+            <p className="text-[13px] font-medium">{nomeNaLinha}</p>
             {assina.cargo ? (
               <p className="text-[11.5px] text-tinta-media">{assina.cargo}</p>
-            ) : null}
-            {documentoEmitente ? (
-              <p className="text-[11.5px] text-tinta-media">{documentoEmitente}</p>
             ) : null}
           </div>
         </div>
