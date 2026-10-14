@@ -1,5 +1,5 @@
 import type { Db } from '../supabase'
-import { FILTRO_NAO_REPOEM } from '@/core/agenda/ocupacao'
+import { FILTRO_NAO_REPOEM, statusComCredito } from '@/core/agenda/ocupacao'
 
 /**
  * A aula de reposição mais cedo paga a falta mais antiga.
@@ -10,37 +10,60 @@ import { FILTRO_NAO_REPOEM } from '@/core/agenda/ocupacao'
  * as datas não batiam com a planilha do estúdio (Maria do Socorro e Luz
  * Marina, MGM, 09/out/2026). O Daniel confirmou a regra: na ordem das aulas.
  *
- * O conjunto de faltas usadas não muda: só a ordem de quem paga qual. Ficam de
- * fora as reposições vindas da importação, cujo `REP dd/mm` é o que o estúdio
- * escreveu na planilha, e as que não repõem (`NAO_REPOEM`: falta, cancelada).
+ * A fila de faltas é **toda falta que ainda gera crédito**, e não só as já
+ * ligadas: quando a recepção marca como justificada uma falta mais antiga
+ * depois de a reposição estar ligada, é essa a que a reposição paga, e a mais
+ * nova volta para a lista (Erika, MGM, 13/out/2026: 06/08 marcada depois da
+ * reposição de 08/10, que seguia pagando 31/08).
  *
- * Roda depois de toda escrita que mexe na ligação. Falhar aqui não desfaz a
- * marcação: a ordem fica como estava, e a próxima escrita tenta de novo.
+ * Ficam de fora as reposições vindas da importação, cujo `REP dd/mm` é o que
+ * o estúdio escreveu na planilha (e as faltas que elas pagam), e as que não
+ * repõem (`NAO_REPOEM`: falta, cancelada).
+ *
+ * Roda depois de toda escrita que mexe na ligação ou no status. Falhar aqui
+ * não desfaz a marcação: a ordem fica como estava, e a próxima escrita tenta
+ * de novo.
  */
 export async function reorganizarReposicoes(
   db: Db, contaId: string, pessoaId: string,
 ): Promise<void> {
   try {
-    const { data, error } = await db
-      .from('participacao')
-      .select('id, reposicao_de_id, sessao:sessao_id!inner(inicio), falta:reposicao_de_id!inner(id, sessao:sessao_id!inner(inicio))')
-      .eq('conta_id', contaId)
-      .eq('pessoa_id', pessoaId)
-      .not('reposicao_de_id', 'is', null)
-      .not('status', 'in', FILTRO_NAO_REPOEM)
-      .neq('registrado_por_origem', 'importacao')
-    if (error || !data) return
-    const ligadas = data.flatMap((r) => (r.falta ? [{ ...r, falta: r.falta }] : []))
-    if (ligadas.length < 2) return
+    const { data: conta } = await db.from('conta')
+      .select('credito_falta').eq('id', contaId).single()
 
-    const reposicoes = [...ligadas].sort((a, b) => a.sessao.inicio.localeCompare(b.sessao.inicio))
-    const faltas = ligadas
-      .map((r) => ({ id: r.reposicao_de_id!, inicio: r.falta.sessao.inicio }))
-      .sort((a, b) => a.inicio.localeCompare(b.inicio))
+    const [{ data: pagam, error: e1 }, { data: faltas, error: e2 }] = await Promise.all([
+      db.from('participacao')
+        .select('id, reposicao_de_id, registrado_por_origem, sessao:sessao_id!inner(inicio)')
+        .eq('conta_id', contaId).eq('pessoa_id', pessoaId)
+        .not('reposicao_de_id', 'is', null)
+        .not('status', 'in', FILTRO_NAO_REPOEM),
+      db.from('participacao')
+        .select('id, sessao:sessao_id!inner(inicio)')
+        .eq('conta_id', contaId).eq('pessoa_id', pessoaId)
+        .in('status', statusComCredito(true, conta?.credito_falta ?? true))
+        .is('credito_encerrado_em', null)
+        // a aula que é reposição de outra não é falta a pagar
+        .is('reposicao_de_id', null),
+    ])
+    if (e1 || e2 || !pagam || !faltas) return
+
+    const daImportacao = pagam.filter((r) => r.registrado_por_origem === 'importacao')
+    const reposicoes = pagam
+      .filter((r) => r.registrado_por_origem !== 'importacao')
+      .sort((a, b) => a.sessao.inicio.localeCompare(b.sessao.inicio))
+    if (!reposicoes.length) return
+
+    const presasNaImportacao = new Set(daImportacao.map((r) => r.reposicao_de_id))
+    const fila = faltas
+      .filter((f) => !presasNaImportacao.has(f.id))
+      .sort((a, b) => a.sessao.inicio.localeCompare(b.sessao.inicio))
+    // menos faltas que reposições é dado que não fecha (crédito encerrado com
+    // reposição ligada): mexer aí deixaria duas aulas pagando a mesma falta
+    if (fila.length < reposicoes.length) return
 
     const trocas = reposicoes
-      .map((r, i) => ({ id: r.id, de: r.reposicao_de_id, para: faltas[i].id }))
-      .filter((t) => t.de !== t.para)
+      .map((r, i) => ({ id: r.id, de: r.reposicao_de_id, para: fila[i]?.id }))
+      .filter((t): t is { id: string; de: string | null; para: string } => !!t.para && t.de !== t.para)
     if (!trocas.length) return
 
     // solta antes de religar: a mesma falta não pode estar em duas reposições

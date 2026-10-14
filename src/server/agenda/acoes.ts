@@ -89,6 +89,10 @@ export async function mudarStatus(
   if (error) throw error
   if (!data) return
 
+  // falta virou justificada, ou a reposição virou falta: a fila de quem paga
+  // quem mudou, e a regra da mais cedo pagando a mais antiga refaz a ligação
+  await reorganizarReposicoes(db, conta.contaId, data.pessoa_id)
+
   /*
    * A licença da aula abre o acompanhamento, e a presença fecha. Falta não
    * fecha: quem está afastada e não veio continua afastada, e a falta é só o
