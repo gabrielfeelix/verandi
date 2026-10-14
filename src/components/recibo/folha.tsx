@@ -17,11 +17,10 @@ import { exibirTelefone } from '@/core/telefone'
  *
  * **O desenho é o do talão de papel, e não é enfeite.** Um recibo brasileiro é
  * reconhecido por cinco coisas, e todas as cinco estavam faltando ou escondidas
- * aqui: a palavra RECIBO em destaque, o valor em algarismos numa caixa que se
- * acha de longe, o mesmo valor por extenso, o local e a data de emissão, e a
- * linha de assinatura com o nome de quem recebeu embaixo. O corpo em parágrafo
- * continua, porque é ele que diz de quem, quanto e referente a quê numa frase
- * só; o que mudou é que ele deixou de ser a única coisa na folha.
+ * aqui: a palavra RECIBO em destaque, o valor em algarismos na sua casa, o
+ * mesmo valor por extenso, o local e a data de emissão, e a linha de
+ * assinatura com o nome de quem recebeu embaixo. Os campos seguem o talão que
+ * o estúdio já usava, e a frase de quitação embaixo é o que faz dele um recibo.
  */
 export function FolhaDoRecibo({
   serie, numero, versao, status, corpo, motivo, assinatura, logo,
@@ -155,8 +154,7 @@ function Via({
         *
         * É o formato que o estúdio usava (MGM, 14/out/2026): quem pagou, qual
         * plano, qual período, quanto e como, cada um na sua casa, achados de
-        * relance. O valor é a única casa com fundo, porque é a primeira coisa
-        * que se procura num recibo.
+        * relance.
         */}
       <div className="relative mt-4 flex flex-col gap-px overflow-hidden border border-linha bg-linha print:mt-3.5">
         <Fila>
@@ -188,8 +186,8 @@ function Via({
         </Fila>
 
         <Fila>
-          <Casa rotulo="Valor" destaque>
-            <span className="font-mono text-[15px] font-semibold">{emReais(corpo.valorCent)}</span>
+          <Casa rotulo="Valor">
+            <span className="font-medium">{emReais(corpo.valorCent)}</span>
           </Casa>
           <Casa rotulo="Pagamento" cresce>{corpo.forma}</Casa>
           <Casa rotulo="Pago em">{dataCurtaBr(corpo.recebidoEm)}</Casa>
@@ -288,18 +286,17 @@ function Fila({ children }: { children: React.ReactNode }) {
 }
 
 function Casa({
-  rotulo, cresce = false, destaque = false, children,
+  rotulo, cresce = false, children,
 }: {
   rotulo: string
   cresce?: boolean
-  destaque?: boolean
   children: React.ReactNode
 }) {
   return (
     <div
       className={`flex items-baseline gap-1.5 px-2.5 py-[7px] ${
         cresce ? 'min-w-0 sm:flex-1' : 'sm:shrink-0 sm:whitespace-nowrap'
-      } ${destaque ? 'bg-superficie-mais-suave' : 'bg-superficie'}`}
+      } bg-superficie`}
     >
       <span className="shrink-0 text-[11.5px] text-tinta-media">{rotulo}</span>
       <span className="min-w-0 text-[13.5px] leading-snug tabular-nums print:text-[13px]">{children}</span>
