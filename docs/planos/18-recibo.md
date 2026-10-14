@@ -105,11 +105,12 @@ mesmo problema do cancelamento, sem nem a desculpa de ter havido um erro.
 nova, e o recibo imprime o que estiver lá. Quem não numera aluno deixa em
 branco, e o recibo sai sem a linha.
 
-**Recibo não é nota fiscal, e a tela diz isso.** O recibo é do estúdio, sai na
-hora, numeração nossa. A nota é da prefeitura, cada cidade tem um padrão, e a
-Verandi vai pedir a nota a um emissor quando houver decisão comercial sobre
-qual. Uma linha na tela evita a conversa "então já posso parar de emitir nota?",
-que custa muito mais caro que a linha.
+**Recibo não é nota fiscal.** O recibo é do estúdio, sai na hora, numeração
+nossa. A nota é da prefeitura, cada cidade tem um padrão, e a Verandi vai pedir a
+nota a um emissor quando houver decisão comercial sobre qual. A folha e o e-mail
+diziam isso numa linha, e a linha saiu em 14/out/2026: a lei não pede (o recibo
+segue o Código Civil, art. 320), quem lê o papel é o aluno e não o estúdio, e ela
+ocupava a meia folha que cada via tem na impressão.
 
 **Quem emitiria a nota é o cliente, com o CNPJ dele, para o aluno dele.** O
 estúdio é o prestador, o aluno é o tomador, e a 4YU não aparece no documento. Por

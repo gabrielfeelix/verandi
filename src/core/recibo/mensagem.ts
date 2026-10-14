@@ -50,8 +50,6 @@ export function textoDoRecibo(
     `${local ? `${local}, ` : ''}${dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.`,
     '',
     assina.nome + (assina.cargo ? ` · ${assina.cargo}` : ''),
-    '',
-    'Este documento é um recibo, e não uma nota fiscal.',
   ].join('\n')
 }
 
@@ -121,10 +119,9 @@ export function htmlDoRecibo(
     ${doc ? `<div style="color:${FRACA};font-size:11px">${doc}</div>` : ''}
   </div>
 
-  <p style="margin:26px 0 0;color:${FRACA};font-size:11px;line-height:1.5">
-    Este documento é um recibo, e não uma nota fiscal.
-    ${cancelado ? '' : 'Guarde esta mensagem: ela é o seu comprovante.'}
-  </p>
+  ${cancelado ? '' : `<p style="margin:26px 0 0;color:${FRACA};font-size:11px;line-height:1.5">
+    Guarde esta mensagem: ela é o seu comprovante.
+  </p>`}
 </div>`
 }
 

@@ -78,9 +78,6 @@ test('emitir nasce da linha do pagamento, e a folha sai com o valor por extenso'
   await expect(page.getByText(/setecentos e trinta e cinco reais/).first()).toBeVisible()
   await expect(page.getByText(/matrícula nº 042/).first()).toBeVisible()
   await expect(page.getByText('corte aqui')).toBeVisible()
-  await expect(
-    page.getByText('Este documento é um recibo, e não uma nota fiscal.').first(),
-  ).toBeVisible()
 })
 
 test('sem os dados de quem emite, a emissão para antes de gastar número', async ({ page }) => {

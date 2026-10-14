@@ -210,18 +210,21 @@ function Via({
         </div>
       </div>
 
-      <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-6 print:flex-nowrap print:pt-3">
-        <p className="max-w-[440px] text-[12px] leading-[1.6] text-tinta-media print:max-w-none print:flex-1 print:leading-[1.45]">
-          {emitiu ? <>Emitido por {emitiu}. </> : null}
-          Este documento é um recibo, e não uma nota fiscal.
-          {motivo ? <> {motivoDoRecibo(status, motivo)}.</> : null}
-        </p>
-        {status !== 'valido' ? (
-          <p className="shrink-0 rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12px] font-medium text-alerta">
-            {status === 'cancelado' ? 'Cancelado' : 'Substituído'}
+      {/* sem "não é nota fiscal": a lei não pede (CC art. 320), e no papel do
+          aluno a frase só ocupava a meia folha (14/out/2026) */}
+      {emitiu || motivo || status !== 'valido' ? (
+        <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-6 print:flex-nowrap print:pt-3">
+          <p className="max-w-[440px] text-[12px] leading-[1.6] text-tinta-media print:max-w-none print:flex-1 print:leading-[1.45]">
+            {emitiu ? <>Emitido por {emitiu}.</> : null}
+            {motivo ? <> {motivoDoRecibo(status, motivo)}.</> : null}
           </p>
-        ) : null}
-      </footer>
+          {status !== 'valido' ? (
+            <p className="shrink-0 rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12px] font-medium text-alerta">
+              {status === 'cancelado' ? 'Cancelado' : 'Substituído'}
+            </p>
+          ) : null}
+        </footer>
+      ) : null}
     </article>
   )
 }
