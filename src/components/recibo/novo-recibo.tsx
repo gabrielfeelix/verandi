@@ -177,7 +177,7 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
               aoTrocar={escolherPlano}
               opcoes={planos.map((p) => ({
                 valor: p.id,
-                rotulo: p.nome,
+                rotulo: /^plano\b/i.test(p.nome) ? p.nome : `Plano ${p.nome}`,
                 detalhe: p.parcelas > 1
                   ? `${emReais(p.precoCent)} · ${p.parcelas}x de ${emReais(Math.round(p.precoCent / p.parcelas))}`
                   : emReais(p.precoCent),
@@ -212,7 +212,7 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
                 <Campo rotulo="Válido de" htmlFor="nr-de" obrigatorio>
                   <CampoData id="nr-de" nome="validadeDe" valorInicial={de} aoTrocar={(v) => v && setDe(v)} limpavel={false} />
                 </Campo>
-                <Campo rotulo="Até" htmlFor="nr-ate" dica="editável">
+                <Campo rotulo="Até" htmlFor="nr-ate">
                   {/* a chave refaz o campo quando o plano ou o início mudam: a
                       sugestão acompanha, e o que se digitar depois vale */}
                   <CampoData key={`${planoId}-${de}`} id="nr-ate" nome="validadeAte" valorInicial={ate ?? ''} />
