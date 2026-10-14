@@ -20,6 +20,8 @@ import { Chip, Nota, Paginacao, cartao } from '@/components/ui/pecas'
 import { AreaQueTroca } from '@/components/ui/troca'
 import Carregando from './loading'
 import { TituloDaTela } from '@/components/ui/titulo-da-tela'
+import { NovoRecibo, type PlanoDoRecibo } from '@/components/recibo/novo-recibo'
+import { listarPlanos } from '@/server/planos/consultas'
 
 /**
  * O arquivo de recibos: o item 8 do documento, na parte que diz "deverá ser
@@ -57,6 +59,12 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
    * ou o nome, e quem procura pela data não tem nenhum dos dois.
    */
   const periodo = periodoDaBusca(de, ate)
+  const planosDoRecibo: PlanoDoRecibo[] = (await listarPlanos(db, conta.contaId))
+    .filter((pl) => pl.ativo)
+    .map((pl) => ({
+      id: pl.id, nome: pl.nome, precoCent: pl.precoAvulsoCent, parcelas: pl.parcelas,
+      recorrencia: pl.recorrencia, validadeMeses: pl.validadeMeses,
+    }))
 
   // conta que nunca emitiu: cartões zerados, filtros e busca em cima de uma
   // lista vazia só davam trabalho de ler. Fica o aviso de onde o recibo nasce
@@ -93,21 +101,24 @@ export default async function Recibos({ searchParams }: { searchParams: Busca })
     <AreaQueTroca esqueleto={<Carregando />}>
     <ProvedorDeAviso>
       <div className="flex flex-col gap-4">
-        <header>
-          <TituloDaTela tela="financeiro">
-            Financeiro
-          </TituloDaTela>
-          <p className="pt-[3px] text-[14.5px] text-tinta-media">
-            {/* o singular carrega o particípio junto: "1 recibo emitidos" era
-                o que saía quando só o substantivo variava */}
-            {total === 0
-              ? recorte
-                ? `Nenhum recibo ${recorte}.`
-                : 'Nenhum recibo emitido ainda.'
-              : recorte
-                ? `${total} ${total === 1 ? 'recibo' : 'recibos'} ${recorte}.`
-                : `${total} ${total === 1 ? 'recibo emitido' : 'recibos emitidos'}.`}
-          </p>
+        <header className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <TituloDaTela tela="financeiro">
+              Financeiro
+            </TituloDaTela>
+            <p className="pt-[3px] text-[14.5px] text-tinta-media">
+              {/* o singular carrega o particípio junto: "1 recibo emitidos" era
+                  o que saía quando só o substantivo variava */}
+              {total === 0
+                ? recorte
+                  ? `Nenhum recibo ${recorte}.`
+                  : 'Nenhum recibo emitido ainda.'
+                : recorte
+                  ? `${total} ${total === 1 ? 'recibo' : 'recibos'} ${recorte}.`
+                  : `${total} ${total === 1 ? 'recibo emitido' : 'recibos emitidos'}.`}
+            </p>
+          </div>
+          <NovoRecibo planos={planosDoRecibo} hoje={hoje} />
         </header>
         <SecoesDoFinanceiro ativa="recibos" />
 

@@ -193,6 +193,136 @@ export async function emitirRecibo(pagamentoId: string): Promise<Resultado<strin
   }
 }
 
+export type ReciboAvulso = {
+  pessoaId: string
+  planoId: string
+  /** o preço do plano, editável na tela */
+  valorDoPlanoCent: number
+  /** o que entrou de fato; abaixo do plano, a diferença sai como desconto */
+  valorRecebidoCent: number
+  descontoMotivo: string | null
+  parcelas: number
+  validadeDe: string
+  validadeAte: string | null
+  forma: Forma
+  recebidoEm: string
+}
+
+/**
+ * O recibo que começa pelo aluno e pelo plano, e não por um pagamento.
+ *
+ * Pedido do Daniel (MGM, 13/10/2026): buscar o aluno, que já traz a
+ * matrícula; escolher o plano, que já traz valor e parcelas; mudar o valor
+ * quando há desconto; e dizer até quando o plano vale. Nada disso passa pelo
+ * caixa: o dinheiro entra no Financeiro pelo contrato (Renovar, receber a
+ * cobrança), e este papel só comprova. Lançar aqui também contaria o mesmo
+ * dinheiro duas vezes.
+ */
+export async function emitirReciboAvulso(r: ReciboAvulso): Promise<Resultado<string>> {
+  try {
+    const conta = await exigirCaixa()
+    const db = await clienteServidor()
+
+    if (!Number.isInteger(r.valorRecebidoCent) || r.valorRecebidoCent <= 0) {
+      return { ok: false, erro: 'Diga o valor recebido.' }
+    }
+    if (!Number.isInteger(r.valorDoPlanoCent) || r.valorDoPlanoCent < r.valorRecebidoCent) {
+      return { ok: false, erro: 'O valor recebido não pode passar do valor do plano. Se o plano mudou de preço, corrija o valor do plano.' }
+    }
+    const descontoCent = r.valorDoPlanoCent - r.valorRecebidoCent
+    if (descontoCent > 0 && !r.descontoMotivo?.trim()) {
+      return { ok: false, erro: 'Diga o motivo do desconto: ele sai no recibo.' }
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.validadeDe) || (r.validadeAte && r.validadeAte < r.validadeDe)) {
+      return { ok: false, erro: 'Confira a validade: o fim não pode vir antes do início.' }
+    }
+
+    const { data: c } = await db.from('conta')
+      .select(`nome, razao_social, documento, endereco_emitente,
+               telefone_emitente, serie_recibo, assinatura_nome, assinatura_cargo`)
+      .eq('id', conta.contaId).single()
+    const emitente = {
+      razaoSocial: c?.razao_social ?? null,
+      documento: c?.documento ?? null,
+      endereco: c?.endereco_emitente ?? null,
+      telefone: c?.telefone_emitente ?? null,
+      nomeDaConta: c?.nome ?? '',
+    }
+    if (!emitenteCompleto(emitente)) {
+      return { ok: false, erro: 'Preencha quem emite o recibo em Configuração, Recibo: sem razão social e documento, o papel não comprova nada.' }
+    }
+
+    const [{ data: pessoa }, { data: plano }] = await Promise.all([
+      db.from('pessoa')
+        .select('id, nome, cpf, identificador_externo, endereco, endereco_numero, bairro, cidade, uf')
+        .eq('id', r.pessoaId).eq('conta_id', conta.contaId).maybeSingle(),
+      db.from('plano').select('nome').eq('id', r.planoId).eq('conta_id', conta.contaId).maybeSingle(),
+    ])
+    if (!pessoa) return { ok: false, erro: 'Esse aluno não existe mais.' }
+    if (!plano) return { ok: false, erro: 'Esse plano não existe mais.' }
+
+    const { data: { user } } = await db.auth.getUser()
+    const { data: quemEmite } = await db.from('profissional')
+      .select('nome').eq('conta_id', conta.contaId)
+      .eq('usuario_id', user?.id ?? '').maybeSingle()
+
+    const br = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`
+    const brl = (cent: number) => (cent / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    const parcelas = Math.max(1, Math.trunc(r.parcelas || 1))
+    const endereco = [pessoa.endereco, pessoa.endereco_numero, pessoa.bairro, pessoa.cidade, pessoa.uf]
+      .filter(Boolean).join(', ')
+
+    const corpo = montarCorpo({
+      emitente,
+      pagador: {
+        nome: pessoa.nome,
+        documento: pessoa.cpf ?? null,
+        matricula: pessoa.identificador_externo ?? null,
+        endereco: endereco || null,
+      },
+      referente: `${plano.nome}, válido de ${br(r.validadeDe)}${r.validadeAte ? ` a ${br(r.validadeAte)}` : ''}`,
+      valorCent: r.valorRecebidoCent,
+      composicao: descontoCent > 0
+        ? { valorDoPlanoCent: r.valorDoPlanoCent, descontoCent, descontoMotivo: r.descontoMotivo?.trim() || null }
+        : null,
+      forma: `${ROTULO_FORMA[r.forma] ?? r.forma}${parcelas > 1
+        ? ` em ${parcelas}x de ${brl(Math.round(r.valorRecebidoCent / parcelas))}` : ''}`,
+      recebidoEm: r.recebidoEm,
+      emitidoPor: quemEmite?.nome?.trim() || '',
+      emitidoEm: new Date().toISOString(),
+      assinanteNome: c?.assinatura_nome ?? null,
+      assinanteCargo: c?.assinatura_cargo ?? null,
+    })
+
+    const serie = c?.serie_recibo ?? 'A'
+    const { data: numero, error: erroNumero } = await db
+      .rpc('proximo_numero_recibo', { p_conta: conta.contaId, p_serie: serie })
+    if (erroNumero) throw erroNumero
+
+    const { data: recibo, error } = await db.from('recibo').insert({
+      conta_id: conta.contaId,
+      serie,
+      numero: numero as number,
+      pagamento_id: null,
+      pessoa_id: pessoa.id,
+      contrato_id: null,
+      valor_cent: r.valorRecebidoCent,
+      corpo: corpo as unknown as Json,
+      emitido_por_usuario_id: user?.id ?? null,
+    }).select('id').single()
+    if (error) throw error
+
+    await registrar(db, {
+      contaId: conta.contaId, entidade: 'recibo', entidadeId: recibo.id, acao: 'criou',
+      detalhe: { numero: numeroFormatado(serie, numero as number), valorCent: r.valorRecebidoCent, avulso: true },
+    })
+    revalidatePath('/recibos')
+    return { ok: true, valor: recibo.id }
+  } catch (e) {
+    return falha(e, 'Não foi possível emitir o recibo.')
+  }
+}
+
 /**
  * Cancelar, com motivo.
  *
