@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { Icone, type NomeIcone } from './icones'
 
 export type ItemMenu = {
@@ -11,6 +11,10 @@ export type ItemMenu = {
   perigo?: boolean
 }
 
+/** distância do gatilho e da borda da tela, em px */
+const VAO = 4
+const MARGEM = 8
+
 /**
  * O menu de três pontinhos.
  *
@@ -20,12 +24,48 @@ export type ItemMenu = {
  *
  * Fecha ao clicar fora, ao apertar `Esc` e ao escolher, e devolve o foco ao
  * gatilho, porque quem navega por teclado não tem para onde voltar sozinho.
+ *
+ * Abre como `popover`, na camada de topo do navegador: preso ao `overflow` da
+ * tabela, ele esticava a rolagem e abria uma barra dentro da lista (financeiro,
+ * 14/out/2026). Na camada de topo escapa de qualquer caixa, inclusive de
+ * `<dialog>`, o que um portal no `body` não faria. A posição sai do gatilho, e
+ * vira para cima quando não cabe embaixo.
  */
 export function Menu({ titulo, itens }: { titulo: string; itens: ItemMenu[] }) {
   const [aberto, setAberto] = useState(false)
   const caixa = useRef<HTMLDivElement>(null)
   const gatilho = useRef<HTMLButtonElement>(null)
+  const lista = useRef<HTMLDivElement>(null)
   const id = useId()
+
+  useLayoutEffect(() => {
+    const m = lista.current
+    const g = gatilho.current
+    if (!aberto || !m || !g) return
+    m.showPopover()
+
+    const posiciona = () => {
+      const r = g.getBoundingClientRect()
+      const { offsetWidth: w, offsetHeight: h } = m
+      const embaixo = r.bottom + VAO + h <= innerHeight - MARGEM || r.top - VAO - h < MARGEM
+      m.style.top = `${embaixo ? r.bottom + VAO : r.top - VAO - h}px`
+      m.style.left = `${Math.max(MARGEM, Math.min(r.right - w, innerWidth - MARGEM - w))}px`
+      m.style.transformOrigin = embaixo ? 'top right' : 'bottom right'
+    }
+    posiciona()
+
+    // a lista é fixa na tela: se o que está atrás rola, ela se desgruda do
+    // gatilho, então fecha (rolar dentro dela mesma não conta)
+    const rolou = (e: Event) => {
+      if (!m.contains(e.target as Node)) setAberto(false)
+    }
+    addEventListener('resize', posiciona)
+    addEventListener('scroll', rolou, true)
+    return () => {
+      removeEventListener('resize', posiciona)
+      removeEventListener('scroll', rolou, true)
+    }
+  }, [aberto])
 
   useEffect(() => {
     if (!aberto) return
@@ -65,10 +105,12 @@ export function Menu({ titulo, itens }: { titulo: string; itens: ItemMenu[] }) {
 
       {aberto ? (
         <div
+          ref={lista}
           id={id}
+          popover="manual"
           role="menu"
           aria-label={titulo}
-          className="absolute top-[38px] right-0 z-[25] flex w-[216px] flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado origin-top-right"
+          className="fixed inset-auto m-0 flex w-[216px] flex-col gap-0.5 rounded-grande border border-linha-suave bg-superficie p-1.5 shadow-elevado"
           style={{ animation: 'vd-pop .18s ease both' }}
         >
           {itens.map((i) => (
