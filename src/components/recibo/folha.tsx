@@ -1,7 +1,7 @@
 import { emReais } from '@/core/planos/plano'
 import {
   dataPorExtenso, documentoComRotulo, documentoFormatado, localDeEmissao, motivoDoRecibo, numeroFormatado, planoEPeriodo,
-  quemAssina, quemEmitiu, type CorpoDoRecibo,
+  quemAssina, type CorpoDoRecibo,
 } from '@/core/recibo/recibo'
 import { exibirTelefone } from '@/core/telefone'
 
@@ -23,7 +23,7 @@ import { exibirTelefone } from '@/core/telefone'
  * o estúdio já usava, e a frase de quitação embaixo é o que faz dele um recibo.
  */
 export function FolhaDoRecibo({
-  serie, numero, versao, status, corpo, motivo, assinatura, logo,
+  serie, numero, versao, status, corpo, motivo, assinatura, logo, marca,
 }: {
   serie: string
   numero: number
@@ -35,12 +35,18 @@ export function FolhaDoRecibo({
   assinatura?: string | null
   /** o logo do estúdio, no canto do cabeçalho como no talão de papel */
   logo?: string | null
+  /**
+   * O nome fantasia, o da conta: é o que o aluno conhece ("MGM Pilates"). Vem
+   * de hoje, e não do corpo, pelo mesmo motivo do logo: é a marca do estúdio,
+   * e a razão social, que é o que o papel afirma, continua congelada.
+   */
+  marca?: string | null
 }) {
   return (
     <div data-folha className="flex flex-col gap-5">
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
-        corpo={corpo} motivo={motivo} assinatura={assinatura} logo={logo}
+        corpo={corpo} motivo={motivo} assinatura={assinatura} logo={logo} marca={marca}
         via="1ª via"
       />
       <div
@@ -53,7 +59,7 @@ export function FolhaDoRecibo({
       </div>
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
-        corpo={corpo} motivo={motivo} assinatura={assinatura} logo={logo}
+        corpo={corpo} motivo={motivo} assinatura={assinatura} logo={logo} marca={marca}
         via="2ª via"
       />
     </div>
@@ -61,7 +67,7 @@ export function FolhaDoRecibo({
 }
 
 function Via({
-  serie, numero, versao, status, corpo, motivo, via, assinatura, logo,
+  serie, numero, versao, status, corpo, motivo, via, assinatura, logo, marca,
 }: {
   serie: string
   numero: number
@@ -72,9 +78,13 @@ function Via({
   via: string
   assinatura?: string | null
   logo?: string | null
+  marca?: string | null
 }) {
+  // o nome fantasia só entra quando diz outra coisa que a razão social
+  const fantasia = marca?.trim()
+    && marca.trim().toLowerCase() !== corpo.emitenteNome.trim().toLowerCase()
+    ? marca.trim() : null
   const local = localDeEmissao(corpo.emitenteEndereco)
-  const emitiu = quemEmitiu(corpo.emitidoPor)
   const documentoEmitente = documentoComRotulo(corpo.emitenteDocumento)
   const assina = quemAssina(corpo)
 
@@ -91,7 +101,7 @@ function Via({
   return (
     <article
       data-via
-      className="relative overflow-hidden border border-linha bg-superficie px-6 py-5 print:py-4"
+      className="relative overflow-hidden border border-linha bg-superficie px-6 py-5 print:py-3"
     >
       {/*
         * O carimbo de cancelado atravessa a folha. Um recibo cancelado
@@ -122,13 +132,16 @@ function Via({
       <header className="relative flex flex-wrap items-center gap-x-4 gap-y-3">
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={logo} alt="" className="size-14 shrink-0 object-contain" />
+          <img src={logo} alt="" className="size-[88px] shrink-0 object-contain" />
         ) : null}
         <div className="min-w-[180px] flex-1">
-          <h2 className="font-titulo text-[15.5px] leading-[1.25] font-semibold text-balance">
-            {corpo.emitenteNome}
+          <h2 className="font-titulo text-[17px] leading-[1.25] font-semibold text-balance">
+            {fantasia ?? corpo.emitenteNome}
           </h2>
-          <p className="flex flex-wrap gap-x-4 pt-0.5 text-[11.5px] leading-[1.5] text-tinta-media">
+          {fantasia ? (
+            <p className="pt-0.5 text-[11.5px] leading-[1.5] text-tinta-media">{corpo.emitenteNome}</p>
+          ) : null}
+          <p className={`flex flex-wrap gap-x-4 text-[11.5px] leading-[1.5] text-tinta-media ${fantasia ? '' : 'pt-0.5'}`}>
             {documentoEmitente ? <span>{documentoEmitente}</span> : null}
             {corpo.emitenteTelefone ? <span>{exibirTelefone(corpo.emitenteTelefone)}</span> : null}
           </p>
@@ -202,44 +215,42 @@ function Via({
 
       {/* a quitação em uma frase: é ela que faz do papel um recibo (valor,
           de quem, e o "damos quitação"), e os campos acima dizem o resto */}
-      <p className="relative pt-3 text-[13px] leading-[1.55]">
+      <p className="relative pt-3 text-[13px] leading-[1.55] print:pt-2.5">
         Recebemos de <strong className="font-semibold">{corpo.pagadorNome}</strong> a
         importância de {emReais(corpo.valorCent)} ({corpo.valorPorExtenso}),
         referente ao descrito acima, e damos quitação.
       </p>
 
       {/*
-        * Local e data de emissão, por extenso, à esquerda da assinatura.
+        * Local e data de emissão, por extenso, em cima da assinatura.
         *
         * É um dos elementos que se espera de um recibo, e sem ele o papel não
         * diz onde a quitação aconteceu. A cidade sai do endereço do emitente
         * quando dá para ter certeza, e some quando não dá: data sozinha é uma
         * lacuna, cidade errada é uma afirmação falsa.
         *
-        * Na mesma linha da assinatura, como no talão. O respiro de cima a põe
-        * na altura do traço.
+        * A data numa linha e a assinatura embaixo dela, como no talão. Quem
+        * apertou o botão não sai no papel: a lei pede quem recebeu e a
+        * assinatura, e o resto é controle interno, que o sistema guarda.
         *
         * A assinatura leva o nome e o documento embaixo da linha: é quem
         * recebeu que assina, e a linha anônima não diz de quem é o traço. Com
         * imagem configurada ela aparece em cima da linha, que é onde a caneta
         * cairia; sem imagem, o espaço fica em branco para assinar à mão.
         */}
-      <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-2 pt-1">
-        <div className="pt-[26px] print:pt-[18px]">
-          <p className="text-[13px]">
-            {local ? `${local}, ` : ''}
-            {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
-          </p>
-          {emitiu ? <p className="pt-1 text-[11.5px] text-tinta-media">Emitido por {emitiu}.</p> : null}
-        </div>
+      <div className="relative flex flex-col pt-3 print:pt-2">
+        <p className="text-[13px]">
+          {local ? `${local}, ` : ''}
+          {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
+        </p>
         <div className="ml-auto min-w-[260px]">
-          <div className="flex h-[46px] items-end justify-center print:h-[36px]">
+          <div className="flex h-[46px] items-end justify-center print:h-[30px]">
             {assinatura ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={assinatura}
                 alt={`Assinatura de ${assina.nome}`}
-                className="max-h-[46px] max-w-[240px] object-contain print:max-h-[36px]"
+                className="max-h-[46px] max-w-[240px] object-contain print:max-h-[30px]"
               />
             ) : null}
           </div>
@@ -256,7 +267,7 @@ function Via({
       </div>
 
       {motivo || status !== 'valido' ? (
-        <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-3 print:flex-nowrap print:pt-2">
+        <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-3 print:flex-nowrap print:pt-1.5">
           <p className="max-w-[440px] text-[11.5px] leading-[1.5] text-tinta-media print:max-w-none print:flex-1">
             {motivo ? <>{motivoDoRecibo(status, motivo)}.</> : null}
           </p>

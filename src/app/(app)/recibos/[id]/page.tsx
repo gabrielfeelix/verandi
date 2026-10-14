@@ -92,6 +92,7 @@ export default async function Recibo({
         motivo={recibo.motivo}
         assinatura={assinatura}
         logo={logo}
+        marca={emitente.nomeDaConta}
       />
 
       {enviado ? (
