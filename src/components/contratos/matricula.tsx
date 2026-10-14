@@ -11,7 +11,7 @@ import { CampoNumero } from '@/components/ui/campo-numero'
 import { Escolha } from '@/components/ui/escolha'
 import { useAviso } from '@/components/ui/desfazer'
 import {
-  criarContrato, trancarContrato, retomarContrato, encerrarContrato,
+  criarContrato, renovarContrato, trancarContrato, retomarContrato, encerrarContrato,
 } from '@/server/contratos/acoes'
 import { anteciparCobrancas } from '@/server/financeiro/acoes'
 import { MAXIMO_MESES_ANTECIPADOS } from '@/core/financeiro/cobranca'
@@ -637,7 +637,7 @@ export function ContratosDaFicha({
 }) {
   const [modo, setModo] = useState<
     {
-      tipo: 'trancar' | 'retomar' | 'encerrar' | 'antecipar'
+      tipo: 'trancar' | 'retomar' | 'encerrar' | 'antecipar' | 'renovar'
       contrato: ContratoLinha
     } | null
   >(null)
@@ -662,6 +662,12 @@ export function ContratosDaFicha({
       }
     })
   }
+
+  // renova o que tem fim: o em vigor, ou o último encerrado de quem não tem
+  // nenhum em vigor (o aluno que voltou depois de o anual acabar)
+  const temEmVigor = contratos.some((c) => c.status !== 'encerrado')
+  const podeRenovar = (c: ContratoLinha) =>
+    !!c.fim && (c.status === 'ativo' || (c.status === 'encerrado' && !temEmVigor))
 
   if (contratos.length === 0) {
     return (
@@ -725,8 +731,21 @@ export function ContratosDaFicha({
             </p>
           ) : null}
 
+          {c.status === 'encerrado' && podeRenovar(c) ? (
+            <div className="flex flex-wrap gap-2">
+              <BotaoMiudo onClick={() => setModo({ tipo: 'renovar', contrato: c })}>
+                Renovar
+              </BotaoMiudo>
+            </div>
+          ) : null}
+
           {c.status !== 'encerrado' ? (
             <div className="flex flex-wrap gap-2">
+              {podeRenovar(c) ? (
+                <BotaoMiudo onClick={() => setModo({ tipo: 'renovar', contrato: c })}>
+                  Renovar
+                </BotaoMiudo>
+              ) : null}
               {c.status === 'ativo' ? (
                 <BotaoMiudo onClick={() => setModo({ tipo: 'trancar', contrato: c })}>
                   Trancar
@@ -763,7 +782,8 @@ export function ContratosDaFicha({
           aberto
           glifo={
             modo.tipo === 'encerrar' ? '⨯'
-              : modo.tipo === 'antecipar' ? 'R$' : undefined
+              : modo.tipo === 'antecipar' ? 'R$'
+              : modo.tipo === 'renovar' ? '↺' : undefined
           }
           icone={
             modo.tipo === 'trancar' ? 'cadeado'
@@ -771,23 +791,37 @@ export function ContratosDaFicha({
           }
           tom={
             modo.tipo === 'encerrar' ? 'alerta'
-              : modo.tipo === 'antecipar' ? 'positivo' : 'neutro'
+              : modo.tipo === 'antecipar' || modo.tipo === 'renovar' ? 'positivo' : 'neutro'
           }
           titulo={
             modo.tipo === 'trancar' ? 'Trancar o contrato'
               : modo.tipo === 'retomar' ? 'Retomar o contrato'
               : modo.tipo === 'antecipar' ? 'Receber adiantado'
+              : modo.tipo === 'renovar' ? 'Renovar o contrato'
               : 'Encerrar o contrato'
           }
           sub={modo.contrato.planoNome}
           primario={
             modo.tipo === 'trancar' ? 'Trancar'
               : modo.tipo === 'retomar' ? 'Retomar'
-              : modo.tipo === 'antecipar' ? 'Abrir os meses' : 'Encerrar'
+              : modo.tipo === 'antecipar' ? 'Abrir os meses'
+              : modo.tipo === 'renovar' ? 'Renovar' : 'Encerrar'
           }
           pendente={pendente}
           aoFechar={() => { setModo(null); setErro(null) }}
           aoEnviar={(f) => {
+            if (modo.tipo === 'renovar') {
+              return agir(
+                () => renovarContrato(modo.contrato.id, {
+                  inicio: String(f.get('inicio') ?? ''),
+                  formaPagamento: String(f.get('formaPagamento') ?? '') || null,
+                  descontoCent: emCentavos(String(f.get('desconto') ?? '')) ?? 0,
+                  descontoMotivo: String(f.get('descontoMotivo') ?? '') || null,
+                  recebidoDeUmaVez: f.get('recebimento') === 'uma-vez',
+                }),
+                'Contrato renovado',
+              )
+            }
             if (modo.tipo === 'antecipar') {
               const meses = Number(String(f.get('meses') ?? '').replace(/\D/g, ''))
               if (!meses) {
@@ -809,7 +843,34 @@ export function ContratosDaFicha({
             }
           }}
         >
-          {modo.tipo === 'antecipar' ? (
+          {modo.tipo === 'renovar' ? (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Campo rotulo="O novo começa em" htmlFor="rn-inicio" obrigatorio>
+                  <CampoData id="rn-inicio" nome="inicio" valorInicial={modo.contrato.fim ?? hoje} limpavel={false} />
+                </Campo>
+                <Campo rotulo="Como recebe" htmlFor="rn-receb">
+                  <Escolha id="rn-receb" nome="recebimento" valorInicial="mensal" opcoes={RECEBIMENTO} />
+                </Campo>
+                <Campo rotulo="Forma de pagamento" htmlFor="rn-pag">
+                  <Escolha id="rn-pag" nome="formaPagamento" valorInicial="" opcoes={PAGAMENTOS} />
+                </Campo>
+                <Campo rotulo="Desconto" htmlFor="rn-desc" dica="opcional, sai do preço do plano">
+                  <CampoDinheiro id="rn-desc" nome="desconto" />
+                </Campo>
+              </div>
+              <Campo rotulo="Motivo do desconto" htmlFor="rn-motivo" dica="sai no recibo">
+                <input
+                  id="rn-motivo" name="descontoMotivo" maxLength={120}
+                  placeholder="Exemplo: família parou" className={entrada}
+                />
+              </Campo>
+              <Nota tom="neutro">
+                Mesmo plano, pelo preço de hoje. Os horários passam para o contrato
+                novo, e este se encerra na véspera do início.
+              </Nota>
+            </>
+          ) : modo.tipo === 'antecipar' ? (
             <>
               <Campo
                 rotulo="Quantos meses abrir"

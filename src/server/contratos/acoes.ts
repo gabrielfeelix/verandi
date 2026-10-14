@@ -282,6 +282,134 @@ async function conferirVagas(
   return { recusa: null, adotar }
 }
 
+export type Renovacao = {
+  inicio: string
+  formaPagamento: string | null
+  descontoCent?: number
+  descontoMotivo?: string | null
+  recebidoDeUmaVez?: boolean
+}
+
+/**
+ * Renovar: o contrato seguinte, já preenchido.
+ *
+ * "Registrar renovação" na ficha só mudava a data de vencimento, e renovar de
+ * verdade era fazer um "Novo contrato" à mão, escolhendo de novo plano e
+ * horários. Quem não fazia isso deixava o aluno sem cobrança a partir do fim,
+ * ou recebia na cobrança errada do contrato velho (Arnaldo Bernal, MGM,
+ * 13/10/2026: R$ 525 lançados no mês do fim do anual antigo).
+ *
+ * Mesmo plano, pelo preço de hoje (com o desconto, se houver), os mesmos
+ * horários passados para o contrato novo, e o velho encerrado no dia anterior
+ * ao início do novo. As cobranças do velho que ainda estão abertas e sem
+ * pagamento a partir do mês da renovação são canceladas: são do período que
+ * agora é do contrato novo.
+ */
+export async function renovarContrato(
+  contratoId: string, r: Renovacao,
+): Promise<Resultado<string>> {
+  try {
+    const conta = await exigirOperacional()
+    const db = await clienteServidor()
+    const hoje = hojeEm(conta.fuso)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.inicio)) return { ok: false, erro: 'Diga quando o contrato novo começa.' }
+
+    const { data: velho } = await db.from('contrato')
+      .select(`id, pessoa_id, dia_vencimento, fim, status,
+               plano(id, nome, servico_id, recorrencia, validade_meses, sessoes_no_pacote,
+                     preco_vinculado_cent, preco_avulso_cent, ativo)`)
+      .eq('id', contratoId).eq('conta_id', conta.contaId).maybeSingle()
+    if (!velho?.plano) return { ok: false, erro: 'Este contrato não existe mais.' }
+    const plano = velho.plano
+    if (!plano.ativo) {
+      return { ok: false, erro: `O plano ${plano.nome} saiu de uso. Use "Novo contrato" e escolha outro plano.` }
+    }
+
+    const vinculo = await temVinculo(db, conta.contaId, velho.pessoa_id, plano.servico_id, hoje)
+    const preco = precoAplicado({
+      precoVinculadoCent: plano.preco_vinculado_cent,
+      precoAvulsoCent: plano.preco_avulso_cent,
+    }, vinculo)
+    const desconto = Math.max(0, Math.trunc(r.descontoCent ?? 0))
+    const motivoDesconto = r.descontoMotivo?.trim() || null
+    if (desconto > 0 && !motivoDesconto) {
+      return { ok: false, erro: 'Diga o motivo do desconto: ele sai no recibo, e seis meses depois ninguém lembra.' }
+    }
+    if (desconto >= preco.cent) {
+      return { ok: false, erro: 'O desconto não pode ser igual ou maior que o preço do plano.' }
+    }
+    const fim = fimDoContrato(r.inicio, {
+      recorrencia: plano.recorrencia as Recorrencia,
+      validadeMeses: plano.validade_meses,
+    })
+
+    const { data: { user } } = await db.auth.getUser()
+    const { data: novo, error } = await db.from('contrato').insert({
+      conta_id: conta.contaId,
+      pessoa_id: velho.pessoa_id,
+      plano_id: plano.id,
+      inicio: r.inicio,
+      fim,
+      dia_vencimento: velho.dia_vencimento,
+      preco_aplicado_cent: preco.cent - desconto,
+      desconto_cent: desconto,
+      desconto_motivo: desconto > 0 ? motivoDesconto : null,
+      parcelas: r.recebidoDeUmaVez ? 1 : null,
+      vinculo_usado: preco.vinculo,
+      forma_pagamento: r.formaPagamento,
+      sessoes_contratadas: plano.sessoes_no_pacote,
+      criado_por_usuario_id: user?.id ?? null,
+    }).select('id').single<{ id: string }>()
+    if (error) throw error
+
+    // os horários seguem com a pessoa: a vaga é a mesma, só muda de contrato
+    const { error: erroVagas } = await db.from('vaga')
+      .update({ contrato_id: novo.id })
+      .eq('contrato_id', velho.id)
+      .or(`fim.is.null,fim.gte.${r.inicio}`)
+    if (erroVagas) {
+      await db.from('contrato').delete().eq('id', novo.id)
+      throw erroVagas
+    }
+
+    const vespera = new Date(`${r.inicio}T12:00:00Z`)
+    vespera.setUTCDate(vespera.getUTCDate() - 1)
+    const fimDoVelho = vespera.toISOString().slice(0, 10)
+    await db.from('contrato').update({
+      status: 'encerrado',
+      ...(velho.fim === null || velho.fim > fimDoVelho ? { fim: fimDoVelho } : {}),
+    }).eq('id', velho.id)
+
+    const { data: abertas } = await db.from('cobranca')
+      .select('id, pagamento(id, estornado_em)')
+      .eq('contrato_id', velho.id).eq('status', 'aberta')
+      .gte('competencia', `${r.inicio.slice(0, 7)}-01`)
+    const semPagamento = (abertas ?? [])
+      .filter((c) => !(c.pagamento ?? []).some((p) => p.estornado_em === null))
+      .map((c) => c.id)
+    if (semPagamento.length) {
+      await db.from('cobranca').update({
+        status: 'cancelada',
+        motivo_cancelamento: 'Renovação: o período agora é do contrato novo.',
+      }).in('id', semPagamento)
+    }
+
+    await escreverVencimentoNaFicha(db, conta.contaId, velho.pessoa_id)
+    await materializarCobrancas(db, conta.contaId, hoje, novo.id)
+    await registrar(db, {
+      contaId: conta.contaId, entidade: 'contrato', entidadeId: novo.id,
+      acao: 'criou',
+      detalhe: { renovou: velho.id, plano: plano.nome, precoCent: preco.cent - desconto, descontoCent: desconto },
+    })
+
+    revalidatePath(`/pessoas/${velho.pessoa_id}`)
+    revalidatePath('/financeiro')
+    return { ok: true, valor: novo.id }
+  } catch (e) {
+    return { ok: false, erro: e instanceof Error ? e.message : 'Não foi possível renovar.' }
+  }
+}
+
 /** Trancar: as vagas fecham, e o fim vai andar quando a pessoa voltar. */
 export async function trancarContrato(
   contratoId: string, inicio: string, motivo: string | null,
