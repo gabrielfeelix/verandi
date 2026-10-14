@@ -43,7 +43,9 @@ export function FolhaDoRecibo({
   marca?: string | null
 }) {
   return (
-    <div data-folha className="flex flex-col gap-5">
+    // na tela, a folha é a página: fundo branco, sombra e a margem de 12mm da
+    // impressora, para o que se vê ser o que sai; no papel, o @media print zera
+    <div data-folha className="flex flex-col gap-5 sm:bg-superficie sm:p-[12mm] sm:shadow-elevado print:p-0 print:shadow-none">
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
         corpo={corpo} motivo={motivo} assinatura={assinatura} logo={logo} marca={marca}
@@ -53,7 +55,7 @@ export function FolhaDoRecibo({
         aria-hidden
         className="relative border-t border-dashed border-linha-tracejada"
       >
-        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-fundo px-2 text-[11.5px] tracking-[.14em] text-tinta-fraca uppercase">
+        <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-superficie px-2 text-[11.5px] tracking-[.14em] text-tinta-fraca uppercase">
           corte aqui
         </span>
       </div>

@@ -40,7 +40,9 @@ export default async function Recibo({
 
   return (
     <ProvedorDeAviso>
-    <div className="flex flex-col gap-4">
+    {/* a largura de uma A4, centrada: esticada na tela inteira a folha não
+        se parecia com o papel que ia sair, e quem ia imprimir estranhava */}
+    <div className="mx-auto flex w-full max-w-[210mm] flex-col gap-4 print:max-w-none">
       <header
         data-imprimir="fora"
         className="flex flex-wrap items-end justify-between gap-3"
