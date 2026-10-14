@@ -11,7 +11,10 @@ import { CampoData } from '@/components/ui/campo-data'
 import { CampoDinheiro, formatarReais } from '@/components/ui/campo-dinheiro'
 import { CampoNumero } from '@/components/ui/campo-numero'
 import { buscarCandidatos } from '@/server/agenda/acoes'
-import { emitirReciboAvulso, pagadorDoRecibo } from '@/server/recibo/acoes'
+import {
+  cobrancasEmAberto, emitirReciboAvulso, pagadorDoRecibo, type CobrancaEmAberto,
+} from '@/server/recibo/acoes'
+import { competenciaPorExtenso } from '@/core/financeiro/cobranca'
 import { emCentavos, emReais, type Recorrencia } from '@/core/planos/plano'
 import { documentoFormatado } from '@/core/recibo/recibo'
 import { fimDoContrato } from '@/core/contratos/contrato'
@@ -59,6 +62,12 @@ export function NovoRecibo({
   const [aluno, setAluno] = useState<Aluno | null>(alunoInicial)
   const [cpf, setCpf] = useState(documentoFormatado(alunoInicial?.cpf ?? null) ?? '')
   const [matricula, setMatricula] = useState(alunoInicial?.matricula ?? '')
+  const [cobrancas, setCobrancas] = useState<CobrancaEmAberto[]>([])
+  const [cobrancaId, setCobrancaId] = useState('')
+  const [lancar, setLancar] = useState(false)
+  // falso enquanto a consulta não volta: sem isso, o aviso de "sem cobrança"
+  // piscava antes de a lista chegar
+  const [consultou, setConsultou] = useState(false)
   const [termo, setTermo] = useState('')
   const [achados, setAchados] = useState<Array<{ id: string; nome: string; detalhe: string }>>([])
   const [planoId, setPlanoId] = useState('')
@@ -86,6 +95,7 @@ export function NovoRecibo({
   function escolherPlano(id: string) {
     const p = planos.find((x) => x.id === id)
     setPlanoId(id)
+    sugerirCobranca(cobrancas, id)
     if (!p) return
     setValorPlano(reais(p.precoCent))
     setRecebido(reais(p.precoCent))
@@ -99,12 +109,35 @@ export function NovoRecibo({
     pagadorDoRecibo(x.id)
       .then((p) => { setCpf(documentoFormatado(p.cpf) ?? ''); setMatricula(p.matricula ?? '') })
       .catch(() => {})
+    buscarCobrancas(x.id, planoId)
   }
+
+  // o que o aluno deve, para o recibo quitar junto; a sugestão é a cobrança
+  // mais antiga do plano escolhido, e sem ela nada vem marcado
+  function buscarCobrancas(pessoaId: string, plano: string) {
+    setCobrancas([]); setCobrancaId(''); setLancar(false); setConsultou(false)
+    cobrancasEmAberto(pessoaId)
+      .then((lista) => { setCobrancas(lista); sugerirCobranca(lista, plano); setConsultou(true) })
+      .catch(() => {})
+  }
+
+  function sugerirCobranca(lista: CobrancaEmAberto[], plano: string) {
+    const doPlano = lista.find((c) => c.planoId === plano)
+    setCobrancaId(doPlano?.id ?? lista[0]?.id ?? '')
+    setLancar(!!doPlano)
+  }
+
+  useEffect(() => {
+    if (aberto && alunoInicial) buscarCobrancas(alunoInicial.id, '')
+    // só na abertura: a troca de aluno chama a busca por conta própria
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberto])
 
   function fechar() {
     setAberto(false)
     setAluno(alunoInicial); setTermo(''); setAchados([])
     setCpf(documentoFormatado(alunoInicial?.cpf ?? null) ?? ''); setMatricula(alunoInicial?.matricula ?? '')
+    setCobrancas([]); setCobrancaId(''); setLancar(false)
     setPlanoId(''); setValorPlano(''); setRecebido(''); setDe(hoje)
     setErro(null)
   }
@@ -145,6 +178,7 @@ export function NovoRecibo({
                 observacoes: String(f.get('observacoes') ?? '') || null,
                 cpf: cpf || null,
                 matricula: matricula || null,
+                cobrancaId: lancar && cobrancaId ? cobrancaId : null,
               })
               if (!r.ok) return setErro(r.erro)
               fechar()
@@ -163,7 +197,10 @@ export function NovoRecibo({
                   </span>
                 </span>
                 <button
-                  type="button" onClick={() => { setAluno(null); setTermo(''); setCpf(''); setMatricula('') }}
+                  type="button" onClick={() => {
+                    setAluno(null); setTermo(''); setCpf(''); setMatricula('')
+                    setCobrancas([]); setCobrancaId(''); setLancar(false)
+                  }}
                   className="cursor-pointer text-[13.5px] text-tinta-media hover:text-tinta"
                 >
                   Trocar
@@ -278,10 +315,40 @@ export function NovoRecibo({
                 />
               </Campo>
 
-              <Nota tom="neutro">
-                A emissão do recibo não gera lançamento no Financeiro. O
-                recebimento deve ser registrado no contrato do aluno.
-              </Nota>
+              {cobrancas.length ? (
+                <div className="flex flex-col gap-3 rounded-media border border-linha-suave p-3.5">
+                  <label className="flex cursor-pointer items-start gap-2.5">
+                    <input
+                      type="checkbox" checked={lancar} onChange={(e) => setLancar(e.target.checked)}
+                      className="mt-[3px] size-4 accent-[var(--color-escuro)]"
+                    />
+                    <span className="flex flex-col gap-0.5">
+                      <span className="text-[14.5px] font-medium">Registrar o recebimento no Financeiro</span>
+                      <span className="text-[13px] leading-[1.5] text-tinta-media">
+                        O valor recebido quita a cobrança selecionada, e o recibo fica vinculado ao pagamento.
+                      </span>
+                    </span>
+                  </label>
+                  {lancar ? (
+                    <Campo rotulo="Cobrança" htmlFor="nr-cobranca">
+                      <Escolha
+                        id="nr-cobranca" nome="cobranca" valorInicial={cobrancaId}
+                        key={cobrancaId} aoTrocar={setCobrancaId}
+                        opcoes={cobrancas.map((c) => ({
+                          valor: c.id,
+                          rotulo: `${c.planoNome ?? 'Contrato'}, ${competenciaPorExtenso(c.competencia)}`,
+                          detalhe: `${emReais(c.faltaCent)} em aberto`,
+                        }))}
+                      />
+                    </Campo>
+                  ) : null}
+                </div>
+              ) : consultou ? (
+                <Nota tom="neutro">
+                  Este aluno não tem cobrança em aberto. O recibo será emitido sem
+                  lançamento no Financeiro.
+                </Nota>
+              ) : null}
             </>
           ) : null}
 

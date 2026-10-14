@@ -5,7 +5,7 @@ import { clienteServidor, exigirConta } from '../conta'
 import { registrar } from '../log'
 import { hojeEm } from '../agenda/fuso'
 import { materializarCobrancas } from './materializar'
-import type { Forma } from '@/core/financeiro/fechamento'
+import { lancarPagamento, type NovoPagamento } from './lancamento'
 import { MAXIMO_MESES_ANTECIPADOS } from '@/core/financeiro/cobranca'
 
 /**
@@ -122,70 +122,17 @@ export async function anteciparCobrancas(
   }
 }
 
-export type NovoPagamento = {
-  cobrancaId: string
-  valorCent: number
-  forma: Forma
-  recebidoEm: string
-  observacao: string | null
-}
-
-/**
- * Registrar o que entrou.
- *
- * O valor não é conferido contra o da cobrança de propósito: quem paga a mais
- * (juro combinado no balcão) e quem paga a menos (o que sobrou de um acerto)
- * são os dois casos reais, e recusar qualquer um deles obrigaria a recepção a
- * mentir num campo para conseguir fechar o caixa.
- */
+/** Registrar o que entrou; as recusas moram em `lancarPagamento`. */
 export async function registrarPagamento(p: NovoPagamento): Promise<Resultado> {
   try {
     const conta = await exigirCaixa()
     const db = await clienteServidor()
 
-    if (!Number.isInteger(p.valorCent) || p.valorCent <= 0) {
-      return { ok: false, erro: 'O valor recebido precisa ser maior que zero.' }
-    }
-    // dinheiro que ainda não entrou não vai para o caixa: data futura faria o
-    // fechamento de um dia que nem chegou já ter valor
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.recebidoEm) || Number.isNaN(Date.parse(p.recebidoEm))) {
-      return { ok: false, erro: 'Escolha a data em que o pagamento foi recebido.' }
-    }
-    if (p.recebidoEm > hojeEm(conta.fuso)) {
-      return { ok: false, erro: 'A data do pagamento não pode ser depois de hoje.' }
-    }
-
-    const { data: c } = await db.from('cobranca')
-      .select('id, pessoa_id, status').eq('id', p.cobrancaId)
-      .eq('conta_id', conta.contaId).maybeSingle()
-    if (!c) return { ok: false, erro: 'Esta cobrança não existe mais.' }
-    if (c.status === 'cancelada') {
-      return {
-        ok: false,
-        erro: 'Esta cobrança está cancelada. Reabra antes de registrar o pagamento.',
-      }
-    }
-
-    const { data: { user } } = await db.auth.getUser()
-    const { error } = await db.from('pagamento').insert({
-      conta_id: conta.contaId,
-      cobranca_id: p.cobrancaId,
-      valor_cent: p.valorCent,
-      forma: p.forma,
-      recebido_em: p.recebidoEm,
-      observacao: p.observacao,
-      registrado_por_usuario_id: user?.id ?? null,
-    })
-    if (error) throw error
-
-    await registrar(db, {
-      contaId: conta.contaId, entidade: 'pagamento', entidadeId: p.cobrancaId,
-      acao: 'criou',
-      detalhe: { valorCent: p.valorCent, forma: p.forma, recebidoEm: p.recebidoEm },
-    })
+    const r = await lancarPagamento(db, conta, p)
+    if (!r.ok) return r
 
     revalidatePath('/financeiro')
-    revalidatePath(`/pessoas/${c.pessoa_id}`)
+    revalidatePath(`/pessoas/${r.pessoaId}`)
     return { ok: true }
   } catch (e) {
     return falha(e, 'Não foi possível registrar o pagamento.')

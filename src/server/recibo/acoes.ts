@@ -10,6 +10,7 @@ import {
 import { competenciaPorExtenso } from '@/core/financeiro/cobranca'
 import { ROTULO_FORMA, type Forma } from '@/core/financeiro/fechamento'
 import { envia } from '../email/brevo'
+import { lancarPagamento } from '../financeiro/lancamento'
 import {
   assuntoDoRecibo, htmlDoRecibo, textoDoRecibo,
 } from '@/core/recibo/mensagem'
@@ -206,6 +207,12 @@ export type ReciboAvulso = {
   /** CPF e matrícula como devem sair no papel; vazios, valem os do cadastro */
   cpf?: string | null
   matricula?: string | null
+  /**
+   * A cobrança em aberto que este dinheiro quita. Com ela, o recebimento entra
+   * no Financeiro e o recibo nasce ligado ao pagamento, como o do caixa; sem
+   * ela, é só o papel de um pagamento já registrado.
+   */
+  cobrancaId?: string | null
   parcelas: number
   validadeDe: string
   validadeAte: string | null
@@ -223,6 +230,49 @@ export type ReciboAvulso = {
  * cobrança), e este papel só comprova. Lançar aqui também contaria o mesmo
  * dinheiro duas vezes.
  */
+export type CobrancaEmAberto = {
+  id: string
+  planoId: string | null
+  planoNome: string | null
+  competencia: string
+  vencimento: string
+  faltaCent: number
+}
+
+/**
+ * O que o aluno ainda deve, para o Novo recibo oferecer registrar o
+ * recebimento junto. Aberta ou paga em parte, a mais antiga primeiro: é a que
+ * o dinheiro do balcão costuma quitar.
+ */
+export async function cobrancasEmAberto(pessoaId: string): Promise<CobrancaEmAberto[]> {
+  const conta = await exigirCaixa()
+  const db = await clienteServidor()
+  const { data } = await db.from('cobranca_resumo')
+    .select('id, contrato_id, competencia, vencimento, valor_cent, valor_pago_cent')
+    .eq('conta_id', conta.contaId).eq('pessoa_id', pessoaId)
+    .in('situacao', ['aberta', 'parcial'])
+    .order('vencimento')
+  if (!data?.length) return []
+
+  const contratos = [...new Set(data.map((x) => x.contrato_id).filter((x): x is string => !!x))]
+  const { data: cts } = await db.from('contrato')
+    .select('id, plano_id, plano(nome)').in('id', contratos).eq('conta_id', conta.contaId)
+  const porContrato = new Map((cts ?? []).map((ct) => [ct.id, ct]))
+
+  return data.flatMap((x) => {
+    if (!x.id || !x.competencia || !x.vencimento) return []
+    const ct = x.contrato_id ? porContrato.get(x.contrato_id) : undefined
+    return [{
+      id: x.id,
+      planoId: ct?.plano_id ?? null,
+      planoNome: ct?.plano?.nome ?? null,
+      competencia: x.competencia,
+      vencimento: x.vencimento,
+      faltaCent: Math.max(0, (x.valor_cent ?? 0) - (x.valor_pago_cent ?? 0)),
+    }]
+  })
+}
+
 /**
  * CPF e matrícula do aluno, para o Novo recibo mostrar o que vai sair no papel
  * logo que o aluno é escolhido, e deixar corrigir ali mesmo.
@@ -319,29 +369,69 @@ export async function emitirReciboAvulso(r: ReciboAvulso): Promise<Resultado<str
       assinanteCargo: c?.assinatura_cargo ?? null,
     })
 
-    const serie = c?.serie_recibo ?? 'A'
-    const { data: numero, error: erroNumero } = await db
-      .rpc('proximo_numero_recibo', { p_conta: conta.contaId, p_serie: serie })
-    if (erroNumero) throw erroNumero
+    // o recebimento entra no caixa antes do papel, para o recibo nascer ligado
+    // a ele; se o papel falhar, o lançamento é desfeito, senão sobraria dinheiro
+    // no caixa sem o comprovante que a recepção acha que emitiu
+    let pagamentoId: string | null = null
+    let contratoId: string | null = null
+    if (r.cobrancaId) {
+      const { data: cb } = await db.from('cobranca')
+        .select('pessoa_id, contrato_id').eq('id', r.cobrancaId)
+        .eq('conta_id', conta.contaId).maybeSingle()
+      if (!cb || cb.pessoa_id !== pessoa.id) {
+        return { ok: false, erro: 'Esta cobrança não é deste aluno.' }
+      }
+      const lancado = await lancarPagamento(db, conta, {
+        cobrancaId: r.cobrancaId,
+        valorCent: r.valorRecebidoCent,
+        forma: r.forma,
+        recebidoEm: r.recebidoEm,
+        observacao: null,
+      })
+      if (!lancado.ok) return lancado
+      pagamentoId = lancado.id
+      contratoId = cb.contrato_id
+    }
 
-    const { data: recibo, error } = await db.from('recibo').insert({
-      conta_id: conta.contaId,
-      serie,
-      numero: numero as number,
-      pagamento_id: null,
-      pessoa_id: pessoa.id,
-      contrato_id: null,
-      valor_cent: r.valorRecebidoCent,
-      corpo: corpo as unknown as Json,
-      emitido_por_usuario_id: user?.id ?? null,
-    }).select('id').single()
-    if (error) throw error
+    const serie = c?.serie_recibo ?? 'A'
+    let recibo: { id: string }
+    let numero: number
+    try {
+      const { data: n, error: erroNumero } = await db
+        .rpc('proximo_numero_recibo', { p_conta: conta.contaId, p_serie: serie })
+      if (erroNumero) throw erroNumero
+      numero = n as number
+
+      const { data, error } = await db.from('recibo').insert({
+        conta_id: conta.contaId,
+        serie,
+        numero,
+        pagamento_id: pagamentoId,
+        pessoa_id: pessoa.id,
+        contrato_id: contratoId,
+        valor_cent: r.valorRecebidoCent,
+        corpo: corpo as unknown as Json,
+        emitido_por_usuario_id: user?.id ?? null,
+      }).select('id').single()
+      if (error) throw error
+      recibo = data
+    } catch (e) {
+      if (pagamentoId) await db.from('pagamento').delete().eq('id', pagamentoId)
+      throw e
+    }
 
     await registrar(db, {
       contaId: conta.contaId, entidade: 'recibo', entidadeId: recibo.id, acao: 'criou',
-      detalhe: { numero: numeroFormatado(serie, numero as number), valorCent: r.valorRecebidoCent, avulso: true },
+      detalhe: {
+        numero: numeroFormatado(serie, numero), valorCent: r.valorRecebidoCent,
+        avulso: true, lancouNoFinanceiro: !!pagamentoId,
+      },
     })
     revalidatePath('/recibos')
+    if (pagamentoId) {
+      revalidatePath('/financeiro')
+      revalidatePath(`/pessoas/${pessoa.id}`)
+    }
     return { ok: true, valor: recibo.id }
   } catch (e) {
     return falha(e, 'Não foi possível emitir o recibo.')
