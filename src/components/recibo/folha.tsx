@@ -42,7 +42,7 @@ export function FolhaDoRecibo({
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
         corpo={corpo} motivo={motivo} assinatura={assinatura} logo={logo}
-        via="1ª via, de quem pagou"
+        via="1ª via"
       />
       <div
         aria-hidden
@@ -55,7 +55,7 @@ export function FolhaDoRecibo({
       <Via
         serie={serie} numero={numero} versao={versao} status={status}
         corpo={corpo} motivo={motivo} assinatura={assinatura} logo={logo}
-        via="2ª via, do estúdio"
+        via="2ª via"
       />
     </div>
   )
