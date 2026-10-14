@@ -122,7 +122,7 @@ export function NovoRecibo({
           glifo="R$"
           tom="positivo"
           titulo="Novo recibo"
-          sub="Do plano que o aluno pagou"
+          sub="Comprovante de pagamento de plano"
           primario="Emitir recibo"
           largura="lista"
           pendente={pendente || !aluno || !plano}
@@ -173,7 +173,7 @@ export function NovoRecibo({
               <div className="flex flex-col gap-1">
                 <input
                   id="nr-aluno" value={termo} onChange={(e) => setTermo(e.target.value)}
-                  placeholder="Exemplo: Arnaldo" className={entrada} autoComplete="off" autoFocus
+                  placeholder="Buscar pelo nome do aluno" className={entrada} autoComplete="off" autoFocus
                 />
                 {termo.trim().length >= 2 && achados.length ? (
                   <ul className="flex max-h-44 flex-col overflow-y-auto rounded-padrao border border-linha-suave bg-superficie">
@@ -199,13 +199,13 @@ export function NovoRecibo({
 
           {aluno ? (
             <div className="grid gap-3 sm:grid-cols-2">
-              <Campo rotulo="CPF" htmlFor="nr-cpf" dica="do cadastro, corrija se precisar">
+              <Campo rotulo="CPF" htmlFor="nr-cpf">
                 <input
                   id="nr-cpf" value={cpf} onChange={(e) => setCpf(e.target.value)}
                   inputMode="numeric" maxLength={14} placeholder="Exemplo: 050.629.576-13" className={entrada}
                 />
               </Campo>
-              <Campo rotulo="Matrícula" htmlFor="nr-matricula" dica="opcional">
+              <Campo rotulo="Matrícula" htmlFor="nr-matricula">
                 <input
                   id="nr-matricula" value={matricula} onChange={(e) => setMatricula(e.target.value)}
                   maxLength={20} placeholder="Exemplo: 295" className={entrada}
@@ -216,7 +216,7 @@ export function NovoRecibo({
 
           <Campo rotulo="Plano" htmlFor="nr-plano" obrigatorio>
             <Escolha
-              id="nr-plano" nome="plano" valorInicial={planoId} placeholder="escolha o plano"
+              id="nr-plano" nome="plano" valorInicial={planoId} placeholder="Selecione o plano"
               aoTrocar={escolherPlano}
               opcoes={planos.map((p) => ({
                 valor: p.id,
@@ -245,16 +245,16 @@ export function NovoRecibo({
                 <Campo rotulo="Valor do plano" htmlFor="nr-plano-valor">
                   <CampoDinheiro id="nr-plano-valor" valor={valorPlano} aoMudar={setValorPlano} />
                 </Campo>
-                <Campo rotulo="Valor" htmlFor="nr-recebido" dica="o que entrou; menor que o plano vira desconto">
+                <Campo rotulo="Valor recebido" htmlFor="nr-recebido">
                   <CampoDinheiro id="nr-recebido" valor={recebido} aoMudar={setRecebido} />
                 </Campo>
               </div>
 
               {descontoCent > 0 ? (
-                <Campo rotulo={`Motivo do desconto de ${emReais(descontoCent)}`} htmlFor="nr-motivo" obrigatorio>
+                <Campo rotulo={`Motivo do desconto (${emReais(descontoCent)})`} htmlFor="nr-motivo" obrigatorio>
                   <input
                     id="nr-motivo" name="descontoMotivo" maxLength={120}
-                    placeholder="Exemplo: família parou" className={entrada}
+                    placeholder="Exemplo: suspensão de dependentes" className={entrada}
                   />
                 </Campo>
               ) : null}
@@ -271,7 +271,7 @@ export function NovoRecibo({
                 </Campo>
               </div>
 
-              <Campo rotulo="Observações" htmlFor="nr-obs" dica="opcional, sai no recibo">
+              <Campo rotulo="Observações" htmlFor="nr-obs">
                 <input
                   id="nr-obs" name="observacoes" maxLength={200}
                   placeholder="Exemplo: renovação antecipada" className={entrada}
@@ -279,8 +279,8 @@ export function NovoRecibo({
               </Campo>
 
               <Nota tom="neutro">
-                O recibo comprova o pagamento e não lança o valor no Financeiro.
-                Para o caixa, registre o recebimento no contrato do aluno.
+                A emissão do recibo não gera lançamento no Financeiro. O
+                recebimento deve ser registrado no contrato do aluno.
               </Nota>
             </>
           ) : null}
