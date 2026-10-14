@@ -203,6 +203,9 @@ export type ReciboAvulso = {
   descontoMotivo: string | null
   /** o campo livre do talão; vazio, a linha some da folha */
   observacoes?: string | null
+  /** CPF e matrícula como devem sair no papel; vazios, valem os do cadastro */
+  cpf?: string | null
+  matricula?: string | null
   parcelas: number
   validadeDe: string
   validadeAte: string | null
@@ -220,6 +223,21 @@ export type ReciboAvulso = {
  * cobrança), e este papel só comprova. Lançar aqui também contaria o mesmo
  * dinheiro duas vezes.
  */
+/**
+ * CPF e matrícula do aluno, para o Novo recibo mostrar o que vai sair no papel
+ * logo que o aluno é escolhido, e deixar corrigir ali mesmo.
+ */
+export async function pagadorDoRecibo(
+  pessoaId: string,
+): Promise<{ cpf: string | null; matricula: string | null }> {
+  const conta = await exigirCaixa()
+  const db = await clienteServidor()
+  const { data } = await db.from('pessoa')
+    .select('cpf, identificador_externo')
+    .eq('id', pessoaId).eq('conta_id', conta.contaId).maybeSingle()
+  return { cpf: data?.cpf ?? null, matricula: data?.identificador_externo ?? null }
+}
+
 export async function emitirReciboAvulso(r: ReciboAvulso): Promise<Resultado<string>> {
   try {
     const conta = await exigirCaixa()
@@ -237,6 +255,10 @@ export async function emitirReciboAvulso(r: ReciboAvulso): Promise<Resultado<str
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(r.validadeDe) || (r.validadeAte && r.validadeAte < r.validadeDe)) {
       return { ok: false, erro: 'Confira a validade: o fim não pode vir antes do início.' }
+    }
+    const cpfDigitado = (r.cpf ?? '').replace(/\D/g, '')
+    if (cpfDigitado && cpfDigitado.length !== 11) {
+      return { ok: false, erro: 'Confira o CPF: são 11 números.' }
     }
 
     const { data: c } = await db.from('conta')
@@ -278,8 +300,8 @@ export async function emitirReciboAvulso(r: ReciboAvulso): Promise<Resultado<str
       emitente,
       pagador: {
         nome: pessoa.nome,
-        documento: pessoa.cpf ?? null,
-        matricula: pessoa.identificador_externo ?? null,
+        documento: cpfDigitado || pessoa.cpf || null,
+        matricula: r.matricula?.trim() || pessoa.identificador_externo || null,
         endereco: endereco || null,
       },
       referente: `${plano.nome}, válido de ${br(r.validadeDe)}${r.validadeAte ? ` a ${br(r.validadeAte)}` : ''}`,

@@ -11,8 +11,9 @@ import { CampoData } from '@/components/ui/campo-data'
 import { CampoDinheiro, formatarReais } from '@/components/ui/campo-dinheiro'
 import { CampoNumero } from '@/components/ui/campo-numero'
 import { buscarCandidatos } from '@/server/agenda/acoes'
-import { emitirReciboAvulso } from '@/server/recibo/acoes'
+import { emitirReciboAvulso, pagadorDoRecibo } from '@/server/recibo/acoes'
 import { emCentavos, emReais, type Recorrencia } from '@/core/planos/plano'
+import { documentoFormatado } from '@/core/recibo/recibo'
 import { fimDoContrato } from '@/core/contratos/contrato'
 import type { Forma } from '@/core/financeiro/fechamento'
 
@@ -44,9 +45,20 @@ const reais = (cent: number) => formatarReais(String(cent))
  * desconto; e a validade do plano, editável. O dinheiro não passa por aqui:
  * quem lança no caixa é o contrato, e o aviso no fim do formulário diz isso.
  */
-export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: string }) {
+type Aluno = { id: string; nome: string; detalhe: string }
+
+export function NovoRecibo({
+  planos, hoje, alunoInicial = null,
+}: {
+  planos: PlanoDoRecibo[]
+  hoje: string
+  /** quem abre o recibo já de dentro da ficha chega com o aluno escolhido */
+  alunoInicial?: (Aluno & { cpf: string | null; matricula: string | null }) | null
+}) {
   const [aberto, setAberto] = useState(false)
-  const [aluno, setAluno] = useState<{ id: string; nome: string; detalhe: string } | null>(null)
+  const [aluno, setAluno] = useState<Aluno | null>(alunoInicial)
+  const [cpf, setCpf] = useState(documentoFormatado(alunoInicial?.cpf ?? null) ?? '')
+  const [matricula, setMatricula] = useState(alunoInicial?.matricula ?? '')
   const [termo, setTermo] = useState('')
   const [achados, setAchados] = useState<Array<{ id: string; nome: string; detalhe: string }>>([])
   const [planoId, setPlanoId] = useState('')
@@ -79,9 +91,20 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
     setRecebido(reais(p.precoCent))
   }
 
+  // o CPF e a matrícula que vão para o papel aparecem assim que o aluno é
+  // escolhido, para corrigir ali, e não depois de emitido
+  function escolherAluno(x: Aluno) {
+    setAluno(x); setAchados([])
+    setCpf(''); setMatricula('')
+    pagadorDoRecibo(x.id)
+      .then((p) => { setCpf(documentoFormatado(p.cpf) ?? ''); setMatricula(p.matricula ?? '') })
+      .catch(() => {})
+  }
+
   function fechar() {
     setAberto(false)
-    setAluno(null); setTermo(''); setAchados([])
+    setAluno(alunoInicial); setTermo(''); setAchados([])
+    setCpf(documentoFormatado(alunoInicial?.cpf ?? null) ?? ''); setMatricula(alunoInicial?.matricula ?? '')
     setPlanoId(''); setValorPlano(''); setRecebido(''); setDe(hoje)
     setErro(null)
   }
@@ -120,6 +143,8 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
                 forma: String(f.get('forma') ?? 'credito') as Forma,
                 recebidoEm: String(f.get('recebidoEm') ?? hoje),
                 observacoes: String(f.get('observacoes') ?? '') || null,
+                cpf: cpf || null,
+                matricula: matricula || null,
               })
               if (!r.ok) return setErro(r.erro)
               fechar()
@@ -138,7 +163,7 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
                   </span>
                 </span>
                 <button
-                  type="button" onClick={() => { setAluno(null); setTermo('') }}
+                  type="button" onClick={() => { setAluno(null); setTermo(''); setCpf(''); setMatricula('') }}
                   className="cursor-pointer text-[13.5px] text-tinta-media hover:text-tinta"
                 >
                   Trocar
@@ -155,7 +180,7 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
                     {achados.slice(0, 8).map((x) => (
                       <li key={x.id}>
                         <button
-                          type="button" onClick={() => { setAluno(x); setAchados([]) }}
+                          type="button" onClick={() => escolherAluno(x)}
                           className="flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left hover:bg-superficie-suave"
                         >
                           <Avatar nome={x.nome} tamanho={32} decorativo />
@@ -171,6 +196,23 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
               </div>
             )}
           </Campo>
+
+          {aluno ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Campo rotulo="CPF" htmlFor="nr-cpf" dica="do cadastro, corrija se precisar">
+                <input
+                  id="nr-cpf" value={cpf} onChange={(e) => setCpf(e.target.value)}
+                  inputMode="numeric" maxLength={14} placeholder="Exemplo: 050.629.576-13" className={entrada}
+                />
+              </Campo>
+              <Campo rotulo="Matrícula" htmlFor="nr-matricula" dica="opcional">
+                <input
+                  id="nr-matricula" value={matricula} onChange={(e) => setMatricula(e.target.value)}
+                  maxLength={20} placeholder="Exemplo: 295" className={entrada}
+                />
+              </Campo>
+            </div>
+          ) : null}
 
           <Campo rotulo="Plano" htmlFor="nr-plano" obrigatorio>
             <Escolha
@@ -188,15 +230,23 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
 
           {plano ? (
             <>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Campo rotulo="Período, de" htmlFor="nr-de" obrigatorio>
+                  <CampoData id="nr-de" nome="validadeDe" valorInicial={de} aoTrocar={(v) => v && setDe(v)} limpavel={false} />
+                </Campo>
+                <Campo rotulo="Até" htmlFor="nr-ate">
+                  {/* a chave refaz o campo quando o plano ou o início mudam: a
+                      sugestão acompanha, e o que se digitar depois vale */}
+                  <CampoData key={`${planoId}-${de}`} id="nr-ate" nome="validadeAte" valorInicial={ate ?? ''} />
+                </Campo>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Campo rotulo="Valor do plano" htmlFor="nr-plano-valor">
                   <CampoDinheiro id="nr-plano-valor" valor={valorPlano} aoMudar={setValorPlano} />
                 </Campo>
-                <Campo rotulo="Valor recebido" htmlFor="nr-recebido" dica="mude se houve desconto">
+                <Campo rotulo="Valor" htmlFor="nr-recebido" dica="o que entrou; menor que o plano vira desconto">
                   <CampoDinheiro id="nr-recebido" valor={recebido} aoMudar={setRecebido} />
-                </Campo>
-                <Campo rotulo="Parcelas" htmlFor="nr-parcelas">
-                  <CampoNumero key={planoId} id="nr-parcelas" nome="parcelas" min={1} max={24} valorInicial={plano.parcelas} />
                 </Campo>
               </div>
 
@@ -209,19 +259,14 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
                 </Campo>
               ) : null}
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Campo rotulo="Válido de" htmlFor="nr-de" obrigatorio>
-                  <CampoData id="nr-de" nome="validadeDe" valorInicial={de} aoTrocar={(v) => v && setDe(v)} limpavel={false} />
-                </Campo>
-                <Campo rotulo="Até" htmlFor="nr-ate">
-                  {/* a chave refaz o campo quando o plano ou o início mudam: a
-                      sugestão acompanha, e o que se digitar depois vale */}
-                  <CampoData key={`${planoId}-${de}`} id="nr-ate" nome="validadeAte" valorInicial={ate ?? ''} />
-                </Campo>
-                <Campo rotulo="Forma de pagamento" htmlFor="nr-forma">
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,.6fr)_minmax(0,1fr)]">
+                <Campo rotulo="Pagamento" htmlFor="nr-forma">
                   <Escolha id="nr-forma" nome="forma" valorInicial="credito" opcoes={FORMAS} />
                 </Campo>
-                <Campo rotulo="Recebido em" htmlFor="nr-recebido-em">
+                <Campo rotulo="Parcelas" htmlFor="nr-parcelas">
+                  <CampoNumero key={planoId} id="nr-parcelas" nome="parcelas" min={1} max={24} valorInicial={plano.parcelas} />
+                </Campo>
+                <Campo rotulo="Pago em" htmlFor="nr-recebido-em">
                   <CampoData id="nr-recebido-em" nome="recebidoEm" valorInicial={hoje} limpavel={false} />
                 </Campo>
               </div>
