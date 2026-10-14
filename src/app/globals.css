@@ -599,6 +599,12 @@ select:focus-visible {
     justify-content: safe center;
   }
 
+  /* nada dentro da via encolhe: a grade de campos tem overflow escondido, e
+     encolhida ela cortava as próprias casas em vez de a via acusar o excesso */
+  [data-folha] > [data-via] > * {
+    flex-shrink: 0;
+  }
+
   /* a linha de corte não disputa altura com as vias: ela é o meio da folha */
   [data-folha] > [aria-hidden] {
     flex: 0 0 auto;

@@ -7,7 +7,7 @@ import { PainelConfig } from './casca'
 import { Campo, Nota, entrada } from '@/components/ui/pecas'
 import { useAviso } from '@/components/ui/desfazer'
 import {
-  removerAssinatura, salvarAssinatura, salvarEmitente,
+  removerAssinatura, removerLogo, salvarAssinatura, salvarEmitente, salvarLogo,
 } from '@/server/config/acoes'
 import type { Emitente } from '@/server/config/consultas'
 import { emitenteCompleto } from '@/core/recibo/recibo'
@@ -22,11 +22,12 @@ import { erroLegivel } from '@/core/erro-legivel'
  * com a pessoa esperando o papel.
  */
 export function SecaoRecibo({
-  emitente, assinatura,
+  emitente, assinatura, logo,
 }: {
   emitente: Emitente
   /** a imagem já configurada, numa URL assinada e curta */
   assinatura: string | null
+  logo: string | null
 }) {
   const [arquivo, setArquivo] = useState('')
   const [v, setV] = useState({
@@ -165,6 +166,8 @@ export function SecaoRecibo({
           </Campo>
         </div>
 
+        <BlocoDoLogo logo={logo} />
+
         {/*
           * A assinatura.
           *
@@ -274,5 +277,87 @@ export function SecaoRecibo({
         {erro ? <Nota tom="alerta">{erro}</Nota> : null}
       </div>
     </PainelConfig>
+  )
+}
+
+/**
+ * O logo, no canto do cabeçalho do recibo, como no talão de papel do estúdio.
+ * Componente próprio porque tem arquivo próprio: dividir o estado com a
+ * assinatura faria o nome de um arquivo aparecer embaixo do outro.
+ */
+function BlocoDoLogo({ logo }: { logo: string | null }) {
+  const [arquivo, setArquivo] = useState('')
+  const [erro, setErro] = useState<string | null>(null)
+  const [pendente, iniciar] = useTransition()
+  const router = useRouter()
+  const avisar = useAviso()
+
+  return (
+    <div className="flex flex-col gap-3 rounded-media border border-linha-suave bg-superficie-mais-suave p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-[14.5px] font-medium">Logo</h3>
+          <p className="pt-[2px] text-[13.5px] leading-[1.5] text-tinta-media">
+            Exibido no canto do cabeçalho do recibo.
+          </p>
+        </div>
+        {logo ? (
+          <div className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logo} alt="Logo configurado"
+              className="size-12 rounded-peca border border-linha-suave bg-superficie object-contain p-1"
+            />
+            <button
+              type="button"
+              onClick={() => iniciar(async () => {
+                setErro(null)
+                const r = await removerLogo()
+                if (!r.ok) return setErro(r.erro)
+                avisar({ texto: 'Logo removido' })
+                router.refresh()
+              })}
+              disabled={pendente}
+              className="cursor-pointer text-[13.5px] text-tinta-media underline disabled:opacity-50"
+            >
+              remover
+            </button>
+          </div>
+        ) : null}
+      </div>
+
+      <form
+        action={async (dados) => {
+          setErro(null)
+          const r = await salvarLogo(dados)
+          if (!r.ok) return setErro(r.erro)
+          avisar({ texto: 'Logo salvo' })
+          router.refresh()
+        }}
+        className="flex flex-wrap items-center gap-2"
+      >
+        <label className="inline-flex min-h-9 cursor-pointer items-center rounded-peca border border-linha-suave bg-superficie px-3 text-[13.5px] text-tinta hover:bg-superficie-mais-suave">
+          Escolher imagem
+          <input
+            type="file" name="logo" required
+            accept="image/png,image/jpeg,image/webp"
+            aria-label="Arquivo do logo"
+            className="sr-only"
+            onChange={(e) => setArquivo(e.target.files?.[0]?.name ?? '')}
+          />
+        </label>
+        <span className="max-w-[220px] truncate text-[13.5px] text-tinta-media">
+          {arquivo || 'Nenhuma imagem escolhida'}
+        </span>
+        <Botao tom="secundario" type="submit">
+          {logo ? 'Trocar imagem' : 'Enviar imagem'}
+        </Botao>
+        <span className="text-[12px] text-tinta-fraca">
+          PNG, JPEG ou WEBP, até 1 MB. Quadrado ou redondo fica melhor.
+        </span>
+      </form>
+
+      {erro ? <Nota tom="alerta">{erro}</Nota> : null}
+    </div>
   )
 }

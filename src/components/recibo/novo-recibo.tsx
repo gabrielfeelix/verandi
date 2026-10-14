@@ -119,6 +119,7 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
                 validadeAte: String(f.get('validadeAte') ?? '') || null,
                 forma: String(f.get('forma') ?? 'credito') as Forma,
                 recebidoEm: String(f.get('recebidoEm') ?? hoje),
+                observacoes: String(f.get('observacoes') ?? '') || null,
               })
               if (!r.ok) return setErro(r.erro)
               fechar()
@@ -224,6 +225,13 @@ export function NovoRecibo({ planos, hoje }: { planos: PlanoDoRecibo[]; hoje: st
                   <CampoData id="nr-recebido-em" nome="recebidoEm" valorInicial={hoje} limpavel={false} />
                 </Campo>
               </div>
+
+              <Campo rotulo="Observações" htmlFor="nr-obs" dica="opcional, sai no recibo">
+                <input
+                  id="nr-obs" name="observacoes" maxLength={200}
+                  placeholder="Exemplo: renovação antecipada" className={entrada}
+                />
+              </Campo>
 
               <Nota tom="neutro">
                 O recibo comprova o pagamento e não lança o valor no Financeiro.

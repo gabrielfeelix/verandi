@@ -201,6 +201,8 @@ export type ReciboAvulso = {
   /** o que entrou de fato; abaixo do plano, a diferença sai como desconto */
   valorRecebidoCent: number
   descontoMotivo: string | null
+  /** o campo livre do talão; vazio, a linha some da folha */
+  observacoes?: string | null
   parcelas: number
   validadeDe: string
   validadeAte: string | null
@@ -288,6 +290,7 @@ export async function emitirReciboAvulso(r: ReciboAvulso): Promise<Resultado<str
       forma: `${ROTULO_FORMA[r.forma] ?? r.forma}${parcelas > 1
         ? ` em ${parcelas}x de ${brl(Math.round(r.valorRecebidoCent / parcelas))}` : ''}`,
       recebidoEm: r.recebidoEm,
+      observacoes: r.observacoes?.trim().slice(0, 200) || null,
       emitidoPor: quemEmite?.nome?.trim() || '',
       emitidoEm: new Date().toISOString(),
       assinanteNome: c?.assinatura_nome ?? null,
@@ -454,7 +457,7 @@ export async function corrigirRecibo(
  *
  * **O destino não é uma pergunta.** O recibo é de quem pagou, e o e-mail de
  * quem pagou está na ficha: perguntar "para onde?" a cada envio é pedir que a
- * recepção digite de novo, toda vez, um dado que o sistema já tem — e digitar
+ * recepção digite de novo, toda vez, um dado que o sistema já tem, e digitar
  * de novo é digitar errado uma hora. O que se acrescenta são **cópias**: o
  * marido que cuida das contas, a empresa que reembolsa, a contadora.
  *
@@ -492,7 +495,7 @@ export async function enviarReciboPorEmail(
 
     /*
      * As cópias são limpas antes de sair: o que não é endereço some, o
-     * repetido some, e o que for igual ao destinatário some também — mandar
+     * repetido some, e o que for igual ao destinatário some também: mandar
      * para alguém em `to` e em `cc` entrega duas mensagens à mesma pessoa.
      */
     const copias: string[] = []

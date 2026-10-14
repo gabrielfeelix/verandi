@@ -154,6 +154,18 @@ export async function urlDaAssinatura(
   return data?.signedUrl ?? null
 }
 
+/** o logo tem caminho fixo na pasta da conta; ver `salvarLogo` */
+export function caminhoDoLogo(contaId: string): string {
+  return `${contaId}/logo`
+}
+
+/** a URL curta do logo, ou `null` quando o estúdio não enviou nenhum */
+export async function urlDoLogo(db: Db, contaId: string, segundos = 300): Promise<string | null> {
+  const { data } = await db.storage.from(BALDE_ASSINATURA)
+    .createSignedUrl(caminhoDoLogo(contaId), segundos)
+  return data?.signedUrl ?? null
+}
+
 export async function listarServicos(db: Db, contaId: string): Promise<ServicoLinha[]> {
   const { data, error } = await db
     .from('servico')

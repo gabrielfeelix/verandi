@@ -76,7 +76,7 @@ test('emitir nasce da linha do pagamento, e a folha sai com o valor por extenso'
 
   // as duas vias, com o extenso e a matrícula que o documento do cliente pede
   await expect(page.getByText(/setecentos e trinta e cinco reais/).first()).toBeVisible()
-  await expect(page.getByText(/matrícula nº 042/).first()).toBeVisible()
+  await expect(page.getByText('042', { exact: true }).first()).toBeVisible()
   await expect(page.getByText('corte aqui')).toBeVisible()
 })
 

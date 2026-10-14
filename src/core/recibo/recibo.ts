@@ -251,6 +251,8 @@ export type CorpoDoRecibo = {
    */
   assinanteNome?: string | null
   assinanteCargo?: string | null
+  /** o campo livre do talão de papel, que o Novo recibo pede e o pagamento não tem */
+  observacoes?: string | null
 }
 
 /**
@@ -278,6 +280,7 @@ export function montarCorpo(dados: {
   emitidoEm: string
   assinanteNome?: string | null
   assinanteCargo?: string | null
+  observacoes?: string | null
 }): CorpoDoRecibo {
   return {
     emitenteNome: dados.emitente.razaoSocial?.trim() || dados.emitente.nomeDaConta,
@@ -298,7 +301,28 @@ export function montarCorpo(dados: {
     emitidoEm: dados.emitidoEm,
     assinanteNome: dados.assinanteNome ?? null,
     assinanteCargo: dados.assinanteCargo ?? null,
+    observacoes: dados.observacoes?.trim() || null,
   }
+}
+
+/**
+ * Plano e período separados, para os campos da folha.
+ *
+ * O corpo guarda os dois num texto só ("Anual 2x semana, de 12/09/2026 a
+ * 12/09/2027"), e é isso que todo recibo já emitido tem. Todo formato que o
+ * sistema monta põe o período depois da primeira vírgula: o do contrato, o da
+ * competência ("setembro de 2026") e o do Novo recibo ("válido de"). Sem
+ * vírgula, `null`, e a folha mostra o texto inteiro como "Referente a", porque
+ * um texto corrigido à mão não tem formato garantido.
+ */
+export function planoEPeriodo(referente: string): { plano: string; periodo: string } | null {
+  const i = referente.indexOf(', ')
+  if (i <= 0) return null
+  const periodo = referente.slice(i + 2).trim()
+    .replace(/^válido /, '')
+    .replace(/^de (\d{2}\/\d{2}\/\d{4}) a /, '$1 a ')
+    .replace(/^de (\d{2}\/\d{2}\/\d{4})$/, 'a partir de $1')
+  return periodo ? { plano: referente.slice(0, i).trim(), periodo } : null
 }
 
 /**

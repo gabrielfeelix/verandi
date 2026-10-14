@@ -6,6 +6,7 @@ import type { Db } from '@/server/supabase'
 import {
   carregarPadroes, carregarFuncionamento, emitenteDaConta, listarDatasFechadas,
   urlDaAssinatura,
+  urlDoLogo,
   ultimaAlteracao, listarLocais, listarServicos,
 } from '@/server/config/consultas'
 import { hojeEm } from '@/server/agenda/fuso'
@@ -246,6 +247,7 @@ async function PainelDoRecibo({ db, contaId }: { db: Db; contaId: string }) {
     <SecaoRecibo
       emitente={emitente}
       assinatura={await urlDaAssinatura(db, emitente.assinaturaPath)}
+      logo={await urlDoLogo(db, contaId)}
     />
   )
 }

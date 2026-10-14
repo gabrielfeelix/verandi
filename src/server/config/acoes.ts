@@ -8,7 +8,7 @@ import { avisar } from '../webhook/eventos'
 import { soltarDaSessao, soltasDa } from '../agenda/soltar'
 import type { ChaveVocabulario } from '@/core/vocabulario/padrao'
 import { BALDE_FOTO } from './equipe'
-import { BALDE_ASSINATURA } from './consultas'
+import { BALDE_ASSINATURA, caminhoDoLogo } from './consultas'
 import { LIMITE_ENVIO_MB, MB } from '@/core/foto'
 import type { Resultado } from '../planos/acoes'
 
@@ -648,6 +648,59 @@ export async function salvarAssinatura(entrada: FormData): Promise<Resultado> {
   await registrar(db, {
     contaId: conta.contaId, entidade: 'conta', entidadeId: conta.contaId,
     acao: 'editou', detalhe: { assinatura: 'enviada' },
+  })
+  revalidatePath('/config')
+  revalidatePath('/recibos')
+  return { ok: true }
+}
+
+/**
+ * O logo do estúdio, no canto do cabeçalho do recibo.
+ *
+ * Mora no balde da assinatura, na pasta da conta, e com nome fixo e sem
+ * extensão: as políticas do balde já cobrem a pasta, e o nome fixo dispensa
+ * coluna nova no banco (quem lê pergunta pelo arquivo, e ausência é "sem
+ * logo"). O tipo vai no `contentType`, que é o que o navegador usa.
+ */
+export async function salvarLogo(entrada: FormData): Promise<Resultado> {
+  const conta = await exigirDono()
+  const db = await clienteServidor()
+
+  const arquivo = entrada.get('logo')
+  if (!(arquivo instanceof File) || arquivo.size === 0) {
+    return recusa('Escolha a imagem do logo.')
+  }
+  if (!TIPOS_ASSINATURA.includes(arquivo.type)) {
+    return recusa('O logo precisa ser PNG, JPEG ou WEBP. SVG não entra: é documento com script.')
+  }
+  if (arquivo.size > TAMANHO_ASSINATURA) {
+    return recusa('O logo precisa ter até 1 MB.')
+  }
+
+  const envio = await db.storage.from(BALDE_ASSINATURA)
+    .upload(caminhoDoLogo(conta.contaId), arquivo, { upsert: true, contentType: arquivo.type })
+  if (envio.error) throw envio.error
+
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'conta', entidadeId: conta.contaId,
+    acao: 'editou', detalhe: { logo: 'enviado' },
+  })
+  revalidatePath('/config')
+  revalidatePath('/recibos')
+  return { ok: true }
+}
+
+/** Tirar o logo: o cabeçalho do recibo volta a começar pelo nome. */
+export async function removerLogo(): Promise<Resultado> {
+  const conta = await exigirDono()
+  const db = await clienteServidor()
+
+  const { error } = await db.storage.from(BALDE_ASSINATURA).remove([caminhoDoLogo(conta.contaId)])
+  if (error) throw error
+
+  await registrar(db, {
+    contaId: conta.contaId, entidade: 'conta', entidadeId: conta.contaId,
+    acao: 'editou', detalhe: { logo: 'removido' },
   })
   revalidatePath('/config')
   revalidatePath('/recibos')

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { reciboPorId, ultimosEnvios } from '@/server/recibo/consultas'
-import { emitenteDaConta, urlDaAssinatura } from '@/server/config/consultas'
+import { emitenteDaConta, urlDaAssinatura, urlDoLogo } from '@/server/config/consultas'
 import { EnviarRecibo } from '@/components/recibo/enviar'
 import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { descricaoDoRecibo } from '@/core/recibo/recibo'
@@ -30,8 +30,9 @@ export default async function Recibo({
   if (!recibo) notFound()
 
   const emitente = await emitenteDaConta(db, conta.contaId)
-  const [assinatura, envios, email] = await Promise.all([
+  const [assinatura, logo, envios, email] = await Promise.all([
     urlDaAssinatura(db, emitente.assinaturaPath),
+    urlDoLogo(db, conta.contaId),
     ultimosEnvios(db, conta.contaId, [recibo.id]),
     emailDaPessoa(db, conta.contaId, recibo.pessoaId),
   ])
@@ -90,6 +91,7 @@ export default async function Recibo({
         corpo={recibo.corpo}
         motivo={recibo.motivo}
         assinatura={assinatura}
+        logo={logo}
       />
 
       {enviado ? (
