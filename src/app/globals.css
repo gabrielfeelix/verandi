@@ -593,13 +593,16 @@ select:focus-visible {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /* `safe`: se um dia o texto não couber, corta embaixo e não em cima. Com
+       `center` puro o excesso saía pelos dois lados e o papel perdia o nome
+       do estúdio e a caixa do valor (MGM, 14/out/2026) */
+    justify-content: safe center;
   }
 
   /* a linha de corte não disputa altura com as vias: ela é o meio da folha */
   [data-folha] > [aria-hidden] {
     flex: 0 0 auto;
-    margin: 6mm 0;
+    margin: 3mm 0;
   }
 
   /*

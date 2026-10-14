@@ -79,7 +79,7 @@ function Via({
   return (
     <article
       data-via
-      className="relative overflow-hidden rounded-cartao border border-linha bg-superficie px-7 py-6"
+      className="relative overflow-hidden rounded-cartao border border-linha bg-superficie px-7 py-6 print:py-3"
     >
       {/*
         * O carimbo de cancelado atravessa a folha. Um recibo cancelado
@@ -113,7 +113,7 @@ function Via({
           <h2 className="font-titulo text-[18px] leading-[1.2] font-semibold">
             {corpo.emitenteNome}
           </h2>
-          <p className="pt-[3px] text-[12.5px] leading-[1.6] text-tinta-media">
+          <p className="pt-[3px] text-[12.5px] leading-[1.6] text-tinta-media print:leading-[1.45]">
             {documentoEmitente ? <>{documentoEmitente}<br /></> : null}
             {corpo.emitenteEndereco}
             {corpo.emitenteEndereco && corpo.emitenteTelefone ? <br /> : null}
@@ -134,7 +134,7 @@ function Via({
       {/* a palavra RECIBO e o número, na faixa que separa o cabeçalho do
           corpo: é o que um recibo tem de mais reconhecível, e estava reduzido
           a uma linha de onze pixels no canto */}
-      <div className="relative mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-y border-linha-fina py-2.5">
+      <div className="relative mt-5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-y border-linha-fina py-2.5 print:mt-3 print:py-2">
         <h3 className="font-titulo text-[20px] leading-none font-semibold tracking-[.22em] uppercase">
           Recibo
         </h3>
@@ -146,7 +146,7 @@ function Via({
         </p>
       </div>
 
-      <p className="relative pt-4 text-[15px] leading-[1.75]">
+      <p className="relative pt-4 text-[15px] leading-[1.75] print:pt-3 print:text-[13.5px] print:leading-[1.55]">
         Recebemos de <strong>{corpo.pagadorNome}</strong>
         {corpo.pagadorDocumento
           ? <>, CPF {documentoFormatado(corpo.pagadorDocumento)}</> : null}
@@ -159,59 +159,65 @@ function Via({
       </p>
 
       {/*
-        * Local e data de emissão, na linha própria e por extenso.
+        * Local e data de emissão, por extenso, à esquerda da assinatura.
         *
         * É um dos elementos que se espera de um recibo, e sem ele o papel não
         * diz onde a quitação aconteceu. A cidade sai do endereço do emitente
         * quando dá para ter certeza, e some quando não dá: data sozinha é uma
         * lacuna, cidade errada é uma afirmação falsa.
-        */}
-      <p className="relative pt-5 text-[14.5px]">
-        {local ? `${local}, ` : ''}
-        {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
-      </p>
-
-      {/*
-        * A assinatura leva o nome e o documento embaixo da linha: é quem
-        * recebeu que assina, e a linha anônima não diz de quem é o traço.
         *
-        * Com imagem configurada ela aparece **em cima** da linha, que é onde a
-        * caneta cairia. Sem imagem, o espaço em branco fica igual, para o papel
-        * impresso continuar tendo onde assinar à mão: quem manda por e-mail
-        * precisa da imagem, e quem imprime não.
+        * Na mesma linha da assinatura, como no talão: numa linha própria ela
+        * empurrava a via além da meia folha, e o papel saía cortado (MGM,
+        * 14/out/2026). O respiro de cima a põe na altura do traço.
         */}
-      <div className="relative flex justify-end pt-9">
-        <div className="min-w-[260px]">
-          <div className="flex h-[52px] items-end justify-center">
-            {assinatura ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={assinatura}
-                alt={`Assinatura de ${assina.nome}`}
-                className="max-h-[52px] max-w-[240px] object-contain"
-              />
-            ) : null}
-          </div>
-          <div className="border-t border-tinta-media pt-1.5 text-center">
-            <p className="text-[13.5px] font-medium">{assina.nome}</p>
-            {assina.cargo ? (
-              <p className="text-[12px] text-tinta-media">{assina.cargo}</p>
-            ) : null}
-            {documentoEmitente ? (
-              <p className="text-[12px] text-tinta-media">{documentoEmitente}</p>
-            ) : null}
+      <div className="relative flex flex-wrap items-start justify-between gap-x-6 gap-y-2 pt-6 print:pt-3">
+        <p className="pt-[30px] text-[14.5px] print:pt-[18px]">
+          {local ? `${local}, ` : ''}
+          {dataPorExtenso(corpo.emitidoEm.slice(0, 10))}.
+        </p>
+
+        {/*
+          * A assinatura leva o nome e o documento embaixo da linha: é quem
+          * recebeu que assina, e a linha anônima não diz de quem é o traço.
+          *
+          * Com imagem configurada ela aparece **em cima** da linha, que é onde a
+          * caneta cairia. Sem imagem, o espaço em branco fica igual, para o papel
+          * impresso continuar tendo onde assinar à mão: quem manda por e-mail
+          * precisa da imagem, e quem imprime não.
+          */}
+        <div className="ml-auto">
+          <div className="min-w-[260px]">
+            <div className="flex h-[52px] items-end justify-center print:h-[40px]">
+              {assinatura ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={assinatura}
+                  alt={`Assinatura de ${assina.nome}`}
+                  className="max-h-[52px] max-w-[240px] object-contain print:max-h-[40px]"
+                />
+              ) : null}
+            </div>
+            <div className="border-t border-tinta-media pt-1.5 text-center">
+              <p className="text-[13.5px] font-medium">{assina.nome}</p>
+              {assina.cargo ? (
+                <p className="text-[12px] text-tinta-media">{assina.cargo}</p>
+              ) : null}
+              {documentoEmitente ? (
+                <p className="text-[12px] text-tinta-media">{documentoEmitente}</p>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
 
-      <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-6">
-        <p className="max-w-[440px] text-[12px] leading-[1.6] text-tinta-media">
+      <footer className="relative flex flex-wrap items-end justify-between gap-x-6 gap-y-2 pt-6 print:flex-nowrap print:pt-3">
+        <p className="max-w-[440px] text-[12px] leading-[1.6] text-tinta-media print:max-w-none print:flex-1 print:leading-[1.45]">
           {emitiu ? <>Emitido por {emitiu}. </> : null}
           Este documento é um recibo, e não uma nota fiscal.
           {motivo ? <> {motivoDoRecibo(status, motivo)}.</> : null}
         </p>
         {status !== 'valido' ? (
-          <p className="rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12px] font-medium text-alerta">
+          <p className="shrink-0 rounded-peca bg-alerta-fundo px-2.5 py-[5px] text-[12px] font-medium text-alerta">
             {status === 'cancelado' ? 'Cancelado' : 'Substituído'}
           </p>
         ) : null}
