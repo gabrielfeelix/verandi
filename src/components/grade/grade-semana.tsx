@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { SessaoResumo } from '@/server/agenda/consultas'
 import { AvatarProf } from '@/components/hoje/pecas'
+import { Icone } from '@/components/ui/icones'
 import { cartao, Vazio } from '@/components/ui/pecas'
 
 /*
@@ -280,6 +281,17 @@ export function CelulaTurma({ sessao }: { sessao: SessaoResumo }) {
         >
           {sessao.servico}
         </span>
+        {/* a chamada feita, de relance: quem olha a semana acha o que ficou
+            para trás pela ausência do check (MGM, 15/out/2026) */}
+        {sessao.chamada === 'feita' && !cancelada ? (
+          <span
+            title="Chamada realizada"
+            className="ml-auto grid size-4 shrink-0 place-items-center rounded-full bg-positivo-fundo text-positivo"
+          >
+            <Icone nome="check" tamanho={11} />
+            <span className="sr-only">Chamada realizada</span>
+          </span>
+        ) : null}
       </span>
       <span className="flex items-center justify-between gap-1.5">
         <span className="truncate text-[12px] text-tinta-media">

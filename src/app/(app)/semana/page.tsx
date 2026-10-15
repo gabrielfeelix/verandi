@@ -4,6 +4,7 @@ import { OPERA, clienteServidor, exigirPapel } from '@/server/conta'
 import { carregarVocabulario, resolverRotulos } from '@/server/vocabulario'
 import { sessoesDoIntervalo } from '@/server/agenda/consultas'
 import { diaDaSemanaDe, somarDias } from '@/core/agenda/datas'
+import { CHAMADA_ABRE_ANTES_MS } from '@/core/agenda/chamada'
 import { agoraMs, hojeEm, localDe } from '@/server/agenda/fuso'
 import { GradeSemana } from '@/components/grade/grade-semana'
 import { BotaoImprimir } from '@/components/ui/imprimir'
@@ -31,6 +32,8 @@ type Busca = Promise<{
   eixo?: string
   /** `sim`: só horário que ainda vai acontecer e tem lugar */
   vaga?: string
+  /** `pendente` ou `feita`: as aulas pelo estado da chamada */
+  chamada?: string
 }>
 
 const DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
@@ -67,6 +70,9 @@ function faixaDaSemana(de: string, ate: string) {
     ? `${diaDe} – ${diaAte} de ${MESES[mesAte]}`
     : `${diaDe} de ${MESES[mesDe]} – ${diaAte} de ${MESES[mesAte]}`
 }
+
+/** os três primeiros nomes: "Carolina Cristina Molina Santana" cabe no chip como "Carolina Cristina Molina" */
+const nomeCurto = (nome: string) => nome.trim().split(/\s+/).slice(0, 3).join(' ')
 
 const MESES_DO_BOTAO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 /** `2026-09-20` → `20 set` */
@@ -157,9 +163,20 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
    */
   const soComVaga = p.vaga === 'sim'
   const agora = new Date().toISOString()
-  const sessoes = soComVaga
-    ? todas.filter((s) => s.status !== 'cancelada' && s.ocupacao.livres > 0 && s.inicio > agora)
-    : todas
+  /*
+   * A chamada, para achar o que ficou para trás. "Pendente" é só a aula cuja
+   * chamada já abriu: a de amanhã ainda não tem o que fazer, e entrar no
+   * filtro esconderia justamente as que faltam.
+   */
+  const filtroChamada = p.chamada === 'pendente' || p.chamada === 'feita' ? p.chamada : null
+  const abertaAte = new Date(Date.parse(agora) + CHAMADA_ABRE_ANTES_MS).toISOString()
+  const sessoes = todas.filter((s) => {
+    if (soComVaga && !(s.status !== 'cancelada' && s.ocupacao.livres > 0 && s.inicio > agora)) return false
+    if (filtroChamada === 'feita' && s.chamada !== 'feita') return false
+    if (filtroChamada === 'pendente'
+      && !(s.status !== 'cancelada' && s.chamada === 'pendente' && s.inicio <= abertaAte)) return false
+    return true
+  })
 
   const abertos = new Set((aberturas ?? []).map((a) => a.dia_semana))
   const fechados = new Set(
@@ -179,6 +196,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
     if (p.mes) base.mes = p.mes
     if (p.eixo) base.eixo = p.eixo
     if (p.vaga) base.vaga = p.vaga
+    if (p.chamada) base.chamada = p.chamada
     for (const [k, v] of Object.entries(extra)) {
       if (v === undefined) delete base[k]
       else base[k] = v
@@ -355,7 +373,7 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
             ativo={p.profissional === pr.id}
           >
             <AvatarProf nome={pr.nome} cor={pr.cor} tamanho={20} />
-            {pr.nome}
+            {nomeCurto(pr.nome)}
           </Chip>
         ))}
 
@@ -376,6 +394,18 @@ export default async function Semana({ searchParams }: { searchParams: Busca }) 
           </>
         ) : null}
 
+        <span aria-hidden className="mx-1 h-5 w-px bg-linha" />
+        {/* menu, e não mais chips: é filtro de conferência, de fim de dia */}
+        <Suspenso
+          rotulo={filtroChamada === 'pendente' ? 'Chamada pendente'
+            : filtroChamada === 'feita' ? 'Chamada realizada' : 'Chamada'}
+          ativo={!!filtroChamada}
+          itens={[
+            { rotulo: 'Todas as aulas', href: q({ chamada: undefined }), ativo: !filtroChamada },
+            { rotulo: 'Chamada pendente', href: q({ chamada: 'pendente' }), ativo: filtroChamada === 'pendente' },
+            { rotulo: 'Chamada realizada', href: q({ chamada: 'feita' }), ativo: filtroChamada === 'feita' },
+          ]}
+        />
       </div>
       )}
 
