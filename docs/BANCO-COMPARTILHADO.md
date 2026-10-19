@@ -38,17 +38,21 @@ Verandi. Nenhum substitui o outro.
    `node scripts/aplica-em-producao.mjs`.** O controle é
    `app_verandi.migrations_aplicadas`; não use nem altere o histórico global do
    CLI para tentar conciliar os dois repositórios.
-6. **O nome da próxima migration vem do diretório.** Hoje a última é `0061`; a
-   próxima é `0062`, enquanto nenhuma nova tiver sido criada. Use o formato
-   `NNNN_vr_descricao.sql`. Esta linha já esteve dezenove números atrasada (
-   dizia `0042` quando o disco tinha `0061`), e é exatamente por isso que a
-   regra é `ls supabase/migrations/ | tail -1`, inclusive quando um documento
-   afirma um número.
+6. **O nome da próxima migration vem do diretório**, no formato
+   `NNNN_vr_descricao.sql`. Esta linha não diz mais o número, de propósito:
+   já esteve dezenove números atrasada (dizia `0042` quando o disco tinha
+   `0061`) e depois dezoito (dizia `0061` com o disco em `0079`). A regra é
+   `ls supabase/migrations/ | tail -1`, inclusive quando um documento afirma
+   um número.
 7. **RLS e `GRANT` são camadas diferentes.** Toda tabela de domínio nasce com
    RLS e política por `conta_id`. Tabela técnica sem dono recebe RLS sem política
    e `revoke all from anon, authenticated`.
 8. **Função `security definer` precisa de `search_path` fixo e permissões
    mínimas.** View precisa de `security_invoker = true` quando lê dado protegido.
+   Toda função nova escreve `revoke all on function ... from public, anon` e
+   concede só a quem chama: o default do schema acrescenta `authenticated` e
+   `service_role`, mas não tira o `EXECUTE` que o Postgres dá a `PUBLIC`, e
+   `anon` herda de lá (foi o que a `0078` corrigiu).
 9. **Mudança global exige avaliar os dois produtos antes.** Isso inclui Auth,
    SMTP e redirect do Auth, Storage, extensões, schemas expostos, PostgREST,
    região, rede, limites, backup e restauração.
@@ -79,6 +83,20 @@ programa antes de escrever qualquer coisa, com mensagem em vez de stack trace.
 
 Conferido com token inválido e com ref inexistente: os dois param em
 `Nada foi aplicado`.
+
+**`0078` e `0079` aplicadas em 19/out/2026**, com autorização do dono, junto
+com a `0136`/`0137` do AutoFluxos. Antes, replay do zero no Docker com os dois
+repositórios no mesmo banco (a forma bateu com a produção) e ensaio em
+transação contra a produção.
+
+- `0078`: `tem_papel`, `contas_do_usuario` e `proximo_numero_recibo` sem
+  `anon`. No Docker: `anon` leva `permission denied`; o dono logado lê a conta e
+  numera recibo; outro usuário não vê a conta e o recibo nega. Pedido anônimo
+  para listar bucket privado passa a levar 403 em vez de lista vazia; link
+  público segue 200. As 6 funções `security definer` que `authenticated`
+  executa são de propósito e conferem `auth.uid()` por dentro.
+- `0079`: índices das chaves de `participacao` e `sessao`. Busca pela
+  reposição 2,8 → 0,2 ms; por profissional 1,5 → 0,75 ms.
 
 ## O que o schema não separa
 
