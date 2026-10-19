@@ -350,7 +350,7 @@ export async function aceitarConvite(
      * link e entraria na conta da pessoa (o Auth é compartilhado com outros
      * produtos da 4YU). Quem já tem senha prova que é dono dela.
      */
-    await conferirSenha(convite.email, senha)
+    await conferirSenha(db, convite.email, senha)
     usuarioId = existente
   } else if (convite.tipo === 'senha') {
     /*
@@ -448,7 +448,29 @@ export async function salvarMeuNome(nome: string): Promise<void> {
 }
 
 /** Entra com a senha num cliente sem sessão, só para saber se ela confere. */
-async function conferirSenha(email: string, senha: string): Promise<void> {
+/**
+ * Cinco tentativas por e-mail a cada quinze minutos, contadas no banco.
+ *
+ * Quem confere a senha é o servidor, então o limite do Auth conta tentativas
+ * do IP da Vercel, e não de quem tenta. Sem isto, um dono convidava o e-mail
+ * de outra pessoa e testava senhas pelo aceite sem limite nenhum. A conta é
+ * por e-mail, e não por convite, para que convidar de novo não zere o
+ * contador. Falha fechada: sem o contador, não confere.
+ */
+const LIMITE_DE_SENHA = { teto: 5, janelaSegundos: 15 * 60 }
+
+async function conferirSenha(
+  db: ReturnType<typeof clienteAdmin>, email: string, senha: string,
+): Promise<void> {
+  const { data: permitido, error: erroLimite } = await db.rpc('consumir_limite', {
+    p_chave: `convite-senha:${email.toLowerCase()}`,
+    p_teto: LIMITE_DE_SENHA.teto,
+    p_janela_segundos: LIMITE_DE_SENHA.janelaSegundos,
+  })
+  if (erroLimite || permitido === false) {
+    throw new Error('muitas tentativas de senha. Espere quinze minutos e tente de novo')
+  }
+
   const url = process.env.SUPABASE_URL
   const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !chave) throw new Error('SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY são obrigatórias')

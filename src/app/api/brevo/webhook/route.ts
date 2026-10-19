@@ -9,27 +9,37 @@ import { estadoDoEvento, piorEntre, type EstadoDeEntrega } from '@/core/email/en
  * caiu no spam. Sem isto a tela afirma "Convite enviado" para um endereço
  * digitado errado e ninguém descobre.
  *
- * **Autenticação é o segredo na URL.** O Brevo não assina webhook — não há
- * HMAC nem cabeçalho para conferir. Então o endereço em si é a credencial, e
- * por isso ele vive em `BREVO_WEBHOOK_SEGREDO`, nunca no repositório. Sem o
- * segredo configurado a rota recusa tudo: aberta ela deixaria qualquer um
- * marcar convite alheio como "voltou", que é negação de serviço barata.
+ * **Autenticação é um segredo no cabeçalho.** O Brevo não assina webhook (não
+ * há HMAC), mas manda `Authorization: Bearer` com o token cadastrado nele. O
+ * token vive em `BREVO_WEBHOOK_TOKEN`, nunca no repositório. Sem ele
+ * configurado a rota recusa tudo: aberta ela deixaria qualquer um marcar
+ * convite alheio como "voltou", que é negação de serviço barata.
+ *
+ * Antes o segredo ia na URL (`?s=`), e URL vai parar em log de acesso, de
+ * proxy e no painel do Brevo. `BREVO_WEBHOOK_SEGREDO` segue aceito só na
+ * troca: sai da Vercel assim que o Brevo estiver mandando o cabeçalho.
  */
 
 // o Brevo desiste e reenvia se demorar; nada aqui deve ficar pensando
 export const maxDuration = 10
 
-function autorizado(req: NextRequest): boolean {
-  const esperado = process.env.BREVO_WEBHOOK_SEGREDO
-  if (!esperado) return false
-  const veio = req.nextUrl.searchParams.get('s') ?? ''
-  // comparação de tamanho fixo evita medir o segredo pelo tempo de resposta
+// comparação de tamanho fixo evita medir o segredo pelo tempo de resposta
+function igual(veio: string, esperado: string): boolean {
   if (veio.length !== esperado.length) return false
   let diferenca = 0
   for (let i = 0; i < esperado.length; i++) {
     diferenca |= veio.charCodeAt(i) ^ esperado.charCodeAt(i)
   }
   return diferenca === 0
+}
+
+function autorizado(req: NextRequest): boolean {
+  const token = process.env.BREVO_WEBHOOK_TOKEN
+  const cabecalho = req.headers.get('authorization') ?? ''
+  if (token && cabecalho.startsWith('Bearer ') && igual(cabecalho.slice(7), token)) return true
+
+  const antigo = process.env.BREVO_WEBHOOK_SEGREDO
+  return Boolean(antigo) && igual(req.nextUrl.searchParams.get('s') ?? '', antigo!)
 }
 
 export async function POST(req: NextRequest) {

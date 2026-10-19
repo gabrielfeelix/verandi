@@ -1,6 +1,7 @@
 import { createHmac, randomBytes } from 'node:crypto'
 import type { Db } from '../supabase'
 import { clienteAdmin } from '../supabase'
+import { postarParaFora } from './entrega'
 import {
   CABECALHO_ASSINATURA, CABECALHO_EVENTO, CABECALHO_INSTANTE,
   MAXIMO_DE_TENTATIVAS, proximaEspera, textoAssinado,
@@ -115,21 +116,15 @@ export async function entregarPendentes(limite = 20): Promise<{ entregues: numbe
        * usuário, mas ainda dentro da mesma invocação, e um destino que demora
        * meio minuto seguraria a função inteira por conta de um evento só.
        */
-      const r = await fetch(destino.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          [CABECALHO_EVENTO]: ev.tipo,
-          [CABECALHO_INSTANTE]: String(instante),
-          [CABECALHO_ASSINATURA]: assinatura,
-        },
-        body: corpo,
-        signal: AbortSignal.timeout(10_000),
-        // redirecionamento levaria o evento para onde o cadastro não conferiu
-        redirect: 'manual',
-      })
+      // sem seguir redirecionamento, e recusando IP interno ao conectar
+      const status = await postarParaFora(destino.url, {
+        'Content-Type': 'application/json',
+        [CABECALHO_EVENTO]: ev.tipo,
+        [CABECALHO_INSTANTE]: String(instante),
+        [CABECALHO_ASSINATURA]: assinatura,
+      }, corpo, 10_000)
       // qualquer 2xx é sucesso: exigir 200 recusaria um 204 legítimo
-      if (!r.ok) erro = `resposta ${r.status}`
+      if (status < 200 || status > 299) erro = `resposta ${status}`
     } catch (e) {
       erro = e instanceof Error ? e.message : 'falha de rede'
     }
