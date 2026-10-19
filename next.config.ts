@@ -1,5 +1,31 @@
 import type { NextConfig } from "next";
 
+/*
+ * Cabeçalhos de segurança de toda resposta, os mesmos do AutoFluxos.
+ *
+ * - `frame-ancestors 'none'` e `X-Frame-Options: DENY`: nenhuma tela da
+ *   Verandi pode ser embutida em outro site. Sem isso, um site falso embute a
+ *   agenda num iframe transparente e a pessoa clica sem ver onde (clickjacking).
+ * - `Strict-Transport-Security`: o navegador só fala HTTPS, inclusive nos
+ *   subdomínios, por dois anos.
+ * - `nosniff`: o navegador não adivinha tipo de arquivo, então um upload
+ *   disfarçado não vira script.
+ * - `Permissions-Policy`: câmera só para a própria página (a foto da
+ *   avaliação, `camera.tsx`); microfone e localização desligados, porque
+ *   nenhuma tela usa.
+ *
+ * Sem `script-src` de propósito: uma política de scripts escrita no chute
+ * quebra a hidratação da página inteira. `frame-ancestors` não mexe em script.
+ */
+const cabecalhos = [
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+];
+
 const nextConfig: NextConfig = {
   experimental: {
     /*
@@ -33,6 +59,7 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
+      { source: "/:path*", headers: cabecalhos },
       {
         /*
          * A arte das telas de acesso é o primeiro pixel do produto: ela precisa
