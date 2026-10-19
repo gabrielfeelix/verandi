@@ -130,6 +130,16 @@ senha forjado achada na auditoria de 19/out (sem uso encontrado). Também cria
 `service_role`; o aviso `rls_enabled_no_policy` dela é de propósito.
 Reproduzido no Docker antes e depois; regressão em `tests/usuarios.test.ts`.
 
+**`0084` aplicada em 19/out/2026**, com autorização do dono, depois do deploy
+`6ae01c9` (a aula avulsa precisava já criar o plano pelo servidor). `plano`,
+`contrato`, `pausa`, `cobranca`, `pagamento` e `recibo` trocam a política
+`for all` de qualquer membro por uma por ação: leitura igual; escrita de
+`plano` só `dono`/`suporte`, das outras só `dono`/`recepcao`/`suporte`.
+Antes, o profissional dava baixa em cobrança e emitia recibo pela Data API.
+Conferido em produção: 1 de leitura e 3 de escrita em cada tabela, nenhuma
+`for all`. Reproduzido no Docker antes (4 falhas) e depois; regressão em
+`tests/rls-financeiro.test.ts`.
+
 **Tabela nova: uma política por ação, nunca `for all` junto de `X_le`.** O
 laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
 `auth.uid()` em política vai sempre como `(select auth.uid())`.
