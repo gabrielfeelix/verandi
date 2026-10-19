@@ -114,6 +114,11 @@ chaves estrangeiras que faltavam e fora `participacao_sessao_ix`, coberto por
 `participacao_sessao_pessoa_uk`. O aviso de índice "não usado" sobe com isso
 e é esperado em tabela pequena (ver o runbook do AutoFluxos, `0138`).
 
+**`0082` aplicada em 19/out/2026**, com autorização do dono: índices das duas
+leituras do sino de notificações, que roda a cada página e somava mais tempo
+de banco que qualquer outra leitura da Verandi. Presenças da semana 6 → 0,36
+ms, aulas canceladas 0,9 → 0,07 ms.
+
 **Tabela nova: uma política por ação, nunca `for all` junto de `X_le`.** O
 laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
 `auth.uid()` em política vai sempre como `(select auth.uid())`.
