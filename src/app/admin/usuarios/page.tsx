@@ -1,3 +1,4 @@
+import { exigirSuporte } from '@/server/suporte/consultas'
 import { clienteServidor } from '@/server/conta'
 import { listarUsuarios } from '@/server/admin/consultas'
 import { TabelaDeUsuarios } from '@/components/admin/tabela-de-usuarios'
@@ -16,6 +17,7 @@ export default async function Usuarios({
 }: {
   searchParams: Promise<{ q?: string; f?: string; p?: string }>
 }) {
+  await exigirSuporte()
   const { q, f, p } = await searchParams
   const db = await clienteServidor()
   const [{ data: { user } }, todos] = await Promise.all([db.auth.getUser(), listarUsuarios()])

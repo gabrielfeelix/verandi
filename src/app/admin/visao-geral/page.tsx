@@ -1,3 +1,4 @@
+import { exigirSuporte } from '@/server/suporte/consultas'
 import Link from 'next/link'
 import { resumoDaPlataforma, listarLog } from '@/server/admin/consultas'
 import { CabecalhoAdmin, ListaDoLog, Numero } from '@/components/admin/pecas'
@@ -15,6 +16,7 @@ const PARADAS_A_VISTA = 6
  * cancelamento.
  */
 export default async function VisaoGeral() {
+  await exigirSuporte()
   const [r, log] = await Promise.all([resumoDaPlataforma(), listarLog({ limite: 8 })])
 
   return (

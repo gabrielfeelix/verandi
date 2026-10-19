@@ -1,3 +1,4 @@
+import { exigirSuporte } from '@/server/suporte/consultas'
 import { listarLog } from '@/server/admin/consultas'
 import { CabecalhoAdmin, ListaDoLog } from '@/components/admin/pecas'
 
@@ -9,6 +10,7 @@ import { CabecalhoAdmin, ListaDoLog } from '@/components/admin/pecas'
  * log é a metade disso que fica: a faixa avisa durante, o log lembra depois.
  */
 export default async function Log() {
+  await exigirSuporte()
   const eventos = await listarLog({ limite: 150 })
   return (
     <div className="flex flex-col gap-5">

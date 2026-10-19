@@ -203,7 +203,9 @@ export async function gerarLinkDeSenha(usuarioId: string): Promise<{ token: stri
   const { token, hash } = novoToken()
   const { data: { user } } = await db.auth.getUser()
 
-  const { data, error } = await db.from('convite').insert({
+  // pelo servidor, depois das conferências acima: o banco recusa convite de
+  // senha vindo da sessão (0083), porque pela API ele trocaria a senha alheia
+  const { data, error } = await clienteAdmin().from('convite').insert({
     conta_id: conta.contaId,
     email: alvo.email,
     papel: 'profissional', // não concede nada: quem aceita já tem vínculo
@@ -350,7 +352,26 @@ export async function aceitarConvite(
      */
     await conferirSenha(convite.email, senha)
     usuarioId = existente
-  } else if (existente) {
+  } else if (convite.tipo === 'senha') {
+    /*
+     * Convite de senha troca a senha de quem já existe, então só vale para
+     * quem trabalha nesta conta e em nenhuma outra: a mesma regra de
+     * `gerarLinkDeSenha`, conferida de novo aqui porque o convite pode ter
+     * nascido por fora dela. Antes desta conferência, um dono que gravasse
+     * pela API um convite de senha com o e-mail de outra pessoa (inclusive
+     * de um admin da 4YU) abria o link e trocava a senha dela.
+     *
+     * A resposta é a de convite inexistente: quem tentou não descobre se o
+     * e-mail existe.
+     */
+    if (!existente) return { ok: false, motivo: 'inexistente' }
+    const { data: vinculos, error: erroVinculos } = await db.from('usuario_conta')
+      .select('conta_id').eq('usuario_id', existente).eq('ativo', true)
+    if (erroVinculos) throw erroVinculos
+    const contas = (vinculos ?? []).map((v) => v.conta_id)
+    if (contas.length !== 1 || contas[0] !== convite.conta_id) {
+      return { ok: false, motivo: 'inexistente' }
+    }
     usuarioId = existente
     const { error } = await db.auth.admin.updateUserById(usuarioId, { password: senha })
     if (error) throw error

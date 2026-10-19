@@ -1,3 +1,4 @@
+import { exigirSuporte } from '@/server/suporte/consultas'
 import { listarContas, CONTAS_POR_PAGINA } from '@/server/suporte/consultas'
 import { PainelContas } from '@/components/suporte/painel-contas'
 
@@ -12,6 +13,7 @@ export default async function Contas({
 }: {
   searchParams: Promise<{ q?: string; p?: string }>
 }) {
+  await exigirSuporte()
   const { q, p } = await searchParams
   const pagina = Math.max(1, Number(p) || 1)
   const { linhas, total } = await listarContas({ busca: q, pagina })

@@ -2347,6 +2347,10 @@ export type Database = {
           usuario_id: string
         }[]
       }
+      consumir_limite: {
+        Args: { p_chave: string; p_janela_segundos: number; p_teto: number }
+        Returns: boolean
+      }
       proximo_numero_recibo: {
         Args: { p_conta: string; p_serie: string }
         Returns: number

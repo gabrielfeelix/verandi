@@ -105,6 +105,47 @@ describe('acesso à conta', () => {
     expect(senha.error).toBeNull()
   })
 
+  /*
+   * O ataque que a auditoria de 19/out/2026 achou: o dono gravava pela API um
+   * convite de senha com o e-mail de outra pessoa, abria o link e trocava a
+   * senha dela. A 0083 fecha isso no banco; estes testes garantem que a trava
+   * continua lá.
+   */
+  it('dono não cria convite de senha pela API, nem para si nem para outro', async () => {
+    const { error } = await dono.cliente.from('convite').insert({
+      conta_id: contaA, email: deFora.email, papel: 'profissional', tipo: 'senha',
+      token_hash: `ataque-${Math.random()}`,
+      expira_em: new Date(Date.now() + 864e5).toISOString(),
+    })
+    expect(error?.code).toBe('42501')
+  })
+
+  it('dono não transforma convite de acesso em convite de senha', async () => {
+    const { data: c } = await dono.cliente.from('convite').insert({
+      conta_id: contaA, email: `troca-${Date.now()}@teste.local`, papel: 'profissional',
+      tipo: 'acesso', token_hash: `t-${Math.random()}`,
+      expira_em: new Date(Date.now() + 864e5).toISOString(),
+    }).select('id').single()
+    const { error } = await dono.cliente.from('convite')
+      .update({ tipo: 'senha', email: deFora.email }).eq('id', c!.id)
+    expect(error?.code).toBe('42501')
+
+    const revoga = await dono.cliente.from('convite')
+      .update({ revogado_em: new Date().toISOString() }).eq('id', c!.id)
+    expect(revoga.error).toBeNull()
+  })
+
+  it('dono não se dá o papel suporte nem reativa a conta suspensa', async () => {
+    const papel = await dono.cliente.from('usuario_conta')
+      .update({ papel: 'suporte' }).eq('usuario_id', dono.usuarioId).eq('conta_id', contaA)
+    expect(papel.error?.code).toBe('42501')
+
+    await db.from('conta').update({ ativo: false }).eq('id', contaA)
+    const reativa = await dono.cliente.from('conta').update({ ativo: true }).eq('id', contaA)
+    await db.from('conta').update({ ativo: true }).eq('id', contaA)
+    expect(reativa.error?.code).toBe('42501')
+  })
+
   it('convite expirado aparece marcado, não some', async () => {
     const { data: c } = await db.from('convite').insert({
       conta_id: contaA, email: `velho-${Date.now()}@teste.local`,

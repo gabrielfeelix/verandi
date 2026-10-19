@@ -48,6 +48,10 @@ export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
   if (origem.valor === 'reposicao' && !reposicaoDeId) {
     return erro(400, 'reposicaoDeId é obrigatório quando origem é reposicao', 'reposicaoDeId')
   }
+  if (reposicaoDeId !== undefined) {
+    const idRuim = idObrigatorio(reposicaoDeId, 'reposicaoDeId')
+    if (idRuim) return erroDePedido(idRuim)
+  }
 
   return comIdempotencia(req, ctx, 'POST /participacoes', corpo.bruto, async () => {
     /*
@@ -60,6 +64,14 @@ export const POST = comChave(async (req: NextRequest, ctx: Contexto) => {
       .eq('id', pessoaId).eq('conta_id', ctx.contaId)
       .maybeSingle()
     if (!pessoa) return { status: 404, corpo: { erro: 'esta pessoa não existe nesta conta' } }
+
+    // a falta reposta também é conferida por conta: a chave estrangeira aceita
+    // participação de outro cliente, que passaria a constar como já reposta
+    if (reposicaoDeId) {
+      const { data: falta } = await ctx.db.from('participacao')
+        .select('id').eq('id', reposicaoDeId).eq('conta_id', ctx.contaId).maybeSingle()
+      if (!falta) return { status: 404, corpo: { erro: 'esta falta não existe nesta conta' } }
+    }
     if (pessoa.anonimizada_em) {
       return { status: 409, corpo: { erro: 'esta pessoa pediu a exclusão dos dados dela' } }
     }

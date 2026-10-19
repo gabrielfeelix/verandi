@@ -14,12 +14,17 @@ import type { NextConfig } from "next";
  *   avaliação, `camera.tsx`); microfone e localização desligados, porque
  *   nenhuma tela usa.
  *
+ * - `object-src 'none'`, `base-uri 'self'` e `form-action 'self'`: nada de
+ *   plugin embutido, base dos endereços fixa e formulário só envia para cá
+ *   (conferido que nenhum envia para fora).
+ *
  * Sem `script-src` de propósito: uma política de scripts escrita no chute
- * quebra a hidratação da página inteira. `frame-ancestors` não mexe em script.
+ * quebra a hidratação da página inteira. Nenhuma das regras acima mexe em
+ * script.
  */
 const cabecalhos = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
-  { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

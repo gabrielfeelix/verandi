@@ -1,3 +1,4 @@
+import { exigirSuporte } from '@/server/suporte/consultas'
 import { notFound } from 'next/navigation'
 import { detalheDaConta, listarLog } from '@/server/admin/consultas'
 import { DetalheDaConta } from '@/components/admin/detalhe-da-conta'
@@ -16,6 +17,7 @@ export default async function Conta({
   params: Promise<{ id: string }>
   searchParams: Promise<{ aba?: string }>
 }) {
+  await exigirSuporte()
   const [{ id }, { aba }] = await Promise.all([params, searchParams])
   // id que não é uuid daria erro do banco em vez de "não existe"
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()

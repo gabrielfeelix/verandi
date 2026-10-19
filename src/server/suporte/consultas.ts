@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation'
+import { clienteServidor } from '../conta'
 import { clienteAdmin, type Db } from '../supabase'
 
 export type ContaSinais = {
@@ -20,6 +22,21 @@ export type ContaSinais = {
  * checagem é explícita e vem antes de qualquer leitura — não depende de a
  * consulta seguinte "por acaso" filtrar certo.
  */
+/**
+ * A mesma porta do layout de `/admin`, chamada por cada página dele.
+ *
+ * O layout sozinho não basta: na navegação entre telas do admin o Next só
+ * renderiza de novo a página, não o layout, e um pedido montado à mão para a
+ * página chega sem passar pela conferência. Toda página de `/admin` lê dado de
+ * todos os clientes com a chave de serviço, então cada uma confere por si.
+ */
+export async function exigirSuporte(): Promise<void> {
+  const db = await clienteServidor()
+  const { data: { user } } = await db.auth.getUser()
+  if (!user) redirect('/entrar')
+  if (!(await ehSuporte(db))) redirect(`/hoje?restrita=${encodeURIComponent('Administração')}`)
+}
+
 export async function ehSuporte(db: Db): Promise<boolean> {
   const { data: { user } } = await db.auth.getUser()
   if (!user) return false

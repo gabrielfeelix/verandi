@@ -46,6 +46,39 @@ export function erroDePedido(e: Erro) {
  * de conta suspensa dão a mesma resposta. Distinguir seria dizer a quem está
  * tentando qual das cinco portas existe.
  */
+/**
+ * Limite de pedidos da API, contado no banco (`app_verandi.consumir_limite`,
+ * 0083): na Vercel cada instância nasce zerada, então contagem em memória não
+ * segura nada.
+ *
+ * Por chave, 300 por minuto: folga larga para o robô do AutoFluxos, que é
+ * quem mais chama, e ainda assim um teto para chave vazada ou laço de
+ * integração. Sem chave válida, 30 por minuto por endereço.
+ *
+ * Falha aberta: se o banco não responder o limite, o pedido segue. Derrubar a
+ * API inteira porque o contador falhou seria pior do que o abuso que ele
+ * evita.
+ */
+const LIMITE_POR_CHAVE = { teto: 300, janelaSegundos: 60 }
+const LIMITE_SEM_CHAVE = { teto: 30, janelaSegundos: 60 }
+
+async function dentroDoLimite(chave: string, limite: { teto: number; janelaSegundos: number }) {
+  const { data, error } = await clienteAdmin().rpc('consumir_limite', {
+    p_chave: chave, p_teto: limite.teto, p_janela_segundos: limite.janelaSegundos,
+  })
+  if (error) {
+    console.error('[api/v1] limite indisponível', error.message)
+    return true
+  }
+  return data !== false
+}
+
+function muitoPedido() {
+  const resposta = erro(429, 'muitos pedidos em pouco tempo; tente de novo em um minuto')
+  resposta.headers.set('Retry-After', '60')
+  return resposta
+}
+
 export function comChave<P extends Record<string, string> = Record<string, never>>(
   fn: (req: NextRequest, ctx: Contexto, params: P) => Promise<NextResponse>,
 ) {
@@ -58,8 +91,14 @@ export function comChave<P extends Record<string, string> = Record<string, never
      */
     contexto?: { params: Promise<P> },
   ): Promise<NextResponse> => {
+    const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'sem-ip'
     const conta = await contaDaChave(req.headers.get('authorization'))
-    if (!conta) return erro(401, 'chave de API ausente ou inválida')
+    if (!conta) {
+      // chave errada repetida do mesmo endereço: quem tenta não ganha tentativa infinita
+      if (!(await dentroDoLimite(`v1:ip:${ip}`, LIMITE_SEM_CHAVE))) return muitoPedido()
+      return erro(401, 'chave de API ausente ou inválida')
+    }
+    if (!(await dentroDoLimite(`v1:chave:${conta.chaveId}`, LIMITE_POR_CHAVE))) return muitoPedido()
 
     try {
       const params = contexto ? await contexto.params : ({} as P)
