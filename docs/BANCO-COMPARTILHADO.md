@@ -123,6 +123,9 @@ ms, aulas canceladas 0,9 → 0,07 ms.
 laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
 `auth.uid()` em política vai sempre como `(select auth.uid())`.
 
+**Incidente com dado pessoal** (chave vazada, bucket aberto, acesso indevido):
+o roteiro é um só para os dois produtos, `autofluxos/docs/INCIDENTE-LGPD.md`.
+
 ## O que o schema não separa
 
 - **`auth.users`:** a identidade é global. Pertencer ao Auth não concede acesso;
