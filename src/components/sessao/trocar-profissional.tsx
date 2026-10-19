@@ -41,7 +41,8 @@ export function TrocarProfissional({
         onClick={() => setAberto((a) => !a)}
         aria-expanded={aberto}
       >
-        Trocar {rotulo.toLowerCase()}
+        {/* Sem ninguém no horário não há o que trocar: o verbo é adicionar. */}
+        {atual ? 'Trocar' : 'Adicionar'} {rotulo.toLowerCase()}
       </Botao>
 
       {aberto ? (
