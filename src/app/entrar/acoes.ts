@@ -17,6 +17,22 @@ export async function entrar(
   const db = await clienteServidor()
   const { data, error } = await db.auth.signInWithPassword({ email, password: senha })
 
+  /*
+   * Banco fora do ar não é senha errada.
+   *
+   * Em 17/out/2026 o Supabase bloqueou o projeto por cota (402) e todo login
+   * respondia como credencial errada: quem tentava ia conferir a senha, e a
+   * equipe só descobriu pelo AutoFluxos, que mora no mesmo projeto. Sem
+   * status, 402 ou 5xx é a infraestrutura; 429 é o teto do GoTrue, de verdade.
+   */
+  if (error) {
+    const status = error.status ?? 0
+    if (status === 429) return { erro: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }
+    if (status === 0 || status === 402 || status >= 500) {
+      return { erro: 'Serviço temporariamente indisponível. Tente novamente em alguns minutos.' }
+    }
+  }
+
   // mensagem única de propósito: dizer "esse e-mail não existe" entrega a
   // quem está tentando adivinhar quais e-mails estão cadastrados
   if (error || !data.user) return { erro: 'E-mail ou senha não conferem.' }
