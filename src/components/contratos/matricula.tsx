@@ -667,7 +667,9 @@ export function ContratosDaFicha({
   // nenhum em vigor (o aluno que voltou depois de o anual acabar)
   const temEmVigor = contratos.some((c) => c.status !== 'encerrado')
   const podeRenovar = (c: ContratoLinha) =>
-    !!c.fim && (c.status === 'ativo' || (c.status === 'encerrado' && !temEmVigor))
+    // contrato que ainda não começou já é a renovação de outro (Luz Marina, 19/10)
+    !!c.fim && c.inicio <= new Date().toLocaleDateString('en-CA') &&
+    (c.status === 'ativo' || (c.status === 'encerrado' && !temEmVigor))
 
   if (contratos.length === 0) {
     return (

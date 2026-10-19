@@ -826,6 +826,43 @@ export default async function Pessoa({
 
               <ContratosDaFicha contratos={contratos} pessoaNome={ficha.pessoa.nome} />
 
+              {/*
+                Os horários fixos também aqui, e não só na Agenda: quem abre o
+                contrato para mudar o horário não acha o lugar, e o Renovar
+                virou o jeito de "editar" (Luz Marina, MGM, 19/10/2026: dois
+                trimestrais criados sem querer). Mesmo componente da Agenda:
+                turma cheia aparece marcada antes de escolher.
+              */}
+              <section className={`${cartao} px-[18px] py-4`}>
+                <div className="flex flex-wrap items-baseline justify-between gap-2 pb-3">
+                  <h3 className="font-titulo text-[18px] font-semibold">
+                    {rotulos.vaga.plural}
+                  </h3>
+                  <span className="text-[12.5px] text-tinta-media">
+                    Mudar horário não mexe no contrato nem na cobrança.
+                  </span>
+                </div>
+                <Vagas
+                  pessoaId={p.id}
+                  vagas={ficha.vagas.map((v) => ({
+                    id: v.id,
+                    rotulo: `${DIAS[v.diaSemana]} ${v.horaInicio} · ${v.servico}` +
+                            (v.profissional ? ` · ${v.profissional}` : ''),
+                    desde: v.inicio,
+                    ate: v.fim,
+                    dia: DIAS[v.diaSemana],
+                    hora: v.horaInicio,
+                    servico: v.servico,
+                    profissional: v.profissional,
+                  }))}
+                  series={opcoesSerie}
+                  modalidadesContratadas={modalidades}
+                  rotuloVaga={rotulos.vaga.singular}
+                  rotuloSerie={rotulos.serie.singular}
+                  podeEditar={operacional}
+                />
+              </section>
+
               <div className="flex flex-col gap-2.5">
                 <h3 className="font-titulo text-[18px] font-semibold">Cobranças</h3>
                 <ListaDeCobrancas

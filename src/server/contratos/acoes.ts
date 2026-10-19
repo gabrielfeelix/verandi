@@ -326,8 +326,16 @@ export async function renovarContrato(
      * contrato em vigor e às 14:00 no que tinha acabado de nascer). Só se
      * renova o contrato que está valendo, e uma vez.
      */
+    // Encerrado só se renova quando a pessoa não tem outro em vigor: é o aluno
+    // que voltou depois de o plano acabar. A mesma regra do botão na ficha.
     if (velho.status !== 'ativo') {
-      return { ok: false, erro: 'Este contrato já foi renovado ou encerrado. Renove o que está em vigor.' }
+      const { count: emVigor } = await db.from('contrato')
+        .select('id', { count: 'exact', head: true })
+        .eq('conta_id', conta.contaId).eq('pessoa_id', velho.pessoa_id)
+        .neq('status', 'encerrado').neq('id', velho.id)
+      if (velho.status !== 'encerrado' || (emVigor ?? 0) > 0) {
+        return { ok: false, erro: 'Este contrato já foi renovado ou não está em vigor. Renove o que está em vigor.' }
+      }
     }
     if (velho.inicio > hoje) {
       return {
