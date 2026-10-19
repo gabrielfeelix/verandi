@@ -10,6 +10,7 @@ import { Icone } from '@/components/ui/icones'
 import {
   apontarReposicao, salvarObservacao, trocarOrigem, removerParticipacao,
 } from '@/server/agenda/acoes'
+import { tirarDoHorarioFixo } from '@/server/agenda/fixo'
 
 const ORIGENS: Array<{ valor: OrigemParticipacao; rotulo: string; explica: string }> = [
   { valor: 'recorrente', rotulo: 'Fixo', explica: 'Tem vaga permanente neste horário' },
@@ -94,6 +95,20 @@ export function MenuPessoa({
             {participacao.reposicaoDeId ? 'Trocar a falta reposta' : 'Apontar reposição'}
           </ItemMenu>
           <ItemMenu onClick={() => setAberto('origem')}>Trocar origem</ItemMenu>
+          {participacao.origem === 'recorrente' ? (
+            <ItemMenu
+              perigo
+              onClick={() => {
+                fechar()
+                aoAgir(
+                  () => tirarDoHorarioFixo(participacao.id),
+                  `${participacao.nome} saiu do horário fixo, desta aula em diante`,
+                )
+              }}
+            >
+              Tirar do horário fixo
+            </ItemMenu>
+          ) : null}
           <ItemMenu
             perigo
             onClick={() => {

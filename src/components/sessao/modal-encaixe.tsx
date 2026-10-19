@@ -13,6 +13,7 @@ import { Modal } from '@/components/ui/modal'
 import { Avatar, Chip, Nota, Rotulo, entrada } from '@/components/ui/pecas'
 import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
 import { cobrarAulaAvulsa } from '@/server/agenda/avulsa'
+import { fixarNoHorario } from '@/server/agenda/fixo'
 import { emCentavos } from '@/core/planos/plano'
 import { useChamada } from './chamada'
 import { CampoNumero } from '@/components/ui/campo-numero'
@@ -44,7 +45,9 @@ export function ModalEncaixe({
   const { encaixeAberto, fecharEncaixe } = useChamada()
   const [pendente, iniciar] = useTransition()
   const [busca, setBusca] = useState('')
-  const [origem, setOrigem] = useState<'avulso' | 'experimental' | 'reposicao'>('avulso')
+  const [origem, setOrigem] = useState<'avulso' | 'experimental' | 'reposicao' | 'fixo'>('avulso')
+  /** fixo em turma cheia: quantos o horário fixo já tem, para a pergunta de aumentar */
+  const [fixoLotado, setFixoLotado] = useState<{ ocupadas: number; capacidade: number } | null>(null)
   /** a falta mais antiga ainda sem reposição de quem foi escolhido */
   const [falta, setFalta] = useState<FaltaEmAberto | null>(null)
   const [trocando, setTrocando] = useState(false)
@@ -123,6 +126,23 @@ export function ModalEncaixe({
     // aula avulsa paga à parte não gasta o plano: nem o limite da semana nem os
     // dias permitidos se aplicam, e a cobrança religa a aula ao avulso dela
     const cent = avulsa && origem !== 'reposicao' ? emCentavos(valor) ?? 0 : 0
+    if (origem === 'fixo') {
+      iniciar(async () => {
+        const r = await fixarNoHorario(sessaoId, pessoaId, confirmarAcima)
+        if (r.ok) {
+          setBusca(''); setExcedente(null); setFixoLotado(null); setEscolhido(null)
+          fecharEncaixe()
+          return
+        }
+        if (r.motivo === 'lotada') {
+          setFixoLotado({ ocupadas: r.ocupadas, capacidade: r.capacidade })
+          setExcedente(pessoaId)
+          return
+        }
+        setAviso(r.erro)
+      })
+      return
+    }
     iniciar(async () => {
       const r = await encaixar({
         sessaoId, pessoaId, origem, confirmarAcima,
@@ -175,11 +195,13 @@ export function ModalEncaixe({
    * pede confirmação própria, e Reserva ocupava lugar igual a Avulso, sem ser a
    * fila de espera de verdade (`espera`), o que só confundia.
    */
-  const ORIGENS = [
+  const ORIGENS: ReadonlyArray<readonly ['avulso' | 'experimental' | 'reposicao' | 'fixo', string]> = [
     ['avulso', 'Avulso'],
     ['experimental', 'Experimental'],
     ['reposicao', 'Reposição'],
-  ] as const
+    // toda semana neste horário; aula avulsa não tem semana seguinte
+    ...(avulsa ? [] : [['fixo', 'Fixo (toda semana)'] as const]),
+  ]
   const nomeDaOrigem = ORIGENS.find(([v]) => v === origem)?.[1] ?? 'Avulso'
 
   function escolher(c: Candidato) {
@@ -198,7 +220,7 @@ export function ModalEncaixe({
 
   function fechar() {
     setAviso(null); setExcedente(null); setEscolhido(null); setBusca('')
-    setFalta(null); setTrocando(false)
+    setFalta(null); setTrocando(false); setFixoLotado(null)
     fecharEncaixe()
   }
 
@@ -206,7 +228,9 @@ export function ModalEncaixe({
     ? falta
       ? `repõe a falta de ${falta.data.slice(8, 10)}/${falta.data.slice(5, 7)}`
       : 'sem falta em aberto para apontar'
-    : 'só desta vez'
+    : origem === 'fixo'
+      ? 'desta aula em diante, toda semana'
+      : 'só desta vez'
 
   return (
     <Modal
@@ -323,15 +347,25 @@ export function ModalEncaixe({
       {excedente ? (
         <div className="flex flex-col gap-2 rounded-media border border-alerta-linha bg-alerta-superficie p-3">
           <p className="text-[13.5px] leading-relaxed text-alerta-texto">
-            Este horário já está com {ocupacao.ocupadas}/{ocupacao.capacidade}.
-            Encaixar deixa {ocupacao.ocupadas + 1}/{ocupacao.capacidade}, e fica
-            registrado como decisão sua.
+            {fixoLotado ? (
+              <>
+                O horário fixo desta turma está cheio ({fixoLotado.ocupadas}/{fixoLotado.capacidade}).
+                Para entrar, a turma passa a ter {fixoLotado.ocupadas + 1} lugares, nesta aula e nas
+                próximas.
+              </>
+            ) : (
+              <>
+                Este horário já está com {ocupacao.ocupadas}/{ocupacao.capacidade}.
+                Encaixar deixa {ocupacao.ocupadas + 1}/{ocupacao.capacidade}, e fica
+                registrado como decisão sua.
+              </>
+            )}
           </p>
           <div className="flex flex-wrap gap-2">
             <Botao tom="perigo" miudo disabled={pendente} onClick={() => adicionar(excedente, true)}>
-              Encaixar mesmo assim
+              {fixoLotado ? `Aumentar para ${fixoLotado.ocupadas + 1} e fixar` : 'Encaixar mesmo assim'}
             </Botao>
-            <Botao tom="fantasma" miudo onClick={() => setExcedente(null)}>
+            <Botao tom="fantasma" miudo onClick={() => { setExcedente(null); setFixoLotado(null) }}>
               Não encaixar
             </Botao>
           </div>
