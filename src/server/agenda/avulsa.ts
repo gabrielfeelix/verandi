@@ -6,6 +6,7 @@ import { hojeEm, instante, localDe } from './fuso'
 import { encaixar } from './acoes'
 import { materializarCobrancas } from '../financeiro/materializar'
 import { listarEquipe } from '../config/equipe'
+import { clienteAdmin } from '../supabase'
 
 /**
  * Aula avulsa: "a aluna quer uma ventosa na terça".
@@ -203,7 +204,10 @@ async function contratoAvulso(
     const usados = new Set((codigos ?? []).map((c) => c.codigo))
     let n = 1
     while (usados.has(`AV${n}`)) n++
-    const { data: novo, error } = await db.from('plano').insert({
+    // plano é preço, e o banco só deixa quem responde pelo negócio gravar
+    // (0084_vr). O "Aula avulsa" nasce da recepção marcando a aula, então
+    // grava pelo servidor: quem chama já conferiu conta e papel
+    const { data: novo, error } = await clienteAdmin().from('plano').insert({
       conta_id: contaId, servico_id: servicoId, codigo: `AV${n}`, nome: 'Aula avulsa',
       recorrencia: 'avulsa', preco_vinculado_cent: valorCent, preco_avulso_cent: valorCent,
     }).select('id').single()
