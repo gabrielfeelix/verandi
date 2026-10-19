@@ -104,7 +104,8 @@ export const GET = comChave<{ id: string }>(async (
     /* a frase do estúdio, pronta. `null` quando não há nada a avisar */
     avisoParaConfirmar: jaPassou
       ? null
-      : avisoDeForaDoPrazo(veredito, `de ${data} às ${hora}`),
+      // A frase vai para o aluno ler: data como se fala, não `2026-10-05`.
+      : avisoDeForaDoPrazo(veredito, `de ${data.slice(8, 10)}/${data.slice(5, 7)} às ${hora}`),
   })
 })
 

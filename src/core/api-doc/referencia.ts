@@ -252,7 +252,7 @@ export const ROTAS: Rota[] = [
   "podeReporSeCancelarAgora": false,
   "minutosAteAula": 45,
   "regraDeCancelamento": { "minutosMinimos": 120, "porExtenso": "2h" },
-  "avisoParaConfirmar": "Você está tentando cancelar a aula de 2026-08-18 às 07:00 fora do prazo de 2h. Se confirmar, essa aula não poderá ser reposta. Deseja prosseguir?"
+  "avisoParaConfirmar": "Você está tentando cancelar a aula de 18/08 às 07:00 fora do prazo de 2h. Se confirmar, essa aula não poderá ser reposta. Deseja prosseguir?"
 }`,
   },
   {
