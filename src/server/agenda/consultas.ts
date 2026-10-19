@@ -407,7 +407,9 @@ export async function sessaoDetalhe(
       ? ['Encaixe', 'feito']
       : p.origem === 'reserva'
         ? ['Reserva', 'feita']
-        : [
+        : p.origem === 'experimental'
+          ? ['Aula experimental', 'agendada']
+          : [
           // pedido do MGM: na aula, dizer que é avulsa e quanto custa. O valor
           // é dinheiro, e quem atende não vê
           p.contrato?.plano?.recorrencia === 'avulsa' && papel !== 'profissional'
@@ -489,7 +491,9 @@ export async function sessaoDetalhe(
           ? 'entrou de encaixe'
           : p.origem === 'reserva'
             ? 'entrou como reserva'
-            : 'entrou como avulso'
+            : p.origem === 'experimental'
+              ? 'entrou para a aula experimental'
+              : 'entrou como avulso'
       return {
         texto: `${p.pessoa!.nome} ${como}${quem ? ` ${quem}` : ''}`,
         quando: quandoRelativo(p.registrado_em, fuso, hoje),
