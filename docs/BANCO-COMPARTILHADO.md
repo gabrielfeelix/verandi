@@ -98,6 +98,21 @@ transação contra a produção.
 - `0079`: índices das chaves de `participacao` e `sessao`. Busca pela
   reposição 2,8 → 0,2 ms; por profissional 1,5 → 0,75 ms.
 
+**`0080` aplicada em 19/out/2026**, com autorização do dono: `X_escreve`
+(`for all`) das 18 tabelas virou `X_insere`, `X_atualiza` e `X_apaga`, com a
+expressão copiada do catálogo, e as 6 políticas com `auth.uid()` solto passaram
+a `(select auth.uid())`. Conferida assim: foto das expressões que valem por
+tabela e ação, antes e depois, no Docker; só o SELECT mudou, perdendo o
+`OR tem_papel(...)` redundante. 105 testes de banco passaram antes e depois
+(RLS, acesso, usuários, onboarding, pessoas, aulas, presença, recibo,
+configuração, licença), replay do zero bateu com o estado testado, e a
+produção estava idêntica à foto "antes" e ficou idêntica à "depois". Avisos
+`multiple_permissive_policies` 126 → 0 e `auth_rls_initplan` 6 → 0.
+
+**Tabela nova: uma política por ação, nunca `for all` junto de `X_le`.** O
+laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
+`auth.uid()` em política vai sempre como `(select auth.uid())`.
+
 ## O que o schema não separa
 
 - **`auth.users`:** a identidade é global. Pertencer ao Auth não concede acesso;
