@@ -103,7 +103,7 @@ transação contra a produção.
 expressão copiada do catálogo, e as 6 políticas com `auth.uid()` solto passaram
 a `(select auth.uid())`. Conferida assim: foto das expressões que valem por
 tabela e ação, antes e depois, no Docker; só o SELECT mudou, perdendo o
-`OR tem_papel(...)` redundante. 105 testes de banco passaram antes e depois
+`OR tem_papel(...)` redundante. 104 testes de banco passaram depois (54 também antes)
 (RLS, acesso, usuários, onboarding, pessoas, aulas, presença, recibo,
 configuração, licença), replay do zero bateu com o estado testado, e a
 produção estava idêntica à foto "antes" e ficou idêntica à "depois". Avisos
