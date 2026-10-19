@@ -9,6 +9,10 @@ import { Icone } from '@/components/ui/icones'
 import { Avatar, Campo, Chip, Nota, entrada } from '@/components/ui/pecas'
 import { marcarAulaAvulsa, profissionaisParaAvulsa } from '@/server/agenda/avulsa'
 import { criarPessoa } from '@/server/pessoas/acoes'
+import {
+  fixarNaTurma, situacaoDoContrato, turmasDaModalidade,
+  type HorarioFixo, type SituacaoDoContrato, type Turma,
+} from '@/server/agenda/fixo'
 import { erroDoTelefone, mascararTelefone } from '@/core/telefone'
 import { Escolha } from '@/components/ui/escolha'
 import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
@@ -16,7 +20,14 @@ import { CampoData } from '@/components/ui/campo-data'
 import { emCentavos } from '@/core/planos/plano'
 
 type Servico = { id: string; nome: string }
-type Tipo = 'avulso' | 'experimental'
+type Tipo = 'avulso' | 'experimental' | 'fixo'
+const DIA_CURTO = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const rotuloDoFixo = (h: HorarioFixo) => `${DIA_CURTO[h.dia]} ${h.hora}${h.codigo ? ` (${h.codigo})` : ''}`
+/** o que o servidor devolveu e que pede uma decisão de quem está marcando */
+type Decisao =
+  | { tipo: 'lotada'; ocupadas: number; capacidade: number }
+  | { tipo: 'limite'; plano: string; porSemana: number; usados: HorarioFixo[] }
+  | { tipo: 'sem_contrato' }
 type Aluno = { id: string; nome: string }
 const NOVA = '__nova__'
 
@@ -42,7 +53,7 @@ export function FormAulaAvulsa({
   pessoaId: string | null
   servicos: Servico[]
   servicoInicial: string | null
-  aoConcluir: (texto: string, sessaoId: string, marcada: { tipo: Tipo; aluno: Aluno | null }) => void
+  aoConcluir: (texto: string, sessaoId: string | null, marcada: { tipo: Tipo; aluno: Aluno | null }) => void
   aoVoltar?: () => void
 }) {
   const [aluno, setAluno] = useState<Aluno | null>(alunoInicial)
@@ -73,6 +84,44 @@ export function FormAulaAvulsa({
   const [valor, setValor] = useState('')
   const [tipo, setTipo] = useState<Tipo>(tipoInicial)
   const experimental = tipo === 'experimental'
+  const fixo = tipo === 'fixo'
+  // o aluno é obrigatório em tudo que não é avulsa: é dele a primeira aula, ou o horário
+  const exigeAluno = experimental || fixo
+
+  /* ---- Fixo: turmas da modalidade, o contrato do aluno e a decisão pendente ---- */
+  // guardadas com a chave de quem pediu: troca de modalidade ou de aluno não
+  // mostra a resposta velha enquanto a nova não chega
+  const [turmasDe, setTurmasDe] = useState<{ chave: string; turmas: Turma[] } | null>(null)
+  const [turmaId, setTurmaId] = useState('')
+  const [desde, setDesde] = useState(() => new Date().toLocaleDateString('en-CA'))
+  const [situacaoDe, setSituacaoDe] = useState<{ chave: string; situacao: SituacaoDoContrato } | null>(null)
+  const [decisao, setDecisao] = useState<Decisao | null>(null)
+  const [trocar, setTrocar] = useState('')
+  /** o que já foi decidido nesta escolha de turma: o reenvio leva tudo junto */
+  const [aceitos, setAceitos] = useState<{ aumentar?: boolean; trocar?: string; semContrato?: boolean }>({})
+  function decidir(c: { aumentar?: boolean; trocar?: string; semContrato?: boolean }) {
+    const juntos = { ...aceitos, ...c }
+    setAceitos(juntos)
+    salvar(juntos)
+  }
+  const servicoDoFixo = fixo && servico !== NOVA ? servico : null
+  const chaveDaSituacao = servicoDoFixo && quem ? `${quem}:${servicoDoFixo}` : null
+  const turmas = servicoDoFixo && turmasDe?.chave === servicoDoFixo ? turmasDe.turmas : null
+  const situacao = chaveDaSituacao && situacaoDe?.chave === chaveDaSituacao ? situacaoDe.situacao : null
+
+  useEffect(() => {
+    if (!servicoDoFixo) return
+    turmasDaModalidade(servicoDoFixo)
+      .then((t) => setTurmasDe({ chave: servicoDoFixo, turmas: t }))
+      .catch(() => setTurmasDe({ chave: servicoDoFixo, turmas: [] }))
+  }, [servicoDoFixo])
+
+  useEffect(() => {
+    if (!servicoDoFixo || !quem || !chaveDaSituacao) return
+    situacaoDoContrato(quem, servicoDoFixo)
+      .then((r) => setSituacaoDe({ chave: chaveDaSituacao, situacao: r }))
+      .catch(() => {})
+  }, [servicoDoFixo, quem, chaveDaSituacao])
   const [profs, setProfs] = useState<Array<{ id: string; nome: string; cor: string | null; foto: string | null }> | null>(null)
   const [erro, setErro] = useState<string | null>(null)
   const [pendente, iniciar] = useTransition()
@@ -81,13 +130,18 @@ export function FormAulaAvulsa({
     profissionaisParaAvulsa().then(setProfs).catch(() => setProfs([]))
   }, [])
 
-  function salvar() {
+  /** as decisões já tomadas na tela, que o reenvio leva junto */
+  type Confirmar = { aumentar?: boolean; trocar?: string; semContrato?: boolean }
+  function salvar(confirmar: Confirmar = {}) {
     setErro(null)
+    setDecisao(null)
     const temAluno = Boolean(quem || novoAluno)
     // Experimental não se cobra: o valor nem aparece.
     const valorCent = !experimental && temAluno && valor.trim() ? emCentavos(valor) : 0
     if (valorCent === null) return setErro('Valor inválido. Exemplo: 120,00')
     if (experimental && !temAluno) return setErro('Na aula experimental, escolha o aluno ou cadastre um novo.')
+    if (fixo && !temAluno) return setErro('No horário fixo, escolha o aluno ou cadastre um novo.')
+    if (fixo && !turmaId) return setErro('Escolha a turma.')
     if (novoAluno) {
       if (novoAluno.nome.trim().length < 2) return setErro('Escreva o nome do novo aluno.')
       const erroTel = novoAluno.telefone.trim() ? erroDoTelefone(novoAluno.telefone) : null
@@ -110,6 +164,27 @@ export function FormAulaAvulsa({
         } catch (e) {
           return setErro(e instanceof Error ? e.message : 'Não foi possível cadastrar o aluno.')
         }
+      }
+      if (fixo) {
+        const f = await fixarNaTurma({
+          serieId: turmaId, pessoaId: idDoAluno!, desde,
+          aumentarTurma: confirmar.aumentar, trocarVagaId: confirmar.trocar, semContrato: confirmar.semContrato,
+        })
+        if (!f.ok) {
+          if (f.motivo === 'lotada') return setDecisao({ tipo: 'lotada', ocupadas: f.ocupadas, capacidade: f.capacidade })
+          if (f.motivo === 'limite') {
+            setTrocar(f.usados[0]?.vagaId ?? '')
+            return setDecisao({ tipo: 'limite', plano: f.plano, porSemana: f.porSemana, usados: f.usados })
+          }
+          if (f.motivo === 'sem_contrato') return setDecisao({ tipo: 'sem_contrato' })
+          if (f.motivo === 'dia_nao_permitido') return setErro(`O plano ${f.plano} vale só ${f.dias.map((d) => DIA_CURTO[d]).join(', ')}.`)
+          return setErro(f.erro)
+        }
+        const t = turmas?.find((x) => x.id === turmaId)
+        const [a, m, d] = desde.split('-')
+        aoConcluir(`horário fixo ${t ? `${DIA_CURTO[t.dia]} ${t.hora}` : ''} a partir de ${d}/${m}/${a}.`, f.sessaoId,
+          { tipo, aluno: alunoDaAula ?? (idDoAluno ? { id: idDoAluno, nome: '' } : null) })
+        return
       }
       const r = await marcarAulaAvulsa({
         pessoaId: idDoAluno,
@@ -138,12 +213,15 @@ export function FormAulaAvulsa({
         <div role="group" aria-label="Tipo da aula" className="flex flex-wrap gap-1.5">
           <Chip type="button" ativo={!experimental} onClick={() => setTipo('avulso')}>Avulsa</Chip>
           <Chip type="button" ativo={experimental} onClick={() => setTipo('experimental')}>Experimental</Chip>
+          <Chip type="button" ativo={fixo} onClick={() => setTipo('fixo')}>Fixo</Chip>
         </div>
       </Campo>
 
       {pessoaId ? null : (
-        <Campo rotulo="Aluno" htmlFor="av-aluno" obrigatorio={experimental}
-          dica={experimental
+        <Campo rotulo="Aluno" htmlFor="av-aluno" obrigatorio={exigeAluno}
+          dica={fixo
+            ? 'Quem vai ter este horário toda semana. Não achou? Cadastre na hora.'
+            : experimental
             ? 'Quem vem conhecer o estúdio. Não achou? Cadastre na hora.'
             : 'Opcional. Mais alunos entram depois pela tela da aula.'}>
           {novoAluno ? (
@@ -212,7 +290,7 @@ export function FormAulaAvulsa({
           id="av-servico"
           nome="servico"
           valorInicial={servico}
-          aoTrocar={setServico}
+          aoTrocar={(v) => { setServico(v); setTurmaId(''); setDecisao(null); setAceitos({}) }}
           opcoes={[
             ...servicos.map((s) => ({ valor: s.id, rotulo: s.nome })),
             { valor: NOVA, rotulo: 'Nova modalidade', detalhe: 'Escreva o nome a seguir' },
@@ -226,6 +304,116 @@ export function FormAulaAvulsa({
         </Campo>
       ) : null}
 
+      {fixo ? (
+        <div className="flex flex-col gap-3.5">
+          {/* O contrato primeiro: é ele que diz se cabe mais um horário. */}
+          {novoAluno ? (
+            <Nota tom="atencao">
+              Aluno novo ainda não tem contrato: o horário fixo entra sem cobrança até o contrato ser criado na ficha.
+            </Nota>
+          ) : !quem ? null : situacao === null ? (
+            <p className="text-[13px] text-tinta-media">Conferindo o contrato…</p>
+          ) : situacao.contrato ? (
+            <Nota tom="info">
+              {situacao.contrato.plano} ·{' '}
+              {situacao.contrato.porSemana
+                ? `${situacao.usados.length} de ${situacao.contrato.porSemana} horários fixos usados`
+                : 'sem limite de aulas por semana'}
+              {situacao.usados.length ? ` · já tem ${situacao.usados.map(rotuloDoFixo).join(', ')}` : ''}
+            </Nota>
+          ) : (
+            <Nota tom="atencao">
+              Sem contrato desta modalidade: horário fixo sem contrato é aula sem cobrança.{' '}
+              <a href={`/pessoas/${quem}?aba=contratos`} className="font-semibold underline">Criar contrato</a>
+            </Nota>
+          )}
+
+          <Campo rotulo="A partir de" htmlFor="av-desde" obrigatorio>
+            <CampoData id="av-desde" nome="desde" valorInicial={desde} aoTrocar={setDesde} limpavel={false} />
+          </Campo>
+
+          <Campo rotulo="Turma" obrigatorio>
+            {turmas === null ? (
+              <span className="campo flex items-center text-tinta-fraca">Carregando…</span>
+            ) : turmas.length === 0 ? (
+              <p className="text-[13.5px] text-tinta-media">
+                Nenhuma turma desta modalidade na grade fixa.{' '}
+                <a href="/grade" className="font-semibold text-marca underline">Criar na grade</a>
+              </p>
+            ) : (
+              <div role="group" aria-label="Turma" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {turmas.map((t) => {
+                  const cheia = t.ocupadas >= t.capacidade
+                  const ja = situacao?.usados.some((u) => u.serieId === t.id) ?? false
+                  const foraDoPlano = situacao?.contrato?.dias ? !situacao.contrato.dias.includes(t.dia) : false
+                  const escolhida = turmaId === t.id
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      disabled={ja || foraDoPlano}
+                      aria-pressed={escolhida}
+                      onClick={() => { setTurmaId(t.id); setDecisao(null); setAceitos({}) }}
+                      className={`flex cursor-pointer flex-col items-start gap-0.5 rounded-grande border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                        escolhida ? 'border-marca bg-superficie-suave ring-1 ring-marca' : 'border-linha-suave bg-superficie hover:bg-superficie-suave'
+                      }`}
+                    >
+                      <span className="font-titulo text-[16px] font-semibold">{DIA_CURTO[t.dia]} {t.hora}</span>
+                      <span className="truncate text-[12.5px] text-tinta-media">
+                        {t.profissional ?? 'Sem professor'}{t.codigo ? ` · ${t.codigo}` : ''}
+                      </span>
+                      <span className={`text-[12px] ${cheia && !ja ? 'text-alerta' : 'text-tinta-fraca'}`}>
+                        {ja ? 'já é horário dela' : foraDoPlano ? 'fora do plano' : cheia
+                          ? `cheia (${t.ocupadas}/${t.capacidade})`
+                          : `${t.capacidade - t.ocupadas} de ${t.capacidade} livres`}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </Campo>
+
+          {/* O que pede decisão de quem está no balcão: nada disso acontece calado. */}
+          {decisao ? (
+            <div className="flex flex-col gap-2 rounded-media border border-alerta-linha bg-alerta-superficie p-3">
+              <p className="text-[13.5px] leading-relaxed text-alerta-texto">
+                {decisao.tipo === 'lotada'
+                  ? `Turma cheia (${decisao.ocupadas}/${decisao.capacidade}). Para entrar, ela passa a ter ${decisao.ocupadas + 1} lugares, desta data em diante.`
+                  : decisao.tipo === 'limite'
+                    ? `O plano ${decisao.plano} dá ${decisao.porSemana} ${decisao.porSemana === 1 ? 'aula' : 'aulas'} por semana, e ${decisao.porSemana === 1 ? 'ela já tem' : 'todas já têm'} horário. Trocar qual por este?`
+                    : 'Sem contrato desta modalidade: o horário entra como aula sem cobrança.'}
+              </p>
+              {decisao.tipo === 'limite' ? (
+                <div role="group" aria-label="Horário a trocar" className="flex flex-wrap gap-1.5">
+                  {decisao.usados.map((u) => (
+                    <Chip key={u.vagaId} type="button" ativo={trocar === u.vagaId} onClick={() => setTrocar(u.vagaId)}>
+                      {rotuloDoFixo(u)}
+                    </Chip>
+                  ))}
+                </div>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                <Botao
+                  tom="perigo"
+                  miudo
+                  disabled={pendente || (decisao.tipo === 'limite' && !trocar)}
+                  onClick={() => decidir(
+                    decisao.tipo === 'lotada' ? { aumentar: true }
+                      : decisao.tipo === 'limite' ? { trocar }
+                        : { semContrato: true },
+                  )}
+                >
+                  {decisao.tipo === 'lotada'
+                    ? `Aumentar para ${decisao.ocupadas + 1} e fixar`
+                    : decisao.tipo === 'limite' ? 'Trocar e fixar' : 'Seguir sem contrato'}
+                </Botao>
+                <Botao tom="fantasma" miudo onClick={() => setDecisao(null)}>Agora não</Botao>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : (<>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(10rem,1.5fr)_1fr_1fr_1fr]">
         <Campo rotulo="Dia" htmlFor="av-data" obrigatorio>
           <CampoData id="av-data" nome="data" valorInicial={data} aoTrocar={setData} limpavel={false} />
@@ -270,6 +458,7 @@ export function FormAulaAvulsa({
           </Campo>
         )}
       </div>
+      </>)}
 
       {erro ? <Nota tom="alerta">{erro}</Nota> : null}
 
@@ -277,8 +466,8 @@ export function FormAulaAvulsa({
         {aoVoltar ? (
           <Botao tom="secundario" onClick={aoVoltar} disabled={pendente}>Voltar aos horários</Botao>
         ) : null}
-        <Botao onClick={salvar} disabled={pendente}>
-          {pendente ? 'Marcando…' : rotuloBotao ?? (experimental ? 'Marcar aula experimental' : 'Criar aula avulsa')}
+        <Botao onClick={() => salvar(aceitos)} disabled={pendente}>
+          {pendente ? 'Marcando…' : rotuloBotao ?? (fixo ? 'Colocar no horário fixo' : experimental ? 'Marcar aula experimental' : 'Criar aula avulsa')}
         </Botao>
       </div>
     </div>
@@ -339,9 +528,14 @@ export function NovaAulaAvulsa({ servicos }: { servicos: Servico[] }) {
               tipoInicial={rodada > 0 ? 'experimental' : 'avulso'}
               alunoInicial={rodada > 0 ? ultimoAluno : null}
               aoConcluir={(texto, sessaoId, marcada) => {
+                if (marcada.tipo === 'fixo') {
+                  fechar()
+                  router.push(sessaoId ? `/sessao/${sessaoId}` : `/pessoas/${marcada.aluno?.id ?? ''}`)
+                  return
+                }
                 if (marcada.tipo === 'experimental') {
                   setUltimoAluno(marcada.aluno)
-                  setFeita({ texto, sessaoId, aluno: marcada.aluno })
+                  if (sessaoId) setFeita({ texto, sessaoId, aluno: marcada.aluno })
                   return
                 }
                 fechar()

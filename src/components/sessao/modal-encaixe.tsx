@@ -128,7 +128,7 @@ export function ModalEncaixe({
     const cent = avulsa && origem !== 'reposicao' ? emCentavos(valor) ?? 0 : 0
     if (origem === 'fixo') {
       iniciar(async () => {
-        const r = await fixarNoHorario(sessaoId, pessoaId, confirmarAcima)
+        const r = await fixarNoHorario(sessaoId, pessoaId, { aumentarTurma: confirmarAcima })
         if (r.ok) {
           setBusca(''); setExcedente(null); setFixoLotado(null); setEscolhido(null)
           fecharEncaixe()
@@ -139,7 +139,17 @@ export function ModalEncaixe({
           setExcedente(pessoaId)
           return
         }
-        setAviso(r.erro)
+        // Trocar horário e seguir sem contrato pedem a escolha que a Nova aula
+        // mostra inteira; aqui só se diz o motivo e o caminho.
+        setAviso(
+          r.motivo === 'limite'
+            ? `O plano ${r.plano} dá ${r.porSemana} ${r.porSemana === 1 ? 'aula' : 'aulas'} por semana, e ${r.porSemana === 1 ? 'ela já tem' : 'todas já têm'} horário fixo. Para trocar um horário por este, use Agenda → Nova aula → Fixo.`
+            : r.motivo === 'sem_contrato'
+              ? 'Sem contrato desta modalidade: fixo sem contrato é aula sem cobrança. Crie o contrato na ficha, ou use Agenda → Nova aula → Fixo para seguir assim mesmo.'
+              : r.motivo === 'dia_nao_permitido'
+                ? `O plano ${r.plano} vale só ${nomesDosDias(r.dias)}.`
+                : r.erro,
+        )
       })
       return
     }
