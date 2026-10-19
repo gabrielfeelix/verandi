@@ -109,6 +109,11 @@ configuração, licença), replay do zero bateu com o estado testado, e a
 produção estava idêntica à foto "antes" e ficou idêntica à "depois". Avisos
 `multiple_permissive_policies` 126 → 0 e `auth_rls_initplan` 6 → 0.
 
+**`0081` aplicada em 19/out/2026**, com autorização do dono: índice nas 35
+chaves estrangeiras que faltavam e fora `participacao_sessao_ix`, coberto por
+`participacao_sessao_pessoa_uk`. O aviso de índice "não usado" sobe com isso
+e é esperado em tabela pequena (ver o runbook do AutoFluxos, `0138`).
+
 **Tabela nova: uma política por ação, nunca `for all` junto de `X_le`.** O
 laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
 `auth.uid()` em política vai sempre como `(select auth.uid())`.
