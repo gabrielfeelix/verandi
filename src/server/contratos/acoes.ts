@@ -315,11 +315,29 @@ export async function renovarContrato(
     if (!/^\d{4}-\d{2}-\d{2}$/.test(r.inicio)) return { ok: false, erro: 'Diga quando o contrato novo começa.' }
 
     const { data: velho } = await db.from('contrato')
-      .select(`id, pessoa_id, dia_vencimento, fim, status,
+      .select(`id, pessoa_id, dia_vencimento, inicio, fim, status,
                plano(id, nome, servico_id, recorrencia, validade_meses, sessoes_no_pacote,
                      preco_vinculado_cent, preco_avulso_cent, ativo)`)
       .eq('id', contratoId).eq('conta_id', conta.contaId).maybeSingle()
     if (!velho?.plano) return { ok: false, erro: 'Este contrato não existe mais.' }
+    /*
+     * Renovar duas vezes criava dois contratos novos e uma pessoa pagando o
+     * trimestre em dobro (Luz Marina, MGM, 19/10/2026: "Renovar" às 13:59 no
+     * contrato em vigor e às 14:00 no que tinha acabado de nascer). Só se
+     * renova o contrato que está valendo, e uma vez.
+     */
+    if (velho.status !== 'ativo') {
+      return { ok: false, erro: 'Este contrato já foi renovado ou encerrado. Renove o que está em vigor.' }
+    }
+    if (velho.inicio > hoje) {
+      return {
+        ok: false,
+        erro: 'Este contrato ainda não começou: ele já é a renovação do anterior. Para mudar algo nele, encerre e crie de novo.',
+      }
+    }
+    if (r.inicio <= velho.inicio) {
+      return { ok: false, erro: 'O contrato novo precisa começar depois do início do atual.' }
+    }
     const plano = velho.plano
     if (!plano.ativo) {
       return { ok: false, erro: `O plano ${plano.nome} saiu de uso. Use "Novo contrato" e escolha outro plano.` }
@@ -375,10 +393,17 @@ export async function renovarContrato(
     const vespera = new Date(`${r.inicio}T12:00:00Z`)
     vespera.setUTCDate(vespera.getUTCDate() - 1)
     const fimDoVelho = vespera.toISOString().slice(0, 10)
-    await db.from('contrato').update({
+    // Falhar aqui deixava dois contratos em vigor sem ninguém saber: o erro
+    // não era lido. Agora desfaz o novo e devolve as vagas.
+    const { error: erroDoVelho } = await db.from('contrato').update({
       status: 'encerrado',
       ...(velho.fim === null || velho.fim > fimDoVelho ? { fim: fimDoVelho } : {}),
     }).eq('id', velho.id)
+    if (erroDoVelho) {
+      await db.from('vaga').update({ contrato_id: velho.id }).eq('contrato_id', novo.id)
+      await db.from('contrato').delete().eq('id', novo.id)
+      throw erroDoVelho
+    }
 
     const { data: abertas } = await db.from('cobranca')
       .select('id, pagamento(id, estornado_em)')
