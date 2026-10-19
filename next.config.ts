@@ -32,6 +32,8 @@ const cabecalhos = [
 ];
 
 const nextConfig: NextConfig = {
+  // `x-powered-by: Next.js` só conta a quem varre o site o que procurar
+  poweredByHeader: false,
   experimental: {
     /*
      * O padrão é 1 MB, e ele cortava o envio antes de qualquer validação
