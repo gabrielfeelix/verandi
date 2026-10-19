@@ -4,7 +4,7 @@ import { admin, comoUsuario } from './setup/supabase'
 import { listarConvites } from '@/server/usuarios/consultas'
 
 /**
- * As ações dependem de `cookies()` e não rodam fora do Next — o caminho pela
+ * As ações dependem de `cookies()` e não rodam fora do Next: o caminho pela
  * tela está em `e2e/convite.spec.ts`. O que se prova aqui é o que o banco
  * garante sozinho, e o que a função `usuarios_da_conta` deixa ou não passar.
  */
@@ -56,7 +56,7 @@ describe('acesso à conta', () => {
     expect((data ?? []) as unknown[]).toEqual([])
   })
 
-  it('o token do convite nunca é coluna — só o hash', async () => {
+  it('o token do convite nunca é coluna, só o hash', async () => {
     // único por rodada: `token_hash` é UNIQUE, e o banco não é limpo entre elas
     const token = `token-em-claro-que-nao-pode-aparecer-${Date.now()}`
     const { error } = await db.from('convite').insert({

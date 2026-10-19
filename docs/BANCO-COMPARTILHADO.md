@@ -119,6 +119,17 @@ leituras do sino de notificações, que roda a cada página e somava mais tempo
 de banco que qualquer outra leitura da Verandi. Presenças da semana 6 → 0,36
 ms, aulas canceladas 0,9 → 0,07 ms.
 
+**`0083` aplicada em 19/out/2026**, com autorização do dono, depois do deploy
+`c51617f` (o link de senha precisava já gravar pelo servidor). Gatilhos que
+só agem sobre a sessão (`authenticated`): convite pela sessão nasce só do tipo
+`acesso`, sem papel `suporte` fora da conta interna, e só pode ser revogado;
+a sessão não muda `conta.ativo` nem `conta.interna`; e não se dá papel
+`suporte` fora da conta interna. Fechou a tomada de conta por convite de
+senha forjado achada na auditoria de 19/out (sem uso encontrado). Também cria
+`limite_de_pedido` e `consumir_limite`, o limite da API v1, só para
+`service_role`; o aviso `rls_enabled_no_policy` dela é de propósito.
+Reproduzido no Docker antes e depois; regressão em `tests/usuarios.test.ts`.
+
 **Tabela nova: uma política por ação, nunca `for all` junto de `X_le`.** O
 laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
 `auth.uid()` em política vai sempre como `(select auth.uid())`.

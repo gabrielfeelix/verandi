@@ -19,7 +19,7 @@ export type ContaSinais = {
  * Confere que quem pergunta é da 4YU.
  *
  * A tela de contas é a única que atravessa o isolamento entre clientes, então a
- * checagem é explícita e vem antes de qualquer leitura — não depende de a
+ * checagem é explícita e vem antes de qualquer leitura, e não depende de a
  * consulta seguinte "por acaso" filtrar certo.
  */
 /**
@@ -42,7 +42,7 @@ export async function ehSuporte(db: Db): Promise<boolean> {
   if (!user) return false
 
   // o vínculo que vale é o da conta interna. Entrar como suporte cria vínculo
-  // temporário em conta de cliente, e sair apaga esse vínculo — se ele também
+  // temporário em conta de cliente, e sair apaga esse vínculo: se ele também
   // respondesse por "é da 4YU", sair de uma conta tiraria o acesso à tela.
   const { data } = await db.from('usuario_conta')
     .select('conta_id, conta:conta_id!inner(interna)')
@@ -165,7 +165,7 @@ export async function listarContas(opcoes: {
  * O último acesso dos usuários pedidos, percorrendo as páginas até achá-los.
  *
  * `listUsers` tem página de no máximo 1000, e parar na primeira faria a tela
- * dizer "nunca acessaram" para uma conta que acessa todo dia — um número
+ * dizer "nunca acessaram" para uma conta que acessa todo dia: um número
  * errado com cara de número certo, que é o pior tipo de erro num painel de
  * diagnóstico.
  *
