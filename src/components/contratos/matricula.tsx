@@ -17,7 +17,7 @@ import { anteciparCobrancas } from '@/server/financeiro/acoes'
 import { MAXIMO_MESES_ANTECIPADOS } from '@/core/financeiro/cobranca'
 import type { ContratoLinha } from '@/server/contratos/consultas'
 import type { PlanoLinha } from '@/server/planos/consultas'
-import { comoCobra, emCentavos, emReais, nomesDosDias } from '@/core/planos/plano'
+import { RECORRENCIAS, comoCobra, emCentavos, emReais, nomesDosDias } from '@/core/planos/plano'
 import { CampoDinheiro } from '@/components/ui/campo-dinheiro'
 import { erroLegivel } from '@/core/erro-legivel'
 
@@ -642,6 +642,7 @@ export function ContratosDaFicha({
     } | null
   >(null)
   const [erro, setErro] = useState<string | null>(null)
+  const [vendo, setVendo] = useState<ContratoLinha | null>(null)
   const [pendente, comecar] = useTransition()
   const router = useRouter()
   const avisar = useAviso()
@@ -733,16 +734,18 @@ export function ContratosDaFicha({
             </p>
           ) : null}
 
-          {c.status === 'encerrado' && podeRenovar(c) ? (
+          {c.status === 'encerrado' ? (
             <div className="flex flex-wrap gap-2">
-              <BotaoMiudo onClick={() => setModo({ tipo: 'renovar', contrato: c })}>
-                Renovar
-              </BotaoMiudo>
+              <BotaoMiudo onClick={() => setVendo(c)}>Ver contrato</BotaoMiudo>
+              {podeRenovar(c) ? (
+                <BotaoMiudo onClick={() => setModo({ tipo: 'renovar', contrato: c })}>
+                  Renovar
+                </BotaoMiudo>
+              ) : null}
             </div>
-          ) : null}
-
-          {c.status !== 'encerrado' ? (
+          ) : (
             <div className="flex flex-wrap gap-2">
+              <BotaoMiudo onClick={() => setVendo(c)}>Ver contrato</BotaoMiudo>
               {podeRenovar(c) ? (
                 <BotaoMiudo onClick={() => setModo({ tipo: 'renovar', contrato: c })}>
                   Renovar
@@ -775,9 +778,22 @@ export function ContratosDaFicha({
                 Encerrar
               </BotaoMiudo>
             </div>
-          ) : null}
+          )}
         </div>
       ))}
+
+      {vendo ? (
+        <Modal
+          aberto
+          icone="lista"
+          titulo="Contrato"
+          sub={pessoaNome}
+          secundario="Fechar"
+          aoFechar={() => setVendo(null)}
+        >
+          <DetalheDoContrato c={vendo} />
+        </Modal>
+      ) : null}
 
       {modo ? (
         <ModalFormulario
@@ -940,6 +956,134 @@ export function ContratosDaFicha({
       ) : null}
 
       {erro && !modo ? <Nota tom="alerta">{erro}</Nota> : null}
+    </div>
+  )
+}
+
+const dataBr = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/')
+
+const ROTULO_DA_SITUACAO: Record<ContratoLinha['status'], string> = {
+  ativo: 'Em vigor', pausado: 'Trancado', encerrado: 'Encerrado',
+}
+
+/**
+ * Tudo o que foi preenchido quando o contrato nasceu, só para ler.
+ *
+ * Pedido do Daniel (MGM, 20/10/2026): depois de criar, não havia onde conferir
+ * datas, valor e horários de um contrato sem abrir o Renovar, e o Renovar
+ * cria outro contrato.
+ */
+function DetalheDoContrato({ c }: { c: ContratoLinha }) {
+  const prorrogado = c.fim && c.fimOriginal && c.fim !== c.fimOriginal
+  const forma = PAGAMENTOS.find((p) => p.valor === (c.formaPagamento ?? ''))?.rotulo
+  const recorrencia = RECORRENCIAS.find((r) => r.valor === c.recorrencia)?.rotulo
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Bloco titulo="Plano">
+        <Linha rotulo="Plano" valor={`${c.planoCodigo ? `${c.planoCodigo} · ` : ''}${c.planoNome}`} />
+        <Linha rotulo="Modalidade" valor={c.servicoNome || 'Não informada'} />
+        <Linha rotulo="Cobrança" valor={recorrencia ?? c.recorrencia} />
+        <Linha rotulo="Situação" valor={ROTULO_DA_SITUACAO[c.status]} />
+        {c.saldo ? (
+          <Linha
+            rotulo="Sessões"
+            valor={`${c.saldo.usadas} usadas, ${c.saldo.restantes} restantes`}
+          />
+        ) : null}
+      </Bloco>
+
+      <Bloco titulo="Valores">
+        {c.descontoCent > 0 ? (
+          <>
+            <Linha rotulo="Preço do plano" valor={emReais(c.precoAplicadoCent + c.descontoCent)} />
+            <Linha
+              rotulo="Desconto"
+              valor={`- ${emReais(c.descontoCent)}`}
+              nota={c.descontoMotivo ?? undefined}
+            />
+          </>
+        ) : null}
+        <Linha
+          rotulo="Valor do contrato"
+          valor={emReais(c.precoAplicadoCent)}
+          nota={c.vinculoUsado ? 'Preço de quem já é cliente de outra modalidade' : undefined}
+        />
+        <Linha rotulo="Como recebe" valor={c.recebidoDeUmaVez ? 'De uma vez' : 'Mês a mês'} />
+        <Linha rotulo="Forma de pagamento" valor={forma ?? 'Não informada'} />
+        {c.diaVencimento && !c.recebidoDeUmaVez ? (
+          <Linha rotulo="Vencimento" valor={`Dia ${c.diaVencimento} de cada mês`} />
+        ) : null}
+      </Bloco>
+
+      <Bloco titulo="Datas">
+        <Linha rotulo="Início" valor={dataBr(c.inicio)} />
+        <Linha
+          rotulo="Fim"
+          valor={c.fim ? dataBr(c.fim) : 'Sem fim previsto'}
+          nota={prorrogado ? `Era ${dataBr(c.fimOriginal!)}, adiado por trancamento ou licença` : undefined}
+        />
+        <Linha rotulo="Criado em" valor={dataBr(new Date(c.criadoEm).toLocaleDateString('en-CA'))} />
+      </Bloco>
+
+      <Bloco titulo="Horários fixos">
+        {c.horarios.length === 0 ? (
+          <p className="text-[13.5px] text-tinta-media">Nenhum horário fixo neste contrato.</p>
+        ) : (
+          c.horarios.map((h, i) => (
+            <Linha
+              key={i}
+              rotulo={DIAS_CURTOS[h.dia]}
+              valor={h.codigo ? `${h.hora} · turma ${h.codigo}` : h.hora}
+            />
+          ))
+        )}
+      </Bloco>
+
+      {c.pausas.length > 0 || c.licencas.length > 0 ? (
+        <Bloco titulo="Trancamentos e licenças">
+          {c.pausas.map((p, i) => (
+            <Linha
+              key={`p${i}`}
+              rotulo="Trancado"
+              valor={p.fim ? `${dataBr(p.inicio)} a ${dataBr(p.fim)}` : `desde ${dataBr(p.inicio)}`}
+            />
+          ))}
+          {c.licencas.map((l) => (
+            <Linha
+              key={l.id}
+              rotulo="Licença"
+              valor={l.volta ? `${dataBr(l.inicio)} a ${dataBr(l.volta)}` : `desde ${dataBr(l.inicio)}`}
+              nota={l.dias > 0 ? `${l.dias} ${l.dias === 1 ? 'dia devolvido' : 'dias devolvidos'}` : undefined}
+            />
+          ))}
+        </Bloco>
+      ) : null}
+    </div>
+  )
+}
+
+function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col">
+      <h4 className="pb-1.5 text-[12px] font-medium uppercase tracking-[0.04em] text-tinta-media">
+        {titulo}
+      </h4>
+      <dl className="flex flex-col divide-y divide-linha-fina rounded-media border border-linha-suave px-3.5">
+        {children}
+      </dl>
+    </section>
+  )
+}
+
+function Linha({ rotulo, valor, nota }: { rotulo: string; valor: string; nota?: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 py-2.5">
+      <dt className="shrink-0 text-[13.5px] text-tinta-media">{rotulo}</dt>
+      <dd className="flex min-w-0 flex-col items-end text-right">
+        <span className="text-[14.5px]">{valor}</span>
+        {nota ? <span className="text-[12px] text-tinta-media">{nota}</span> : null}
+      </dd>
     </div>
   )
 }

@@ -29,6 +29,15 @@ export type ContratoLinha = {
   saldo: { usadas: number; restantes: number; acabou: boolean } | null
   /** quantas turmas fixas este contrato ocupa hoje */
   vagasVivas: number
+  /** o fim como foi vendido, antes de pausa e licença empurrarem */
+  fimOriginal: string | null
+  descontoCent: number
+  descontoMotivo: string | null
+  /** o contrato inteiro numa cobrança só (0077) */
+  recebidoDeUmaVez: boolean
+  /** as turmas fixas que ele ocupa hoje, para o "Ver contrato" */
+  horarios: Array<{ dia: number; hora: string; codigo: string | null }>
+  criadoEm: string
 }
 
 /**
@@ -45,10 +54,11 @@ export async function contratosDaPessoa(
     .select(`
       id, plano_id, inicio, fim, dia_vencimento, preco_aplicado_cent,
       vinculo_usado, forma_pagamento, status, sessoes_contratadas,
+      desconto_cent, desconto_motivo, parcelas, criado_em,
       plano(codigo, nome, recorrencia, dias_licenca, servico(nome)),
       pausa(inicio, fim),
       licenca(id, inicio, encerrada_em, dias_prorrogados),
-      vaga(id, fim),
+      vaga(id, fim, serie:serie_id(codigo, dia_semana, hora_inicio)),
       participacao(id, status)
     `)
     .eq('conta_id', contaId)
@@ -98,6 +108,19 @@ export async function contratosDaPessoa(
       tetoDeLicenca: c.plano?.dias_licenca ?? 0,
       saldo: saldoDoPacote(c.sessoes_contratadas, usadas),
       vagasVivas: (c.vaga ?? []).filter((v) => v.fim === null).length,
+      fimOriginal: c.fim,
+      descontoCent: c.desconto_cent ?? 0,
+      descontoMotivo: c.desconto_motivo,
+      recebidoDeUmaVez: c.parcelas === 1,
+      horarios: (c.vaga ?? [])
+        .filter((v) => v.fim === null && v.serie)
+        .map((v) => {
+          const s = v.serie as unknown as { codigo: string | null; dia_semana: number; hora_inicio: string }
+          return { dia: s.dia_semana, hora: String(s.hora_inicio).slice(0, 5), codigo: s.codigo }
+        })
+        // semana começando na segunda, como a Agenda
+        .sort((a, b) => ((a.dia + 6) % 7) - ((b.dia + 6) % 7) || a.hora.localeCompare(b.hora)),
+      criadoEm: c.criado_em,
     }
   })
 }
