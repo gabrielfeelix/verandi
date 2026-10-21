@@ -27,7 +27,7 @@ async function gradeExperimental(db: Db, contaId: string) {
 }
 
 /**
- * Os horários que podem ser oferecidos, e — em lista separada — os que estão
+ * Os horários que podem ser oferecidos e, em lista separada, os que estão
  * cheios.
  *
  * **Cheio não é resultado.** Se a turma tem cinco vagas e cinco pessoas, aquele
@@ -41,9 +41,15 @@ async function gradeExperimental(db: Db, contaId: string) {
  * **`experimental` estreita a agenda, nunca a alarga.** Quem nunca veio ao
  * estúdio só pode ver o que o estúdio aceita dar como aula experimental: no
  * MGM, só Pilates aparelho, e nem em todo horário. Um serviço que ninguém
- * marcou como experimental não aparece — e nascer fechado (migration `0060`) é
+ * marcou como experimental não aparece, e nascer fechado (migration `0060`) é
  * o que impede esta linha de oferecer a Fisioterapia inteira no dia em que
  * subir.
+ *
+ * **`soGrade` é o que o bot vê.** A aula que a equipe cria à mão no Nova aula
+ * (avulsa ou experimental, fora da grade) existe para um aluno combinado no
+ * balcão. Se sobrar lugar nela, o bot não pode oferecer: o estúdio abriu
+ * aquele horário para alguém, não para qualquer um. A ficha continua vendo
+ * tudo, porque encaixar ali é decisão de quem está no balcão.
  */
 export async function horariosLivres(
   db: Db,
@@ -56,12 +62,15 @@ export async function horariosLivres(
     localId?: string
     /** só o que pode ser oferecido como aula experimental */
     experimental?: boolean
+    /** só horários da grade: a aula criada à mão fica de fora */
+    soGrade?: boolean
   },
 ): Promise<{ livres: SessaoResumo[]; cheios: SessaoResumo[] }> {
   const sessoes = await sessoesDoIntervalo(db, contaId, opts.de, opts.ate, {
     servicoId: opts.servicoId,
     profissionalId: opts.profissionalId,
     localId: opts.localId,
+    soGrade: opts.soGrade,
   })
 
   let abertas = sessoes.filter((s) => s.status !== 'cancelada')

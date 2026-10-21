@@ -209,6 +209,23 @@ describe('disponibilidade', () => {
     expect(cheios).toEqual([])
   })
 
+  it('aula criada à mão, fora da grade, não vai para o bot', async () => {
+    const { data: servico } = await db.from('servico').select('id')
+      .eq('conta_id', contaId).single()
+    // quinta 13h, dois lugares e ninguém: livre, mas aberta à mão
+    await db.from('sessao').insert({
+      conta_id: contaId, serie_id: null, servico_id: servico!.id,
+      inicio: '2026-08-06T16:00:00Z', duracao_min: 60, capacidade: 2,
+    })
+
+    const tela = await horariosLivres(db, contaId, { de: '2026-08-06', ate: '2026-08-06' })
+    expect(tela.livres.map((s) => s.hora)).toEqual(['13:00'])
+
+    const bot = await horariosLivres(db, contaId, { de: '2026-08-06', ate: '2026-08-06', soGrade: true })
+    expect(bot.livres).toEqual([])
+    expect(bot.cheios).toEqual([])
+  })
+
   it('o formato do bot é ponto e vírgula, como o AutoFluxos consome', async () => {
     const { livres } = await horariosLivres(db, contaId, {
       de: '2026-08-03', ate: '2026-08-03',

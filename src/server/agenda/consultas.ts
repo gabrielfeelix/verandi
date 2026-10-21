@@ -166,7 +166,11 @@ export async function sessoesDoIntervalo(
   contaId: string,
   de: string,
   ate: string,
-  filtro: { profissionalId?: string; servicoId?: string; localId?: string } = {},
+  filtro: {
+    profissionalId?: string; servicoId?: string; localId?: string
+    /** só o que nasceu de uma série: a aula criada à mão no Nova aula fica de fora */
+    soGrade?: boolean
+  } = {},
   /** quem já tem a conta em mãos poupa uma ida ao banco */
   fusoConhecido?: string,
 ): Promise<SessaoResumo[]> {
@@ -184,6 +188,7 @@ export async function sessoesDoIntervalo(
   if (filtro.profissionalId) q = q.eq('profissional_id', filtro.profissionalId)
   if (filtro.servicoId) q = q.eq('servico_id', filtro.servicoId)
   if (filtro.localId) q = q.eq('local_id', filtro.localId)
+  if (filtro.soGrade) q = q.not('serie_id', 'is', null)
 
   const { data, error } = await q
   if (error) throw error

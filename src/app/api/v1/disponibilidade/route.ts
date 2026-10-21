@@ -8,7 +8,7 @@ import type { SessaoResumo } from '@/server/agenda/consultas'
  * Os horários que o bot pode oferecer.
  *
  * **Cheio não é resultado.** Se a turma tem cinco vagas e cinco pessoas, aquele
- * horário sai em `cheios` e nunca em `livres` — e o bot só oferece `livres`. Ele
+ * horário sai em `cheios` e nunca em `livres`, e o bot só oferece `livres`. Ele
  * não abre turma, não muda capacidade e não passa da lotação: encaixe acima é
  * decisão de quem está no balcão, com nome e registro.
  *
@@ -21,9 +21,13 @@ import type { SessaoResumo } from '@/server/agenda/consultas'
  * por isso que aqui não há consulta própria.
  *
  * `experimental=1` estreita a lista para o que o estúdio aceita dar como aula
- * experimental — outro serviço e outra grade de horário que a do aluno
+ * experimental: outro serviço e outra grade de horário que a do aluno
  * matriculado. Sem o parâmetro, nada muda: a tela e o aluno continuam vendo a
  * agenda inteira.
+ *
+ * Só horários da grade. A aula que a equipe cria à mão no Nova aula, avulsa ou
+ * experimental, nunca sai aqui, nem com lugar sobrando: ela foi aberta para um
+ * aluno combinado, não para o bot oferecer.
  *
  *   GET /api/v1/disponibilidade?de=2026-08-15&ate=2026-08-22
  *                              [&servico=][&profissional=][&local=][&experimental=1]
@@ -71,6 +75,7 @@ export const GET = comChave(async (req: NextRequest, ctx: Contexto) => {
     profissionalId: p.get('profissional') ?? undefined,
     localId: p.get('local') ?? undefined,
     experimental: p.get('experimental') === '1',
+    soGrade: true,
   })
 
   return NextResponse.json({
