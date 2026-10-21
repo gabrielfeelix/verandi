@@ -43,6 +43,9 @@ contrato novo; se não, cancelar a cobrança. Precisa do Daniel.
 
 ### 3. As 156 faltas justificadas de jan a ago/2026
 
+**Finalizado** (confirmado pelo Gabriel em 21/out/2026): o Daniel terminou a
+conferência. Nada a reabrir.
+
 A importação de 07/10 encerrou como "reposição acertada no papel" 156 faltas
 justificadas de 49 alunos (a do 26/01 da Ana Maria é uma). O Daniel está
 conferindo aluno por aluno em ordem alfabética; em 13/10 ele já tinha mexido em
