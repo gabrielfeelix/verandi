@@ -147,6 +147,12 @@ de volta às 4 de antes). Releitura: 5 tipos, 56 migrations aplicadas,
 `public` com as mesmas 102 tabelas; Data API `app_verandi.conta` e
 `public.pedidos` **200**.
 
+**`0086` aplicada em 22/out/2026**, com autorização do dono. Só recria a view
+`pessoa_resumo`: faltar na reposição devolve a falta antiga apenas quando a
+falta nela daria crédito pela conta (Carolina Garcia, MGM). Simulada antes com
+`select` em produção; releitura: MGM de 282 para 275 reposições em aberto, 7
+alunos com uma a menos, Carolina de 6 para 5. 57 migrations aplicadas.
+
 **Tabela nova: uma política por ação, nunca `for all` junto de `X_le`.** O
 laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
 `auth.uid()` em política vai sempre como `(select auth.uid())`.

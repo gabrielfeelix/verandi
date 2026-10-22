@@ -1,6 +1,6 @@
 import { emReais } from '@/core/planos/plano'
 import {
-  calcularOcupacao, FILTRO_NAO_REPOEM, statusComCredito, type Ocupacao, type StatusParticipacao,
+  calcularOcupacao, filtroNaoRepoem, statusComCredito, type Ocupacao, type StatusParticipacao,
 } from '@/core/agenda/ocupacao'
 import { estadoDaChamada, type EstadoChamada } from '@/core/agenda/chamada'
 import type { Papel } from '@/core/acesso/destino'
@@ -537,7 +537,7 @@ export async function faltasEmAberto(
 ): Promise<FaltaEmAberto[]> {
   // falta sem aviso só se aponta se a conta der crédito para ela
   const { data: contaRow } = await db
-    .from('conta').select('credito_falta').eq('id', contaId).single()
+    .from('conta').select('credito_falta, credito_falta_avisada').eq('id', contaId).single()
   const { data, error } = await db
     .from('participacao')
     .select('id, status, sessao:sessao_id(inicio, servico:servico_id(nome))')
@@ -559,8 +559,8 @@ export async function faltasEmAberto(
     .select('reposicao_de_id')
     .eq('conta_id', contaId)
     .not('reposicao_de_id', 'is', null)
-    // reposição em que a pessoa faltou não pagou nada
-    .not('status', 'in', FILTRO_NAO_REPOEM)
+    // reposição perdida paga a falta; só não paga a que daria crédito
+    .not('status', 'in', filtroNaoRepoem(contaRow?.credito_falta_avisada ?? true, contaRow?.credito_falta ?? true))
   const jaReposta = new Set((usadas ?? []).map((u) => u.reposicao_de_id))
 
   return data

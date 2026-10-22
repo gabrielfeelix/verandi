@@ -1,10 +1,8 @@
 import type { Db } from '../supabase'
 import { localDe } from '../agenda/fuso'
-import { NAO_REPOEM, statusComCredito } from '@/core/agenda/ocupacao'
+import { naoRepoem, statusComCredito } from '@/core/agenda/ocupacao'
 import { formasGuardadas } from '@/core/telefone'
 
-/** reposição nestes status não pagou a falta, ver `NAO_REPOEM` */
-const NAO_REPOE = new Set<string>(NAO_REPOEM)
 
 /**
  * Mesma normalização que a coluna gerada `pessoa.nome_busca` faz no banco.
@@ -654,10 +652,12 @@ export async function fichaDaPessoa(
   }
 
   const { data: contaRow } = await db
-    .from('conta').select('fuso, credito_falta').eq('id', contaId).single()
+    .from('conta').select('fuso, credito_falta, credito_falta_avisada').eq('id', contaId).single()
   const fuso = (contaRow?.fuso as string) ?? 'America/Sao_Paulo'
   // os status que deixam a pessoa devendo uma reposição, ver `statusComCredito`
   const comCredito = new Set<string>(statusComCredito(true, contaRow?.credito_falta ?? true))
+  // reposição nestes status não pagou a falta, ver `naoRepoem`
+  const naoRepoe = new Set<string>(naoRepoem(contaRow?.credito_falta_avisada ?? true, contaRow?.credito_falta ?? true))
 
   const { data: tags } = await db
     .from('pessoa_tag').select('tag').eq('pessoa_id', pessoaId)
@@ -701,7 +701,7 @@ export async function fichaDaPessoa(
         origem: x.origem,
         status: x.status,
         // crédito acertado fora do sistema conta como já reposto
-        temReposicao: (x.reposicoes ?? []).some((r) => !NAO_REPOE.has(r.status))
+        temReposicao: (x.reposicoes ?? []).some((r) => !naoRepoe.has(r.status))
           || x.credito_encerrado_em !== null,
         inicio: x.sessao!.inicio,
       }

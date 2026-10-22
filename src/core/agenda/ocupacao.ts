@@ -45,19 +45,31 @@ export function statusComCredito(
 }
 
 /**
- * Os status em que a aula de reposição **não repõe** nada.
+ * Os status em que a aula de reposição **não repõe** nada: a falta antiga
+ * volta a ficar em aberto.
  *
- * Quem falta à reposição não pagou a falta antiga: ela volta a ficar em aberto,
- * e a falta na reposição não vira um crédito novo, senão a pessoa sairia com
- * dois. A ligação (`reposicao_de_id`) fica, para se saber qual falta aquela
- * aula ia pagar e para valer de novo se a chamada for corrigida para presente.
+ * Faltar na reposição segue a regra de faltar numa aula comum: a falta antiga
+ * só volta se essa falta daria direito a repor (`statusComCredito` com as
+ * regras da conta), ou se a aula foi cancelada ou era licença. Senão, a
+ * reposição foi perdida e paga a falta antiga.
+ *
+ * A aula que é reposição de outra nunca abre crédito próprio, senão a pessoa
+ * sairia com dois. A ligação (`reposicao_de_id`) fica, e tudo volta se a
+ * chamada for corrigida.
+ *
  * Até 13/out/2026 a falta na reposição contava como reposição feita (MGM,
- * Giovanna e Gustavo, 13/10 8h).
+ * Giovanna e Gustavo). De 13 a 22/out ela devolvia a falta antiga sempre,
+ * mesmo sem aviso, e na MGM, onde falta sem aviso não dá crédito, a aluna
+ * que faltou na reposição ganhava a aula de volta (Carolina Garcia, 21/10 9h).
  */
-export const NAO_REPOEM: readonly StatusParticipacao[] = ['falta', 'falta_avisada', 'cancelada', 'licenca']
+export function naoRepoem(creditoFaltaAvisada: boolean, creditoFalta = true): StatusParticipacao[] {
+  return [...statusComCredito(creditoFaltaAvisada, creditoFalta), 'licenca']
+}
 
-/** `NAO_REPOEM` no formato do filtro `.not('status', 'in', ...)` do PostgREST */
-export const FILTRO_NAO_REPOEM = `(${NAO_REPOEM.join(',')})`
+/** `naoRepoem` no formato do filtro `.not('status', 'in', ...)` do PostgREST */
+export function filtroNaoRepoem(creditoFaltaAvisada: boolean, creditoFalta = true): string {
+  return `(${naoRepoem(creditoFaltaAvisada, creditoFalta).join(',')})`
+}
 
 export type Ocupacao = {
   capacidade: number

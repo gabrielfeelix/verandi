@@ -1,5 +1,5 @@
 import type { Db } from '../supabase'
-import { FILTRO_NAO_REPOEM, statusComCredito } from '@/core/agenda/ocupacao'
+import { filtroNaoRepoem, statusComCredito } from '@/core/agenda/ocupacao'
 
 /**
  * A aula de reposição mais cedo paga a falta mais antiga.
@@ -18,7 +18,7 @@ import { FILTRO_NAO_REPOEM, statusComCredito } from '@/core/agenda/ocupacao'
  *
  * Ficam de fora as reposições vindas da importação, cujo `REP dd/mm` é o que
  * o estúdio escreveu na planilha (e as faltas que elas pagam), e as que não
- * repõem (`NAO_REPOEM`: falta, cancelada).
+ * repõem (`naoRepoem`: a falta que daria crédito, cancelada, licença).
  *
  * Roda depois de toda escrita que mexe na ligação ou no status. Falhar aqui
  * não desfaz a marcação: a ordem fica como estava, e a próxima escrita tenta
@@ -29,14 +29,14 @@ export async function reorganizarReposicoes(
 ): Promise<void> {
   try {
     const { data: conta } = await db.from('conta')
-      .select('credito_falta').eq('id', contaId).single()
+      .select('credito_falta, credito_falta_avisada').eq('id', contaId).single()
 
     const [{ data: pagam, error: e1 }, { data: faltas, error: e2 }] = await Promise.all([
       db.from('participacao')
         .select('id, reposicao_de_id, registrado_por_origem, sessao:sessao_id!inner(inicio)')
         .eq('conta_id', contaId).eq('pessoa_id', pessoaId)
         .not('reposicao_de_id', 'is', null)
-        .not('status', 'in', FILTRO_NAO_REPOEM),
+        .not('status', 'in', filtroNaoRepoem(conta?.credito_falta_avisada ?? true, conta?.credito_falta ?? true)),
       db.from('participacao')
         .select('id, sessao:sessao_id!inner(inicio)')
         .eq('conta_id', contaId).eq('pessoa_id', pessoaId)
