@@ -140,6 +140,13 @@ Conferido em produção: 1 de leitura e 3 de escrita em cada tabela, nenhuma
 `for all`. Reproduzido no Docker antes (4 falhas) e depois; regressão em
 `tests/rls-financeiro.test.ts`.
 
+**`0085` aplicada em 22/out/2026**, com autorização do dono, depois do deploy
+`318cda3` (ponte com o AutoFluxos). Só acrescenta `presenca.falta` à
+`evento_saida_tipo_check`. Ensaio em transação com `rollback` antes (restrição
+de volta às 4 de antes). Releitura: 5 tipos, 56 migrations aplicadas,
+`public` com as mesmas 102 tabelas; Data API `app_verandi.conta` e
+`public.pedidos` **200**.
+
 **Tabela nova: uma política por ação, nunca `for all` junto de `X_le`.** O
 laço da `0032` ainda gera `for all`; copiar dele traz o aviso de volta. E
 `auth.uid()` em política vai sempre como `(select auth.uid())`.
