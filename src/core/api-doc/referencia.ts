@@ -27,7 +27,7 @@ export type Campo = {
 export type Rota = {
   /** vira âncora, e é o que um integrador cola no chat do time */
   id: string
-  metodo: 'GET' | 'POST' | 'DELETE'
+  metodo: 'GET' | 'POST' | 'PUT' | 'DELETE'
   caminho: string
   titulo: string
   resumo: string
@@ -338,6 +338,71 @@ export const ROTAS: Rota[] = [
   "pessoaId": "77c0...",
   "tinhaLicenca": true,
   "licencaAberta": false
+}`,
+  },
+  {
+    id: 'relatorio',
+    metodo: 'GET',
+    caminho: '/relatorio',
+    titulo: 'Resumo do período',
+    resumo:
+      'Presença, falta, reposição, aula experimental que virou matrícula, matrícula nova e quem saiu, num período de até 400 dias. Só números, nenhum nome: é para relatório, não para lista.',
+    atencao:
+      'Presença conta só aula que já aconteceu e não foi cancelada pela casa; licença fica fora da taxa. Matrícula nova é o primeiro contrato da pessoa, e sair é encerrar o contrato sem ter outro ativo ou pausado hoje: trocar de plano não conta como saída.',
+    parametros: [
+      { nome: 'de', tipo: 'data', obrigatorio: true, descricao: 'primeiro dia, AAAA-MM-DD, no fuso da conta' },
+      { nome: 'ate', tipo: 'data', obrigatorio: true, descricao: 'último dia, incluído' },
+    ],
+    exemplo: `curl "${BASE}/relatorio?de=2026-10-01&ate=2026-10-31" \\
+  -H "Authorization: Bearer vr_sua_chave_aqui"`,
+    resposta: `{
+  "de": "2026-10-01",
+  "ate": "2026-10-31",
+  "presencas": 412,
+  "faltas": 38,
+  "faltasAvisadas": 51,
+  "taxaDePresenca": 0.82,
+  "reposicoesFeitas": 44,
+  "experimentais": 12,
+  "experimentaisQueMatricularam": 7,
+  "matriculasNovas": 9,
+  "sairam": 3,
+  "alunosAtivos": 118
+}`,
+  },
+  {
+    id: 'ligar-autofluxos',
+    metodo: 'PUT',
+    caminho: '/webhook',
+    titulo: 'Ligar os avisos no AutoFluxos',
+    resumo:
+      'O AutoFluxos se registra como destino dos avisos da conta, num clique do lado de lá. Daí em diante cada evento chega assinado com o segredo que ele mandou.',
+    atencao:
+      'Pela API só um endereço do AutoFluxos é aceito: com uma chave vazada não dá para desviar os avisos, que levam nome e telefone, para outro lugar. Outro destino se configura na tela, pelo dono.',
+    corpo: [
+      { nome: 'url', tipo: 'texto', obrigatorio: true, descricao: 'o endereço de recebimento do AutoFluxos para esta conta' },
+      { nome: 'segredo', tipo: 'texto', obrigatorio: true, descricao: 'de 32 a 200 caracteres; assina cada entrega' },
+    ],
+    exemplo: `curl -X PUT ${BASE}/webhook \\
+  -H "Authorization: Bearer vr_sua_chave_aqui" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "url": "https://autofluxos.4yu.com.br/api/webhook/verandi/…", "segredo": "…" }'`,
+    resposta: `{
+  "ativo": true,
+  "url": "https://autofluxos.4yu.com.br/api/webhook/verandi/…"
+}`,
+  },
+  {
+    id: 'desligar-autofluxos',
+    metodo: 'DELETE',
+    caminho: '/webhook',
+    titulo: 'Desligar os avisos no AutoFluxos',
+    resumo: 'Para de mandar os avisos para o AutoFluxos. Desliga, não apaga: o histórico de entregas continua.',
+    exemplo: `curl -X DELETE ${BASE}/webhook \\
+  -H "Authorization: Bearer vr_sua_chave_aqui"`,
+    resposta: `{
+  "ativo": false,
+  "desligou": true
 }`,
   },
 ]

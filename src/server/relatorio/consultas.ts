@@ -5,6 +5,7 @@ import {
   type SessaoParaContar,
 } from '@/core/relatorio/aulas'
 import type { StatusParticipacao } from '@/core/agenda/ocupacao'
+import { resumirPeriodo, type ContratoParaResumo, type ResumoDoPeriodo } from '@/core/relatorio/resumo-da-api'
 
 export type RelatorioDeAulas = {
   de: string
@@ -58,4 +59,60 @@ export async function aulasDoPeriodo(
 
   const linhas = aulasPorProfissional(sessoes, new Date().toISOString())
   return { de, ate, linhas, total: totalDoPeriodo(linhas) }
+}
+
+/**
+ * O resumo do período para a API (`GET /relatorio`): as participações das
+ * aulas da janela e os contratos da conta, contados em
+ * `core/relatorio/resumo-da-api.ts`.
+ *
+ * Os contratos vêm todos, e não só os do período: "experimental que virou
+ * matrícula" olha contrato que começou depois, e "saiu" precisa saber se a
+ * pessoa tem outro vigente hoje. Uma conta de estúdio tem centenas, não
+ * milhares.
+ */
+export async function resumoParaApi(
+  db: Db, contaId: string, de: string, ate: string, fuso: string,
+): Promise<ResumoDoPeriodo> {
+  const { data: participacoes, error } = await db
+    .from('participacao')
+    .select('pessoa_id, status, origem, sessao:sessao_id!inner(inicio, status)')
+    .eq('conta_id', contaId)
+    .gte('sessao.inicio', instante(de, '00:00', fuso))
+    .lte('sessao.inicio', instante(ate, '23:59', fuso))
+    .limit(20000)
+    .returns<Array<{
+      pessoa_id: string
+      status: string
+      origem: string
+      sessao: { inicio: string; status: string }
+    }>>()
+  if (error) throw error
+
+  const { data: contratos, error: erroDosContratos } = await db
+    .from('contrato')
+    .select('pessoa_id, inicio, fim, status')
+    .eq('conta_id', contaId)
+    .limit(20000)
+  if (erroDosContratos) throw erroDosContratos
+
+  const agora = Date.now()
+  return resumirPeriodo(
+    (participacoes ?? []).map((p) => ({
+      pessoaId: p.pessoa_id,
+      status: p.status as StatusParticipacao,
+      origem: p.origem,
+      dia: new Date(p.sessao.inicio).toLocaleDateString('en-CA', { timeZone: fuso }),
+      aulaJaAconteceu: new Date(p.sessao.inicio).getTime() < agora,
+      aulaCancelada: p.sessao.status === 'cancelada',
+    })),
+    (contratos ?? []).map((c) => ({
+      pessoaId: c.pessoa_id as string,
+      inicio: c.inicio as string,
+      fim: (c.fim as string | null) ?? null,
+      status: c.status as ContratoParaResumo['status'],
+    })),
+    de,
+    ate,
+  )
 }

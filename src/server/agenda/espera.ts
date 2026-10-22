@@ -113,12 +113,22 @@ export async function avisarQuemEspera(
   const agora = new Date().toISOString()
   await db.from('espera').update({ avisado_em: agora }).in('id', fila.map((f) => f.id))
 
+  // Dia e hora no fuso da conta, como nos outros eventos: sem isso o aviso diz
+  // "abriu uma vaga" e não diz em qual aula.
+  const { data: conta } = await db.from('conta').select('fuso').eq('id', contaId).maybeSingle()
+  const fuso = (conta as { fuso: string | null } | null)?.fuso ?? 'America/Sao_Paulo'
+  const quando = new Date(sessao.inicio)
+  const data = quando.toLocaleDateString('en-CA', { timeZone: fuso })
+  const hora = quando.toLocaleTimeString('pt-BR', { timeZone: fuso, hour: '2-digit', minute: '2-digit' })
+
   for (const f of fila) {
     const pessoa = f.pessoa as unknown as
       { id: string; nome: string; telefone: string | null } | null
     await enfileirar(db, contaId, 'vaga.aberta', {
       esperaId: f.id,
       sessaoId,
+      data,
+      hora,
       pessoaId: pessoa?.id ?? null,
       pessoa: pessoa?.nome ?? null,
       telefone: pessoa?.telefone ?? null,

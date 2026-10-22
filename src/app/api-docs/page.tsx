@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 const TINTA_METODO: Record<Rota['metodo'], string> = {
   GET: 'bg-positivo-fundo text-positivo',
   POST: 'bg-info-fundo text-info',
+  PUT: 'bg-info-fundo text-info',
   DELETE: 'bg-alerta-fundo text-alerta',
 }
 

@@ -22,6 +22,8 @@ export type TipoDeEvento =
   | 'sessao.cancelada'
   /* a vaga voltou a existir, e alguém estava esperando por ela */
   | 'vaga.aberta'
+  /* a pessoa faltou sem avisar: hora de o AutoFluxos oferecer a reposição */
+  | 'presenca.falta'
 
 /** Um segredo de assinatura novo, para a tela mostrar uma vez. */
 export function novoSegredoDeWebhook(): string {

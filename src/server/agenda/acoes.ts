@@ -115,13 +115,16 @@ export async function mudarStatus(
   atualizarTela(data.sessao_id)
 
   /*
-   * Só os dois status que devolvem a vaga viram evento.
+   * `falta_avisada` e `cancelada` devolvem a vaga, e é exatamente a notícia que
+   * faz o bot chamar a próxima pessoa.
    *
-   * "Presente" e "falta" são registro do que aconteceu na sala, e o outro
-   * sistema não tem nada a fazer com isso. `falta_avisada` e `cancelada` são o
-   * contrário: a vaga abriu, e é exatamente a notícia que faz o bot chamar a
-   * próxima pessoa.
+   * A falta sem aviso também vira evento, por outro motivo: é a hora de o
+   * AutoFluxos escrever "sentimos sua falta, quer marcar a reposição?", que é
+   * o que segura aluno. "Presente" continua de fora: não há o que dizer.
    */
+  if (status === 'falta') {
+    await avisar(db, conta.contaId, 'presenca.falta', { participacaoId, sessaoId: data.sessao_id })
+  }
   if (status === 'falta_avisada' || status === 'cancelada') {
     await avisar(db, conta.contaId, 'participacao.cancelada', {
       participacaoId, sessaoId: data.sessao_id,

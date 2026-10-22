@@ -1003,3 +1003,32 @@ test.describe('lista de espera', () => {
     expect(r.status).toBe(404)
   })
 })
+
+test.describe('ponte com o AutoFluxos', () => {
+  test('o resumo do período responde só números, e recusa janela malformada', async ({ request }) => {
+    const c = await contaComChave()
+    const ok = await json(request, '/api/v1/relatorio?de=2026-10-01&ate=2026-10-31', com(c.segredo))
+    expect(ok.status).toBe(200)
+    expect(ok.corpo).toMatchObject({ de: '2026-10-01', ate: '2026-10-31', presencas: 0, matriculasNovas: 0 })
+    const ruim = await json(request, '/api/v1/relatorio?de=2026-10-31&ate=2026-10-01', com(c.segredo))
+    expect(ruim.status).toBe(400)
+  })
+
+  test('pela API, os avisos só podem ir para o AutoFluxos', async ({ request }) => {
+    const c = await contaComChave()
+    const segredo = 'x'.repeat(40)
+    const fora = await request.put('/api/v1/webhook', {
+      ...com(c.segredo), data: { url: 'https://outro-lugar.com/recebe', segredo },
+    })
+    expect(fora.status()).toBe(400)
+
+    const url = `https://autofluxos.4yu.com.br/api/webhook/verandi/${c.contaId}`
+    const dentro = await request.put('/api/v1/webhook', { ...com(c.segredo), data: { url, segredo } })
+    expect(dentro.status()).toBe(200)
+    const { data } = await admin.from('webhook').select('url, ativo').eq('conta_id', c.contaId).single()
+    expect(data).toEqual({ url, ativo: true })
+
+    const desligou = await request.delete('/api/v1/webhook', com(c.segredo))
+    expect((await desligou.json()).desligou).toBe(true)
+  })
+})
