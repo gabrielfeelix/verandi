@@ -8,7 +8,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Banco de produção compartilhado — obrigatório
+## Banco de produção compartilhado: obrigatório
 
 Verandi e AutoFluxos são produtos diferentes no **mesmo projeto Supabase de
 produção**. Antes de qualquer trabalho que toque banco, migration, Auth, RLS,
@@ -25,4 +25,5 @@ Storage, extensão, função/view SQL ou Data API, leia por inteiro
 - Auth, `auth.users`, Storage, extensões, Data API, cotas e backup são globais ao
   projeto. Uma alteração neles exige avaliar os dois produtos.
 - A `service_role` ignora RLS e não isola um produto do outro.
-- Não aplique nada em produção sem autorização explícita do usuário.
+- Alterar o banco de produção é permitido sem pedir, quando fizer sentido para a
+  tarefa. Avise o que fez e confira o resultado (decisão do Gabriel, 27/out/2026).
