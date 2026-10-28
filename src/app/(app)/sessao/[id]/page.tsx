@@ -8,7 +8,7 @@ import { ProvedorDeAviso } from '@/components/ui/desfazer'
 import { ListaParticipacao } from '@/components/sessao/lista-participacao'
 import { HistoricoDaTurma } from '@/components/sessao/historico-turma'
 import { ModalEncaixe } from '@/components/sessao/modal-encaixe'
-import { ModalCancelar } from '@/components/sessao/modal-cancelar'
+import { BotaoReabrir, ModalCancelar } from '@/components/sessao/modal-cancelar'
 import {
   ProvedorChamada, BarraChamada, MaisAcoesDaSessao,
   BotaoConcluir, EtiquetaEstado, NotaDeRegistro, ResumoChamada,
@@ -187,6 +187,7 @@ export default async function Sessao({ params }: { params: Promise<{ id: string 
                   rotuloSessao={rotulos.sessao.singular}
                 />
               ) : null}
+              {cancelada ? <BotaoReabrir sessaoId={sessao.id} /> : null}
               <MaisAcoesDaSessao
                 rotuloCancelar={`Cancelar ${rotulos.sessao.singular.toLowerCase()}`}
               />

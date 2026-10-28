@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { cancelarSessao } from '@/server/agenda/acoes'
+import { cancelarSessao, reabrirSessao } from '@/server/agenda/acoes'
 import { Modal } from '@/components/ui/modal'
+import { Botao } from '@/components/ui/botao'
+import { useAviso } from '@/components/ui/desfazer'
 import { Rotulo, entrada } from '@/components/ui/pecas'
 import { useChamada } from './chamada'
 
@@ -23,6 +25,7 @@ export function ModalCancelar({
   quantasPessoas: number
 }) {
   const { cancelarAberto, fecharCancelar } = useChamada()
+  const avisar = useAviso()
   const [pendente, iniciar] = useTransition()
   const [motivo, setMotivo] = useState('')
 
@@ -41,7 +44,10 @@ export function ModalCancelar({
         if (!m) return
         setMotivo('')
         fecharCancelar()
-        iniciar(() => cancelarSessao(sessaoId, m))
+        iniciar(async () => {
+          await cancelarSessao(sessaoId, m)
+          avisar({ texto: 'Turma cancelada', desfazer: () => iniciar(() => reabrirSessao(sessaoId)) })
+        })
       }}
     >
       <p className="text-[14.5px] leading-[1.55] text-tinta-media">
@@ -67,5 +73,28 @@ export function ModalCancelar({
         />
       </div>
     </Modal>
+  )
+}
+
+/**
+ * O caminho de volta de um cancelamento, para depois que o "Desfazer" sumiu.
+ *
+ * Sem confirmação: reabrir não destrói nada. Quem saiu com crédito volta para a
+ * lista, menos quem já usou o crédito numa reposição (`devolverASessao`).
+ */
+export function BotaoReabrir({ sessaoId }: { sessaoId: string }) {
+  const avisar = useAviso()
+  const [pendente, iniciar] = useTransition()
+  return (
+    <Botao
+      tom="secundario"
+      disabled={pendente}
+      onClick={() => iniciar(async () => {
+        await reabrirSessao(sessaoId)
+        avisar({ texto: 'Turma reaberta' })
+      })}
+    >
+      {pendente ? 'Reabrindo…' : 'Reabrir turma'}
+    </Botao>
   )
 }
